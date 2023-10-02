@@ -1,6 +1,8 @@
+import 'package:apparule/sms_verification.dart';
 import 'package:flutter/material.dart';
 import 'language_constants.dart';
 import 'my_app_bar.dart';
+import 'package:sms_autofill/sms_autofill.dart';
 
 class VerifyAccount extends StatefulWidget {
   const VerifyAccount({super.key});
@@ -95,7 +97,11 @@ class _VerifyAccount extends State<VerifyAccount> with TickerProviderStateMixin 
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10), topRight: Radius.circular(10))),
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SmsVerificationPage()),
+                  );                },
                 child: Text(translation(context).next),
               ),
             ))
