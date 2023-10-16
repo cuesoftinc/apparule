@@ -1,4 +1,4 @@
-
+import 'package:apparule/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 
@@ -9,17 +9,14 @@ class SmsVerificationPage extends StatefulWidget {
   State<SmsVerificationPage> createState() => _SmsVerificationPageState();
 }
 
-class _SmsVerificationPageState extends State<SmsVerificationPage>
-    with SingleTickerProviderStateMixin {
-
+class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTickerProviderStateMixin {
   AnimationController? _animationController;
   int levelClock = 2 * 60;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-        vsync: this, duration: Duration(seconds: levelClock));
+    _animationController = AnimationController(vsync: this, duration: Duration(seconds: levelClock));
 
     _animationController!.forward();
 
@@ -40,16 +37,16 @@ class _SmsVerificationPageState extends State<SmsVerificationPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffF5F4FD),
       appBar: AppBar(
         title: const Text("SMS OTP AutoFill"),
-        titleTextStyle: const TextStyle(color: Colors.black, fontSize: 20),
+        titleTextStyle: TextStyle(color: Theme.of(context).colorScheme.onBackground, fontSize: 20),
         elevation: 0,
         backgroundColor: Colors.transparent,
         centerTitle: true,
       ),
+      backgroundColor: Theme.of(context).colorScheme.background,
       body: Padding(
-        padding: const EdgeInsets.all(18.0),
+        padding: const EdgeInsets.all(8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -58,32 +55,32 @@ class _SmsVerificationPageState extends State<SmsVerificationPage>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: const [
-                  Text("Verification"),
+                children: [
                   Text(
-                    "We sent you a SMS Code",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    "Verify Your Account",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Theme.of(context).colorScheme.onBackground),
                   ),
                   Text(
-                    "On number: +491601862579",
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  )
+                    "Check your SMS inbox for the code sent to (123) 456-7890. Enter the code below to complete the verification",
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).colorScheme.onBackground),
+                  ),
                 ],
               ),
             ),
             Center(
-              child: PinFieldAutoFill(
-                codeLength: 4,
-                autoFocus: true,
-                decoration: UnderlineDecoration(
-                  lineHeight: 2,
-                  lineStrokeCap: StrokeCap.square,
-                  bgColorBuilder: PinListenColorBuilder(
-                      Colors.green.shade200, Colors.grey.shade200),
-                  colorBuilder: const FixedColorBuilder(Colors.transparent),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: PinFieldAutoFill(
+                  codeLength: 6,
+                  autoFocus: true,
+                  decoration: UnderlineDecoration(
+                    lineHeight: 2,
+                    lineStrokeCap: StrokeCap.square,
+                    bgColorBuilder: PinListenColorBuilder(Colors.green.shade200, Colors.grey.shade200),
+                    colorBuilder: const FixedColorBuilder(Colors.transparent),
+                  ),
                 ),
               ),
             ),
@@ -93,7 +90,10 @@ class _SmsVerificationPageState extends State<SmsVerificationPage>
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text("Resend code after: "),
+                Text(
+                  "Resend code after: ",
+                  style: TextStyle(color: Theme.of(context).colorScheme.onBackground),
+                ),
                 Countdown(
                   animation: StepTween(
                     begin: levelClock, // THIS IS A USER ENTERED NUMBER
@@ -113,9 +113,9 @@ class _SmsVerificationPageState extends State<SmsVerificationPage>
             height: 56,
             child: ElevatedButton(
               onPressed: () async {
-                //?  use this code to get sms signature for your app
-                // final String signature = await SmsAutoFill().getAppSignature;
-                // print("Signature: $signature");
+                // ?  use this code to get sms signature for your app
+                final String signature = await SmsAutoFill().getAppSignature;
+                print("Signature: $signature");
 
                 _animationController!.reset();
                 _animationController!.forward();
@@ -126,10 +126,19 @@ class _SmsVerificationPageState extends State<SmsVerificationPage>
           SizedBox(
             height: 56,
             child: ElevatedButton(
-              onPressed:  () {
+              onPressed: () {
                 //Confirm and Navigate to Home Page
-              } ,
+              },
               child: const Text("Confirm"),
+            ),
+          ),
+          SizedBox(
+            height: 56,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+              },
+              child: const Text("Log Out"),
             ),
           ),
         ],
@@ -139,21 +148,18 @@ class _SmsVerificationPageState extends State<SmsVerificationPage>
 }
 
 class Countdown extends AnimatedWidget {
-  Countdown({Key? key, required this.animation})
-      : super(key: key, listenable: animation);
+  Countdown({Key? key, required this.animation}) : super(key: key, listenable: animation);
   Animation<int> animation;
 
   @override
   build(BuildContext context) {
     Duration clockTimer = Duration(seconds: animation.value);
-
-    String timerText =
-        '${clockTimer.inMinutes.remainder(60).toString()}:${clockTimer.inSeconds.remainder(60).toString().padLeft(2, '0')}';
+    String timerText = '${clockTimer.inMinutes.remainder(60).toString()}:${clockTimer.inSeconds.remainder(60).toString().padLeft(2, '0')}';
     return Text(
       timerText,
       style: TextStyle(
         fontSize: 18,
-        color: Theme.of(context).primaryColor,
+        color: Theme.of(context).colorScheme.onBackground,
       ),
     );
   }

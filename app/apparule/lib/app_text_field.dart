@@ -41,14 +41,19 @@ class AppTextField extends StatelessWidget {
         Container(
           padding: const EdgeInsets.only(top: 16, bottom: 8),
           child: Text(
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 18,
+              color: Theme.of(context).colorScheme.onBackground
             ),
             title,
           ),
         ),
         TextFormField(
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onBackground
+          ),
+          cursorColor: Theme.of(context).colorScheme.onBackground,
           onChanged: onChanged,
           keyboardType: keyboardType,
           obscureText: obscureText!,
@@ -58,7 +63,7 @@ class AppTextField extends StatelessWidget {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(8.0)),
               ),
-              fillColor: Theme.of(context).colorScheme.background,
+              fillColor: Theme.of(context).colorScheme.secondary,
               errorText: errorText,
               errorMaxLines: 3,
               floatingLabelBehavior: FloatingLabelBehavior.never,
@@ -66,6 +71,7 @@ class AppTextField extends StatelessWidget {
               hintText: hintText,
               hintStyle: TextStyle(
               fontSize: 14,
+                color: Theme.of(context).hintColor
               ),
               isDense: true,
               // Reduces height a bit
@@ -73,7 +79,7 @@ class AppTextField extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(0, 0, 4, 0),
                 child: GestureDetector(
                   onTap: toggleObscured,
-                  child: Icon(suffixIcon2, size: 24, color: Theme.of(context).colorScheme.secondary),
+                  child: Icon(suffixIcon2, size: 24, color: Theme.of(context).colorScheme.onBackground),
                 ),
               )
           ),

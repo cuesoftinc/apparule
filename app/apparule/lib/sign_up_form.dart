@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:apparule/language_constants.dart';
+import 'package:apparule/login_page.dart';
 import 'package:apparule/persistence.dart';
 import 'package:apparule/verify_account.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +12,7 @@ import 'package:apparule/app_text_field.dart';
 import 'model/user.dart';
 
 class SignUpForm extends StatefulWidget {
-  const SignUpForm({super.key});
+  const SignUpForm({super.key}) ;
 
   @override
   State<SignUpForm> createState() => _SignUpFormState();
@@ -35,16 +36,26 @@ class _SignUpFormState extends State<SignUpForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
       body: buildForm(context),
     );
   }
 
   showLoaderDialog(BuildContext context) {
     AlertDialog alert = AlertDialog(
+      backgroundColor: Theme.of(context).colorScheme.background,
       content: Row(
         children: [
-          const CircularProgressIndicator(),
-          Container(margin: const EdgeInsets.only(left: 7), child: Text(translation(context).loading)),
+          CircularProgressIndicator(
+            backgroundColor: Theme.of(context).colorScheme.tertiary,
+            color: Theme.of(context).colorScheme.onBackground,
+          ),
+          Container(
+              margin: const EdgeInsets.only(left: 7),
+              child: Text(
+                translation(context).loading,
+                style: TextStyle(color: Theme.of(context).colorScheme.onBackground),
+              )),
         ],
       ),
     );
@@ -84,20 +95,14 @@ class _SignUpFormState extends State<SignUpForm> {
           mainAxisSize: MainAxisSize.max,
           children: [
             Text(
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 22,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Theme.of(context).colorScheme.onBackground),
               translation(context).createAnAccount,
             ),
             Container(
               padding: const EdgeInsets.only(top: 10),
               child: Text(
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
-                  fontSize: 16,
-                ),
-                  translation(context).startYourJourney,
+                style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onBackground),
+                translation(context).startYourJourney,
               ),
             ),
             Padding(
@@ -155,7 +160,7 @@ class _SignUpFormState extends State<SignUpForm> {
                     if (true) {
                       showLoaderDialog(context);
                       Future.delayed(const Duration(seconds: 3), () {
-                        Navigator.of(context).pushReplacement(_createRoute());
+                        Navigator.of(context).push(_createRoute());
                       });
                     } else {
                       Widget okButton = TextButton(
@@ -185,12 +190,9 @@ class _SignUpFormState extends State<SignUpForm> {
                   },
                   style: ElevatedButton.styleFrom(
                     elevation: 0.0,
-                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    backgroundColor: Theme.of(context).colorScheme.tertiary,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.only(
-                            bottomLeft: Radius.circular(10),
-                            bottomRight: Radius.circular(10),
-                            topRight: Radius.circular(10))),
+                        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10), topRight: Radius.circular(10))),
                   ),
                   child: Text(translation(context).signUp),
                 ),
@@ -205,14 +207,9 @@ class _SignUpFormState extends State<SignUpForm> {
                 style: ElevatedButton.styleFrom(
                   elevation: 0.0,
                   shape: RoundedRectangleBorder(
-                    side: BorderSide(color: Theme.of(context).colorScheme.secondary),
-                      borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(10),
-                          bottomRight: Radius.circular(10),
-                          topRight: Radius.circular(10))),
-                    backgroundColor: Theme.of(context).colorScheme.background,
-                    foregroundColor: Theme.of(context).colorScheme.secondary,
-                   ),
+                      side: BorderSide(color: Theme.of(context).colorScheme.onBackground),
+                      borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10), topRight: Radius.circular(10))),
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
@@ -222,6 +219,7 @@ class _SignUpFormState extends State<SignUpForm> {
                       padding: EdgeInsets.only(left: 8.0, top: 4.0),
                       child: Text(
                         translation(context).continueWithGoogle,
+                        style: TextStyle(color: Theme.of(context).colorScheme.onBackground),
                       ),
                     )
                   ],
@@ -232,21 +230,21 @@ class _SignUpFormState extends State<SignUpForm> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Text(
-                  translation(context).alreadyHaveAnAccount ,
-                  style: TextStyle(fontSize: 16),
+                  translation(context).alreadyHaveAnAccount,
+                  style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onBackground),
                 ),
                 TextButton(
                   child: Text(
-                    translation(context).signIn ,
-                    style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.primary),
+                    translation(context).signIn,
+                    style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.tertiary),
                   ),
                   onPressed: () {
-                    //signup screen
-                  },
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                    );                  },
                 ),
               ],
             ),
-
           ],
         ),
       ),

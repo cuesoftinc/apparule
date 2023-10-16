@@ -45,6 +45,9 @@ dependencies:
   animations: ^2.0.8
   flutter_animate: 4.2.0
   sms_autofill: ^2.3.0
+  email_auth: ^1.1.1
+
+
 
 
 dev_dependencies:

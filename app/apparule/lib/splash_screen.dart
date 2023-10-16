@@ -1,9 +1,8 @@
 import 'dart:async';
+import 'package:apparule/home_screen.dart';
 import 'package:apparule/verify_account.dart';
 import 'package:flutter/material.dart';
-import 'main.dart';
 import 'persistence.dart';
-import 'sign_up_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -17,7 +16,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Timer(
         Duration(seconds: 3),
         () => Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => Persistence.getUser() == null ? const SignUpScreen() : const VerifyAccount())));
+            context, MaterialPageRoute(builder: (context) => Persistence.getUser() == null ? const HomeScreen() : const VerifyAccount())));
   }
 
   @override

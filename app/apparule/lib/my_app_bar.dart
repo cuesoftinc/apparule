@@ -1,7 +1,6 @@
 import 'package:apparule/language_constants.dart';
 import 'package:apparule/persistence.dart';
 import 'package:flutter/material.dart';
-
 import 'language.dart';
 import 'main.dart';
 import 'my_back_button.dart';
@@ -12,8 +11,9 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      elevation: 0,
       automaticallyImplyLeading: false,
-      leadingWidth: 100,
+      leadingWidth: 85,
       backgroundColor: Theme.of(context).primaryColor,
       leading: const MyBackButton(),
       toolbarHeight: 80,
@@ -69,5 +69,5 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(100);
+  Size get preferredSize => const Size.fromHeight(80);
 }
