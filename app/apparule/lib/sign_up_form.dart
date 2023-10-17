@@ -71,7 +71,7 @@ class _SignUpFormState extends State<SignUpForm> {
   Route _createRoute() {
     return PageRouteBuilder<SlideTransition>(
       transitionDuration: const Duration(milliseconds: 500),
-      pageBuilder: (context, animation, secondaryAnimation) => const VerifyAccount(),
+      pageBuilder: (context, animation, secondaryAnimation) => const EmailVerificationPage(),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         var tween = Tween<Offset>(begin: const Offset(0.5, 1.0), end: Offset.zero);
         var curveTween = CurveTween(curve: Curves.fastOutSlowIn);

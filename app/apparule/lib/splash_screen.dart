@@ -16,7 +16,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Timer(
         Duration(seconds: 3),
         () => Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => Persistence.getUser() == null ? const HomeScreen() : const VerifyAccount())));
+            context, MaterialPageRoute(builder: (context) => Persistence.getUser() == null ? const HomeScreen() : const EmailVerificationPage())));
   }
 
   @override

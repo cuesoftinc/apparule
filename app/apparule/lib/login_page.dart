@@ -4,6 +4,7 @@ import 'package:apparule/sign_up_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'forgot_password.dart';
 import 'language_constants.dart';
 
 class LoginPage extends StatefulWidget {
@@ -43,16 +44,9 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 length: 2,
                                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                                   Container(
-                                     decoration: ShapeDecoration(
-                                         color: Theme.of(context).colorScheme.secondary,
-                                       shape: OutlineInputBorder(
-                                         borderRadius: BorderRadius.circular(10)
-                                       )
-                                     ),
-                                      child: TabBar(
-                                        padding: EdgeInsets.only(left: 8, right: 8),
-                                        indicator: CustomTabIndicator(),
-                                          tabs: [
+                                      decoration: ShapeDecoration(
+                                          color: Theme.of(context).colorScheme.secondary, shape: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+                                      child: TabBar(padding: EdgeInsets.only(left: 8, right: 8), indicator: CustomTabIndicator(), tabs: [
                                         Tab(text: "Email"),
                                         Tab(text: "Phone"),
                                       ])),
@@ -88,7 +82,9 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => ForgotPassword()));
+                      },
                       child: Text(
                         "Forgot Password?",
                         style: TextStyle(color: Theme.of(context).colorScheme.tertiary),
@@ -153,7 +149,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(builder: (context) => const SignUpScreen()),
-                      );                    },
+                      );
+                    },
                   ),
                 ],
               ),

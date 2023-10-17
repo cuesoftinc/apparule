@@ -1,16 +1,17 @@
 import 'package:apparule/home_screen.dart';
+import 'package:apparule/reset_password.dart';
 import 'package:flutter/material.dart';
 import 'package:email_auth/email_auth.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 
-class EmailVerificationPage extends StatefulWidget {
-  const EmailVerificationPage({Key? key}) : super(key: key);
+class VerifyEmailForPasswordReset extends StatefulWidget {
+  const VerifyEmailForPasswordReset({Key? key}) : super(key: key);
 
   @override
-  State<EmailVerificationPage> createState() => _EmailVerificationPageState();
+  State<VerifyEmailForPasswordReset> createState() => _VerifyEmailForPasswordResetState();
 }
 
-class _EmailVerificationPageState extends State<EmailVerificationPage> with SingleTickerProviderStateMixin {
+class _VerifyEmailForPasswordResetState extends State<VerifyEmailForPasswordReset> with SingleTickerProviderStateMixin {
   AnimationController? _animationController;
   int levelClock = 2 * 60;
   final TextEditingController _emailController = TextEditingController();
@@ -130,7 +131,9 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> with Sing
             height: 56,
             child: ElevatedButton(
               onPressed: () {
-                //Confirm and Navigate to Home Page
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => ResetPassword(),)
+                );
               },
               child: const Text("Confirm"),
             ),
