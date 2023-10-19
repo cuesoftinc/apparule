@@ -149,7 +149,7 @@ class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTi
 
 class Countdown extends AnimatedWidget {
   Countdown({Key? key, required this.animation}) : super(key: key, listenable: animation);
-  Animation<int> animation;
+  final Animation<int> animation;
 
   @override
   build(BuildContext context) {
