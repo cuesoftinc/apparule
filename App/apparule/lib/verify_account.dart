@@ -195,7 +195,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> with Sing
 
 class Countdown extends AnimatedWidget {
   Countdown({Key? key, required this.animation}) : super(key: key, listenable: animation);
-  Animation<int> animation;
+  final Animation<int> animation;
 
   @override
   build(BuildContext context) {
