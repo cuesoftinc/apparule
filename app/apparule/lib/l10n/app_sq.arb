@@ -1,0 +1,29 @@
+{
+  "createAnAccount": "Regjistro një llogari",
+  "startYourJourney": "Filloni udhëtimin tuaj drejt përshtatjeve perfekte dhe stilit të personalizuar",
+  "fullName": "Emri i plotë",
+  "nameHint": "Shkruani emrin tuaj",
+  "nameValidation": "Ju lutem shënoni emrin tuaj të saktë",
+  "emailAddress": "Adresën e Emailit",
+  "emailHint": "Shkruani emailin tuaj",
+  "emailValidation": "Ju lutem shënoni emailin tuaj të saktë",
+  "phoneNumber": "Numri i telefonit",
+  "phoneNumberHint": "Shkruani numrin e telefonit tuaj",
+  "phoneValidation": "Numri i telefonit duhet të jetë deri në 12 shifra",
+  "password": "Fjalëkalimi",
+  "passwordHint": "Shkruani fjalëkalimin tuaj",
+  "passwordValidation": "Fjalëkalimi duhet të përmbajë një shkronjë të madhe, një të vogel, shifra numerike dhe karakter të veçantë",
+  "requiredField": "Ju duhet të plotësoni të gjitha fushat siç duhet.",
+  "signUp": "Regjistrohuni",
+  "loading": "Duke u ngarkuar...",
+  "continueWithGoogle": "Vazhdoni me Google",
+  "alreadyHaveAnAccount": "A keni llogari?",
+  "signIn": "Kyçu",
+  "verifyYourAccount": "Verifiko llogarinë tuaj",
+  "howToVerify": "Për të verifikuar llogarinë tuaj, ju lutemi zgjidhni se si dëshironi të merrni kodin tuaj të verifikimit",
+  "receiveSms": "Merrni kodin me SMS ",
+  "receiveEmail": "Merrni kodin në emailin tuaj",
+  "next": "Përpara"
+
+}
+
