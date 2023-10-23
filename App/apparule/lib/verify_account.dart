@@ -1,17 +1,23 @@
+import 'dart:ui';
+
 import 'package:apparule/home_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:email_auth/email_auth.dart';
 import 'package:sms_autofill/sms_autofill.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
-class SmsVerificationPage extends StatefulWidget {
-  const SmsVerificationPage({Key? key}) : super(key: key);
+class EmailVerificationPage extends StatefulWidget {
+  const EmailVerificationPage({Key? key}) : super(key: key);
 
   @override
-  State<SmsVerificationPage> createState() => _SmsVerificationPageState();
+  State<EmailVerificationPage> createState() => _EmailVerificationPageState();
 }
 
-class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTickerProviderStateMixin {
+class _EmailVerificationPageState extends State<EmailVerificationPage> with SingleTickerProviderStateMixin {
   AnimationController? _animationController;
   int levelClock = 2 * 60;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _otpController = TextEditingController();
 
   @override
   void initState() {
@@ -19,26 +25,32 @@ class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTi
     _animationController = AnimationController(vsync: this, duration: Duration(seconds: levelClock));
 
     _animationController!.forward();
-
-    _listenSmsCode();
   }
 
-  @override
-  void dispose() {
-    SmsAutoFill().unregisterListener();
-    _animationController!.dispose();
-    super.dispose();
+  void sendOTP() async {
+    EmailAuth emailAuth = new EmailAuth(sessionName: "Authentication");
+    var res = await emailAuth.sendOtp(recipientMail: _emailController.text);
+    if (res) {
+      print('OTP Sent');
+    } else {
+      print("We couldn't send the otp");
+    }
   }
 
-  _listenSmsCode() async {
-    await SmsAutoFill().listenForCode();
+  void verifyOTP() {
+    var res = EmailAuth(sessionName: "Authentication").validateOtp(recipientMail: _emailController.text, userOtp: _otpController.text);
+    if (res) {
+      print('OTP verified');
+    } else {
+      print("Invalid OTP");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("SMS OTP AutoFill"),
+        title: const Text("Email OTP AutoFill"),
         titleTextStyle: TextStyle(color: Theme.of(context).colorScheme.onBackground, fontSize: 20),
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -61,10 +73,8 @@ class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTi
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Theme.of(context).colorScheme.onBackground),
                   ),
                   Text(
-                    "Check your SMS inbox for the code sent to (123) 456-7890. Enter the code below to complete the verification",
-                    style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).colorScheme.onBackground),
+                    "Check your Email inbox for the code sent to baasit.quadri@cuesoft.io. Enter the code below to complete the verification",
+                    style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onBackground),
                   ),
                 ],
               ),
@@ -113,24 +123,60 @@ class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTi
             height: 56,
             child: ElevatedButton(
               onPressed: () async {
-                // ?  use this code to get sms signature for your app
-                final String signature = await SmsAutoFill().getAppSignature;
-                print("Signature: $signature");
-
                 _animationController!.reset();
                 _animationController!.forward();
               },
               child: const Text("Resend"),
             ),
           ),
-          SizedBox(
-            height: 56,
-            child: ElevatedButton(
-              onPressed: () {
-                //Confirm and Navigate to Home Page
-              },
-              child: const Text("Confirm"),
-            ),
+          ElevatedButton(
+            onPressed: () {
+              Widget okButton = Container(
+                height: 80,
+                width: double.infinity,
+                padding: const EdgeInsets.only(top: 25, bottom: 10),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    elevation: 0.0,
+                    backgroundColor: Theme.of(context).colorScheme.tertiary,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10), topRight: Radius.circular(10))),
+                  ),
+                  child: const Text("Okay"),
+                  onPressed: () {
+                    Navigator.of(context, rootNavigator: true).pop();
+                  },
+                ),
+              );
+
+              BackdropFilter alert = BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: AlertDialog(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(8))),
+                  iconPadding: EdgeInsets.only(top: 50),
+                  contentPadding: EdgeInsets.fromLTRB(30, 10, 30, 0),
+                  titlePadding: EdgeInsets.only(top: 20),
+                  icon: SvgPicture.asset("assets/images/check.svg"),
+                  title: Text("Successful"),
+                  content: Text("Your email has been verified",
+                    textAlign: TextAlign.center,
+                  ),
+                  actions: [
+                    okButton,
+                  ],
+                ),
+              );
+
+              // show the dialog
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return alert;
+                },
+              );
+            },
+            child: const Text("Confirm"),
           ),
           SizedBox(
             height: 56,
@@ -149,7 +195,7 @@ class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTi
 
 class Countdown extends AnimatedWidget {
   Countdown({Key? key, required this.animation}) : super(key: key, listenable: animation);
-  Animation<int> animation;
+  final Animation<int> animation;
 
   @override
   build(BuildContext context) {

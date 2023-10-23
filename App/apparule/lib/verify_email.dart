@@ -1,19 +1,17 @@
-import 'dart:ui';
-
 import 'package:apparule/home_screen.dart';
+import 'package:apparule/reset_password.dart';
 import 'package:flutter/material.dart';
 import 'package:email_auth/email_auth.dart';
 import 'package:sms_autofill/sms_autofill.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
-class EmailVerificationPage extends StatefulWidget {
-  const EmailVerificationPage({Key? key}) : super(key: key);
+class VerifyEmailForPasswordReset extends StatefulWidget {
+  const VerifyEmailForPasswordReset({Key? key}) : super(key: key);
 
   @override
-  State<EmailVerificationPage> createState() => _EmailVerificationPageState();
+  State<VerifyEmailForPasswordReset> createState() => _VerifyEmailForPasswordResetState();
 }
 
-class _EmailVerificationPageState extends State<EmailVerificationPage> with SingleTickerProviderStateMixin {
+class _VerifyEmailForPasswordResetState extends State<VerifyEmailForPasswordReset> with SingleTickerProviderStateMixin {
   AnimationController? _animationController;
   int levelClock = 2 * 60;
   final TextEditingController _emailController = TextEditingController();
@@ -129,54 +127,16 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> with Sing
               child: const Text("Resend"),
             ),
           ),
-          ElevatedButton(
-            onPressed: () {
-              Widget okButton = Container(
-                height: 80,
-                width: double.infinity,
-                padding: const EdgeInsets.only(top: 25, bottom: 10),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    elevation: 0.0,
-                    backgroundColor: Theme.of(context).colorScheme.tertiary,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10), topRight: Radius.circular(10))),
-                  ),
-                  child: const Text("Okay"),
-                  onPressed: () {
-                    Navigator.of(context, rootNavigator: true).pop();
-                  },
-                ),
-              );
-
-              BackdropFilter alert = BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: AlertDialog(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(8))),
-                  iconPadding: EdgeInsets.only(top: 50),
-                  contentPadding: EdgeInsets.fromLTRB(30, 10, 30, 0),
-                  titlePadding: EdgeInsets.only(top: 20),
-                  icon: SvgPicture.asset("assets/images/check.svg"),
-                  title: Text("Successful"),
-                  content: Text("Your email has been verified",
-                    textAlign: TextAlign.center,
-                  ),
-                  actions: [
-                    okButton,
-                  ],
-                ),
-              );
-
-              // show the dialog
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return alert;
-                },
-              );
-            },
-            child: const Text("Confirm"),
+          SizedBox(
+            height: 56,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => ResetPassword(),)
+                );
+              },
+              child: const Text("Confirm"),
+            ),
           ),
           SizedBox(
             height: 56,
@@ -195,7 +155,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> with Sing
 
 class Countdown extends AnimatedWidget {
   Countdown({Key? key, required this.animation}) : super(key: key, listenable: animation);
-  Animation<int> animation;
+ final Animation<int> animation;
 
   @override
   build(BuildContext context) {

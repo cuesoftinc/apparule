@@ -1,21 +1,17 @@
 import 'package:apparule/home_screen.dart';
-import 'package:apparule/reset_password.dart';
 import 'package:flutter/material.dart';
-import 'package:email_auth/email_auth.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 
-class VerifyEmailForPasswordReset extends StatefulWidget {
-  const VerifyEmailForPasswordReset({Key? key}) : super(key: key);
+class SmsVerificationPage extends StatefulWidget {
+  const SmsVerificationPage({Key? key}) : super(key: key);
 
   @override
-  State<VerifyEmailForPasswordReset> createState() => _VerifyEmailForPasswordResetState();
+  State<SmsVerificationPage> createState() => _SmsVerificationPageState();
 }
 
-class _VerifyEmailForPasswordResetState extends State<VerifyEmailForPasswordReset> with SingleTickerProviderStateMixin {
+class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTickerProviderStateMixin {
   AnimationController? _animationController;
   int levelClock = 2 * 60;
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _otpController = TextEditingController();
 
   @override
   void initState() {
@@ -23,32 +19,26 @@ class _VerifyEmailForPasswordResetState extends State<VerifyEmailForPasswordRese
     _animationController = AnimationController(vsync: this, duration: Duration(seconds: levelClock));
 
     _animationController!.forward();
+
+    _listenSmsCode();
   }
 
-  void sendOTP() async {
-    EmailAuth emailAuth = new EmailAuth(sessionName: "Authentication");
-    var res = await emailAuth.sendOtp(recipientMail: _emailController.text);
-    if (res) {
-      print('OTP Sent');
-    } else {
-      print("We couldn't send the otp");
-    }
+  @override
+  void dispose() {
+    SmsAutoFill().unregisterListener();
+    _animationController!.dispose();
+    super.dispose();
   }
 
-  void verifyOTP() {
-    var res = EmailAuth(sessionName: "Authentication").validateOtp(recipientMail: _emailController.text, userOtp: _otpController.text);
-    if (res) {
-      print('OTP verified');
-    } else {
-      print("Invalid OTP");
-    }
+  _listenSmsCode() async {
+    await SmsAutoFill().listenForCode();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Email OTP AutoFill"),
+        title: const Text("SMS OTP AutoFill"),
         titleTextStyle: TextStyle(color: Theme.of(context).colorScheme.onBackground, fontSize: 20),
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -71,8 +61,10 @@ class _VerifyEmailForPasswordResetState extends State<VerifyEmailForPasswordRese
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Theme.of(context).colorScheme.onBackground),
                   ),
                   Text(
-                    "Check your Email inbox for the code sent to baasit.quadri@cuesoft.io. Enter the code below to complete the verification",
-                    style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onBackground),
+                    "Check your SMS inbox for the code sent to (123) 456-7890. Enter the code below to complete the verification",
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).colorScheme.onBackground),
                   ),
                 ],
               ),
@@ -121,6 +113,10 @@ class _VerifyEmailForPasswordResetState extends State<VerifyEmailForPasswordRese
             height: 56,
             child: ElevatedButton(
               onPressed: () async {
+                // ?  use this code to get sms signature for your app
+                final String signature = await SmsAutoFill().getAppSignature;
+                print("Signature: $signature");
+
                 _animationController!.reset();
                 _animationController!.forward();
               },
@@ -131,9 +127,7 @@ class _VerifyEmailForPasswordResetState extends State<VerifyEmailForPasswordRese
             height: 56,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => ResetPassword(),)
-                );
+                //Confirm and Navigate to Home Page
               },
               child: const Text("Confirm"),
             ),
@@ -155,7 +149,7 @@ class _VerifyEmailForPasswordResetState extends State<VerifyEmailForPasswordRese
 
 class Countdown extends AnimatedWidget {
   Countdown({Key? key, required this.animation}) : super(key: key, listenable: animation);
-  Animation<int> animation;
+  final Animation<int> animation;
 
   @override
   build(BuildContext context) {

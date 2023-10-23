@@ -2,7 +2,6 @@ import 'package:apparule/app_text_field.dart';
 import 'package:apparule/custom_tab_indicator.dart';
 import 'package:apparule/sign_up_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'forgot_password.dart';
 import 'language_constants.dart';

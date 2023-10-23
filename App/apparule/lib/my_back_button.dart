@@ -7,9 +7,9 @@ class MyBackButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton.icon(
       onPressed: () => Navigator.of(context).pop(),
-      icon: const Icon(
+      icon: Icon(
         Icons.arrow_circle_left,
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.onBackground,
         size: 40,
       ),
       label: const Text(''),
