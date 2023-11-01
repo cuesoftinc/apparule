@@ -1,6 +1,7 @@
 import 'package:apparule/app_text_field.dart';
 import 'package:apparule/custom_tab_indicator.dart';
 import 'package:apparule/sign_up_screen.dart';
+import 'package:apparule/welcome_screen.dart';
 import 'package:flutter/material.dart';
 
 import 'forgot_password.dart';
@@ -95,7 +96,9 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                 width: double.infinity,
                 padding: const EdgeInsets.only(top: 25, bottom: 10),
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=> WelcomeScreen()));
+                  },
                   style: ElevatedButton.styleFrom(
                     elevation: 0.0,
                     backgroundColor: Theme.of(context).colorScheme.tertiary,
