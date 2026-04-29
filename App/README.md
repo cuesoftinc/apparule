@@ -1,2 +1,2 @@
 # apparule
-Flutter app for apparule
+Apparule Monorepo
