@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dark_theme.dart';
 import 'light_theme.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+//import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -78,20 +78,21 @@ class _MyAppFieldState extends State<MyApp> with WidgetsBindingObserver {
 
 
     @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<ThemeMode>(
-        valueListenable: MyApp.themeNotifier,
-        builder: (_, ThemeMode currentMode, __) {
-          return MaterialApp(
-              debugShowCheckedModeBanner: false,
-              title: 'Apparule',
-              theme: lightTheme,
-              darkTheme: darkTheme,
-              themeMode: currentMode,
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              locale: _locale,
-              home: SplashScreen());
-        });
-  }
+      Widget build(BuildContext context) {
+        return ValueListenableBuilder<ThemeMode>(
+            valueListenable: MyApp.themeNotifier,
+            builder: (_, ThemeMode currentMode, __) {
+              return MaterialApp(
+                  debugShowCheckedModeBanner: false,
+                  title: 'Apparule',
+                  theme: lightTheme,
+                  darkTheme: darkTheme,
+                  themeMode: currentMode,
+                  // We replaced the broken AppLocalizations calls with basic Flutter defaults:
+                  localizationsDelegates: const [],
+                  supportedLocales: const [Locale('en', '')],
+                  locale: _locale,
+                  home: SplashScreen());
+            });
+      }
 }
