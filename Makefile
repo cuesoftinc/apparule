@@ -2,7 +2,7 @@
 
 # Dynamic path variables to guarantee cross-environment stability
 ROOT_DIR        := $(shell pwd)
-FLUTTER_APP_DIR := $(ROOT_DIR)/app/flutter
+FLUTTER_APP_DIR := $(ROOT_DIR)/mobile/flutter
 
 # Define default automation target when typing just 'make'
 .DEFAULT_GOAL := help

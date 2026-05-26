@@ -1,0 +1,50 @@
+# Dart/Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+pubspec.lock
+build/
+*.iml
+*.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+*.log
+.env
+.env.local
+
+# Build outputs
+dist/
+*.apk
+*.ipa
+*.app
+*.exe
+.next/
+out/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+env/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Docker
+.dockerignore
