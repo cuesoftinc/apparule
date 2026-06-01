@@ -48,3 +48,6 @@ env/
 
 # Docker
 .dockerignore
+
+# Firebase Local Security Sandbox
+firebase-secrets.json
