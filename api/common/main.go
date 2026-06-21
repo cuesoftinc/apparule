@@ -7,15 +7,17 @@ import (
 )
 
 func main() {
-	// 1. Production Best Practice: Read settings from system environment variables
+	// Read settings from system environment variables
 	configPath := os.Getenv("FIREBASE_CONFIG_PATH")
-	if configPath == "" {
-		// Fallback to our local sandbox file for seamless development
+	
+	// Local development comfort: If running locally without env vars, look for the file.
+	// But if we are in production on Cloud Run, GOOGLE_CLOUD_PROJECT will exist, so we skip forcing the file!
+	if configPath == "" && os.Getenv("GOOGLE_CLOUD_PROJECT") == "" && os.Getenv("GCP_PROJECT") == "" {
 		configPath = "firebase-secrets.json"
-		log.Println("[Init] WARNING: FIREBASE_CONFIG_PATH env variable not found. Defaulting to local sandbox file.")
+		log.Println("[Init] WARNING: FIREBASE_CONFIG_PATH not found. Defaulting to local sandbox file.")
 	}
 
-	// 2. Initialize our Authentication Layer with the configuration path
+	// Initialize our Authentication Layer (handles both local paths and Cloud Run ADC)
 	err := InitializeAuth(configPath)
 	if err != nil {
 		log.Fatalf("[Init] Critical Error initializing authentication infrastructure: %v", err)

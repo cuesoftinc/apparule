@@ -30,25 +30,36 @@ type EmailAuthRequest struct {
 }
 
 // InitializeAuth verifies that the system can read and parse the credentials path safely
+// Now updated to dynamically support both local JSON paths and Cloud Run ADC fallbacks
 func InitializeAuth(path string) error {
-	file, err := os.Open(path)
-	if err != nil {
-		return fmt.Errorf("unable to open config file: %w", err)
-	}
-	defer file.Close()
+	// 1. Local development: If a custom path is provided, read the local JSON file
+	if path != "" {
+		file, err := os.Open(path)
+		if err != nil {
+			return fmt.Errorf("unable to open config file: %w", err)
+		}
+		defer file.Close()
 
-	bytes, err := io.ReadAll(file)
-	if err != nil {
-		return fmt.Errorf("unable to read config content: %w", err)
-	}
+		bytes, err := io.ReadAll(file)
+		if err != nil {
+			return fmt.Errorf("unable to read config content: %w", err)
+		}
 
-	err = json.Unmarshal(bytes, &activeConfig)
-	if err != nil {
-		return fmt.Errorf("malformed JSON credential structure: %w", err)
-	}
-
-	if activeConfig.ProjectID == "" || activeConfig.PrivateKey == "" {
-		return fmt.Errorf("invalid authentication secret layout: missing critical fields")
+		err = json.Unmarshal(bytes, &activeConfig)
+		if err != nil {
+			return fmt.Errorf("malformed JSON credential structure: %w", err)
+		}
+	} else {
+		// 2. Production/Cloud Run Fallback: Read from Google's standard environment variables
+		activeConfig.ProjectID = os.Getenv("GOOGLE_CLOUD_PROJECT")
+		if activeConfig.ProjectID == "" {
+			activeConfig.ProjectID = os.Getenv("GCP_PROJECT") // Fallback identifier
+		}
+		
+		// If running in Cloud Run, ProjectID is automatically populated by Google
+		if activeConfig.ProjectID == "" {
+			return fmt.Errorf("invalid authentication layout: missing project identifier for ADC")
+		}
 	}
 
 	log.Printf("[Firebase] Successfully initialized cloud backend hook for Project ID: %s\n", activeConfig.ProjectID)
