@@ -5,13 +5,13 @@ FROM golang:1.25-alpine AS builder
 WORKDIR /app
 
 # Copy the go.mod and go.sum files to the workspace
-COPY go.mod go.sum ./
+COPY api/go.mod api/go.sum ./
 
 # Download and install dependencies
 RUN go mod download
 
 # Copy the entire project into the container
-COPY . .
+COPY api/ ./
 
 # Build the Go application 
 RUN go build -o myapp
