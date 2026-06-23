@@ -1,4 +1,4 @@
-name: Frontend Apparule (web) Pipeline for build and deploy to GitHub pages
+name: Frontend Apparule (FE/BE) Pipeline for build and deploy to GitHub pages
 
 on:
   pull_request:
