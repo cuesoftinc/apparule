@@ -1,54 +1,64 @@
-# Dart/Flutter
-.dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-.packages
-pubspec.lock
-build/
-*.iml
-*.lock
-
-# IDE
-.vscode/
-.idea/
+# ── OS / editor ──
+.DS_Store
 *.swp
 *.swo
 *~
-.DS_Store
+.idea/
+.vscode/
+*.iml
 
-# OS
-*.log
+# ── Environment & secrets (never commit) ──
 .env
-.env.local
-
-# Build outputs
-dist/
-*.apk
-*.ipa
-*.app
-*.exe
-.next/
-out/
-
-# Node
-node_modules/
-npm-debug.log
-yarn-error.log
-
-# Python
-__pycache__/
-*.py[cod]
-venv/
-env/
-
-# Terraform
+.env.*
+!.env.example
+*.pem
+firebase-secrets.json
+*service-account*.json
+*.tfvars
 *.tfstate
 *.tfstate.*
 .terraform/
 
-# Docker
+# ── Go ──
+bin/
+.air.toml
 
-# Firebase Local Security Sandbox
-firebase-secrets.json
-# generated pose-detector output
-api/measure/output_landmarks.jpg
+# ── Python ──
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# ── Node / Next.js ──
+node_modules/
+.next/
+out/
+dist/
+build/
+coverage/
+.eslintcache
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp.js
+.vercel
+
+# ── Flutter / Dart ──
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+*.apk
+*.aab
+*.ipa
+*.app
+
+# ── Logs & temp ──
+*.log
+tmp/
+
+# NOTE: do NOT ignore .dockerignore; commit lockfiles (package-lock.json,
+# go.sum, pubspec.lock, .terraform.lock.hcl).

@@ -1,21 +1,21 @@
-# Contributing to Apparule
+# Contributing
 
-Thanks for your interest in contributing! This guide covers how to propose
-changes.
+Thanks for your interest in contributing! This guide applies across CueLABS
+repositories, which share a common structure and conventions.
 
 ## Getting started
 
 1. Fork and clone the repository.
 2. Create a feature branch: `git checkout -b feature/short-description`.
-3. Install dependencies for the area you're working on — see
+3. Install dependencies for the area you're working on — see the repository's
    [docs/setup.md](docs/setup.md).
 
 ## Repository layout
 
-This is a monorepo. Work happens in one of:
+CueLABS repositories follow a shared standard:
 
 - `api/common` — Go backend (auth + core API)
-- `api/measure` — Python measurement service
+- `api/<service>` — additional services, named by function
 - `web` — Next.js web + dashboard
 - `mobile/flutter` — Flutter mobile app
 - `deploy`, `docs`, `scripts`
