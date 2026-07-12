@@ -1,0 +1,12 @@
+# Go service build context.
+.env
+.env.*
+firebase-secrets.json
+*service-account*.json
+*.pem
+.git
+.gitignore
+.dockerignore
+Dockerfile
+README.md
+*_test.go

@@ -47,7 +47,8 @@ env/
 .terraform/
 
 # Docker
-.dockerignore
 
 # Firebase Local Security Sandbox
 firebase-secrets.json
+# generated pose-detector output
+api/measure/output_landmarks.jpg
