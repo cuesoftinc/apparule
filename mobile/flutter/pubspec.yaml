@@ -43,7 +43,7 @@ dependencies:
   provider: ^6.0.5
   http: ^1.1.0
   animations: ^2.0.8
-  flutter_animate: 4.2.0
+  flutter_animate: 4.5.2
   sms_autofill: ^2.3.0
   email_auth: ^1.1.1
   flutter_svg: ^2.0.7
