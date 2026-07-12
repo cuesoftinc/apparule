@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:apparule/home_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:email_auth/email_auth.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -28,22 +27,12 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> with Sing
   }
 
   void sendOTP() async {
-    EmailAuth emailAuth = new EmailAuth(sessionName: "Authentication");
-    var res = await emailAuth.sendOtp(recipientMail: _emailController.text);
-    if (res) {
-      print('OTP Sent');
-    } else {
-      print("We couldn't send the otp");
-    }
+    // TODO: request an OTP from the backend. Client-side OTP handling was
+    // removed for security — OTP send/verify must happen server-side.
   }
 
   void verifyOTP() {
-    var res = EmailAuth(sessionName: "Authentication").validateOtp(recipientMail: _emailController.text, userOtp: _otpController.text);
-    if (res) {
-      print('OTP verified');
-    } else {
-      print("Invalid OTP");
-    }
+    // TODO: verify the OTP against the backend (server-side).
   }
 
   @override
