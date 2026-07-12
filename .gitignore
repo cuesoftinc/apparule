@@ -47,7 +47,6 @@ env/
 .terraform/
 
 # Docker
-.dockerignore
 
 # Firebase Local Security Sandbox
 firebase-secrets.json

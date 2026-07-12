@@ -1,0 +1,40 @@
+version: 2
+updates:
+  # Go backend (main/shared service)
+  - package-ecosystem: gomod
+    directory: /api/common
+    schedule:
+      interval: weekly
+    groups:
+      go-dependencies:
+        patterns: ["*"]
+
+  # Python measurement service
+  - package-ecosystem: pip
+    directory: /api/measure
+    schedule:
+      interval: weekly
+    groups:
+      python-dependencies:
+        patterns: ["*"]
+
+  # Next.js web + dashboard
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+    groups:
+      npm-dependencies:
+        patterns: ["*"]
+
+  # Flutter mobile app
+  - package-ecosystem: pub
+    directory: /mobile/flutter
+    schedule:
+      interval: weekly
+
+  # CI workflows
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
