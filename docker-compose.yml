@@ -1,0 +1,36 @@
+# Local development stack for apparule.
+# Usage: cp .env.example .env  &&  docker compose up --build
+services:
+  api-common:
+    build: ./api/common
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT:-apparule-local}
+      # For full Firebase functionality, mount a service-account JSON and set:
+      # FIREBASE_CONFIG_PATH: /run/secrets/firebase-service-account.json
+    restart: unless-stopped
+
+  api-measure:
+    build: ./api/measure
+    ports:
+      - "8081:8081"
+    environment:
+      PORT: "8081"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+      # NEXT_PUBLIC_* are inlined into the standalone build, so pass them here.
+      args:
+        NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:8080}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
+    ports:
+      - "3000:3000"
+    depends_on:
+      api-common:
+        condition: service_healthy
+    restart: unless-stopped

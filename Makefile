@@ -1,44 +1,31 @@
-
-
-# Dynamic path variables to guarantee cross-environment stability
-ROOT_DIR        := $(shell pwd)
-FLUTTER_APP_DIR := $(ROOT_DIR)/mobile/flutter
-
-# Define default automation target when typing just 'make'
+# CueLABS standard Makefile — compose-driven local development.
+# Run `make help` to list targets.
 .DEFAULT_GOAL := help
+.PHONY: help up down build rebuild logs ps restart clean
 
-# Declare all non-file targets as .PHONY to prevent folder name execution conflicts
-.PHONY: help setup clean get run-chrome test
+help: ## List available targets
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN{FS=":.*?## "};{printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2}'
 
-## help: Print out all available automation targets and descriptions
-help:
-	@echo "Apparule Monorepo Management Console"
-	@echo "Usage: make [target]"
-	@echo ""
-	@echo "Available Tasks:"
-	@sed -n 's/^## //p' $(MAKEFILE_LIST) | column -t -s ':' | sed -e 's/^/  /'
+up: ## Build and start the full stack (detached)
+	docker compose up --build -d
 
-## setup: Perform first-time initialization of environment and submodules
-setup:
-	@echo "Initializing Monorepo structural environment..."
-	cd $(FLUTTER_APP_DIR) && flutter pub get
+down: ## Stop and remove the stack
+	docker compose down
 
-## get: Fetch latest dependency pack packages for the Flutter application
-get:
-	@echo "Fetching Flutter dependencies..."
-	cd $(FLUTTER_APP_DIR) && flutter pub get
+build: ## Build all service images
+	docker compose build
 
-## clean: Wipe localized compilation artifacts and build caches safely
-clean:
-	@echo "Purging build directories..."
-	cd $(FLUTTER_APP_DIR) && flutter clean
+rebuild: ## Rebuild images from scratch (no cache)
+	docker compose build --no-cache
 
-## run-chrome: Spin up localized preview build server targeted on Google Chrome
-run-chrome:
-	@echo "Launching development build on local Chrome instance..."
-	cd $(FLUTTER_APP_DIR) && flutter run -d chrome
+logs: ## Follow logs from all services
+	docker compose logs -f
 
-## test: Run structural unit validation suites across core logic elements
-test:
-	@echo "Running test suites..."
-	cd $(FLUTTER_APP_DIR) && flutter test
+ps: ## Show service status
+	docker compose ps
+
+restart: ## Restart all services
+	docker compose restart
+
+clean: ## Stop the stack and remove volumes + orphans
+	docker compose down -v --remove-orphans
