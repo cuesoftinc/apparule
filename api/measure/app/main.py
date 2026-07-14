@@ -29,3 +29,8 @@ app.include_router(measure.router)
 @app.get("/health")
 def health():
     return {"status": "healthy", "service": "measure"}
+
+
+@app.get("/ready")
+def ready():
+    return {"status": "ready"}

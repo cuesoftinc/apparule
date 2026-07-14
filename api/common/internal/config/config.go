@@ -2,6 +2,7 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"strings"
 )
@@ -19,10 +20,17 @@ type Config struct {
 func Load() (*Config, error) {
 	c := &Config{
 		Port:               getenv("PORT", "8080"),
-		JWTSecret:          getenv("JWT_SECRET", "apparule_super_secure_core_secret_key_2026"),
+		JWTSecret:          os.Getenv("JWT_SECRET"),
 		FirebaseConfigPath: os.Getenv("FIREBASE_CONFIG_PATH"),
 		ProjectID:          firstNonEmpty(os.Getenv("GOOGLE_CLOUD_PROJECT"), os.Getenv("GCP_PROJECT")),
 		AllowedOrigins:     splitCSV(getenv("ALLOWED_ORIGINS", "http://localhost:3000")),
+	}
+
+	// Fail fast rather than fall back to a baked-in secret: a hard-coded
+	// default would make every token forgeable in any environment that
+	// forgot to set JWT_SECRET.
+	if c.JWTSecret == "" {
+		return nil, errors.New("JWT_SECRET is required (set it in the environment or .env)")
 	}
 
 	// Local-dev comfort (migrated from the original main.go): if neither a

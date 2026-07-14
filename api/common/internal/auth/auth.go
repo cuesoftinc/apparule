@@ -9,6 +9,7 @@ package auth
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -70,6 +71,12 @@ func (s *Service) ProjectID() string { return s.fb.ProjectID }
 // for the verified user identity (not the service-account email).
 func (s *Service) GoogleLogin(idToken string) (string, error) {
 	slog.Info("google verification requested", "project_id", s.fb.ProjectID)
+	// Refuse to mint a token with an empty identity (e.g. running on ADC
+	// without a service-account JSON) — an empty email claim makes any
+	// downstream authorization ambiguous.
+	if s.fb.ClientEmail == "" {
+		return "", errors.New("no service identity resolved; set FIREBASE_CONFIG_PATH (user-identity tokens tracked in security PRD)")
+	}
 	return s.GenerateJWT(s.fb.ClientEmail)
 }
 
