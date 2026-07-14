@@ -1,4 +1,5 @@
 import 'package:apparule/src/app/home_screen.dart';
+import 'package:apparule/src/services/persistence.dart';
 import 'package:apparule/src/shared/countdown.dart';
 import 'package:flutter/material.dart';
 import 'package:sms_autofill/sms_autofill.dart';
@@ -40,12 +41,12 @@ class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTi
     return Scaffold(
       appBar: AppBar(
         title: const Text("SMS OTP AutoFill"),
-        titleTextStyle: TextStyle(color: Theme.of(context).colorScheme.onBackground, fontSize: 20),
+        titleTextStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 20),
         elevation: 0,
         backgroundColor: Colors.transparent,
         centerTitle: true,
       ),
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -59,13 +60,13 @@ class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTi
                 children: [
                   Text(
                     "Verify Your Account",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Theme.of(context).colorScheme.onBackground),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Theme.of(context).colorScheme.onSurface),
                   ),
                   Text(
                     "Check your SMS inbox for the code sent to ${Persistence.getUser()?.phoneNumber ?? 'your phone'}. Enter the code below to complete the verification",
                     style: TextStyle(
                         fontSize: 16,
-                        color: Theme.of(context).colorScheme.onBackground),
+                        color: Theme.of(context).colorScheme.onSurface),
                   ),
                 ],
               ),
@@ -93,7 +94,7 @@ class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTi
               children: [
                 Text(
                   "Resend code after: ",
-                  style: TextStyle(color: Theme.of(context).colorScheme.onBackground),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                 ),
                 Countdown(
                   animation: StepTween(
@@ -114,8 +115,6 @@ class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTi
             height: 56,
             child: ElevatedButton(
               onPressed: () async {
-                // ?  use this code to get sms signature for your app
-                final String signature = await SmsAutoFill().getAppSignature;
 
                 _animationController!.reset();
                 _animationController!.forward();

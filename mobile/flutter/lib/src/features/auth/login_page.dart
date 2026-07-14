@@ -18,7 +18,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         body: Column(children: [
           Expanded(
               child: Padding(
@@ -30,13 +30,13 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       children: [
                         Text(
                           "Welcome Back",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Theme.of(context).colorScheme.onBackground),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Theme.of(context).colorScheme.onSurface),
                         ),
                         Container(
                           padding: const EdgeInsets.only(top: 10, bottom: 24),
                           child: Text(
                             'Login to continue designing your perfect fit',
-                            style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onBackground),
+                            style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
                           ),
                         ),
                         Expanded(
@@ -117,7 +117,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                   style: ElevatedButton.styleFrom(
                     elevation: 0.0,
                     shape: RoundedRectangleBorder(
-                        side: BorderSide(color: Theme.of(context).colorScheme.onBackground),
+                        side: BorderSide(color: Theme.of(context).colorScheme.onSurface),
                         borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10), topRight: Radius.circular(10))),
                   ),
                   child: Row(
@@ -129,7 +129,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                         padding: EdgeInsets.only(left: 8.0, top: 4.0),
                         child: Text(
                           translation(context).continueWithGoogle,
-                          style: TextStyle(color: Theme.of(context).colorScheme.onBackground),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                         ),
                       )
                     ],
@@ -141,7 +141,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                 children: <Widget>[
                   Text(
                     "Don't have an account",
-                    style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onBackground),
+                    style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
                   ),
                   TextButton(
                     child: Text(
@@ -215,7 +215,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                   style: ElevatedButton.styleFrom(
                     elevation: 0.0,
                     shape: RoundedRectangleBorder(
-                        side: BorderSide(color: Theme.of(context).colorScheme.onBackground),
+                        side: BorderSide(color: Theme.of(context).colorScheme.onSurface),
                         borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10), topRight: Radius.circular(10))),
                   ),
                   child: Row(
@@ -227,7 +227,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                         padding: EdgeInsets.only(left: 8.0, top: 4.0),
                         child: Text(
                           translation(context).continueWithGoogle,
-                          style: TextStyle(color: Theme.of(context).colorScheme.onBackground),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                         ),
                       )
                     ],
@@ -239,7 +239,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                 children: <Widget>[
                   Text(
                     "Don't have an account",
-                    style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onBackground),
+                    style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
                   ),
                   TextButton(
                     child: Text(

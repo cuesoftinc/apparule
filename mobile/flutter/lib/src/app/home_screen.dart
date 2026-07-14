@@ -29,13 +29,13 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Text(
                 'Elevate your Fashion Design with Augmented Reality',
-                style: TextStyle(color: Theme.of(context).colorScheme.onBackground, fontSize: 40, fontWeight: FontWeight.w600),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 40, fontWeight: FontWeight.w600),
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 16, bottom: 50),
                 child: Text(
                   "Unlock the future of fashion measurement with Apparule and get the perfect fit every time.",
-                  style: TextStyle(color: Theme.of(context).colorScheme.onBackground, fontSize: 16),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16),
                 ),
               ),
               Container(
@@ -64,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     backgroundColor: Colors.transparent,
                     elevation: 0.0,
                     shape: RoundedRectangleBorder(
-                        side: BorderSide(color: Theme.of(context).colorScheme.onBackground),
+                        side: BorderSide(color: Theme.of(context).colorScheme.onSurface),
                         borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10), topRight: Radius.circular(10))),
                   ),
                   onPressed: () {
@@ -78,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: EdgeInsets.only(left: 8.0, top: 4.0),
                         child: Text(
                           "Login",
-                          style: TextStyle(color: Theme.of(context).colorScheme.onBackground),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                         ),
                       )
                     ],

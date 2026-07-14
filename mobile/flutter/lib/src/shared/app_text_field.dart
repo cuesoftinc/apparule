@@ -44,16 +44,16 @@ class AppTextField extends StatelessWidget {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 18,
-              color: Theme.of(context).colorScheme.onBackground
+              color: Theme.of(context).colorScheme.onSurface
             ),
             title,
           ),
         ),
         TextFormField(
           style: TextStyle(
-            color: Theme.of(context).colorScheme.onBackground
+            color: Theme.of(context).colorScheme.onSurface
           ),
-          cursorColor: Theme.of(context).colorScheme.onBackground,
+          cursorColor: Theme.of(context).colorScheme.onSurface,
           onChanged: onChanged,
           keyboardType: keyboardType,
           obscureText: obscureText!,
@@ -79,7 +79,7 @@ class AppTextField extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(0, 0, 4, 0),
                 child: GestureDetector(
                   onTap: toggleObscured,
-                  child: Icon(suffixIcon2, size: 24, color: Theme.of(context).colorScheme.onBackground),
+                  child: Icon(suffixIcon2, size: 24, color: Theme.of(context).colorScheme.onSurface),
                 ),
               )
           ),

@@ -9,7 +9,7 @@ class MyBackButton extends StatelessWidget {
       onPressed: () => Navigator.of(context).pop(),
       icon: Icon(
         Icons.arrow_circle_left,
-        color: Theme.of(context).colorScheme.onBackground,
+        color: Theme.of(context).colorScheme.onSurface,
         size: 40,
       ),
       label: const Text(''),

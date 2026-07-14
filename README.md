@@ -63,8 +63,8 @@ function (never by its language).
 ### Prerequisites
 
 - [Docker](https://www.docker.com/) & Docker Compose (recommended path)
-- For native development: [Go](https://go.dev/) 1.25+, [Node.js](https://nodejs.org/) 20+,
-  Python 3.11+, and [Flutter](https://flutter.dev/)
+- For native development: [Go](https://go.dev/) 1.26, [Node.js](https://nodejs.org/) 24,
+  Python 3.12, and [Flutter](https://flutter.dev/)
 
 ### Quick start
 
