@@ -14,6 +14,9 @@ services:
       # Dev default, matching compose; override with a Kubernetes Secret in real envs.
       JWT_SECRET: dev-secret-change-me
       GOOGLE_CLOUD_PROJECT: apparule-local
+    # Inject secrets (e.g. JWT_SECRET) from a Kubernetes Secret instead of env:
+    # envFrom:
+    #   - secretRef: api-common-secrets
 
   api-measure:
     image: cuesoft/apparule-api-measure:latest

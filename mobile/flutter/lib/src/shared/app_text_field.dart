@@ -41,12 +41,12 @@ class AppTextField extends StatelessWidget {
         Container(
           padding: const EdgeInsets.only(top: 16, bottom: 8),
           child: Text(
+            title,
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 18,
               color: Theme.of(context).colorScheme.onSurface
             ),
-            title,
           ),
         ),
         TextFormField(
