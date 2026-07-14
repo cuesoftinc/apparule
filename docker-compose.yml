@@ -3,6 +3,7 @@
 services:
   api-common:
     build: ./api/common
+    image: cuesoft/apparule-api-common:latest
     ports:
       - "8080:8080"
     environment:
@@ -15,6 +16,7 @@ services:
 
   api-measure:
     build: ./api/measure
+    image: cuesoft/apparule-api-measure:latest
     ports:
       - "8081:8081"
     environment:
@@ -22,6 +24,7 @@ services:
     restart: unless-stopped
 
   web:
+    image: cuesoft/apparule-web:latest
     build:
       context: ./web
       # NEXT_PUBLIC_* are inlined into the standalone build, so pass them here.
