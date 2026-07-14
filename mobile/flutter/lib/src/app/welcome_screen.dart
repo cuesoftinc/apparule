@@ -1,3 +1,4 @@
+import 'package:apparule/src/services/persistence.dart';
 import 'package:flutter/material.dart';
 import 'package:apparule/src/features/measurement/measurement.dart';
 
@@ -11,8 +12,7 @@ class WelcomeScreen extends StatefulWidget {
 class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
+    return Scaffold(
          backgroundColor: Theme.of(context).colorScheme.secondary,
         body: SafeArea(
           child: Stack(
@@ -29,7 +29,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 top: 56,
                 left: 16,
                 child: Text(
-                  "Welcome Baasit",
+                  "Welcome ${Persistence.getUser()?.name ?? ''}",
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
@@ -96,7 +96,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             ],
           ),
         ),
-      ),
     );
   }
 }

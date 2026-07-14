@@ -12,9 +12,7 @@ class Measurement extends StatefulWidget {
 class _MeasurementState extends State<Measurement> {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-       
-      home: Scaffold(
+    return Scaffold(
                  backgroundColor: Theme.of(context).colorScheme.secondary,
         body: Stack(
           children: [
@@ -141,7 +139,6 @@ class _MeasurementState extends State<Measurement> {
           ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      ),
     );
   }
 }

@@ -1,19 +1,10 @@
 import 'package:apparule/src/features/measurement/measurement.dart';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: GuideScreen(),
-  ));
-}
-
 class GuideScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: OnboardingScreen(),
-    );
+    return OnboardingScreen();
   }
 }
 

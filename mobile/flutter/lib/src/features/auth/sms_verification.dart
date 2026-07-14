@@ -1,4 +1,5 @@
 import 'package:apparule/src/app/home_screen.dart';
+import 'package:apparule/src/shared/countdown.dart';
 import 'package:flutter/material.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 
@@ -61,7 +62,7 @@ class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTi
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Theme.of(context).colorScheme.onBackground),
                   ),
                   Text(
-                    "Check your SMS inbox for the code sent to (123) 456-7890. Enter the code below to complete the verification",
+                    "Check your SMS inbox for the code sent to ${Persistence.getUser()?.phoneNumber ?? 'your phone'}. Enter the code below to complete the verification",
                     style: TextStyle(
                         fontSize: 16,
                         color: Theme.of(context).colorScheme.onBackground),
@@ -115,7 +116,6 @@ class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTi
               onPressed: () async {
                 // ?  use this code to get sms signature for your app
                 final String signature = await SmsAutoFill().getAppSignature;
-                print("Signature: $signature");
 
                 _animationController!.reset();
                 _animationController!.forward();
@@ -147,20 +147,3 @@ class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTi
   }
 }
 
-class Countdown extends AnimatedWidget {
-  Countdown({Key? key, required this.animation}) : super(key: key, listenable: animation);
-  final Animation<int> animation;
-
-  @override
-  build(BuildContext context) {
-    Duration clockTimer = Duration(seconds: animation.value);
-    String timerText = '${clockTimer.inMinutes.remainder(60).toString()}:${clockTimer.inSeconds.remainder(60).toString().padLeft(2, '0')}';
-    return Text(
-      timerText,
-      style: TextStyle(
-        fontSize: 18,
-        color: Theme.of(context).colorScheme.onBackground,
-      ),
-    );
-  }
-}

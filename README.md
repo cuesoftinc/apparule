@@ -28,7 +28,7 @@ flutter mobile ────────────┘  Google auth
 
 | Layer          | Technology                                          |
 | -------------- | --------------------------------------------------- |
-| Backend API    | Go 1.25, Gin (`api/common`)                         |
+| Backend API    | Go 1.26, Gin (`api/common`)                         |
 | Measurement    | Python, FastAPI, MediaPipe, OpenCV (`api/measure`)  |
 | Web            | Next.js, React, TypeScript                          |
 | Mobile         | Flutter (primary), native Android/iOS               |

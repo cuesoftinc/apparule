@@ -49,6 +49,9 @@ func CORS(allowed []string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if origin := c.GetHeader("Origin"); origin != "" && set[origin] {
 			h := c.Writer.Header()
+			// Allow-Origin varies per request origin — mark it so shared
+			// caches don't serve one origin's response to another.
+			h.Set("Vary", "Origin")
 			h.Set("Access-Control-Allow-Origin", origin)
 			h.Set("Access-Control-Allow-Credentials", "true")
 			h.Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Request-ID")

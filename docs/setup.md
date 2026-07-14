@@ -3,13 +3,13 @@
 ## Prerequisites
 
 - [Docker](https://www.docker.com/) & Docker Compose (recommended path)
-- For native development: Go 1.25+ (see `api/common/go.mod`), Node.js 20+ (`web`),
-  Python 3.11+ (`api/measure`), Flutter (`mobile/flutter`)
+- For native development: Go 1.26 (see `api/common/go.mod`), Node.js 20+ (`web`),
+  Python 3.12 (`api/measure`), Flutter (`mobile/flutter`)
 
 ## Configuration
 
 Never commit secrets — provide configuration via `.env` / environment variables.
-Each service ships an `.env.example` to copy from.
+Configuration comes from the root `.env` (copy `.env.example`).
 
 | Variable | Used by | Description |
 |----------|---------|-------------|
