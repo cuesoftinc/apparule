@@ -16,7 +16,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -34,13 +34,13 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                       children: [
                     Text(
                       'Forgot Password',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Theme.of(context).colorScheme.onBackground),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Theme.of(context).colorScheme.onSurface),
                     ),
                     Container(
                       padding: const EdgeInsets.only(top: 10),
                       child: Text(
                         'No worries! enter the email address associated with your account, and we\'ll send you a code.',
-                        style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onBackground),
+                        style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
                       ),
                     ),
                     Padding(

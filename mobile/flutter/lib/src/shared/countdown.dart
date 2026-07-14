@@ -16,7 +16,7 @@ class Countdown extends AnimatedWidget {
       timerText,
       style: TextStyle(
         fontSize: 18,
-        color: Theme.of(context).colorScheme.onBackground,
+        color: Theme.of(context).colorScheme.onSurface,
       ),
     );
   }

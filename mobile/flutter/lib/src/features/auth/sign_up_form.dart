@@ -35,25 +35,25 @@ class _SignUpFormState extends State<SignUpForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: buildForm(context),
     );
   }
 
   showLoaderDialog(BuildContext context) {
     AlertDialog alert = AlertDialog(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       content: Row(
         children: [
           CircularProgressIndicator(
             backgroundColor: Theme.of(context).colorScheme.tertiary,
-            color: Theme.of(context).colorScheme.onBackground,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           Container(
               margin: const EdgeInsets.only(left: 7),
               child: Text(
                 translation(context).loading,
-                style: TextStyle(color: Theme.of(context).colorScheme.onBackground),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
               )),
         ],
       ),
@@ -94,13 +94,13 @@ class _SignUpFormState extends State<SignUpForm> {
           mainAxisSize: MainAxisSize.max,
           children: [
             Text(
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Theme.of(context).colorScheme.onBackground),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Theme.of(context).colorScheme.onSurface),
               translation(context).createAnAccount,
             ),
             Container(
               padding: const EdgeInsets.only(top: 10),
               child: Text(
-                style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onBackground),
+                style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
                 translation(context).startYourJourney,
               ),
             ),
@@ -206,7 +206,7 @@ class _SignUpFormState extends State<SignUpForm> {
                 style: ElevatedButton.styleFrom(
                   elevation: 0.0,
                   shape: RoundedRectangleBorder(
-                      side: BorderSide(color: Theme.of(context).colorScheme.onBackground),
+                      side: BorderSide(color: Theme.of(context).colorScheme.onSurface),
                       borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10), topRight: Radius.circular(10))),
                 ),
                 child: Row(
@@ -218,7 +218,7 @@ class _SignUpFormState extends State<SignUpForm> {
                       padding: EdgeInsets.only(left: 8.0, top: 4.0),
                       child: Text(
                         translation(context).continueWithGoogle,
-                        style: TextStyle(color: Theme.of(context).colorScheme.onBackground),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                       ),
                     )
                   ],
@@ -230,7 +230,7 @@ class _SignUpFormState extends State<SignUpForm> {
               children: <Widget>[
                 Text(
                   translation(context).alreadyHaveAnAccount,
-                  style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onBackground),
+                  style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
                 ),
                 TextButton(
                   child: Text(

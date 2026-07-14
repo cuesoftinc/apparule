@@ -28,7 +28,7 @@ class _ResetPasswordState extends State<ResetPassword> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         body: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,13 +47,13 @@ class _ResetPasswordState extends State<ResetPassword> {
                     children: [
                       Text(
                         "Reset Your Password",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Theme.of(context).colorScheme.onBackground),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Theme.of(context).colorScheme.onSurface),
                       ),
                       Container(
                         padding: const EdgeInsets.only(top: 10),
                         child: Text(
                           "Enter a new password below to reset your account password",
-                          style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onBackground),
+                          style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
                         ),
                       ),
                       Padding(
@@ -84,7 +84,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                               onPressed: () {},
                               child: Text(
                                 "Both passwords must match",
-                                style: TextStyle(color: Theme.of(context).colorScheme.onBackground),
+                                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                               )),
                         ],
                       ),
