@@ -6,8 +6,13 @@ turn them into sizing data for a better-fitting shopping experience.
 ## Overview
 
 Apparule is a monorepo containing the clients, backend services, deployment
-configuration, and documentation for the platform. For a deeper description of
-the components and how they fit together, see [docs/overview.md](docs/overview.md).
+configuration, and documentation for the platform. A Go service owns
+authentication and the core API, a Python service turns phone camera input into
+body measurements, and a Next.js frontend serves the marketing site and user
+dashboard. For a deeper description of the components and how they fit together,
+see [docs/overview.md](docs/overview.md).
+
+## Architecture
 
 ```
 client                                   server
@@ -18,6 +23,17 @@ flutter mobile ────────────┘  Google auth
                                          data: Firebase Firestore & Storage,
                                                Aiven Postgres & Valkey (Redis)
 ```
+
+### Tech stack
+
+| Layer          | Technology                                          |
+| -------------- | --------------------------------------------------- |
+| Backend API    | Go 1.25, Gin (`api/common`)                         |
+| Measurement    | Python, FastAPI, MediaPipe, OpenCV (`api/measure`)  |
+| Web            | Next.js, React, TypeScript                          |
+| Mobile         | Flutter (primary), native Android/iOS               |
+| Auth & data    | Firebase / Google auth, Firestore & Storage, Postgres, Redis |
+| Infrastructure | Docker, Helm, Terraform, GCP Cloud Run              |
 
 ## Repository structure
 
@@ -40,16 +56,34 @@ scripts/       Developer and CI helper scripts
 
 Additional services follow the same convention: `api/common` is the shared Go
 backend, and every other service lives under `api/<service-name>` named by its
-function.
+function (never by its language).
 
 ## Getting started
 
-See [docs/setup.md](docs/setup.md) for prerequisites and per-service run
-commands. Common tasks are wired into the [Makefile](Makefile).
+### Prerequisites
+
+- [Docker](https://www.docker.com/) & Docker Compose (recommended path)
+- For native development: [Go](https://go.dev/) 1.25+, [Node.js](https://nodejs.org/) 20+,
+  Python 3.11+, and [Flutter](https://flutter.dev/)
+
+### Quick start
+
+```bash
+cp .env.example .env
+make up      # build + start api-common (:8080), api-measure (:8081), web (:3000)
+make logs    # follow logs
+make down    # stop
+```
 
 Configuration is provided at runtime via environment variables — for example
 `FIREBASE_CONFIG_PATH`, the path to the Firebase service-account JSON used by
-`api/common`. Never commit credentials or bake them into an image.
+`api/common`. See [docs/setup.md](docs/setup.md) for details; `make help` lists
+all targets. Never commit credentials or bake them into an image.
+
+## Documentation
+
+- [Project overview](docs/overview.md) — architecture and components
+- [Local setup](docs/setup.md) — development environment and per-service run commands
 
 ## Contributing
 

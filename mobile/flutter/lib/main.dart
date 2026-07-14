@@ -1,10 +1,10 @@
-import 'package:apparule/language_constants.dart';
-import 'package:apparule/persistence.dart';
-import 'package:apparule/splash_screen.dart';
+import 'package:apparule/src/core/localization/language_constants.dart';
+import 'package:apparule/src/services/persistence.dart';
+import 'package:apparule/src/app/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dark_theme.dart';
-import 'light_theme.dart';
+import 'package:apparule/src/core/theme/dark_theme.dart';
+import 'package:apparule/src/core/theme/light_theme.dart';
 //import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 void main() async {
