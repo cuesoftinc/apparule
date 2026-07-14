@@ -27,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   Python 3.12); optional `envFrom` secret hook in the Helm deployment template.
 - Flutter iOS project migrated by current tooling: minimum deployment target
   iOS 13, UIScene lifecycle, Swift Package Manager integration.
+- iOS bundle identifier aligned with Android: `com.example.apparule` →
+  `io.cuesoft.apparule` (`.RunnerTests` suffix included).
 
 ### Removed
 - 4.9MB of unreferenced test images from git; dead Flutter files (empty
