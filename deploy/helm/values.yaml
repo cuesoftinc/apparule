@@ -1,0 +1,32 @@
+# One chart deploys all services. Images are built from this repo — push to a
+# registry and override per environment. Secrets (JWT_SECRET, Firebase creds)
+# should come from Kubernetes Secrets in real deployments, not plain values.
+replicaCount: 1
+
+services:
+  api-common:
+    image: cuesoft/apparule-api-common:latest
+    port: 8080
+    healthPath: /health
+    readyPath: /ready
+    env:
+      PORT: "8080"
+      # Dev default, matching compose; override with a Kubernetes Secret in real envs.
+      JWT_SECRET: dev-secret-change-me
+      GOOGLE_CLOUD_PROJECT: apparule-local
+
+  api-measure:
+    image: cuesoft/apparule-api-measure:latest
+    port: 8081
+    healthPath: /health
+    readyPath: /ready
+    env:
+      PORT: "8081"
+
+  web:
+    image: cuesoft/apparule-web:latest
+    port: 3000
+    runAsUser: 1000 # node user in the web image
+    healthPath: /
+    env:
+      PORT: "3000"

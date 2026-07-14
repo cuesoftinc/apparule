@@ -5,11 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:apparule/src/core/theme/dark_theme.dart';
 import 'package:apparule/src/core/theme/light_theme.dart';
-//import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:apparule/l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Persistence.initPersistence();
+  // Await the SharedPreferences load so theme/user reads cannot race it.
+  await Persistence.initPersistence();
   runApp(const MyApp());
 }
 
@@ -88,9 +89,8 @@ class _MyAppFieldState extends State<MyApp> with WidgetsBindingObserver {
                   theme: lightTheme,
                   darkTheme: darkTheme,
                   themeMode: currentMode,
-                  // We replaced the broken AppLocalizations calls with basic Flutter defaults:
-                  localizationsDelegates: const [],
-                  supportedLocales: const [Locale('en', '')],
+                  localizationsDelegates: AppLocalizations.localizationsDelegates,
+                  supportedLocales: AppLocalizations.supportedLocales,
                   locale: _locale,
                   home: SplashScreen());
             });

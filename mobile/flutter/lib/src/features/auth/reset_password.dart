@@ -14,8 +14,7 @@ class ResetPassword extends StatefulWidget {
 }
 
 class _ResetPasswordState extends State<ResetPassword> {
-  bool _obscured = false;
-  late bool isMyButtonEnabled;
+  bool _obscured = true;
   final textFieldFocusNode = FocusNode();
 
   void _toggleObscured() {

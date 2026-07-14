@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:apparule/src/app/home_screen.dart';
+import 'package:apparule/src/shared/countdown.dart';
 import 'package:flutter/material.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -15,8 +16,6 @@ class EmailVerificationPage extends StatefulWidget {
 class _EmailVerificationPageState extends State<EmailVerificationPage> with SingleTickerProviderStateMixin {
   AnimationController? _animationController;
   int levelClock = 2 * 60;
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _otpController = TextEditingController();
 
   @override
   void initState() {
@@ -62,7 +61,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> with Sing
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Theme.of(context).colorScheme.onBackground),
                   ),
                   Text(
-                    "Check your Email inbox for the code sent to baasit.quadri@cuesoft.io. Enter the code below to complete the verification",
+                    "Check your Email inbox for the code sent to ${Persistence.getUser()?.email ?? 'your email'}. Enter the code below to complete the verification",
                     style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onBackground),
                   ),
                 ],
@@ -182,20 +181,3 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> with Sing
   }
 }
 
-class Countdown extends AnimatedWidget {
-  Countdown({Key? key, required this.animation}) : super(key: key, listenable: animation);
-  final Animation<int> animation;
-
-  @override
-  build(BuildContext context) {
-    Duration clockTimer = Duration(seconds: animation.value);
-    String timerText = '${clockTimer.inMinutes.remainder(60).toString()}:${clockTimer.inSeconds.remainder(60).toString().padLeft(2, '0')}';
-    return Text(
-      timerText,
-      style: TextStyle(
-        fontSize: 18,
-        color: Theme.of(context).colorScheme.onBackground,
-      ),
-    );
-  }
-}

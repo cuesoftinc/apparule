@@ -1,5 +1,5 @@
 name: apparule
-description: A new Flutter project.
+description: Apparule mobile app — AI-assisted body measurements and custom fashion orders.
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -35,15 +35,8 @@ dependencies:
   intl: 0.20.2
 
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.2
-  font_awesome_flutter: ^11.0.0
   shared_preferences: ^2.2.1
   provider: ^6.0.5
-  http: ^1.1.0
-  animations: ^2.0.8
-  flutter_animate: 4.5.2
   sms_autofill: ^2.3.0
   flutter_svg: ^2.0.7
 

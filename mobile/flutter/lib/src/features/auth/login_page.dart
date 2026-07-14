@@ -124,7 +124,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Image.network('http://pngimg.com/uploads/google/google_PNG19635.png', fit: BoxFit.cover),
+                      const Icon(Icons.g_mobiledata, size: 24),
                       Padding(
                         padding: EdgeInsets.only(left: 8.0, top: 4.0),
                         child: Text(
@@ -222,7 +222,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Image.network('http://pngimg.com/uploads/google/google_PNG19635.png', fit: BoxFit.cover),
+                      const Icon(Icons.g_mobiledata, size: 24),
                       Padding(
                         padding: EdgeInsets.only(left: 8.0, top: 4.0),
                         child: Text(

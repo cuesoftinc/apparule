@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- Flutter: form validation restored (an `if (true)` bypassed it), generated
+  l10n rewired (labels rendered as empty strings), password fields start
+  obscured, nested `MaterialApp`s unwrapped, persistence load awaited, Android
+  INTERNET permission added, cleartext third-party logo hotlink replaced.
+
+### Changed
+- Standard-form Helm chart (deploys api-common, api-measure, web; probes +
+  recommended labels + runAsNonRoot) and cluster-agnostic terraform
+  (kubeconfig-based); per-service README/.gitignore/.env.example added;
+  api/measure requirements pinned to resolved versions (+ requirements-dev);
+  applicationId io.cuesoft.apparule; CORS emits Vary: Origin.
+
+### Removed
+- 4.9MB of unreferenced test images from git; dead Flutter files (empty
+  profile screen, unimported app bar, no-op widget test); 5 unused pubspec
+  dependencies; template web assets.
+
 ### Added
 - Standardized repository structure: `api/common` (Go) and `api/measure`
   (Python), plus `web`, `mobile/{flutter,android,ios}`,
