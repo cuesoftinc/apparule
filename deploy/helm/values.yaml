@@ -5,16 +5,18 @@ replicaCount: 1
 
 services:
   api-common:
-    image: cuesoftinc/apparule-api-common:latest
+    image: cuesoft/apparule-api-common:latest
     port: 8080
     healthPath: /health
     readyPath: /ready
     env:
       PORT: "8080"
+      # Dev default, matching compose; override with a Kubernetes Secret in real envs.
+      JWT_SECRET: dev-secret-change-me
       GOOGLE_CLOUD_PROJECT: apparule-local
 
   api-measure:
-    image: cuesoftinc/apparule-api-measure:latest
+    image: cuesoft/apparule-api-measure:latest
     port: 8081
     healthPath: /health
     readyPath: /ready
@@ -22,8 +24,9 @@ services:
       PORT: "8081"
 
   web:
-    image: cuesoftinc/apparule-web:latest
+    image: cuesoft/apparule-web:latest
     port: 3000
+    runAsUser: 1000 # node user in the web image
     healthPath: /
     env:
       PORT: "3000"

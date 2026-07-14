@@ -4,4 +4,5 @@ resource "helm_release" "apparule" {
   namespace        = var.namespace
   create_namespace = true
   chart            = "${path.module}/../helm"
+  values           = var.chart_values
 }
