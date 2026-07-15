@@ -101,3 +101,22 @@ server-side by api/common to the same API.
 - Idempotency keys accepted on session creation and instance requests
   (`Idempotency-Key` header) — measurement capture retries must not duplicate
   records on flaky mobile networks.
+
+---
+
+## 5. Social commerce surface (2026-07-16 expansion) **[Proposed]**
+
+All under `/api/v1`, workspace/account auth as §2. Deltas only:
+
+| Group | Endpoints |
+| --- | --- |
+| Posts | `POST /posts` (designer) · `GET /posts/{id}` · `GET /feed` (followed + ranked) · `GET /explore?q&tags&price_band` · `DELETE /posts/{id}` |
+| Social graph | `POST/DELETE /follows/{designer}` · `POST/DELETE /posts/{id}/like` · `POST/DELETE /posts/{id}/save` · `POST /posts/{id}/comments` · `GET /posts/{id}/comments` |
+| Requests | `POST /posts/{id}/requests` (body: vault snapshot selector, notes, budget) · `GET /requests?role=customer\|designer` · `GET /requests/{id}` · `POST /requests/{id}/quote` · `POST /requests/{id}/decline` · `POST /requests/{id}/status` (in_progress/shipped/delivered) · `POST /requests/{id}/messages` |
+| Payments | `POST /requests/{id}/pay` (provider session) · webhook `/webhooks/payments` · `POST /requests/{id}/confirm-delivery` (releases escrow) · `POST /requests/{id}/dispute` |
+| Designer | `POST /designer-profile` (enable + KYC start) · `GET /designer/earnings` · `POST /designer/payout-account` |
+| Notifications | `GET /notifications` · `POST /notifications/read` |
+
+Feed/explore are the only ranked endpoints (recency + follow affinity v1; no
+ML ranking until data exists). Likes/saves/follows are idempotent PUT-style
+toggles with optimistic-client semantics (design.md MI-18).

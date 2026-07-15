@@ -126,3 +126,25 @@ capabilities beyond the web property. Made explicit so they can be scheduled:
 5. **Figma designs** — Home canvas is empty; landing implementation (roadmap P0)
    needs the design pass, or we proceed with a standards-based layout and
    retrofit.
+
+---
+
+## 9. Scope expansion — social commerce (2026-07-16) **[Directive]**
+
+Apparule is a **social network**: users add/take measurements; designers post
+outfits; users like, save, share, and **commission** outfits — a request
+carries the user's measurement snapshot; the designer produces the garment and
+**gets paid**. Look and feel: **instagram.com** (design.md). Platform
+structure: public home page + web dashboard + mobile app (mobile is the
+primary social surface; all products converge on this three-surface parity).
+
+- New requirement register: SOC-001…010 in [pages.md](pages.md) (feature
+  delta table). PLAT-001/002 (records) become the **measurement vault**
+  feeding SOC-004.
+- Page/screen inventory: [pages.md](pages.md). Design system +
+  microinteractions: [design.md](design.md).
+- New open questions: payment provider + escrow model + platform fee
+  (SOC-006); UGC trust & safety baseline (SOC-009) required before public
+  launch; designer verification (KYC for payouts).
+- Docs platform **[Directive]**: product docs on GitBook (Git-synced from
+  this `docs/` folder); API reference via Scalar from OpenAPI.

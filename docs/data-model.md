@@ -144,3 +144,63 @@ Modeling notes:
 Deletion semantics: deleting a `CUSTOMER` soft-deletes then hard-purges
 sessions, measurements, and capture assets on a fixed schedule (columns above);
 Upstat events must only ever carry anonymous counters, never measurement data.
+
+---
+
+## 5. Social commerce entities (2026-07-16 expansion) **[Proposed]**
+
+```mermaid
+erDiagram
+    ACCOUNT ||--o| DESIGNER_PROFILE : "may enable"
+    ACCOUNT ||--o{ FOLLOW : follows
+    DESIGNER_PROFILE ||--o{ POST : publishes
+    POST ||--o{ POST_MEDIA : carries
+    POST ||--o{ LIKE : receives
+    POST ||--o{ SAVE : receives
+    POST ||--o{ COMMENT : receives
+    POST ||--o{ REQUEST : "commissioned via"
+    ACCOUNT ||--o{ REQUEST : places
+    REQUEST ||--|| MEASUREMENT_SNAPSHOT : "carries (immutable)"
+    REQUEST ||--o{ ORDER_EVENT : "timeline"
+    REQUEST ||--o{ THREAD_MESSAGE : discusses
+    REQUEST ||--o| PAYMENT : "paid by"
+    PAYMENT ||--o| PAYOUT : "released as"
+    DESIGNER_PROFILE ||--o{ PAYOUT : earns
+
+    DESIGNER_PROFILE { uuid id PK
+        uuid account_id FK
+        string display_name
+        string bio
+        string payout_account "provider ref, KYC state"
+        bool verified }
+    POST { uuid id PK
+        uuid designer_id FK
+        string caption
+        json style_tags
+        int base_price_cents "nullable = quote on request"
+        int turnaround_days
+        datetime created_at }
+    REQUEST { uuid id PK
+        uuid post_id FK
+        uuid customer_id FK
+        string status "requested|quoted|paid|in_progress|shipped|delivered|declined|disputed|cancelled"
+        int quote_cents
+        datetime due_at }
+    MEASUREMENT_SNAPSHOT { uuid id PK
+        uuid request_id FK
+        json values "frozen copy of vault values + method + measured_at"
+        datetime created_at }
+    PAYMENT { uuid id PK
+        uuid request_id FK
+        string provider "paystack|stripe — to ratify"
+        string state "authorized|held|released|refunded"
+        int amount_cents
+        int platform_fee_cents }
+```
+
+Rules: measurement snapshots are **frozen copies** (vault changes never
+mutate an order); vault data is never public — a snapshot exists only inside
+a request the customer initiated (privacy story for APP-005); social counters
+(likes/saves) are denormalized on POST with periodic reconciliation; payments
+follow escrow: `held` at pay, `released` on delivery confirmation (dispute
+pauses release).

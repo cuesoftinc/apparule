@@ -84,3 +84,26 @@ identity real (a hard precondition for storing body data); Phase 2 is the
 value core and the biggest engineering slice; Phase 3 is the differentiator
 but carries research + licensing risk, so it rides last with a demo shipped
 early (Phase 0 explainer, Phase 3 media upgrade).
+
+---
+
+## Revision — social commerce expansion (2026-07-16)
+
+The 2026-07-16 directive (instagram-feel social commerce: posts, likes,
+requests with measurement snapshots, designer payments) re-shapes the phases.
+Phases 0–1 stand (home page per pages.md Part A; real auth). The build order
+after them becomes:
+
+- **Phase 2 — Vault + capture** (unchanged core, reframed): measurement vault
+  = the social profile's data spine (pages.md B4/C6-C7).
+- **Phase 3 — Social graph & feed**: designer profiles, posts, follows,
+  likes/saves/comments, explore (SOC-001…003, 007).
+- **Phase 4 — Commerce**: requests + snapshots + order lifecycle + threads +
+  payments/escrow/payouts (SOC-004…006) — payment provider + KYC decisions
+  gate this phase.
+- **Phase 5 — SMPL pipeline** (was Phase 3): unchanged content; now also
+  feeds richer snapshots into requests.
+
+Trust & safety (SOC-009: report/block/moderation) ships **with** Phase 3 —
+UGC without moderation doesn't go public. Platform parity note: web dashboard
+and mobile ship each phase together (shared component naming, design.md §6).
