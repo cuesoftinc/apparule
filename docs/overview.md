@@ -26,3 +26,11 @@ flutter mobile ────────────┘  Google auth
 
 See [setup.md](setup.md) to run the stack locally, and the
 [repository structure](../README.md#repository-structure) in the README.
+
+## Product & design documentation
+
+- [prd.md](prd.md) — product requirements breakdown (personas, requirements, compliance, open questions)
+- [architecture.md](architecture.md) — current vs target system design, sequences, SMPL pipeline
+- [data-model.md](data-model.md) — entities, storage mapping, data classification
+- [api.md](api.md) — current + target API surface and gap analysis
+- [roadmap.md](roadmap.md) — phased plan with cross-repo dependencies
