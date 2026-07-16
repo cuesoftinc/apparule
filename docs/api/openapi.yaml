@@ -90,7 +90,7 @@ paths:
   /api/v1/posts:
     post: { tags: [social], summary: "Create outfit post (designer, KYC-gated; <=10 images <=10MB each, JPEG/PNG/WebP; alt text)", responses: { "201": { description: Post }, "403": { description: kyc_incomplete } } }
   /api/v1/posts/{id}:
-    get: { tags: [social], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Post detail (public permalink /p/{id}), security: [], responses: { "200": { description: Post } } }
+    get: { tags: [social], parameters: [{ $ref: "#/components/parameters/Id" }], summary: "Post detail (public permalink /p/{id})", security: [], responses: { "200": { description: Post } } }
     delete: { tags: [social], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Delete own post, responses: { "204": { description: Deleted } } }
   /api/v1/posts/{id}/like:
     post: { tags: [social], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Like (idempotent toggle), responses: { "204": { description: OK } } }
