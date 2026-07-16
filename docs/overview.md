@@ -40,3 +40,4 @@ See [setup.md](setup.md) to run the stack locally, and the
 - [deployment.md](deployment.md) — Cloud Run + App Hosting contract (cuesoft-iac provisioning, CI/CD pattern)
 - flows/ — feature flow specs with edge cases: [auth](flows/auth.md), [vault](flows/vault.md), [request](flows/request.md)
 - [capture-qc.md](capture-qc.md) — QC thresholds + measurement-confidence formulas
+- [engineering.md](engineering.md) — error catalog, authz matrix, rate limits, testing strategy, logging rules
