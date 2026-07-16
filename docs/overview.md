@@ -28,6 +28,8 @@ See [setup.md](setup.md) to run the stack locally, and the
 [repository structure](../README.md#repository-structure) in the README.
 
 ## Product & design documentation
+> Published site: **https://cuesoft.gitbook.io/apparule** (Git-synced from this folder on every merge to main).
+
 
 - [prd.md](prd.md) — product requirements breakdown (personas, requirements, compliance, open questions)
 - [architecture.md](architecture.md) — current vs target system design, sequences, SMPL pipeline
