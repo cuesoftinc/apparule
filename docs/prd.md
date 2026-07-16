@@ -45,7 +45,7 @@ measurement entry must be touch-friendly and responsive. **[PRD §5]**
 | ID | Requirement | Priority | Expanded acceptance criteria |
 | --- | --- | --- | --- |
 | APP-001 | Open-Source Gateway | Must | Prominent GitHub link + contribution guidelines from the landing page; repository README/CONTRIBUTING are the landing targets. |
-| APP-002 | Cloud Access Flow | Must | Sign-in via `account.cuesoft.io`; authenticated users can request a cloud instance; request is tracked and acknowledged. Users must accept product-specific ToS (data retention + accuracy disclaimer) before cloud access. **[PRD §7]** |
+| APP-002 | Cloud Access Flow | Must | Sign-in via `account.cuesoft.io` *(X-1: in-app Google/Firebase interim)*; authenticated users can request a cloud instance; request is tracked and acknowledged. Users must accept product-specific ToS (data retention + accuracy disclaimer) before cloud access. **[PRD §7]** |
 | APP-003 | SMPL Pipeline Demo | Should | Visual/video walkthrough of the SMPL-based measurement process embedded on the landing page. |
 | APP-004 | API Reference | Should | Searchable API documentation for third-party integration. |
 | APP-005 | Privacy Disclosure | Must | Explicit page/section describing how measurements and personal physical data are handled, linking to the Apparule clause in `privacy.cuesoft.io`. |
@@ -54,7 +54,7 @@ measurement entry must be touch-friendly and responsive. **[PRD §5]**
 
 | ID | Requirement | Notes |
 | --- | --- | --- |
-| ECO-AUTH | All login/session management via `account.cuesoft.io` | External service — does not exist in this repo; see roadmap dependency D1. **[PRD §4.2]** |
+| ECO-AUTH | All login/session management via `account.cuesoft.io` *(X-1 hardened: in-app Google-only over Firebase now; facade later)* | Not blocking (D1 demoted). **[PRD §4.2]** |
 | ECO-SUPPORT | Route active users needing help to `clients.cuesoft.io` | Link-out only in v1. |
 | ECO-ANALYTICS | Track "Demo Starts" and "GitHub Clicks" via Upstat | Depends on Upstat exposing a generic event-ingestion API (cross-repo dependency D2 — Upstat currently has none). |
 
@@ -113,11 +113,11 @@ capabilities beyond the web property. Made explicit so they can be scheduled:
 1. ~~**`account.cuesoft.io` contract**~~ **RESOLVED (X-1)**: in-app Google-only sign-in over Firebase Auth (`sandbox-e306a`); the facade comes later. Original question — protocol (OIDC? opaque token introspection?),
    token audience/claims, and timeline. Blocks APP-002 and PLAT-003's final shape
    (roadmap D1). Interim: local JWT auth hardened enough for records **[Proposed]**.
-2. **Cloud instance model** — "request a cloud instance" reads as
+2. ~~**Cloud instance model**~~ **RESOLVED (A-5)**: request queue + manual provisioning. Original — "request a cloud instance" reads as
    instance-per-customer provisioning rather than one multi-tenant app. v1 treats
    it as a *request queue + manual provisioning* (helm chart already exists per
    instance) **[Proposed]** — confirm.
-3. **SMPL licensing** — SMPL model weights are free for research; commercial use
+3. ~~**SMPL licensing**~~ **RESOLVED (A-3)**: launch on 2-D, licensing quote in parallel. Original — SMPL model weights are free for research; commercial use
    requires a license from Meshcapade/MPI. The hosted commercial cloud likely
    needs SMPL commercial licensing or an alternative body model. Must be resolved
    before PLAT-005 ships in cloud (roadmap risk R1).
@@ -126,6 +126,11 @@ capabilities beyond the web property. Made explicit so they can be scheduled:
 5. **Figma designs** — Home canvas is empty; landing implementation (roadmap P0)
    needs the design pass, or we proceed with a standards-based layout and
    retrofit.
+6. **OPEN (tracked)**: hero H1 copy (pages.md A2 — owner: brand pass) and the
+   Discord server URL (pages.md A8 — owner: community setup) are unresolved
+   content dependencies for Phase 0.
+7. **Metrics targets**: prd §7 metrics are baseline-gathering in v1 — numeric
+   targets set after 90 days of data **[Decided]**.
 
 ---
 

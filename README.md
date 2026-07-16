@@ -48,7 +48,7 @@ flowchart LR
 | Measurement    | Python, FastAPI, MediaPipe, OpenCV (`api/measure`)  |
 | Web            | Next.js, React, TypeScript                          |
 | Mobile         | Flutter (primary), native Android/iOS               |
-| Auth & data    | Firebase / Google auth, Firestore & Storage, Postgres, Redis |
+| Auth & data    | Firebase Google-only auth; Firestore (system of record, X-5) & Cloud Storage; shared Aiven Redis |
 | Infrastructure | Docker, Helm, Terraform, GCP Cloud Run              |
 
 ## Repository structure

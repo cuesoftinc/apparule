@@ -49,10 +49,27 @@ Two hard-won rules inherited from cueprise, non-negotiable:
 2. **WIF only** (`google-github-actions/auth@v3` with
    `workload_identity_provider` + `service_account`) — no JSON keys.
 
-GitHub environments (`Staging <Project>`, `Production`) gate the deploy
-jobs and carry the URLs.
+The single protected GitHub environment is **`Sandbox`** (X-6) — it gates the
+deploy job, requires reviewers, and carries the sandbox URLs. No other deploy
+environments exist.
 
-## 4. Not in this phase
+## 4. Runtime contract (Cloud Run) **[Decided defaults]**
+
+| Service | CPU / mem | Concurrency | Min–max instances | Timeout |
+| --- | --- | --- | --- | --- |
+| api/common | 1 vCPU / 512 MiB | 80 | 0–5 | 60 s |
+| api/measure | 2 vCPU / 2 GiB (CPU inference) | 4 | 0–3 | 120 s |
+
+- Domains: `api.apparule.cuesoft.io` → api/common; api/measure is
+  **internal-only** (no public ingress; api/common calls it with a Cloud Run
+  IAM ID token — the service-to-service auth mechanism).
+- Rollback: redeploy the previous image digest (recorded in the release run) —
+  `gcloud run services update-traffic` to the prior revision is the fast path;
+  a broken release is rolled back before any forward fix.
+- Web env: `NEXT_PUBLIC_*` values flow Doppler → `apphosting.yaml` env
+  section at rollout time.
+
+## 5. Not in this phase
 
 Writing these workflows + the Pulumi stack is **implementation work**, out of
 scope for the docs phase — this document is the contract they'll be built

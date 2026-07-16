@@ -19,10 +19,10 @@
 | --- | --- |
 | 400 | `invalid_*` (malformed input) |
 | 401 | `unauthenticated`, `token_expired` |
-| 403 | `provider_not_allowed`, `email_unverified`, `consent_required`, `forbidden`, `account_disabled`, `kyc_incomplete` |
+| 403 | `provider_not_allowed`, `consent_required`, `forbidden`, `account_disabled`, `kyc_incomplete` |
 | 404 | `not_found` (never distinguishes "exists but not yours") |
-| 409 | `duplicate_request`, `post_unavailable`, `already_linked`, `name_taken` |
-| 422 | QC codes (capture-qc.md §1–2), `snapshot_invalid`, `ts_out_of_range` |
+| 409 | `duplicate_request`, `post_unavailable`, `name_taken` (username claim, api.md `/me`), `idempotency_conflict`, `account_has_active_orders` (deletion, flows/auth.md §4) |
+| 422 | QC codes (capture-qc.md §1–2), `snapshot_invalid` |
 | 429 | `rate_limited` (+ `Retry-After`) |
 | 5xx | `internal`, `pipeline_busy`, `provider_unavailable` |
 
@@ -38,7 +38,7 @@ membership for vault-of-customers use (SME mode).
 | Resource / action | visitor | user | designer | moderator |
 | --- | --- | --- | --- | --- |
 | Feed/explore read, post detail | ✓ (public posts) | ✓ | ✓ | ✓ |
-| Like/save/comment/follow | — | ✓ (verified email for comment) | ✓ | ✓ |
+| Like/save/comment/follow | — | ✓ | ✓ | ✓ |
 | Create post | — | — | ✓ (KYC complete) | — |
 | Own vault (read/write) | — | ✓ self only — **no role ever reads another's vault** | ✓ self | — |
 | Workspace customers/sessions | — | workspace members | — | — |
@@ -47,7 +47,7 @@ membership for vault-of-customers use (SME mode).
 | Quote/decline/status | — | — | ✓ own requests | dispute resolution |
 | Pay / confirm delivery / dispute | — | ✓ own orders | — | resolve |
 | Earnings/payout account | — | — | ✓ self | — |
-| Reports/blocks | — | ✓ | ✓ | queue + actions |
+| Reports/blocks | — | ✓ | ✓ | queue + actions (block semantics: data-model §6.2 — feed filtering, interaction bans, orders survive) |
 
 Enforcement: middleware resolves `{account, designer?, workspace?}` from the
 verified token once per request; handlers declare required capability —

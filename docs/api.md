@@ -32,8 +32,10 @@ FastAPI serves `/openapi.json` + `/docs` out of the box — the seed of APP-004.
 
 ## 2. Target surface **[Proposed]** — `/api/v1`, all on api/common unless noted
 
-Authentication: bearer token from `account.cuesoft.io` (D1) — or the hardened
-local JWT until D1 lands. All routes below require auth unless marked public.
+Authentication: **Firebase ID-token bearer, Google-only (X-1 hardened)** —
+verified server-side (audience `sandbox-e306a`, `sign_in_provider ==
+google.com`); the future `account.cuesoft.io` facade fronts the same tokens.
+All routes below require auth unless marked public.
 Authorization scope: every resource is workspace-scoped; membership checked per
 request.
 
@@ -41,7 +43,8 @@ request.
 
 | Method & path | Purpose | Maps to |
 | --- | --- | --- |
-| `POST /api/v1/auth/exchange` | Exchange an `account.cuesoft.io` token for an Apparule session (until/unless the gateway validates directly) | APP-002, D1 |
+| `GET /api/v1/me` | Resolve the caller's account (idempotent upsert on first login, flows/auth.md §3); returns username + consent + designer state | X-1 |
+| `PATCH /api/v1/me` | Update profile fields incl. `username` claim/rename (unique, 1×/30d) → `409 name_taken` | pages.md B6 |
 | `GET /api/v1/consent` | Current user's accepted document versions | PRD §7 |
 | `POST /api/v1/consent` | Record acceptance `{document, version}` | PRD §7 |
 
@@ -97,10 +100,12 @@ server-side by api/common to the same API.
 - Versioned base path `/api/v1`; additive changes only within a version.
 - Errors: `{"error": {"code": "...", "message": "..."}}` with stable codes —
   the current ad-hoc `{"error": "text"}` shape migrates at v1.
-- All list endpoints paginate (`?cursor=` + `limit`, default 50).
-- Idempotency keys accepted on session creation and instance requests
-  (`Idempotency-Key` header) — measurement capture retries must not duplicate
-  records on flaky mobile networks.
+- All list endpoints paginate (`?cursor=` + `limit`, default 50, max 100).
+- Idempotency keys (`Idempotency-Key` header, UUID) on session creation,
+  request submission, payments, and instance requests. Semantics **[Decided]**:
+  scope = account + endpoint; dedupe window **24h**; same key + identical
+  payload → replay the original response; same key + different payload →
+  `409 idempotency_conflict`; keys for failed (5xx) executions are released.
 
 ---
 
@@ -110,13 +115,17 @@ All under `/api/v1`, workspace/account auth as §2. Deltas only:
 
 | Group | Endpoints |
 | --- | --- |
-| Posts | `POST /posts` (designer) · `GET /posts/{id}` · `GET /feed` (followed + ranked) · `GET /explore?q&tags&price_band` · `DELETE /posts/{id}` |
-| Social graph | `POST/DELETE /follows/{designer}` · `POST/DELETE /posts/{id}/like` · `POST/DELETE /posts/{id}/save` · `POST /posts/{id}/comments` · `GET /posts/{id}/comments` |
-| Requests | `POST /posts/{id}/requests` (body: vault snapshot selector, notes, budget) · `GET /requests?role=customer\|designer` · `GET /requests/{id}` · `POST /requests/{id}/quote` · `POST /requests/{id}/decline` · `POST /requests/{id}/status` (in_progress/shipped/delivered) · `POST /requests/{id}/messages` |
-| Payments | `POST /requests/{id}/pay` (provider session) · webhook `/webhooks/payments` · `POST /requests/{id}/confirm-delivery` (releases escrow) · `POST /requests/{id}/dispute` |
+| Posts | `POST /posts` (designer) · `GET /posts/{id}` · `GET /feed` (followed + ranked) · `GET /explore?q&tags&price_band` (bands: `budget` <25k, `mid` 25–100k, `premium` >100k NGN **[Decided defaults]**) · `DELETE /posts/{id}` |
+| Social graph | `POST/DELETE /follows/{designer}` · `POST/DELETE /posts/{id}/like` · `POST/DELETE /posts/{id}/save` · `POST /posts/{id}/comments` (body ≤500 chars) · `GET /posts/{id}/comments` |
+| Trust & safety | `POST /reports` `{subject_kind, subject_id, reason}` · `POST/DELETE /blocks/{account}` · moderator: `GET /moderation/queue` · `POST /moderation/reports/{id}/action` `{action: hide_post\|suspend_account\|dismiss}` (A-6; semantics in data-model §6.2) |
+| Requests | `POST /posts/{id}/requests` (body: vault snapshot selector, notes, budget) · `GET /requests?role=customer\|designer` · `GET /requests/{id}` · `POST /requests/{id}/quote` · `POST /requests/{id}/decline` · `POST /requests/{id}/status` (in_progress/shipped — `delivered` is customer-confirm or system auto-confirm only, order-lifecycle §2) · `POST /requests/{id}/messages` |
+| Payments | `POST /requests/{id}/pay` (provider session) · `POST /webhooks/payments` (unversioned by design; **auth = provider signature only**, never bearer; unauthenticated-but-verified, engineering §2) · `POST /requests/{id}/confirm-delivery` (releases escrow) · `POST /requests/{id}/dispute` |
 | Designer | `POST /designer-profile` (enable + KYC start) · `GET /designer/earnings` · `POST /designer/payout-account` |
 | Notifications | `GET /notifications` · `POST /notifications/read` |
 
 Feed/explore are the only ranked endpoints (recency + follow affinity v1; no
-ML ranking until data exists). Likes/saves/follows are idempotent PUT-style
+ML ranking until data exists). Ranked pagination **[Decided]**: cursors encode
+a stable snapshot ordinal (rank computed at first page, frozen for the cursor's
+24h lifetime), so pages never duplicate or skip posts within one scroll
+session; new posts appear on refresh, not mid-scroll. Likes/saves/follows are idempotent PUT-style
 toggles with optimistic-client semantics (design.md MI-18).

@@ -27,7 +27,7 @@ Lighthouse mobile score ≥ 90 (PRD's mobile-first bias).
 
 | Item | Requirement | Notes |
 | --- | --- | --- |
-| Replace auth stubs: verify Google ID tokens properly; implement email link/OTP or drop the endpoint | PLAT-003 | Independent of D1; removes the `TODO(security-prd)` debt |
+| Replace auth stubs with Firebase Google-only verification (X-1 hardened); email endpoint deleted with no successor | PLAT-003 | flows/auth.md is the contract; removes the `TODO(security-prd)` debt |
 | `account.cuesoft.io` integration once contract exists | ECO-AUTH, D1 | Until then the hardened local auth carries the flow |
 | Consent gate (ToS + retention + accuracy disclaimer) | PRD §7 | `CONSENT_RECORD` model |
 | Instance request flow + minimal dashboard page | APP-002 | Queue + manual ops provisioning via existing helm chart (prd.md §8.2) |
@@ -72,7 +72,7 @@ sessions can select `smpl_v1`; landing demo reflects the real pipeline.
 
 | ID | Dependency | Owner | Blocks |
 | --- | --- | --- | --- |
-| D1 | `account.cuesoft.io` auth contract | Cuesoft ecosystem | Phase 1 (final shape), APP-002 |
+| D1 | `account.cuesoft.io` facade | Cuesoft ecosystem | Nothing (X-1: Firebase interim ratified; facade is cosmetic later) |
 | D2 | Upstat generic event-ingestion API | upstat repo (its PRD names it the ecosystem tracker) | ECO-ANALYTICS in Phase 0 |
 | D3 | Apparule clause on privacy.cuesoft.io | Cuesoft legal/content | APP-005 copy |
 | R1 | SMPL commercial licensing | Product decision | Phase 3 in cloud |
@@ -105,5 +105,12 @@ after them becomes:
   feeds richer snapshots into requests.
 
 Trust & safety (SOC-009: report/block/moderation) ships **with** Phase 3 —
-UGC without moderation doesn't go public. Platform parity note: web dashboard
+UGC without moderation doesn't go public.
+
+Exit criteria for the revised phases: **P2 (Vault)** capture→save→history on
+both surfaces with QC codes + retention job live; **P3 (Social)** post→follow
+→feed→like/save/comment E2E with T&S actions working and counters reconciling;
+**P4 (Commerce)** request→quote→pay→deliver→payout on Paystack sandbox with the
+money invariant green and disputes freezing payouts; **P5 (SMPL)** accuracy
+report published + cloud girth sessions selectable. Platform parity note: web dashboard
 and mobile ship each phase together (shared component naming, design.md §6).

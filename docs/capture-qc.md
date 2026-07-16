@@ -40,9 +40,9 @@ one actionable instruction beats a list.
 
 `scale = user_height_cm / body_height_px` uses the nose→ankle-midpoint
 distance, which is ~93% of true stature (nose≠crown, ankle≠sole). Corrected:
-`scale = (user_height_cm × 0.93) / body_height_px` **[Decided: apply the
-anthropometric correction that the current code omits — flagged as a v-next
-pipeline change since it shifts all outputs ~7%]**. Plausibility band: if the
+`scale = (user_height_cm × 0.93) / body_height_px` **[Decided: ships as
+`method: mediapipe_2d_v2` — the correction shifts all outputs ~7%, so it is a
+new method identifier, never a silent change to v1 sessions]**. Plausibility band: if the
 implied crown-to-sole pixel height maps outside 0.75–1.33× of the claimed
 height when cross-checked against torso proportions (shoulder-to-hip ÷
 stature expected ≈ 0.25±0.08), flag `pipeline_meta.qc.height_suspect = true`

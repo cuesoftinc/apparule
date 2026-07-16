@@ -51,12 +51,12 @@ sequenceDiagram
 | Case | Behaviour |
 | --- | --- |
 | Popup/sheet dismissed | silent return, screen unchanged |
-| `network-request-failed` | offline toast + retry |
-| `user-disabled` | "This account has been disabled" + support link |
+| `network-request-failed` *(Firebase SDK constant, not our catalog)* | offline toast + retry |
+| `user-disabled` *(Firebase SDK constant)* | "This account has been disabled" + support link |
 | Token with wrong provider (crafted email/password token from another tool) | `403 provider_not_allowed`; log server-side |
 | Google account without Play Services (Android edge) | `google_sign_in` fallback to web flow |
 | In-app browsers blocking popups (IG/Twitter webviews — likely for a social app!) | `signInWithRedirect` fallback; tested explicitly |
-| Account deletion | in-app: deletes ACCOUNT + vault per retention rules, then Firebase user; Google access revoked via SDK |
+| Account deletion | blocked while money is in flight: any non-terminal order (either role) or unsettled payout → `409 account_has_active_orders`; otherwise account enters `deletion_pending` (no new social/commerce actions) and hard-deletes ACCOUNT + vault per retention rules, then the Firebase user, once the last order is terminal and payouts settle; Google access revoked via SDK |
 
 ## 5. Screen inventory impact **[flags removals]**
 
@@ -68,7 +68,7 @@ return later for designer KYC, which Paystack owns anyway (A-2).
 
 ## 6. Instrumentation & acceptance
 
-Events: `auth_signin_completed`, `auth_signin_failed` — counters only.
+Events: `auth_signin_completed`, `auth_signin_failed`, `consent_recorded{document}` (emitted by the consent endpoints, F1-5) — counters only, per the master registry.
 
 - [ ] Email/Password provider disabled in Firebase console (verified)
 - [ ] Backend rejects non-Google-provider tokens (test with crafted token)

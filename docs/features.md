@@ -12,7 +12,7 @@
 | F0-1 | Design tokens package | tokens from `apparule/tokens` (Figma) as CSS vars + Tailwind config; light/dark | design.md §2, §7 | — |
 | F0-2 | Web app shell | Next.js layout, nav (A1), footer (A10), theme switch, Lucide setup | pages.md A1/A10 | F0-1 |
 | F0-3 | Hero + problem strip | A2 hero with device-frame loop, A3 stat cards | pages.md A2–A3 | F0-2 |
-| F0-4 | Walkthrough + SMPL explainer | A4 scroll panel, A5 constellation animation asset | pages.md A4–A5, capture-qc MI-12 asset | F0-2 |
+| F0-4 | Walkthrough + SMPL explainer | A4 scroll panel, A5 constellation animation asset | pages.md A4–A5, design.md MI-12 | F0-2 |
 | F0-5 | Designers/open-source/community/cloud-vs-oss sections | A6–A9 | pages.md | F0-2 |
 | F0-6 | Privacy page | APP-005 disclosure, retention copy from data-model §4 | pages.md A10, prd §6 | F0-2 |
 | F0-7 | Analytics client wrapper | queued no-op upstat client; events per master registry | upstat api.md §3.4 | F0-2 |
@@ -27,7 +27,7 @@
 | F1-3 | Web sign-in | single Google CTA screen, redirect fallback, session handling | flows/auth §2–4 | F1-1 |
 | F1-4 | Flutter sign-in rewire | google_sign_in + firebase_auth; retire password screens | flows/auth §5 | F1-1 |
 | F1-5 | Consent gate | consent sheet + GET/POST /consent + CONSENT_RECORD | prd §6, api.md | F1-2 |
-| F1-6 | Instance requests | POST/GET /instance-requests + dashboard status page | flows (prd APP-002), A-5 | F1-2 |
+| F1-6 | Instance requests | POST/GET /instance-requests + dashboard status page | architecture.md §4.2, prd APP-002, A-5 | F1-2 |
 | F1-7 | Stub removal | delete legacy /api/auth/*, TODO(security-prd) retired | flows/auth §6 checklist | F1-2..4 |
 
 ## Phase 2 — Vault + capture
@@ -73,10 +73,13 @@
 
 ## Phase 5 — SMPL (gated on A-3 licensing outcome)
 
-F5-1 licensing decision execution · F5-2 accuracy benchmark harness (tape-vs-
-pipeline) · F5-3 pipeline v2 (fitting→mesh→girths→confidence) · F5-4 GPU
-deploy (cloud) · F5-5 landing demo media upgrade. Refs: architecture §5,
-capture-qc §4.
+| ID | Unit | Delivers | Refs | Deps |
+| --- | --- | --- | --- | --- |
+| F5-1 | Licensing decision execution | Meshcapade quote → go/no-go | A-3 | — |
+| F5-2 | Accuracy benchmark harness | tape-vs-pipeline comparison suite | capture-qc §6 | — |
+| F5-3 | Pipeline v2 | QC → fitting → mesh girths → confidence (`method: smpl_v1`) | architecture §5, capture-qc §4 | F5-1, F5-2 |
+| F5-4 | GPU deploy (cloud) | inference node pool / GPU Cloud Run | deployment.md | F5-3 |
+| F5-5 | Landing demo media upgrade | real-pipeline demo replaces preview | pages.md A5 | F5-3 |
 
 ## Cross-phase engineering units
 
