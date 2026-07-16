@@ -40,7 +40,7 @@ flowchart LR
 - **Data** — Firestore (system of record, X-5) & Cloud Storage; shared Aiven Redis (REDIS_DB tenancy).
 
 See [setup.md](setup.md) to run the stack locally, and the
-[repository structure](../README.md#repository-structure) in the README.
+[repository structure](https://github.com/cuesoftinc/apparule#repository-structure) in the README.
 
 ## Product & design documentation
 > Published site: **https://cuesoft.gitbook.io/apparule** (Git-synced from this folder on every merge to main).
