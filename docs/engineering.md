@@ -39,7 +39,8 @@ membership for vault-of-customers use (SME mode).
 | --- | --- | --- | --- | --- |
 | Feed/explore read, post detail | ✓ (public posts) | ✓ | ✓ | ✓ |
 | Like/save/comment/follow | — | ✓ | ✓ | ✓ |
-| Create post | — | — | ✓ (KYC complete) | — |
+| Create post | — | — | ✓ (designer profile) | — |
+| Post accepts requests | — | — | ✓ (KYC complete, A-2 — `post_unavailable` otherwise; flows/designer.md §1) | — |
 | Own vault (read/write) | — | ✓ self only — **no role ever reads another's vault** | ✓ self | — |
 | Workspace customers/sessions | — | workspace members | — | — |
 | Create request | — | ✓ (verified, vault non-empty, consent) | ✓ as customer | — |
