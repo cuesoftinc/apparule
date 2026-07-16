@@ -81,6 +81,7 @@ Configuration is provided at runtime via environment variables — for example
 all targets. Never commit credentials or bake them into an image.
 
 ## Documentation
+- [Hosted docs](https://cuesoft.gitbook.io/apparule) — the full documentation site (auto-synced from `docs/`)
 
 - [Project overview](docs/overview.md) — architecture and components
 - [Local setup](docs/setup.md) — development environment and per-service run commands
