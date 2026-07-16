@@ -1,43 +1,238 @@
 openapi: 3.1.0
 info:
   title: Apparule API
-  version: 0.1.0-draft
+  version: 0.2.0-draft
   description: >-
-    Draft contract for /api/v1 (docs/api.md is the narrative source). Rendered
-    by Scalar. Auth: Firebase ID tokens (Google-only, flows/auth.md). Errors
-    use the ecosystem envelope (engineering.md §1).
+    Contract for /api/v1 (docs/api.md is the narrative source; this file is the
+    Scalar-rendered reference). Auth: Firebase ID-token bearer, Google-only
+    (X-1 hardened) — backends reject sign_in_provider != google.com. Errors use
+    the ecosystem envelope (engineering.md §1); codes are snake_case and stable.
 servers:
   - url: https://api.apparule.cuesoft.io
+    description: sandbox (the only environment, X-6)
   - url: http://localhost:8080
 security: [{ firebase: [] }]
 tags:
-  - { name: auth }
-  - { name: vault }
-  - { name: social }
-  - { name: requests }
-  - { name: cloud }
+  - { name: auth, description: Account resolution + consent (flows/auth.md) }
+  - { name: vault, description: Measurement vault + customer records (flows/vault.md) }
+  - { name: social, description: Posts, feed, engagement (pages.md B1-B6) }
+  - { name: requests, description: Commission lifecycle (order-lifecycle.md) }
+  - { name: designer, description: Designer profile, earnings (flows/designer.md) }
+  - { name: safety, description: Trust & safety (data-model §6.2) }
+  - { name: notifications }
+  - { name: cloud, description: Instance requests (APP-002) }
+  - { name: webhooks }
+
 paths:
-  /api/v1/me: { get: { tags: [auth], summary: Resolve account (upsert on first login), responses: { "200": { description: Account } } } }
+  /api/v1/me:
+    get:
+      tags: [auth]
+      summary: Resolve caller's account (idempotent upsert on first login)
+      responses:
+        "200": { description: Account, content: { application/json: { schema: { $ref: "#/components/schemas/Account" } } } }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+    patch:
+      tags: [auth]
+      summary: Update profile incl. username claim/rename (1x/30d)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { username: { type: string, pattern: "^[a-z0-9._]{3,30}$" } } } } } }
+      responses:
+        "200": { description: Account }
+        "409": { description: name_taken, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
   /api/v1/consent:
     get: { tags: [auth], summary: Accepted document versions, responses: { "200": { description: Consent list } } }
-    post: { tags: [auth], summary: Record acceptance, responses: { "201": { description: Recorded } } }
+    post:
+      tags: [auth]
+      summary: Record acceptance (emits consent_recorded event)
+      requestBody: { content: { application/json: { schema: { type: object, required: [document, version], properties: { document: { enum: [tos, privacy] }, version: { type: string } } } } } }
+      responses: { "201": { description: Recorded } }
+
+  /api/v1/me/sessions:
+    post:
+      tags: [vault]
+      summary: Create own measurement session (self-customer alias, data-model §6.1)
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: { type: object, required: [image], properties: { image: { type: string, format: binary, description: "<=10MB JPEG/PNG/HEIC" }, input_height_cm: { type: number, minimum: 100, maximum: 230 } } }
+      responses:
+        "201": { description: Session with measurements, content: { application/json: { schema: { $ref: "#/components/schemas/MeasurementSession" } } } }
+        "422": { description: "QC failure — capture-qc.md codes (no_body, multiple_bodies, partial_body, undecodable_image, low_resolution, poor_lighting, blurry, not_frontal, camera_tilt, arms_position, too_far)", content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "403": { description: consent_required }
+    get: { tags: [vault], summary: Own measurement history, parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }], responses: { "200": { description: Sessions page } } }
   /api/v1/customers:
-    get: { tags: [vault], summary: List workspace customers, responses: { "200": { description: Page } } }
-    post: { tags: [vault], summary: Create customer, responses: { "201": { description: Customer } } }
+    get: { tags: [vault], summary: List workspace customers, parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }], responses: { "200": { description: Page } } }
+    post: { tags: [vault], summary: Create customer (kind=client), responses: { "201": { description: Customer } } }
+  /api/v1/customers/{id}:
+    get: { tags: [vault], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Customer detail, responses: { "200": { description: Customer }, "404": { $ref: "#/components/responses/NotFound" } } }
+    patch: { tags: [vault], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Update, responses: { "200": { description: Customer } } }
+    delete: { tags: [vault], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Soft delete (purge per retention), responses: { "204": { description: Deleted } } }
   /api/v1/customers/{id}/sessions:
-    post: { tags: [vault], summary: "Create measurement session (multipart: image, input_height_cm; Idempotency-Key)", responses: { "201": { description: Session }, "422": { description: QC failure (capture-qc.md codes) } } }
-    get: { tags: [vault], summary: Measurement history, responses: { "200": { description: Sessions } } }
-  /api/v1/sessions/{id}/measurements: { patch: { tags: [vault], summary: Append manual corrections, responses: { "200": { description: Session } } } }
-  /api/v1/sessions/{id}/exports: { post: { tags: [vault], summary: Generate PDF/CSV export, responses: { "201": { description: Signed URL } } } }
-  /api/v1/feed: { get: { tags: [social], summary: Ranked home feed, responses: { "200": { description: Posts page } } } }
-  /api/v1/explore: { get: { tags: [social], summary: Search/discover posts, responses: { "200": { description: Posts page } } } }
-  /api/v1/posts: { post: { tags: [social], summary: Create outfit post (designer, KYC-gated), responses: { "201": { description: Post } } } }
-  /api/v1/posts/{id}/like: { post: { tags: [social], summary: Like (idempotent), responses: { "204": { description: OK } } }, delete: { tags: [social], summary: Unlike, responses: { "204": { description: OK } } } }
-  /api/v1/posts/{id}/requests: { post: { tags: [requests], summary: "Commission request (snapshot frozen server-side; Idempotency-Key)", responses: { "201": { description: Request }, "409": { description: duplicate_request | post_unavailable } } } }
-  /api/v1/requests/{id}/quote: { post: { tags: [requests], summary: Designer quote, responses: { "200": { description: Request } } } }
-  /api/v1/requests/{id}/pay: { post: { tags: [requests], summary: Init payment (escrow hold), responses: { "200": { description: Provider session } } } }
-  /api/v1/requests/{id}/confirm-delivery: { post: { tags: [requests], summary: Confirm delivery (releases payout), responses: { "200": { description: Request } } } }
-  /api/v1/instance-requests: { post: { tags: [cloud], summary: Request a cloud instance (consent-gated), responses: { "202": { description: Queued } } } }
+    post: { tags: [vault], parameters: [{ $ref: "#/components/parameters/Id" }, { $ref: "#/components/parameters/IdempotencyKey" }], summary: Create session for a client customer (same contract as /me/sessions), responses: { "201": { description: Session }, "422": { description: QC failure } } }
+    get: { tags: [vault], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Customer measurement history, responses: { "200": { description: Sessions } } }
+  /api/v1/sessions/{id}/measurements:
+    patch: { tags: [vault], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Append manual corrections (append-only, source=manual_correction), responses: { "200": { description: Session } } }
+  /api/v1/sessions/{id}/exports:
+    post: { tags: [vault], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Generate PDF/CSV export, requestBody: { content: { application/json: { schema: { type: object, properties: { format: { enum: [pdf, csv] } } } } } }, responses: { "201": { description: Signed URL (TTL) } } }
+
+  /api/v1/feed:
+    get: { tags: [social], summary: "Ranked home feed (rank frozen per cursor, 24h lifetime — api.md §5)", parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }], responses: { "200": { description: Posts page } } }
+  /api/v1/explore:
+    get:
+      tags: [social]
+      summary: Search/discover
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - { name: tags, in: query, schema: { type: string } }
+        - { name: price_band, in: query, schema: { enum: [budget, mid, premium] } }
+        - { $ref: "#/components/parameters/Cursor" }
+      responses: { "200": { description: Posts page } }
+  /api/v1/posts:
+    post: { tags: [social], summary: "Create outfit post (designer, KYC-gated; <=10 images <=10MB each, JPEG/PNG/WebP; alt text)", responses: { "201": { description: Post }, "403": { description: kyc_incomplete } } }
+  /api/v1/posts/{id}:
+    get: { tags: [social], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Post detail (public permalink /p/{id}), security: [], responses: { "200": { description: Post } } }
+    delete: { tags: [social], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Delete own post, responses: { "204": { description: Deleted } } }
+  /api/v1/posts/{id}/like:
+    post: { tags: [social], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Like (idempotent toggle), responses: { "204": { description: OK } } }
+    delete: { tags: [social], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Unlike, responses: { "204": { description: OK } } }
+  /api/v1/posts/{id}/save:
+    post: { tags: [social], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Save (idempotent), responses: { "204": { description: OK } } }
+    delete: { tags: [social], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Unsave, responses: { "204": { description: OK } } }
+  /api/v1/posts/{id}/comments:
+    post: { tags: [social], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Comment (<=500 chars), responses: { "201": { description: Comment } } }
+    get: { tags: [social], parameters: [{ $ref: "#/components/parameters/Id" }, { $ref: "#/components/parameters/Cursor" }], summary: List comments, responses: { "200": { description: Page } } }
+  /api/v1/follows/{designer}:
+    post: { tags: [social], parameters: [{ name: designer, in: path, required: true, schema: { type: string } }], summary: Follow (idempotent), responses: { "204": { description: OK } } }
+    delete: { tags: [social], parameters: [{ name: designer, in: path, required: true, schema: { type: string } }], summary: Unfollow, responses: { "204": { description: OK } } }
+
+  /api/v1/posts/{id}/requests:
+    post:
+      tags: [requests]
+      summary: Commission request — measurement snapshot frozen server-side
+      parameters: [{ $ref: "#/components/parameters/Id" }, { $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/RequestCreate" } } } }
+      responses:
+        "201": { description: Request }
+        "409": { description: duplicate_request | post_unavailable }
+        "422": { description: snapshot_invalid }
+        "429": { description: "rate_limited (>10 open requests)" }
+  /api/v1/requests:
+    get: { tags: [requests], summary: List by role, parameters: [{ name: role, in: query, schema: { enum: [customer, designer] } }, { $ref: "#/components/parameters/Cursor" }], responses: { "200": { description: Page } } }
+  /api/v1/requests/{id}:
+    get: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Order detail (party-only; others get 404), responses: { "200": { description: Request }, "404": { $ref: "#/components/responses/NotFound" } } }
+  /api/v1/requests/{id}/quote:
+    post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Designer quote (7d expiry), requestBody: { content: { application/json: { schema: { type: object, required: [quote_cents, due_at], properties: { quote_cents: { type: integer }, currency: { type: string, default: NGN }, due_at: { type: string, format: date } } } } } }, responses: { "200": { description: Request } } }
+  /api/v1/requests/{id}/decline:
+    post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Designer decline (reason required), responses: { "200": { description: Request } } }
+  /api/v1/requests/{id}/status:
+    post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }], summary: "Designer progress: in_progress | shipped only (delivered is customer/system-only)", requestBody: { content: { application/json: { schema: { type: object, required: [status], properties: { status: { enum: [in_progress, shipped] }, tracking: { type: string } } } } } }, responses: { "200": { description: Request } } }
+  /api/v1/requests/{id}/pay:
+    post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }, { $ref: "#/components/parameters/IdempotencyKey" }], summary: Init Paystack payment (escrow hold lands on charge.success webhook), responses: { "200": { description: Provider checkout session } } }
+  /api/v1/requests/{id}/confirm-delivery:
+    post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Customer confirms delivery — releases payout (quote − 10% fee, A-1), responses: { "200": { description: Request } } }
+  /api/v1/requests/{id}/dispute:
+    post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Open dispute (freezes payout), requestBody: { content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { enum: [not_received, not_as_described, size_wrong, other] }, detail: { type: string } } } } } }, responses: { "200": { description: Request } } }
+  /api/v1/requests/{id}/messages:
+    post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Thread message (<=1000 chars, optional image), responses: { "201": { description: Message } } }
+    get: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }, { $ref: "#/components/parameters/Cursor" }], summary: Thread, responses: { "200": { description: Page } } }
+
+  /api/v1/designer-profile:
+    post: { tags: [designer], summary: Enable designer profile (username required; starts Paystack KYC), responses: { "201": { description: Profile } } }
+  /api/v1/designer/payout-account:
+    post: { tags: [designer], summary: Attach payout account (bank resolution via Paystack), responses: { "200": { description: KYC state } } }
+  /api/v1/designer/earnings:
+    get: { tags: [designer], summary: Balance + payout history, responses: { "200": { description: Earnings } } }
+
+  /api/v1/reports:
+    post: { tags: [safety], summary: Report content/account, requestBody: { content: { application/json: { schema: { type: object, required: [subject_kind, subject_id, reason], properties: { subject_kind: { enum: [post, comment, account] }, subject_id: { type: string }, reason: { enum: [spam, inappropriate, counterfeit, harassment, other] }, detail: { type: string } } } } } }, responses: { "201": { description: Filed } } }
+  /api/v1/blocks/{account}:
+    post: { tags: [safety], parameters: [{ name: account, in: path, required: true, schema: { type: string } }], summary: Block (silent; semantics data-model §6.2), responses: { "204": { description: OK } } }
+    delete: { tags: [safety], parameters: [{ name: account, in: path, required: true, schema: { type: string } }], summary: Unblock, responses: { "204": { description: OK } } }
+  /api/v1/moderation/queue:
+    get: { tags: [safety], summary: Open reports (moderator only), responses: { "200": { description: Queue }, "403": { description: forbidden } } }
+  /api/v1/moderation/reports/{id}/action:
+    post: { tags: [safety], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Act on a report, requestBody: { content: { application/json: { schema: { type: object, required: [action], properties: { action: { enum: [hide_post, suspend_account, dismiss] } } } } } }, responses: { "200": { description: Actioned } } }
+
+  /api/v1/notifications:
+    get: { tags: [notifications], summary: Activity list (90d retention), parameters: [{ $ref: "#/components/parameters/Cursor" }], responses: { "200": { description: Page } } }
+  /api/v1/notifications/read:
+    post: { tags: [notifications], summary: Mark read (clears badges), responses: { "204": { description: OK } } }
+
+  /api/v1/instance-requests:
+    post: { tags: [cloud], parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }], summary: Request a cloud instance (consent-gated), responses: { "202": { description: Queued } } }
+    get: { tags: [cloud], summary: Own requests + status (queued|provisioning|active|rejected|cancelled|deprovisioned), responses: { "200": { description: List } } }
+
+  /webhooks/payments:
+    post:
+      tags: [webhooks]
+      summary: Paystack webhook — signature-auth only (never bearer); unverified => 401 + ops alert
+      security: []
+      responses: { "200": { description: Processed (idempotent by provider reference) }, "401": { description: Invalid signature } }
+
 components:
   securitySchemes:
     firebase: { type: http, scheme: bearer, bearerFormat: "Firebase ID token (google.com provider only)" }
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string } }
+    Cursor: { name: cursor, in: query, schema: { type: string } }
+    Limit: { name: limit, in: query, schema: { type: integer, default: 50, maximum: 100 } }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: { type: string, format: uuid }
+      description: "Scope account+endpoint, 24h window; same key + same payload replays the response; different payload => 409 idempotency_conflict (api.md §4)"
+  responses:
+    Unauthenticated: { description: "unauthenticated | token_expired (client refreshes and retries once)", content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+    NotFound: { description: "not_found (also returned for cross-tenant access — never 403)", content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string, description: snake_case stable code (engineering.md §1) }
+            message: { type: string }
+            details: { type: object }
+    Account:
+      type: object
+      properties:
+        id: { type: string }
+        username: { type: string }
+        email: { type: string }
+        designer: { type: object, properties: { enabled: { type: boolean }, kyc_complete: { type: boolean } } }
+        consent: { type: array, items: { type: object, properties: { document: { type: string }, version: { type: string } } } }
+    MeasurementSession:
+      type: object
+      properties:
+        id: { type: string }
+        method: { enum: [mediapipe_2d, mediapipe_2d_v2, smpl_v1, manual] }
+        status: { enum: [pending_save, complete, failed] }
+        input_height_cm: { type: number }
+        measurements:
+          type: array
+          items: { type: object, properties: { name: { type: string }, value_cm: { type: number }, source: { enum: [pipeline, manual_correction] }, confidence: { type: number } } }
+        pipeline_meta: { type: object }
+    RequestCreate:
+      type: object
+      required: [session_id, delivery]
+      properties:
+        session_id: { type: string, description: vault session snapshotted server-side }
+        notes: { type: string, maxLength: 500 }
+        budget_cents: { type: integer }
+        currency: { type: string, default: NGN }
+        target_date: { type: string, format: date }
+        delivery:
+          type: object
+          required: [recipient_name, phone, line1, city, state, country]
+          properties:
+            recipient_name: { type: string }
+            phone: { type: string }
+            line1: { type: string }
+            line2: { type: string }
+            city: { type: string }
+            state: { type: string }
+            country: { type: string, default: NG }

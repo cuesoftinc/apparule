@@ -2,8 +2,8 @@
 
 > The full state machine behind SOC-004/005/006 (pages.md B3/C5/C8,
 > data-model.md §5 `REQUEST`). **[Proposed]** — this is the contract the
-> commerce phase implements; payments/escrow specifics gated on the provider
-> decision.
+> commerce phase implements; payments/escrow are the ratified A-1 model
+> (Paystack + platform ledger, 10% fee).
 
 ## 1. State machine
 
@@ -16,6 +16,7 @@ stateDiagram-v2
     quoted --> paid : customer pays (escrow hold)
     quoted --> cancelled : customer rejects quote / quote expires (7d)
     paid --> in_progress : designer starts work
+    paid --> refunded : system, designer inactive T+14d (no start)
     in_progress --> shipped : designer ships (tracking optional)
     shipped --> delivered : customer confirms OR auto-confirm T+14d
     delivered --> [*] : payout released
@@ -34,12 +35,17 @@ Rules:
 - **Measurement snapshot freezes at `requested`** — later vault changes never
   mutate an order; a re-measure prompts a *new* request.
 - **Quotes expire** after 7 days un-actioned (state → `cancelled`, both
-  parties notified) **[default to ratify]**.
+  parties notified) **[Decided, A-7]**.
 - **Auto-confirm**: `shipped` → `delivered` at T+14 days without customer
   action, after two reminders — protects designer payout from ghosting
-  **[default to ratify]**.
+  **[Decided, A-7]**.
 - **Dispute window** ends at delivery confirmation; disputes freeze payout
   and open a support thread (routes to `clients.cuesoft.io` when live).
+- **Escrow never waits forever [Decided]**: `paid` with no `in_progress`
+  within **14 days** auto-refunds (system transition; designer notified +
+  strike recorded); an order past `due_at + 14 days` without `shipped`
+  surfaces a one-click "request refund" dispute path to the customer with
+  reminders to the designer at due_at and due_at+7.
 - Cancellation after `paid` is a refund path, not a `cancelled` transition —
   money movements only ever resolve through `delivered` (payout) or
   `refunded`.
@@ -67,11 +73,12 @@ and only that frozen copy.
 | --- | --- |
 | `paid` | full quote captured to platform escrow; `PAYMENT.state = held` |
 | `delivered` | payout = quote − platform fee → designer payout account; `released` |
-| `refunded` | escrow returns to customer (fee handling per provider rules) |
+| `refunded` | platform triggers the Paystack refund from the ledger within **1 business day** of the resolving event; full-amount refunds only in v1 (no partials); the platform absorbs provider refund fees **[Decided]** |
 
-Platform fee % and payout timing (instant vs T+2) are provider-dependent —
-decide with the provider (Paystack-first for NG rails, Stripe for
-international **[Proposed]**). Designer payouts require completed KYC
+Platform fee: **10% of quote** (A-1, ratified); payout timing: **on delivery
+confirmation** — no instant payout in v1 (A-1). Provider: Paystack for NG
+rails; Stripe arrives with international (A-1). All amounts carry `currency`
+(NGN-only v1, data-model §5). Designer payouts require completed KYC
 (`DESIGNER_PROFILE.payout_account` verified) *before* their posts can accept
 requests — not at payout time, when it's too late.
 
@@ -84,7 +91,7 @@ requests — not at payout time, when it's too late.
 | paid | payment receipt | **push: order funded — start work** |
 | in_progress | status update | — |
 | shipped | **push: shipped** (+tracking) | — |
-| delivered−2d (pending auto-confirm) | reminder ×2 | — |
+| auto-confirm reminders (T+7, T+12 after shipped) | reminder ×2 | — |
 | delivered | confirmation + review prompt **[Later]** | **push: payout released** |
 | declined / cancelled / disputed / refunded | push | push |
 

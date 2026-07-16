@@ -27,3 +27,4 @@
 - [Authentication](flows/auth.md)
 - [Measurement Vault](flows/vault.md)
 - [Commission Request](flows/request.md)
+- [Designer Side](flows/designer.md)

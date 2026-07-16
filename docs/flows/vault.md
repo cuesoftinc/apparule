@@ -32,7 +32,7 @@ flowchart TD
 | --- | --- |
 | Height input | 100–230 cm (39–91 in); stored per account, editable in vault; changing height NEVER retro-scales old sessions (they froze their `input_height_cm`) |
 | Upload | multipart image ≤ 10 MB, JPEG/PNG/HEIC; client compresses to ≤2048px long edge before upload; `Idempotency-Key` header (UUID per capture attempt) — retries on flaky mobile MUST NOT create duplicate sessions |
-| QC failures | always `422 {error:{code, message, guidance}}`; codes: `no_body`, `multiple_bodies`, `partial_body`, `undecodable_image`; each maps to specific retake copy — never a generic "failed" |
+| QC failures | always `422 {error:{code, message, guidance}}`; full code set from capture-qc.md §1–2 with retake copy: `no_body` "Make sure your whole body is visible" · `multiple_bodies` "Make sure you're alone in frame" · `partial_body` "Include head to ankles" · `undecodable_image` "That image couldn't be read — try another photo" · `low_resolution` "Move closer or use a higher-quality camera" · `poor_lighting` "Find better lighting — avoid strong backlight" · `blurry` "Hold steady and retake" · `not_frontal` "Face the camera straight on" · `camera_tilt` "Hold the phone upright" · `arms_position` "Keep arms slightly away from your body" · `too_far` "Move closer — fill more of the frame" |
 | Unsaved results | server session rows created with `status: pending_save`; auto-purged after 24h unsaved **[Decided default]**; "Retake" purges immediately |
 | Save | flips `status: complete`; capture image begins its 30-day `retention_until` clock; measurements persist indefinitely |
 
@@ -40,7 +40,7 @@ flowchart TD
 
 | Case | Behaviour |
 | --- | --- |
-| Network dies mid-upload | client retries ×3 w/ backoff (same idempotency key); then "Saved to drafts — retry from vault" (draft = local image + height, encrypted at rest on device) |
+| Network dies mid-upload | client retries ×3 w/ backoff (same idempotency key); then "Saved to drafts — retry from vault" (draft = local image + height, encrypted via the platform keystore — Keychain / Android Keystore through `flutter_secure_storage`) |
 | App killed after capture, before save | draft persists locally; vault shows "1 unsaved capture" chip on next open |
 | Pipeline timeout (>30s) | `503 pipeline_busy`; client offers retry; session row marked `failed` |
 | User with no vault opens request flow | redirected here with "You need measurements first" (flows/request.md §2) |

@@ -65,7 +65,7 @@ flowchart LR
     end
 
     subgraph Cuesoft ecosystem — external
-        ACC[account.cuesoft.io<br/>identity & session]
+        ACC[Firebase Auth sandbox-e306a<br/>account.cuesoft.io facade later]
         UP[Upstat<br/>events & uptime]
         CL[clients.cuesoft.io<br/>support]
         PRIV[privacy.cuesoft.io<br/>privacy hub]
@@ -77,9 +77,8 @@ flowchart LR
     LAND --> PRIV
     T --> DASH
     T -->|Flutter app| AC
-    DASH -->|sign in| ACC
-    DASH --> AC
-    AC -->|verify session/token| ACC
+    DASH -->|Google sign-in in-app (X-1)| AC
+    AC -.->|Firebase ID-token verify| ACC
     AC --> DB
     AC --> OBJ
     AC -->|internal call| AM
@@ -155,7 +154,9 @@ architecture:
 /privacy              Measurement-data handling disclosure (APP-005)
 /cloud                Cloud access: Google sign-in (Firebase, X-1),
                       ToS consent gate, instance request (APP-002)
-/dashboard            Post-auth: customers, measurement records (PLAT-001/2)
+/dashboard            Post-auth app (single canonical location [Decided]:
+                      path-based /dashboard on apparule.cuesoft.io — no
+                      app. subdomain; pages.md "B" sections map here)
 ```
 
 ### 3.4 mobile/flutter — capture client
@@ -193,11 +194,11 @@ sequenceDiagram
 sequenceDiagram
     actor T as Tailor
     participant W as apparule.cuesoft.io
-    participant A as account.cuesoft.io
+    participant A as Firebase Auth (Google-only, X-1)
     participant C as api/common
 
     T->>W: "Try Apparule Cloud"
-    W->>A: redirect to sign-in
+    W->>A: in-app Google sign-in (popup/redirect)
     A-->>W: session/token for T
     W->>C: GET /api/v1/consent (has T accepted Apparule ToS?)
     alt no consent on file
@@ -283,6 +284,31 @@ GPU-capable node pool for SMPL inference (cloud only). **[Proposed]**
 
 | Dependency | Needed by | Status |
 | --- | --- | --- |
-| D1 `account.cuesoft.io` contract | APP-002, PLAT-003 | External; not in any repo. Blocks final auth shape; interim hardened local JWT proposed. |
+| D1 `account.cuesoft.io` facade | future identity facade only | **Not blocking** (X-1): Firebase Auth on `sandbox-e306a` is the ratified interim and the facade fronts the same tokens. |
 | D2 Upstat event-ingestion API | ECO-ANALYTICS | Upstat has no generic event endpoint today — tracked in upstat's roadmap (its PRD names it the ecosystem tracking service). |
 | D3 `privacy.cuesoft.io` Apparule clause | APP-005 | Content dependency; page links out. |
+
+## 8. Social-commerce runtime additions (2026-07-16 expansion) **[Decided]**
+
+```mermaid
+flowchart LR
+    PS[Paystack] -->|signed webhooks| WH["/webhooks/payments (api/common)"]
+    SCHED[Cloud Scheduler] --> J1[job: quote expiry — hourly]
+    SCHED --> J2[job: auto-confirm + reminders — daily]
+    SCHED --> J3[job: retention purge — daily]
+    SCHED --> J4[job: payment reconciliation — hourly]
+    SCHED --> J5[job: counter reconciliation — hourly]
+    J1 & J2 & J3 & J4 & J5 --> AC[api/common job entrypoints<br/>Cloud Run jobs, same image]
+    AC -->|FCM Admin SDK| PUSH[push notifications]
+    AC -->|events| UP[Upstat]
+```
+
+- **Webhooks**: `/webhooks/payments` verifies the Paystack signature before
+  any processing; unverified → 401 + ops alert (flows/request.md §3).
+- **Scheduled jobs** run as **Cloud Run jobs** (same container image,
+  dedicated entrypoints) triggered by **Cloud Scheduler**; self-host runs
+  them via cron in compose. All jobs are idempotent — safe to re-run.
+- **Push** is FCM via the Firebase Admin SDK; in-app `NOTIFICATION` rows are
+  the source of truth, push is best-effort (data-model §6.4).
+- **Service-to-service**: api/common → api/measure uses Cloud Run IAM ID
+  tokens; api/measure has no public ingress in cloud (deployment.md §4).

@@ -96,8 +96,9 @@ before public launch. Alternative: commission the brand pass first.
   is **Firebase Authentication on GCP project `sandbox-e306a`** ("sandbox") —
   Google sign-in + email flows come from Firebase; services verify Firebase ID
   tokens (OIDC-compatible). `account.cuesoft.io` **is not built yet** — each app replicates the
-  sign-in/sign-up screens **in-app** (own UI per its design system,
-  Firebase Auth underneath: Google sign-in + email/password flows). The
+  sign-in screens **in-app** (own UI per its design system,
+  Firebase Auth underneath — Google sign-in only; the email/password wording
+  that stood here pre-hardening is void). The
   central facade fronts the same Firebase project later without contract
   changes; in-app screens then become optional, not obsolete. **HARDENED
   2026-07-16: Google sign-in is the ONLY method — no username/password

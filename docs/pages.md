@@ -32,7 +32,7 @@ Docs: hosted on **GitBook** (Git-synced from this `docs/` folder) **[Directive]*
 API reference via **Scalar** rendering the OpenAPI specs (api.md) embedded at
 `/docs/api`. **[Proposed]**
 
-## Part B — Web dashboard (app.apparule.cuesoft.io or /app)
+## Part B — Web dashboard (`apparule.cuesoft.io/dashboard` — canonical [Decided]; "B" routes below are relative to it)
 
 Desktop adaptation of the mobile IA (design.md §2 layout). Left rail: Home,
 Explore, Create, Orders, Vault, Profile, Settings; bottom of rail: theme
@@ -53,12 +53,15 @@ toggle, support (`clients.cuesoft.io`).
   overlay fade-in 120ms; click → post modal (IG desktop pattern: media left,
   detail right).
 - Filter chips: style tags, price band, turnaround time, "near me" **[Proposed]**.
+- Post permalinks: every post has a public web route `/p/{post_id}` (share
+  target for MI-9; renders post detail, request CTA for signed-in users).
 
 ### B3 `/app/orders` — Requests & orders (both roles)
 - Tabs: **As customer** / **As designer** (designer tab only when creator
   profile enabled).
 - `RequestCard` list; status pills (MI-14): `requested → quoted → paid →
-  in_progress → shipped → delivered` (+ `declined`, `disputed`, `cancelled`).
+  in_progress → shipped → delivered` (+ `refunded`, `declined`, `disputed`,
+  `cancelled`).
 - Click → order detail: outfit summary · **measurement snapshot** (the exact
   values sent, immutable) · thread (MI-17) · timeline (MI-14) · payment box
   (MI-15: quote → pay → escrow-held → released on delivery confirm)
@@ -69,7 +72,7 @@ toggle, support (`clients.cuesoft.io`).
 
 ### B4 `/app/vault` — Measurement vault
 - Header: freshness ring avatar (MI-11) + "Retake" CTA → capture options
-  (webcam upload / phone hand-off QR **[Proposed]** / manual entry MI-13).
+  (webcam upload / manual entry MI-13; phone hand-off QR was CUT from scope — mobile capture covers it **[Decided]**).
 - `MeasurementCard` grid (shoulder, hip, +SMPL girths when available) with
   history sparklines; tap → history sheet (sessions list, method chips,
   delete session).
@@ -79,7 +82,9 @@ toggle, support (`clients.cuesoft.io`).
 ### B5 `/app/create` — Post an outfit (designer)
 - Dropzone (≤10 media, reorder by drag; MI-4 preview) → details form
   (caption, style tags, base price or "quote on request", turnaround days,
-  fabric notes) → publish.
+  fabric notes) → publish. Media limits **[Decided]**: images only in v1 (video
+  is a later decision), ≤10 items, ≤10 MB each, JPEG/PNG/WebP, client-resized
+  to ≤2048px long edge; alt text required (default "Outfit by {designer}").
 - Non-creator users see the creator-profile upsell here ("Become a designer").
 
 ### B6 `/app/{username}` — Profiles
@@ -89,6 +94,11 @@ toggle, support (`clients.cuesoft.io`).
 - Regular user: private vault indicator (measurements NEVER public), saved
   looks tab, order history link. Privacy default: vault visible to no one;
   a measurement snapshot is shared **only** inside a request (APP-005 story).
+
+### B7a `/dashboard/admin/moderation` (staff only)
+- Moderation queue (A-6): open reports with subject preview, reporter
+  context, actions hide_post / suspend_account / dismiss (api.md §5 T&S);
+  audit trail via `REPORT.actioned_by`.
 
 ### B7 `/app/settings`
 - Account (Google sign-in via Firebase per X-1; `account.cuesoft.io` facade later), creator profile toggle,
@@ -102,7 +112,7 @@ Existing screens (splash/welcome/auth/capture) remain the entry path.
 
 | # | Screen | Spec |
 | --- | --- | --- |
-| C1 | Onboarding | existing auth flow; post-signup interstitial: "Take your first measurement" (→C6) or "Explore outfits" — skippable |
+| C1 | Onboarding | Google-only sign-in (flows/auth.md §5 — one CTA screen; password/verification screens retired); post-signup interstitial: "Take your first measurement" (→C6) or "Explore outfits" — skippable |
 | C2 | Home feed | = B1 minus right column; story rail on top; MI-1/2/3/4/5/6/16/18/20 all active |
 | C3 | Explore | search + 3-col grid; long-press peek preview (scale 0.97 + dim, MI haptic light); pull-to-refresh MI-5 |
 | C4 | Post detail | full-bleed carousel; action row; caption; comments sheet (swipe-up); Request CTA pinned bottom (safe-area) |

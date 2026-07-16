@@ -37,8 +37,10 @@ erDiagram
 
     ACCOUNT {
         uuid id PK
-        string subject "account.cuesoft.io subject id"
+        string firebase_uid "identity key (X-1); the future facade fronts the same uid"
         string email
+        string username "unique (case-insensitive), 3-30 chars [a-z0-9._]; claimable on demand, required to enable a designer profile; rename max 1x/30d"
+        string deletion_state "active | deletion_pending"
         datetime created_at
     }
     WORKSPACE {
@@ -55,6 +57,7 @@ erDiagram
     CUSTOMER {
         uuid id PK
         uuid workspace_id FK
+        string kind "self | client — exactly one self per account"
         string display_name
         string contact "optional email/phone"
         string notes
@@ -66,7 +69,7 @@ erDiagram
         uuid customer_id FK
         string method "mediapipe_2d | smpl_v1 | manual"
         float input_height_cm
-        string status "pending | complete | failed"
+        string status "pending_save | complete | failed" // pending_save = results returned, not yet saved (24h TTL, flows/vault.md)
         json pipeline_meta "model version, confidence, QC flags"
         datetime created_at
     }
@@ -131,7 +134,6 @@ Modeling notes:
 | System of record | **Firestore** (default DB, `sandbox-e306a`) — **[Decided X-5]**, revising the earlier Postgres proposal | Firebase-native stack; real-time listeners for feed/threads/notifications; the relational entities in §2 map to collections with the workspace/customer/session hierarchy as document paths. Payments-ledger Postgres escape hatch per X-5. |
 | Capture images + exports | Object storage (Firebase Storage today, S3-compatible acceptable) | Large binaries out of the DB; signed URLs for downloads. |
 | Cache/queues (later) | Valkey/Redis (declared stack) | Instance-request queue, export jobs — not needed for P0. |
-| Firestore | Only if `account.cuesoft.io` integration demands it | Avoid two systems of record. |
 
 ## 4. Data classification & handling **[PRD §7]**
 
@@ -183,8 +185,9 @@ erDiagram
     REQUEST { uuid id PK
         uuid post_id FK
         uuid customer_id FK
-        string status "requested|quoted|paid|in_progress|shipped|delivered|declined|disputed|cancelled"
+        string status "requested|quoted|paid|in_progress|shipped|delivered|refunded|declined|disputed|cancelled"
         int quote_cents
+        string currency "ISO 4217; NGN-only v1 (A-1) — international arrives with Stripe"
         datetime due_at }
     MEASUREMENT_SNAPSHOT { uuid id PK
         uuid request_id FK
@@ -193,7 +196,8 @@ erDiagram
     PAYMENT { uuid id PK
         uuid request_id FK
         string provider "paystack|stripe — to ratify"
-        string state "authorized|held|released|refunded"
+        string state "held|released|refunded" // charge.success lands directly in held; no separate authorized step (Paystack capture model)
+        string currency "ISO 4217, matches REQUEST"
         int amount_cents
         int platform_fee_cents }
 ```
@@ -204,3 +208,85 @@ a request the customer initiated (privacy story for APP-005); social counters
 (likes/saves) are denormalized on POST with periodic reconciliation; payments
 follow escrow: `held` at pay, `released` on delivery confirmation (dispute
 pauses release).
+
+---
+
+## 6. Completeness additions (2026-07-16 review)
+
+### 6.1 The personal vault mapping (self-customer) **[Decided]**
+
+Every `ACCOUNT` owns exactly one `CUSTOMER` with `kind: self`, auto-created in
+its personal workspace on first session. **The vault IS the self-customer's
+sessions** — `/api/v1/me/sessions` routes alias `customers/{self-id}/sessions`.
+SME mode manages additional `kind: client` customers; the entity path is
+identical, so vault and client-record code share one implementation.
+
+### 6.2 Trust & safety entities (A-6)
+
+```mermaid
+erDiagram
+    ACCOUNT ||--o{ REPORT : files
+    ACCOUNT ||--o{ BLOCK : places
+    REPORT {
+        uuid id PK
+        uuid reporter_id FK
+        string subject_kind "post | comment | account"
+        uuid subject_id
+        string reason "spam | inappropriate | counterfeit | harassment | other(+text)"
+        string status "open | actioned | dismissed"
+        uuid actioned_by "moderator"
+        datetime created_at
+    }
+    BLOCK {
+        uuid blocker_id FK
+        uuid blocked_id FK
+        datetime created_at
+    }
+```
+
+**Block semantics** (engineering.md §2): blocked accounts cannot follow,
+comment, request, or message the blocker; their posts/comments disappear from
+the blocker's feed/explore/search (soft filter, not deletion). **Existing
+orders survive a block** — money outranks social — but their threads lock to
+order-essential messages only. Blocks are silent (no notification).
+
+### 6.3 Delivery address **[Decided]**
+
+`REQUEST.delivery` embeds `{recipient_name, phone, line1, line2?, city,
+state, country}` frozen at submit (like the snapshot — later address-book
+edits never mutate an order). Classification: **sensitive PII** — same
+handling row as customer identity (§4); never in logs or events.
+
+### 6.4 Notifications
+
+`NOTIFICATION { id, account_id, kind, payload_ref (order/post id), read_at,
+created_at }` — retention 90 days; unread badge counts derive from
+`read_at IS NULL`; push delivery via FCM is fire-and-forget (the in-app row
+is the source of truth).
+
+### 6.5 Attribute completions
+
+- `POST_MEDIA { id, post_id, object_key, position 0-9, alt_text (required at
+  publish; default "Outfit by {designer}" per design.md §5), width, height }`
+- `COMMENT { id, post_id, author_id, body ≤ 500 chars, created_at,
+  hidden_by_moderation bool }`
+- `LIKE / SAVE { post_id, account_id, created_at }` (composite PK)
+- `FOLLOW { follower_id, designer_id, created_at }` (composite PK)
+- `ORDER_EVENT { id, request_id, kind (state transitions + reminders), actor
+  (customer|designer|system|moderator), created_at }`
+- `THREAD_MESSAGE { id, request_id, author_id, body ≤ 1000 chars,
+  image_object_key?, created_at }`
+- `PAYOUT { id, designer_id, request_id, amount_cents, currency,
+  provider_transfer_ref, state (pending|paid|failed), created_at }`
+- `INSTANCE_REQUEST.status` gains terminal states: `queued | provisioning |
+  active | rejected | cancelled | deprovisioned`; every transition notifies
+  the requester (in-app + email) per APP-002 "acknowledged".
+
+### 6.6 Operational notes
+
+- Firestore reliability: PITR enabled (7-day window) + daily exports to the
+  Cloud Storage bucket (`apparule/backups/…`); recovery runbook lands with
+  F2-1. Denormalized social counters reconcile **hourly** (job R4, architecture
+  §8).
+- Draft captures on device use the platform keystore
+  (Keychain / Android Keystore via `flutter_secure_storage`).
