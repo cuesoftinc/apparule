@@ -64,7 +64,7 @@ flowchart LR
         OBJ[(Object storage<br/>capture images, exports)]
     end
 
-    subgraph Cuesoft ecosystem — external
+    subgraph ECO["Cuesoft ecosystem — external"]
         ACC[Firebase Auth sandbox-e306a<br/>account.cuesoft.io facade later]
         UP[Upstat<br/>events & uptime]
         CL[clients.cuesoft.io<br/>support]
@@ -77,7 +77,7 @@ flowchart LR
     LAND --> PRIV
     T --> DASH
     T -->|Flutter app| AC
-    DASH -->|Google sign-in in-app (X-1)| AC
+    DASH -->|"Google sign-in in-app (X-1)"| AC
     AC -.->|Firebase ID-token verify| ACC
     AC --> DB
     AC --> OBJ
@@ -209,7 +209,7 @@ sequenceDiagram
     T->>W: request cloud instance
     W->>C: POST /api/v1/instance-requests
     C-->>W: 202 queued
-    Note over C: ops provisions via the existing helm chart;<br/>status transitions surface in the dashboard
+    Note over C: ops provisions via the existing helm chart ·<br/>status transitions surface in the dashboard
 ```
 
 ### 4.3 Measurement record lifecycle — target **[Proposed]**

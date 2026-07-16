@@ -98,3 +98,14 @@ construction (emulator rule tests are part of CI, not optional).
 - [ ] Firestore emulator rules tests in CI
 - [ ] Money invariant property test present before Phase 4 merges
 - [ ] Never-log grep gate wired into build-and-test.yml
+
+## CORS contract (ecosystem standard)
+
+- Env: **`CORS_ORIGINS`** — comma-separated exact origins; no wildcard in
+  cloud; `http://localhost:3000` default for native dev.
+- Behaviour: echo the request Origin **only if allowlisted**; `Vary: Origin`;
+  `Allow-Credentials: false` (bearer auth — no cookies);
+  methods `GET,POST,PUT,PATCH,DELETE,OPTIONS`; headers
+  `Authorization, Content-Type, Idempotency-Key, X-Org-Id`; preflight 204
+  with `Access-Control-Max-Age: 600`.
+- Implemented today in api/common (`CORS_ORIGINS`, renamed from `ALLOWED_ORIGINS` for ecosystem consistency).

@@ -23,7 +23,7 @@ func Load() (*Config, error) {
 		JWTSecret:          os.Getenv("JWT_SECRET"),
 		FirebaseConfigPath: os.Getenv("FIREBASE_CONFIG_PATH"),
 		ProjectID:          firstNonEmpty(os.Getenv("GOOGLE_CLOUD_PROJECT"), os.Getenv("GCP_PROJECT")),
-		AllowedOrigins:     splitCSV(getenv("ALLOWED_ORIGINS", "http://localhost:3000")),
+		AllowedOrigins:     splitCSV(getenv("CORS_ORIGINS", "http://localhost:3000")),
 	}
 
 	// Fail fast rather than fall back to a baked-in secret: a hard-coded

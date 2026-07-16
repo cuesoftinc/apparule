@@ -69,7 +69,7 @@ erDiagram
         uuid customer_id FK
         string method "mediapipe_2d | smpl_v1 | manual"
         float input_height_cm
-        string status "pending_save | complete | failed" // pending_save = results returned, not yet saved (24h TTL, flows/vault.md)
+        string status "pending_save (results unsaved, 24h TTL) | complete | failed"
         json pipeline_meta "model version, confidence, QC flags"
         datetime created_at
     }
@@ -196,7 +196,7 @@ erDiagram
     PAYMENT { uuid id PK
         uuid request_id FK
         string provider "paystack|stripe — to ratify"
-        string state "held|released|refunded" // charge.success lands directly in held; no separate authorized step (Paystack capture model)
+        string state "held | released | refunded — charge.success lands directly in held (Paystack capture model)"
         string currency "ISO 4217, matches REQUEST"
         int amount_cents
         int platform_fee_cents }
