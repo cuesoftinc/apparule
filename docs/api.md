@@ -87,7 +87,7 @@ server-side by api/common to the same API.
 | APP-003 SMPL demo | Nothing SMPL exists | Demo media first; pipeline later (PLAT-005) |
 | APP-004 API reference | FastAPI `/openapi.json` only; Go undocumented | OpenAPI spec for api/common (static YAML or swag), docs-site renderer with search |
 | APP-005 privacy disclosure | None | Web page + privacy.cuesoft.io clause link (D3) |
-| PLAT-001/002 records | Zero persistence | Postgres, repository layer, endpoints above |
+| PLAT-001/002 records | Zero persistence | Firestore data layer (X-5), repository layer, endpoints above |
 | PLAT-003 real auth | Stubs with TODOs | ID-token verification now; account.cuesoft.io when D1 lands |
 | PLAT-004 export | None | Export generation + object storage |
 | PLAT-005 SMPL | MediaPipe 2-D | Staged pipeline (architecture.md §5), licensing decision first |

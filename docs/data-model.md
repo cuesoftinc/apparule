@@ -128,7 +128,7 @@ Modeling notes:
 
 | Concern | Choice | Rationale |
 | --- | --- | --- |
-| System of record | Postgres (Aiven, already in the declared stack) | Relational integrity across workspace/customer/session; the README's infra line names it. |
+| System of record | **Firestore** (default DB, `sandbox-e306a`) — **[Decided X-5]**, revising the earlier Postgres proposal | Firebase-native stack; real-time listeners for feed/threads/notifications; the relational entities in §2 map to collections with the workspace/customer/session hierarchy as document paths. Payments-ledger Postgres escape hatch per X-5. |
 | Capture images + exports | Object storage (Firebase Storage today, S3-compatible acceptable) | Large binaries out of the DB; signed URLs for downloads. |
 | Cache/queues (later) | Valkey/Redis (declared stack) | Instance-request queue, export jobs — not needed for P0. |
 | Firestore | Only if `account.cuesoft.io` integration demands it | Avoid two systems of record. |

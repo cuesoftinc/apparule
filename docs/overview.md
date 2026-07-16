@@ -22,7 +22,7 @@ flutter mobile ────────────┘  Google auth
 - **`api/common`** — Go service: authentication and core API (Cloud Run).
 - **`api/measure`** — Python service: MediaPipe pose-based body measurement.
 - **Auth** — Firebase Authentication / Google sign-in.
-- **Data** — Firebase Firestore & Storage; Aiven Postgres & Valkey (Redis).
+- **Data** — Firestore (system of record, X-5) & Cloud Storage; shared Aiven Redis (REDIS_DB tenancy).
 
 See [setup.md](setup.md) to run the stack locally, and the
 [repository structure](../README.md#repository-structure) in the README.

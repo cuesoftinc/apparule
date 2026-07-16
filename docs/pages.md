@@ -91,7 +91,7 @@ toggle, support (`clients.cuesoft.io`).
   a measurement snapshot is shared **only** inside a request (APP-005 story).
 
 ### B7 `/app/settings`
-- Account (via `account.cuesoft.io` when D1 lands), creator profile toggle,
+- Account (Google sign-in via Firebase per X-1; `account.cuesoft.io` facade later), creator profile toggle,
   payout account (designer), notifications, privacy & data (export/delete,
   consent history), language, theme.
 

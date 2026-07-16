@@ -110,7 +110,7 @@ capabilities beyond the web property. Made explicit so they can be scheduled:
 
 ## 8. Open questions
 
-1. **`account.cuesoft.io` contract** — protocol (OIDC? opaque token introspection?),
+1. ~~**`account.cuesoft.io` contract**~~ **RESOLVED (X-1)**: in-app Google-only sign-in over Firebase Auth (`sandbox-e306a`); the facade comes later. Original question — protocol (OIDC? opaque token introspection?),
    token audience/claims, and timeline. Blocks APP-002 and PLAT-003's final shape
    (roadmap D1). Interim: local JWT auth hardened enough for records **[Proposed]**.
 2. **Cloud instance model** — "request a cloud instance" reads as
@@ -121,7 +121,7 @@ capabilities beyond the web property. Made explicit so they can be scheduled:
    requires a license from Meshcapade/MPI. The hosted commercial cloud likely
    needs SMPL commercial licensing or an alternative body model. Must be resolved
    before PLAT-005 ships in cloud (roadmap risk R1).
-4. **Where records live** — README names both Firestore and Aiven Postgres.
+4. ~~**Where records live**~~ **RESOLVED (X-5)**: Firestore. Original question — README names both Firestore and Aiven Postgres.
    data-model.md proposes Postgres as the system of record; confirm.
 5. **Figma designs** — Home canvas is empty; landing implementation (roadmap P0)
    needs the design pass, or we proceed with a standards-based layout and

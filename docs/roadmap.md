@@ -42,7 +42,7 @@ record endpoint.
 
 | Item | Requirement |
 | --- | --- |
-| Postgres provisioning + repository layer | data-model.md |
+| Firestore data layer (X-5) + repository layer | data-model.md |
 | Customers CRUD + workspace scoping | PLAT-002 |
 | Measurement sessions: upload → internal api/measure call → persisted results | PLAT-001 |
 | Manual corrections (append-only) | data-model.md §2 |

@@ -60,7 +60,7 @@ flowchart LR
     subgraph Apparule backend
         AC[api/common — Go<br/>records, customers, consent,<br/>instance requests]
         AM[api/measure — Python<br/>measurement pipeline<br/>MediaPipe today → SMPL later]
-        DB[(Postgres<br/>system of record)]
+        DB[(Firestore<br/>system of record — X-5)]
         OBJ[(Object storage<br/>capture images, exports)]
     end
 
@@ -93,11 +93,12 @@ Decisions embedded here (each ratifiable separately, see prd.md §8):
    app calls api/measure directly; that stays acceptable for self-hosted
    stateless use, but cloud record-keeping flows route through api/common.
    **[Proposed]**
-2. **Postgres as system of record**, object storage for images. Firestore
-   remains only if the account integration requires it. **[Proposed]**
-3. **Auth delegation**: `account.cuesoft.io` owns identity **[PRD]**; api/common
-   exchanges/validates its tokens and enforces per-workspace authorization
-   locally (see §4.2).
+2. **Firestore as system of record** (X-5; revised from Postgres), Cloud Storage
+   for capture images and exports. **[Decided]**
+3. **Identity (X-1, hardened)**: in-app **Google-only sign-in over Firebase Auth**
+   (`sandbox-e306a`); api/common verifies Firebase ID tokens and enforces
+   per-workspace authorization locally. The `account.cuesoft.io` facade fronts
+   the same Firebase project later (flows/auth.md).
 
 ## 3. Service breakdown
 
@@ -106,11 +107,11 @@ Decisions embedded here (each ratifiable separately, see prd.md §8):
 | Package | Today **[Current]** | Target additions **[Proposed]** |
 | --- | --- | --- |
 | `internal/config` | env loading | + DB/object-store/account-service settings |
-| `internal/auth` | JWT mint (stub logins) | token verification against `account.cuesoft.io`, workspace membership resolution |
+| `internal/auth` | JWT mint (stub logins) | Firebase ID-token verification (Google-only, X-1), workspace membership resolution |
 | `internal/handler` | `auth.go`, `health.go` | `customer.go`, `measurement.go`, `consent.go`, `instance_request.go`, `export.go` |
 | `internal/server` | routes + graceful shutdown | versioned `/api/v1` group, authn middleware, request scoping |
 | `internal/model` | — | domain structs mirroring data-model.md |
-| `internal/repository` | — | Postgres persistence |
+| `internal/repository` | — | Firestore persistence (Admin SDK) |
 | `internal/service` | — | orchestration: measurement session lifecycle, export generation, upstat event emission |
 
 ### 3.2 api/measure (Python, FastAPI) — measurement pipeline
@@ -152,7 +153,7 @@ architecture:
 /docs                 Developer documentation hub (deploy guides, SMPL notes)
 /docs/api             API reference (APP-004, searchable)
 /privacy              Measurement-data handling disclosure (APP-005)
-/cloud                Cloud access: sign-in via account.cuesoft.io,
+/cloud                Cloud access: Google sign-in (Firebase, X-1),
                       ToS consent gate, instance request (APP-002)
 /dashboard            Post-auth: customers, measurement records (PLAT-001/2)
 ```
@@ -218,7 +219,7 @@ sequenceDiagram
     participant F as Client (Flutter or dashboard)
     participant C as api/common
     participant M as api/measure
-    participant DB as Postgres/object storage
+    participant DB as Firestore/Cloud Storage
 
     T->>F: select customer, start session
     F->>C: POST /api/v1/customers/{id}/sessions (image, height)
@@ -275,8 +276,7 @@ Unchanged by this phase (validated on Docker Compose and a live k8s cluster):
   (probes, numeric runAsUser, optional `envFrom` secret hook).
 - `deploy/terraform`: cluster-agnostic (kubeconfig provider) helm release.
 
-Target-state additions land as: Postgres (external/managed, `MONGO`-style URI
-via values + secret hook), object storage credentials, and eventually a
+Target-state additions land as: Firestore + Cloud Storage (ADC on Cloud Run per X-3/X-5; self-host uses service-account JSON via the secret hook), and eventually a
 GPU-capable node pool for SMPL inference (cloud only). **[Proposed]**
 
 ## 7. Cross-repo dependencies
