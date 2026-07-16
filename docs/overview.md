@@ -37,3 +37,5 @@ See [setup.md](setup.md) to run the stack locally, and the
 - [design.md](design.md) + [pages.md](pages.md) — design language, screens, microinteractions
 - [order-lifecycle.md](order-lifecycle.md) — commission order state machine, permissions, notifications
 - [decisions.md](decisions.md) — the open-decision register: ratify to unblock phases
+- [deployment.md](deployment.md) — Cloud Run + App Hosting contract (cuesoft-iac provisioning, CI/CD pattern)
+- flows/ — feature flow specs with edge cases: [auth](flows/auth.md), [vault](flows/vault.md), [request](flows/request.md)
