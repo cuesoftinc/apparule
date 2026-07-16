@@ -34,3 +34,5 @@ See [setup.md](setup.md) to run the stack locally, and the
 - [data-model.md](data-model.md) — entities, storage mapping, data classification
 - [api.md](api.md) — current + target API surface and gap analysis
 - [roadmap.md](roadmap.md) — phased plan with cross-repo dependencies
+- [design.md](design.md) + [pages.md](pages.md) — design language, screens, microinteractions
+- [order-lifecycle.md](order-lifecycle.md) — commission order state machine, permissions, notifications
