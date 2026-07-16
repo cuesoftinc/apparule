@@ -14,14 +14,30 @@ see [docs/overview.md](docs/overview.md).
 
 ## Architecture
 
-```
-client                                   server
-──────                                   ──────
-web + dashboard (Next.js) ─┐             common api (Go)      ── GCP Cloud Run
-                           ├─ Firebase /  measure api (Python) ── GCP Cloud Run
-flutter mobile ────────────┘  Google auth
-                                         data: Firebase Firestore & Storage,
-                                               Aiven Postgres & Valkey (Redis)
+```mermaid
+flowchart LR
+    subgraph clients
+        WEB[web + dashboard<br/>Next.js — App Hosting]
+        MOB[Flutter mobile]
+    end
+    FB[Firebase / Google auth]
+    subgraph server["GCP Cloud Run"]
+        AC[api/common — Go]
+        AM[api/measure — Python, pose]
+    end
+    subgraph data
+        FS[(Firestore)]
+        CS[(Cloud Storage)]
+        RD[(Aiven Redis)]
+    end
+    WEB --> FB
+    MOB --> FB
+    WEB --> AC
+    MOB --> AC
+    AC --> AM
+    AC --> FS
+    AC --> CS
+    AC --> RD
 ```
 
 ### Tech stack
