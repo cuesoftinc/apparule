@@ -33,7 +33,7 @@
 | `border` | #DBDBDB | #262626 | hairline dividers (1px) |
 | `text` | #111111 | #FAFAFA | primary text |
 | `text-2` | #737373 | #A8A8A8 | secondary/meta |
-| `accent` | #E1306C→#F77737 gradient | same | the "Apparule gradient" — story rings, primary CTAs, active states (IG gradient adapted; final hues from brand pass) |
+| `accent` | #E1306C→#F77737 gradient | same | the "Apparule gradient" — story rings, primary CTAs, active states (IG gradient adapted; final hues from brand pass). In Figma the token is two variables, `accent-start` + `accent-end` — gradient stops can't bind a single variable (§7) **[Decided 2026-07-17]** |
 | `on-accent` | #FFFFFF | #FFFFFF | text/icons on `accent`-gradient and destructive fills — replaces raw white in those contexts (exception: on-media capture UI stays raw white by design) |
 | `link` | #00376B | #E0F1FF | usernames, links |
 | `like` | #ED4956 | #ED4956 | heart active |
@@ -154,15 +154,32 @@ Guide** page, backed by a variable collection **`apparule/tokens`** with **true 
 variable (scopes: frame/shape/text fills + strokes) so designs bind to tokens,
 never raw hexes; the Style Guide page renders swatches (both modes), the type
 scale, and status/accent samples. Token changes happen in Figma first, then
-sync back into this document — the two must never diverge. Type styles and
-component samples are the next Style Guide iteration.
+sync back into this document — the two must never diverge. Local type styles
+(11), a component Samples frame, and the grid styles (`Grid/Feed 630`,
+`Grid/Profile 935`) now exist (2026-07-17); the numeric text styles in the
+`tnum` note below are the actual next Style Guide iteration.
 
 `on-accent` (§2) now exists in the collection (added 2026-07-16, both modes)
 — components on gradient/destructive fills bind it instead of raw white.
 
+`accent` (§2) is implemented as two variables, `accent-start` + `accent-end`:
+Figma cannot bind a gradient stop's color to a single variable, so the
+gradient binds its two stops to these (also noted on the file's "About this
+library" card) **[Decided 2026-07-17]**.
+
 Numeric type-style note: OpenType tabular figures (`tnum`) must be enabled
-manually on the numeric text styles (measurements, money) in the Figma UI —
-the plugin API cannot set OpenType font features.
+manually in the Figma UI — the plugin API cannot set OpenType font features.
+It applies to the numeric styles `Display/32 Bold`, `Title/20 Semi Bold`, and
+`Body/16 Semi Bold` wherever they render measurement values and money.
+
+**Style Guide page refresh (in progress, 2026-07-17).** The rendered page
+drifted from the collection and is being brought back in line: adding the
+missing `on-accent` swatch, replacing the stale "light/ + dark/ groups"
+subtitle with the true-modes wording, correcting the type-scale sample labels
+to the real local style names (`Title/20 Semi Bold`, `Body/16 Semi Bold`,
+`Caption/13 Regular`, `Micro/12 Regular`, plus the ramp entries the samples
+omit), and rendering the z-index layer row. Per the rule above, the page and
+this document must never diverge.
 
 ## 8. Figma component build plan (design phase)
 
@@ -194,20 +211,40 @@ due-date, stepper target date) · `sun` + `moon` (NavRail theme toggle) ·
 media dropzone) · `map-pin` (profile location, "near me" filter) · `wallet`
 (earnings/payout surfaces) · `clock` (deadline chips: quote expiry, due
 dates, auto-refund countdowns) · `flag` (report post/comment, SOC-009) ·
-`log-out` (settings sign-out). Brand glyphs — the Google 'G' for the X-1
+`log-out` (settings sign-out) · `grid-3x3` (Tabs grid view — added
+2026-07-17, in build; replaces the interim inline vector in the Tabs icon
+variant). Brand glyphs — the Google 'G' for the X-1
 auth CTA, the GitHub mark (home page), and others as needed — are **not
 Lucide**: they enter as approved additions per the shared-foundations
 iconography rule (§2).
 
+**Naming standards (canonical across the three products) [Decided
+2026-07-17].** Component sets are PascalCase; variant property names are
+lowercase (`kind`, `size`, `state`, …). Icons are named `icon/<lucide-slug>`
+(e.g. `icon/heart`, `icon/chevron-down`); brand glyphs are
+`icon/brand-<name>` (e.g. `icon/brand-google`). Apparule's existing capital
+`Icon/*` prefix is being renamed to lowercase `icon/*` to match this
+canonical scheme. The single auth CTA component (X-1) is named
+`GoogleAuthButton` in every product.
+
 ### 8.2 Variant matrices (the component contracts)
+
+> **Contract/build reconciliation (2026-07-17).** `theme ×2` in these rows
+> (and §8.2b) is satisfied by the `apparule/tokens` true Light/Dark variable
+> modes (§7) — components carry **no** theme variant axis; dark/light QA runs
+> on the preview frames. Rows marked *(as built 2026-07-17)* were built ahead
+> of a contract row; their built axes are the contract.
 
 | Component | Variants × states |
 | --- | --- |
 | Button | kind: gradient-primary / quiet / destructive / link · size: md 44 / sm 36 · state: default / pressed / disabled / loading · theme ×2 |
 | Input | text / numeric+unit-toggle (cm-in) / search · state: default / focus / error / disabled · theme ×2 |
 | Avatar | size: 32 / 44 / 56 / 96 · ring: none / gradient (fresh) / amber / gray · badge: none / designer-verified |
+| Chip | kind: default / selected / removable — the §8.1 "Pill/Chip" atom *(as built 2026-07-17)* |
+| IconButton | size: md / sm · state: default / pressed / disabled *(as built 2026-07-17)* |
 | PostCard | media: single / carousel (dots) · CTA: with / without "Request this outfit" · state: default / skeleton · theme ×2 |
 | StoryRail item | state: unseen (gradient) / seen (gray) / loading (rotating) |
+| ActionRow | liked: false / true · saved: false / true — the PostCard action row (MI-1/MI-2/MI-3) *(as built 2026-07-17)* |
 | RequestCard | status pill: requested / quoted / paid / in_progress / shipped / delivered / refunded / declined / disputed / cancelled · role: customer / designer view |
 | StatusPill | the 10 order states + freshness (fresh/aging/stale) · **[Decided 2026-07-16]** order-state → token mapping: quoted/shipped → `link` · paid/delivered → `success` · in_progress/refunded → `warn` · declined/disputed → `error` · requested/cancelled → `text-2` |
 | MeasurementCard | source: scan / manual · confidence: normal / low (<0.7 chip) · with/without sparkline |
@@ -215,6 +252,7 @@ iconography rule (§2).
 | Sheet | mobile bottom / desktop modal · with/without stepper header |
 | EmptyState | feed / vault / orders / explore / notifications (5 illustrated) |
 | Toast | success / error+retry / neutral |
+| Skeleton | kind: line / avatar / media / card (§3 anatomy; MI-19 shimmer) *(as built 2026-07-17)* |
 | CaptureOverlay | guide: searching (silhouette pulses) / aligned (guide turns success) / countdown / qc-hint (chip slot) — dashed silhouette vector over camera viewport (MI-12) |
 | CountdownRing | 3 / 2 / 1 (ring progress + numeral) |
 | QCHintChip | code ×11: no_body / multiple_bodies / partial_body / undecodable_image / low_resolution / poor_lighting / blurry / not_frontal / camera_tilt / arms_position / too_far — one actionable guidance line each (fail codes [capture-qc.md](capture-qc.md) §1–2; canonical copy [flows/vault.md](flows/vault.md) QC-failures row) |
@@ -231,16 +269,18 @@ Contract rows surfaced by the component parity audit of
 [pages.md](pages.md), the flow docs,
 [order-lifecycle.md](order-lifecycle.md) and
 [capture-qc.md](capture-qc.md) against §8.2. Same contract rules as §8.2
-(screens assemble from instances only); grouped by kit. Marketing rows are
+(screens assemble from instances only; `theme ×2` is delivered by the
+`apparule/tokens` Light/Dark modes, not a variant axis — see the §8.2
+preamble); grouped by kit. Marketing rows are
 Stage 5 and non-blocking; everything else feeds Stages 1–4.
 
 **App chrome & navigation**
 
 | Component | Variants × states |
 | --- | --- |
-| NavRail | width: collapsed 72 / expanded 244 (≥1264px) · item ×7 (Home / Explore / Create / Orders / Vault / Profile / Settings) × state: default / active / hover · footer slot: theme toggle + support link · theme ×2 |
+| NavRail | width: collapsed 72 / expanded 244 (≥1264px) · item ×7 (Home / Explore / Create / Orders / Vault / Profile / Settings) × state: default / active / hover · footer slot: theme toggle + support link · theme ×2 · **as built (2026-07-17):** decomposed into `NavRail` (width ×2) + child set `NavRailItem` (expanded ×2 × state ×3) |
 | AppBar | kind: root (title/logo + action slot) / sub (chevron-left + title + trailing action) / over-media (transparent) · theme ×2 |
-| Tabs | kind: text ×2 items ("As customer / As designer") / icon (grid · saved) · state: active / inactive · underline indicator · theme ×2 |
+| Tabs | kind: text ×2 items ("As customer / As designer") / icon (grid · saved) · state: active / inactive · underline indicator · theme ×2 · **as built (2026-07-17):** `active: first / second` (which item is active) × `kind: text / icon` — semantically the same states, different property shape; the grid glyph moves from an interim inline vector to `icon/grid-3x3` (§8.1) |
 
 **Form & overlay primitives**
 
@@ -248,7 +288,7 @@ Stage 5 and non-blocking; everything else feeds Stages 1–4.
 | --- | --- |
 | GoogleAuthButton | the single auth CTA (X-1): Google 'G' mark + "Continue with Google" · state: default / pressed / loading / disabled · theme ×2 |
 | Select / OptionRow | trigger: default / focus / error / disabled · OptionRow: default / selected (radio · check) · contexts: decline-reason enum, dispute reason picker, NG-state, bank (KYC), language · theme ×2 |
-| DateInput | state: default / focus / error / disabled · calendar popover · min-date rules (due_at ≥ today+1; target date ≥ today+turnaround soft-warn) · theme ×2 |
+| DateInput | state: default / focus / error / disabled · calendar popover · min-date rules (due_at ≥ today+1; target date ≥ today+turnaround soft-warn) · theme ×2 · **as built (2026-07-17):** the calendar popover is a standalone `DatePickerPopover` component |
 | Input (extends §8.2) | + kind: textarea (multiline, 0–500 counter) / currency (₦ prefix, tabular numerals) · state: default / focus / error / disabled · theme ×2 |
 | MediaDropzone | state: empty (drop target) / uploading (progress) / error (size · type) · MediaUploadTile: thumb ×≤10 · drag-reorder handle · alt-text indicator · remove · theme ×2 |
 | Banner / InlineAlert | tone: info / warn / error / success · persistent / dismissable · action-link slot (Retry, support, explainer) · theme ×2 |
@@ -266,7 +306,7 @@ Stage 5 and non-blocking; everything else feeds Stages 1–4.
 | CaughtUpDivider | "You're all caught up ✓" — check glyph + hairline pair (MI-6) · theme ×2 |
 | OrderTimelineRow | dot: done / current (pulse 1→1.06→1) / pending / terminal-error · connector: drawn / undrawn (MI-14, 400ms line draw) · label + timestamp · theme ×2 |
 | PaymentBox | state: quoted (pay CTA) / paying (spinner) / escrow-held (shield-check + first-payment explainer expand) / released / refunded / dispute-frozen (MI-15) · role: customer / designer · itemized 10% fee line · theme ×2 |
-| ThreadBubble | side: sent / received · content: text / image attachment (images only, [order-lifecycle.md](order-lifecycle.md) §5) · state: sending / sent / failed · typing variant: three-dot "responding…" pulse (MI-17) · theme ×2 |
+| ThreadBubble | side: sent / received · content: text / image attachment (images only, [order-lifecycle.md](order-lifecycle.md) §5) · state: sending / sent / failed · typing variant: three-dot "responding…" pulse (MI-17) · theme ×2 · **as built (2026-07-17):** typing folds into `content: text / image / typing` (13 children — not the full 2×3×3 matrix; the send-state axis doesn't apply to typing) |
 | CommentRow | avatar 32 + username + text + timestamp + like heart · state: default / liked / posting-optimistic (MI-18) / reply-indent · theme ×2 |
 | NotificationRow | kind: like / follow / comment / quote / status-change / payout · state: unread / read · trailing: post thumb / Follow button / none · theme ×2 |
 | SessionRow | context: history (date + method chip + values + delete) / picker (radio select + freshness warning: fresh / aging / stale) · state: default / selected · theme ×2 |
@@ -279,12 +319,15 @@ Stage 5 and non-blocking; everything else feeds Stages 1–4.
 | Component | Variants × states |
 | --- | --- |
 | HomeNav / HomeFooter | nav: logo + links + GitHub star-count badge + Sign in + Try Cloud · state: top / stuck-blurred · footer: 3 link columns + legal + language · theme ×2 |
-| Home section kit | StatCard ×3 (fade-up) · WalkthroughStep (screenshot + 2 lines + step dots) · ComparisonTable (Cloud vs OSS + CTA row) · CodeSnippetBlock (copy → ✓ morph) · CommunityCard (Discord member count) |
+| Home section kit | StatCard ×3 (fade-up) · WalkthroughStep (screenshot + 2 lines + step dots) · ComparisonTable (Cloud vs OSS + CTA row) · CodeSnippetBlock (copy → ✓ morph) · CommunityCard (Discord member count) · **status (2026-07-17):** the one remaining unbuilt Stage-5 row (HomeNav/HomeFooter are done) — in build now; contract stays live, not deferred |
 
 ### 8.3 Design-prep needed from content
 
 Outfit photography for realistic feed mocks is now **sourced** (2026-07-16):
 CC-licensed stock via Openverse/Wikimedia Commons, attributions kept on the
 Figma Assets page — this replaces the earlier "sample outfit photography
-(≥12 diverse looks)" prep item. Still needed: hero H1 copy (prd §8.6); the
-Afrocentric pattern asset (§2) at 3 opacities.
+(≥12 diverse looks)" prep item. One sourced photo was removed (2026-07-17)
+for inappropriate provenance — a conflict-related archive image — and
+replaced from the curated pool; the attribution grid on the Assets page is
+maintained (every image keeps its caption). Still needed: hero H1 copy
+(prd §8.6); the Afrocentric pattern asset (§2) at 3 opacities.
