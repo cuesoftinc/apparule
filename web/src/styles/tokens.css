@@ -1,0 +1,92 @@
+/*
+ * Apparule design tokens — source of truth: docs/design.md §2 + Figma
+ * `apparule/tokens` (Style Guide page). Light/dark via [data-theme] with a
+ * prefers-color-scheme fallback for first paint. F0-1.
+ */
+
+:root {
+  /* color — light */
+  --bg: #ffffff;
+  --bg-elev: #ffffff;
+  --border: #dbdbdb;
+  --text: #111111;
+  --text-2: #737373;
+  --accent-start: #e1306c;
+  --accent-end: #f77737;
+  --link: #00376b;
+  --like: #ed4956;
+  --success: #2e7d32;
+  --warn: #b26a00;
+  --error: #c62828;
+
+  /* shared foundations (design.md §2, ecosystem parity) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-entrance: 250ms;
+  --duration-slow: 300ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-dropdown: 20;
+  --z-overlay: 30;
+  --z-sheet: 40;
+  --z-toast: 50;
+
+  --radius-card: 8px;
+  --radius-pill: 9999px;
+
+  --gradient-accent: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+}
+
+[data-theme="dark"] {
+  --bg: #000000;
+  --bg-elev: #121212;
+  --border: #262626;
+  --text: #fafafa;
+  --text-2: #a8a8a8;
+  --link: #e0f1ff;
+  --success: #4ecb71;
+  --warn: #ffb020;
+  --error: #ff6b6e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #000000;
+    --bg-elev: #121212;
+    --border: #262626;
+    --text: #fafafa;
+    --text-2: #a8a8a8;
+    --link: #e0f1ff;
+    --success: #4ecb71;
+    --warn: #ffb020;
+    --error: #ff6b6e;
+  }
+}
+
+/* focus rule (ecosystem foundation): 2px accent ring, 2px offset */
+:focus-visible {
+  outline: 2px solid var(--accent-start);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
