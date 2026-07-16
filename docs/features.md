@@ -51,7 +51,7 @@
 | F3-1 | Designer profiles | role enable, profile docs, KYC state (gate only, provider in F4-2) | data-model §5 | F2-1 |
 | F3-2 | Posts | create (media ≤10, tags, price), post docs + Cloud Storage | pages.md B5, api.md §5 | F3-1 |
 | F3-3 | Follow graph + feed | follows, home feed (recency+affinity), caught-up divider | pages.md B1/C2, api.md §5 | F3-2 |
-| F3-4 | Explore + search | grid, filters, search | pages.md B2/C3 | F3-2 |
+| F3-4 | Explore + search | grid, filters (incl. "near me" ranked by designer `profile_location`, captured in settings B7 — X-10 tier 1; locationless designers don't rank), search | pages.md B2/C3/B7, data-model.md §2 | F3-2 |
 | F3-5 | Engagement | likes/saves/comments (optimistic, idempotent toggles) + counters | MI-1..3, MI-18, engineering §3 | F3-2 |
 | F3-6 | PostCard component set | web + Flutter parity components (design.md §3 anatomy) | design.md, F0-1 | F3-2 |
 | F3-7 | Trust & safety baseline | report/block, moderation queue, hide/suspend | A-6, engineering §2 | F3-2 |

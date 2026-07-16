@@ -52,7 +52,10 @@ toggle, support (`clients.cuesoft.io`).
 - Masonry grid of outfit posts (1:1 crops); hover: like/comment counts
   overlay fade-in 120ms; click → post modal (IG desktop pattern: media left,
   detail right).
-- Filter chips: style tags, price band, turnaround time, "near me" **[Proposed]**.
+- Filter chips: style tags, price band, turnaround time, "near me" **[Proposed]**
+  — proximity ranking by designer `profile_location` (data-model.md §2,
+  X-10 tier 1); designers without a location simply don't rank in proximity
+  results (no hard gate).
 - Post permalinks: every post has a public web route `/p/{post_id}` (share
   target for MI-9; renders post detail, request CTA for signed-in users).
 
@@ -102,7 +105,9 @@ toggle, support (`clients.cuesoft.io`).
 
 ### B7 `/app/settings`
 - Account (Google sign-in via Firebase per X-1; `account.cuesoft.io` facade later), creator profile toggle,
-  payout account (designer), notifications, privacy & data (export/delete,
+  payout account (designer), **profile location** (city/state/country,
+  optional — explainer: "used to recommend nearby designers"; X-10 tier 1,
+  data-model.md §2), notifications, privacy & data (export/delete,
   consent history), language, theme.
 
 ## Part C — Mobile app (Flutter) — primary surface
@@ -116,7 +121,7 @@ Existing screens (splash/welcome/auth/capture) remain the entry path.
 | C2 | Home feed | = B1 minus right column; story rail on top; MI-1/2/3/4/5/6/16/18/20 all active |
 | C3 | Explore | search + 3-col grid; long-press peek preview (scale 0.97 + dim, MI haptic light); pull-to-refresh MI-5 |
 | C4 | Post detail | full-bleed carousel; action row; caption; comments sheet (swipe-up); Request CTA pinned bottom (safe-area) |
-| C5 | Request stepper | MI-10 sheet: Step 1 pick measurement set (vault snapshot picker, freshness warnings); Step 2 notes + budget + delivery; Step 3 review → submit; success: confetti + "view order" |
+| C5 | Request stepper | MI-10 sheet: Step 1 pick measurement set (vault snapshot picker, freshness warnings); Step 2 notes + budget + delivery (pre-fills from most recent order — no saved address book in v1, data-model.md §6.3); Step 3 review → submit; success: confetti + "view order" |
 | C6 | Capture | existing guide screens restyled: silhouette overlay + countdown (MI-12); processing constellation; results screen: measurement cards stagger-in, "Save to vault" primary, "Retake" quiet; manual-entry fallback (MI-13) |
 | C7 | Vault | = B4 adapted; entry from Profile tab header ring |
 | C8 | Orders | = B3 list + detail; push notifications drive re-entry (badge MI-16) |

@@ -40,6 +40,7 @@ erDiagram
         string firebase_uid "identity key (X-1); the future facade fronts the same uid"
         string email
         string username "unique (case-insensitive), 3-30 chars [a-z0-9._]; claimable on demand, required to enable a designer profile; rename max 1x/30d"
+        json profile_location "optional, self-attested {city, state, country} — X-10 tier 1; powers near-me designer ranking + delivery pre-fill; sensitive PII (see section 4)"
         string deletion_state "active | deletion_pending"
         datetime created_at
     }
@@ -126,6 +127,13 @@ Modeling notes:
 - **`CAPTURE_ASSET.retention_until`** operationalizes the retention disclosure:
   source images are the most sensitive artifact and get the shortest default
   retention (e.g. 30 days **[Proposed]**), while derived measurements persist.
+- **`ACCOUNT.profile_location` is self-attested tier-1 profile data (X-10)** —
+  optional `{city, state, country}`, edited in settings (pages.md B7). It
+  powers proximity-ranked designer recommendations ("near me", pages.md B2)
+  and pre-fills the request stepper's delivery address (the delivery address
+  itself stays frozen per order, §6.3). Designers must set it to be eligible
+  for proximity ranking; without it they simply don't rank in "near me"
+  results — no hard gate. Classification: sensitive PII (§4), never logged.
 
 ## 3. Storage mapping **[Proposed]**
 
@@ -140,7 +148,7 @@ Modeling notes:
 | Class | Data | Rules |
 | --- | --- | --- |
 | High-sensitivity | Capture images, measurements, customer identity | Encrypted at rest; never logged (no image bytes, no measurement values in logs); shortest retention for images; deletion honours `retention_until`; export/delete rights surfaced in dashboard. |
-| Sensitive | Account email, consent records | Standard PII handling; consent rows immutable. |
+| Sensitive | Account email, consent records, `profile_location` (self-attested city/state/country — X-10 tier 1) | Standard PII handling; consent rows immutable; profile location never in logs or events. |
 | Operational | Session status, pipeline metadata, event counters | No special handling; safe for logs/metrics. |
 
 Deletion semantics: deleting a `CUSTOMER` soft-deletes then hard-purges
@@ -207,7 +215,9 @@ mutate an order); vault data is never public — a snapshot exists only inside
 a request the customer initiated (privacy story for APP-005); social counters
 (likes/saves) are denormalized on POST with periodic reconciliation; payments
 follow escrow: `held` at pay, `released` on delivery confirmation (dispute
-pauses release).
+pauses release); proximity ranking ("near me", pages.md B2) reads the
+designer's `ACCOUNT.profile_location` (§2, X-10 tier 1) — designers without
+one don't appear in proximity-ranked results (no hard gate).
 
 ---
 
@@ -256,6 +266,11 @@ order-essential messages only. Blocks are silent (no notification).
 state, country}` frozen at submit (like the snapshot — later address-book
 edits never mutate an order). Classification: **sensitive PII** — same
 handling row as customer identity (§4); never in logs or events.
+
+v1 posture **[Proposed]**: **no stored address book** — the request stepper
+pre-fills from the account's most recent `REQUEST.delivery` (first order:
+city/state/country seed from `ACCOUNT.profile_location`, §2); a saved
+`ADDRESS` entity is tier-1 (X-10) later scope.
 
 ### 6.4 Notifications
 

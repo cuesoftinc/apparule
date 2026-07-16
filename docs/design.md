@@ -167,7 +167,7 @@ component samples are the next Style Guide iteration.
 | --- | --- | --- |
 | 0 Foundations | type styles from §2 scale · Lucide icon set import · grid styles (630/935 columns) | everything |
 | 1 Atoms | Button, Input, Pill/Chip, Avatar, IconButton, Toast | all molecules |
-| 2 Molecules | StoryRail item, action row, MeasurementCard, StatusPill set, TabBar, Sheet chrome · **capture kit**: CaptureOverlay, CountdownRing, QCHintChip, ProcessingConstellation, CaptureResults chrome, ManualMeasureRow, CaptureOptionCard | cards |
+| 2 Molecules | StoryRail item, action row, MeasurementCard, StatusPill set, TabBar, Sheet chrome · **form kit**: FormRow, AddressFieldset (request-stepper delivery + profile location, X-10 tier 1) · **capture kit**: CaptureOverlay, CountdownRing, QCHintChip, ProcessingConstellation, CaptureResults chrome, ManualMeasureRow, CaptureOptionCard | cards |
 | 3 Cards | PostCard, RequestCard, NotificationRow, CommentRow, ThreadBubble, EmptyState set, Skeletons | screens |
 | 4 Screen templates | feed, post detail, request stepper (3 steps), vault, capture overlays, orders list+detail, profile ×2, moderation queue | mobile + dashboard designs |
 | 5 Home page | A1–A10 sections (pages.md Part A) | landing design |
@@ -195,6 +195,8 @@ component samples are the next Style Guide iteration.
 | CaptureResults chrome | header (confidence summary) + MeasurementCard stagger list slot + "Save to vault" gradient / "Retake" quiet (pages.md C6) |
 | ManualMeasureRow | tape-measure slider + numeric field + cm/in toggle · state: default / active / error (MI-13) |
 | CaptureOptionCard | mode: webcam-upload / manual-entry (vault "Retake" options, pages.md B: vault header) |
+| FormRow | label + control + helper/error · state: default/focus/error/disabled (profile & settings editors) |
+| AddressFieldset | context: delivery (request stepper — frozen per order) / profile location (city + state + country · "near me" explainer, X-10 tier 1) · NG-state select · prefill-from-last-order |
 
 ### 8.3 Design-prep needed from content
 
