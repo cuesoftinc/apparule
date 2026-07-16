@@ -154,3 +154,42 @@ never raw hexes; the Style Guide page renders swatches (both modes), the type
 scale, and status/accent samples. Token changes happen in Figma first, then
 sync back into this document — the two must never diverge. Type styles and
 component samples are the next Style Guide iteration.
+
+## 8. Figma component build plan (design phase)
+
+> The Figma work order. Foundation = the `apparule/tokens` collection +
+> Style Guide page (already live, §7). Components become Figma components
+> with variants exactly as listed; screens assemble from instances only.
+
+### 8.1 Build order
+
+| Stage | Build | Unlocks |
+| --- | --- | --- |
+| 0 Foundations | type styles from §2 scale · Lucide icon set import · grid styles (630/935 columns) | everything |
+| 1 Atoms | Button, Input, Pill/Chip, Avatar, IconButton, Toast | all molecules |
+| 2 Molecules | StoryRail item, action row, MeasurementCard, StatusPill set, TabBar, Sheet chrome | cards |
+| 3 Cards | PostCard, RequestCard, NotificationRow, CommentRow, ThreadBubble, EmptyState set, Skeletons | screens |
+| 4 Screen templates | feed, post detail, request stepper (3 steps), vault, capture overlays, orders list+detail, profile ×2, moderation queue | mobile + dashboard designs |
+| 5 Home page | A1–A10 sections (pages.md Part A) | landing design |
+
+### 8.2 Variant matrices (the component contracts)
+
+| Component | Variants × states |
+| --- | --- |
+| Button | kind: gradient-primary / quiet / destructive / link · size: md 44 / sm 36 · state: default / pressed / disabled / loading · theme ×2 |
+| Input | text / numeric+unit-toggle (cm-in) / search · state: default / focus / error / disabled · theme ×2 |
+| Avatar | size: 32 / 44 / 56 / 96 · ring: none / gradient (fresh) / amber / gray · badge: none / designer-verified |
+| PostCard | media: single / carousel (dots) · CTA: with / without "Request this outfit" · state: default / skeleton · theme ×2 |
+| StoryRail item | state: unseen (gradient) / seen (gray) / loading (rotating) |
+| RequestCard | status pill: requested / quoted / paid / in_progress / shipped / delivered / refunded / declined / disputed / cancelled · role: customer / designer view |
+| StatusPill | the 10 order states + freshness (fresh/aging/stale) |
+| MeasurementCard | source: scan / manual · confidence: normal / low (<0.7 chip) · with/without sparkline |
+| TabBar | active tab ×5 · Orders badge: none / count |
+| Sheet | mobile bottom / desktop modal · with/without stepper header |
+| EmptyState | feed / vault / orders / explore / notifications (5 illustrated) |
+| Toast | success / error+retry / neutral |
+
+### 8.3 Design-prep needed from content
+
+Sample outfit photography (≥12 diverse looks) for realistic feed mocks;
+hero H1 copy (prd §8.6); the Afrocentric pattern asset (§2) at 3 opacities.
