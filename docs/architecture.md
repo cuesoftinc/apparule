@@ -119,7 +119,7 @@ Decisions embedded here (each ratifiable separately, see prd.md §8):
 Today **[Current]**: single endpoint `POST /measure` (multipart image +
 `user_height_cm`), MediaPipe `pose_landmarker.task` (IMAGE mode, one pose),
 returns six values: body height (px), scale factor, shoulder width (px, cm),
-hip width (px, cm). Errors: 422 no-body / undecodable image.
+hip width (px, cm). Errors: 422 no_body / undecodable_image (capture-qc.md codes).
 
 Pipeline internals:
 
