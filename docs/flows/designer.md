@@ -8,8 +8,9 @@
 
 ```mermaid
 flowchart TD
-    U[User taps "Become a designer"] --> UN{username claimed?}
-    UN -->|no| CLAIM[claim username — PATCH /me, 409 name_taken retry]
+    U["User taps 'Become a designer'"] --> UN{username claimed?}
+    CLAIM["claim username — PATCH /me, 409 name_taken retry"]
+    UN -->|no| CLAIM
     UN -->|yes| PROF[create profile: display name, bio]
     CLAIM --> PROF
     PROF --> POSTOK[can publish posts]
