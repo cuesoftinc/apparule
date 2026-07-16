@@ -1,0 +1,43 @@
+openapi: 3.1.0
+info:
+  title: Apparule API
+  version: 0.1.0-draft
+  description: >-
+    Draft contract for /api/v1 (docs/api.md is the narrative source). Rendered
+    by Scalar. Auth: Firebase ID tokens (Google-only, flows/auth.md). Errors
+    use the ecosystem envelope (engineering.md §1).
+servers:
+  - url: https://api.apparule.cuesoft.io
+  - url: http://localhost:8080
+security: [{ firebase: [] }]
+tags:
+  - { name: auth }
+  - { name: vault }
+  - { name: social }
+  - { name: requests }
+  - { name: cloud }
+paths:
+  /api/v1/me: { get: { tags: [auth], summary: Resolve account (upsert on first login), responses: { "200": { description: Account } } } }
+  /api/v1/consent:
+    get: { tags: [auth], summary: Accepted document versions, responses: { "200": { description: Consent list } } }
+    post: { tags: [auth], summary: Record acceptance, responses: { "201": { description: Recorded } } }
+  /api/v1/customers:
+    get: { tags: [vault], summary: List workspace customers, responses: { "200": { description: Page } } }
+    post: { tags: [vault], summary: Create customer, responses: { "201": { description: Customer } } }
+  /api/v1/customers/{id}/sessions:
+    post: { tags: [vault], summary: "Create measurement session (multipart: image, input_height_cm; Idempotency-Key)", responses: { "201": { description: Session }, "422": { description: QC failure (capture-qc.md codes) } } }
+    get: { tags: [vault], summary: Measurement history, responses: { "200": { description: Sessions } } }
+  /api/v1/sessions/{id}/measurements: { patch: { tags: [vault], summary: Append manual corrections, responses: { "200": { description: Session } } } }
+  /api/v1/sessions/{id}/exports: { post: { tags: [vault], summary: Generate PDF/CSV export, responses: { "201": { description: Signed URL } } } }
+  /api/v1/feed: { get: { tags: [social], summary: Ranked home feed, responses: { "200": { description: Posts page } } } }
+  /api/v1/explore: { get: { tags: [social], summary: Search/discover posts, responses: { "200": { description: Posts page } } } }
+  /api/v1/posts: { post: { tags: [social], summary: Create outfit post (designer, KYC-gated), responses: { "201": { description: Post } } } }
+  /api/v1/posts/{id}/like: { post: { tags: [social], summary: Like (idempotent), responses: { "204": { description: OK } } }, delete: { tags: [social], summary: Unlike, responses: { "204": { description: OK } } } }
+  /api/v1/posts/{id}/requests: { post: { tags: [requests], summary: "Commission request (snapshot frozen server-side; Idempotency-Key)", responses: { "201": { description: Request }, "409": { description: duplicate_request | post_unavailable } } } }
+  /api/v1/requests/{id}/quote: { post: { tags: [requests], summary: Designer quote, responses: { "200": { description: Request } } } }
+  /api/v1/requests/{id}/pay: { post: { tags: [requests], summary: Init payment (escrow hold), responses: { "200": { description: Provider session } } } }
+  /api/v1/requests/{id}/confirm-delivery: { post: { tags: [requests], summary: Confirm delivery (releases payout), responses: { "200": { description: Request } } } }
+  /api/v1/instance-requests: { post: { tags: [cloud], summary: Request a cloud instance (consent-gated), responses: { "202": { description: Queued } } } }
+components:
+  securitySchemes:
+    firebase: { type: http, scheme: bearer, bearerFormat: "Firebase ID token (google.com provider only)" }
