@@ -36,3 +36,4 @@ See [setup.md](setup.md) to run the stack locally, and the
 - [roadmap.md](roadmap.md) — phased plan with cross-repo dependencies
 - [design.md](design.md) + [pages.md](pages.md) — design language, screens, microinteractions
 - [order-lifecycle.md](order-lifecycle.md) — commission order state machine, permissions, notifications
+- [decisions.md](decisions.md) — the open-decision register: ratify to unblock phases
