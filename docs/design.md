@@ -167,7 +167,7 @@ component samples are the next Style Guide iteration.
 | --- | --- | --- |
 | 0 Foundations | type styles from §2 scale · Lucide icon set import · grid styles (630/935 columns) | everything |
 | 1 Atoms | Button, Input, Pill/Chip, Avatar, IconButton, Toast | all molecules |
-| 2 Molecules | StoryRail item, action row, MeasurementCard, StatusPill set, TabBar, Sheet chrome | cards |
+| 2 Molecules | StoryRail item, action row, MeasurementCard, StatusPill set, TabBar, Sheet chrome · **capture kit**: CaptureOverlay, CountdownRing, QCHintChip, ProcessingConstellation, CaptureResults chrome, ManualMeasureRow, CaptureOptionCard | cards |
 | 3 Cards | PostCard, RequestCard, NotificationRow, CommentRow, ThreadBubble, EmptyState set, Skeletons | screens |
 | 4 Screen templates | feed, post detail, request stepper (3 steps), vault, capture overlays, orders list+detail, profile ×2, moderation queue | mobile + dashboard designs |
 | 5 Home page | A1–A10 sections (pages.md Part A) | landing design |
@@ -188,6 +188,13 @@ component samples are the next Style Guide iteration.
 | Sheet | mobile bottom / desktop modal · with/without stepper header |
 | EmptyState | feed / vault / orders / explore / notifications (5 illustrated) |
 | Toast | success / error+retry / neutral |
+| CaptureOverlay | guide: searching (silhouette pulses) / aligned (guide turns success) / countdown / qc-hint (chip slot) — dashed silhouette vector over camera viewport (MI-12) |
+| CountdownRing | 3 / 2 / 1 (ring progress + numeral) |
+| QCHintChip | code ×11: no_body / multiple_bodies / partial_body / undecodable_image / low_resolution / poor_lighting / blurry / not_frontal / camera_tilt / arms_position / too_far — one actionable guidance line each (fail codes [capture-qc.md](capture-qc.md) §1–2; canonical copy [flows/vault.md](flows/vault.md) QC-failures row) |
+| ProcessingConstellation | state: processing (landmark constellation over photo) / success / failed — the "AI is working" moment (MI-12) |
+| CaptureResults chrome | header (confidence summary) + MeasurementCard stagger list slot + "Save to vault" gradient / "Retake" quiet (pages.md C6) |
+| ManualMeasureRow | tape-measure slider + numeric field + cm/in toggle · state: default / active / error (MI-13) |
+| CaptureOptionCard | mode: webcam-upload / manual-entry (vault "Retake" options, pages.md B: vault header) |
 
 ### 8.3 Design-prep needed from content
 
