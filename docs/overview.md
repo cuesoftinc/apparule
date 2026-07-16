@@ -41,3 +41,4 @@ See [setup.md](setup.md) to run the stack locally, and the
 - flows/ — feature flow specs with edge cases: [auth](flows/auth.md), [vault](flows/vault.md), [request](flows/request.md)
 - [capture-qc.md](capture-qc.md) — QC thresholds + measurement-confidence formulas
 - [engineering.md](engineering.md) — error catalog, authz matrix, rate limits, testing strategy, logging rules
+- [features.md](features.md) — granular build backlog (stable unit IDs per phase)

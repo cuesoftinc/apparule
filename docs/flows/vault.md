@@ -42,7 +42,7 @@ flowchart TD
 | --- | --- |
 | Network dies mid-upload | client retries ×3 w/ backoff (same idempotency key); then "Saved to drafts — retry from vault" (draft = local image + height, encrypted at rest on device) |
 | App killed after capture, before save | draft persists locally; vault shows "1 unsaved capture" chip on next open |
-| Pipeline timeout (>30s) | `503 pipeline-busy`; client offers retry; session row marked `failed` |
+| Pipeline timeout (>30s) | `503 pipeline_busy`; client offers retry; session row marked `failed` |
 | User with no vault opens request flow | redirected here with "You need measurements first" (flows/request.md §2) |
 | Camera permission denied | inline explainer + settings deep-link + "enter manually instead" |
 | Consent not yet recorded | consent sheet interposes before first upload; declining aborts save (capture stays local draft) |

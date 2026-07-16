@@ -11,7 +11,7 @@
 - **Google provider only.** Enforced at three layers:
   1. Firebase console: Email/Password provider **disabled** on the project;
   2. Backend: token verification rejects any token whose
-     `firebase.sign_in_provider ≠ google.com` → `403 provider-not-allowed`;
+     `firebase.sign_in_provider ≠ google.com` → `403 provider_not_allowed`;
   3. UI: exactly one auth CTA — "Continue with Google".
 - Consequences embraced: no password storage, no reset flow, no credential
   enumeration surface, and `email_verified` is always true (Google-asserted),
@@ -25,7 +25,7 @@
 - API calls send `Authorization: Bearer <Firebase ID token>`; api/common
   verifies (Admin SDK/JWKS, audience `sandbox-e306a`, provider check §1),
   then upserts the `ACCOUNT` row by `firebase_uid` (idempotent).
-- `401 token-expired` → silent refresh → retry once → sign-out on repeat.
+- `401 token_expired` → silent refresh → retry once → sign-out on repeat.
 - Sign-out: SDK signOut + purge local caches; unsaved capture drafts warn.
 
 ## 3. Sequence (first sign-in)
@@ -53,7 +53,7 @@ sequenceDiagram
 | Popup/sheet dismissed | silent return, screen unchanged |
 | `network-request-failed` | offline toast + retry |
 | `user-disabled` | "This account has been disabled" + support link |
-| Token with wrong provider (crafted email/password token from another tool) | `403 provider-not-allowed`; log server-side |
+| Token with wrong provider (crafted email/password token from another tool) | `403 provider_not_allowed`; log server-side |
 | Google account without Play Services (Android edge) | `google_sign_in` fallback to web flow |
 | In-app browsers blocking popups (IG/Twitter webviews — likely for a social app!) | `signInWithRedirect` fallback; tested explicitly |
 | Account deletion | in-app: deletes ACCOUNT + vault per retention rules, then Firebase user; Google access revoked via SDK |
