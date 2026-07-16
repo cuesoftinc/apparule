@@ -46,6 +46,10 @@ Custom KYC only if the provider's proves insufficient.
 
 ## A-4 · System of record — gates Phase 2 (Vault)
 
+> **REVISED by X-5 (2026-07-16): Firestore**, not Postgres — see the
+> cross-cutting section. The original recommendation below is kept for the
+> audit trail.
+
 **Recommendation ⭐: Postgres** (Aiven, already in the declared stack) for all
 domain entities; object storage for capture media; Firestore not used as a
 datastore (auth-only artifacts until D1). Mongo not introduced here — the
@@ -120,3 +124,19 @@ before public launch. Alternative: commission the brand pass first.
   consumer-API keys to third-party AI vendors in cloud deployments — data
   stays inside GCP, which strengthens every privacy disclosure. Self-host
   fallback: bring-your-own Gemini/Groq key via env (existing code path). ☑
+- **X-5 Data plane (RATIFIED 2026-07-16, per-product DB decided by delegation)**:
+  **Firestore** (default database, project `sandbox-e306a`) as the system of
+  record — **revises A-4 (Postgres)**: Firebase-native stack + real-time
+  listeners/offline sync are decisive for a social mobile app (feed, order
+  threads, notifications without websocket infra). Escape hatch: the payments
+  ledger alone may carve out to Aiven Postgres if Firestore transaction
+  guarantees ever pinch. Media stays on Firebase Storage.
+  **Shared Redis**: the sandbox **Aiven Redis** instance, tenancy by
+  **`REDIS_DB` index** (the irealty pattern: discrete `REDIS_HOST/PORT/
+  USERNAME/PASSWORD/TLS/DB` vars; e.g. irealty prd=0, stg/dev=1) — indices
+  per product/config assigned in Doppler by the owner. **Doppler is the env
+  source of truth**: project `apparule` with `dev / dev_personal / stg / prd`
+  configs (already created). **Object storage**: the **default Cloud Storage bucket** in
+  `sandbox-e306a` (per-product prefixes `apparule/<env>/…`) for capture
+  media, exports, and artifacts. Self-host compose keeps its bundled
+  stores. ☑
