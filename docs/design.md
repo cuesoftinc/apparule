@@ -187,6 +187,11 @@ this document must never diverge.
 > Style Guide page (already live, §7). Components become Figma components
 > with variants exactly as listed; screens assemble from instances only.
 
+**Canvas hygiene [Directive 2026-07-18].** Design canvases carry **product
+copy only** — text a user would actually see. Spec annotations (MI
+references, requirement IDs, implementation notes) live in component
+descriptions and in these docs, never on the screens themselves.
+
 ### 8.1 Build order
 
 | Stage | Build | Unlocks |
@@ -195,8 +200,8 @@ this document must never diverge.
 | 1 Atoms | Button, Input (incl. textarea + currency kinds, §8.2b), Pill/Chip, Avatar, IconButton, Toast · **atom completions (2026-07-16)**: GoogleAuthButton, Switch, Tooltip, Spinner | all molecules |
 | 2 Molecules | StoryRail item, action row, MeasurementCard, StatusPill set, TabBar, Sheet chrome · **form kit**: FormRow, AddressFieldset (request-stepper delivery + profile location, X-10 tier 1) · **capture kit**: CaptureOverlay, CountdownRing, QCHintChip, ProcessingConstellation, CaptureResults chrome, ManualMeasureRow, CaptureOptionCard · **chrome kit (2026-07-16)**: NavRail, AppBar, Tabs · **form kit II (2026-07-16)**: Select/OptionRow, DateInput, MediaDropzone/MediaUploadTile, Banner/InlineAlert, Popover/MenuItem | cards |
 | 3 Cards | PostCard, RequestCard, NotificationRow, CommentRow, ThreadBubble, EmptyState set, Skeletons · **social rows (2026-07-16)**: GridTile, UserRow, CaughtUpDivider · **order kit (2026-07-16)**: OrderTimelineRow, PaymentBox · **vault rows (2026-07-16)**: SessionRow/SnapshotPickerRow · **ops & earnings rows (2026-07-16)**: ModerationQueueRow, EarningsSummary + TransactionRow | screens |
-| 4 Screen templates | feed, post detail, request stepper (3 steps), vault, capture overlays, orders list+detail, profile ×2, moderation queue · **added 2026-07-16 (previously omitted; all v1 per pages.md)**: explore, create/composer, settings, auth/onboarding, notifications | mobile + dashboard designs |
-| 5 Home page | A1–A10 sections (pages.md Part A) · **marketing kit (2026-07-16)**: HomeNav + HomeFooter, Home section kit (§8.2b) | landing design |
+| 4 Screen templates | feed, post detail, request stepper (3 steps), vault, capture overlays, orders list+detail, profile ×2, moderation queue · **added 2026-07-16 (previously omitted; all v1 per pages.md)**: explore, create/composer, settings, auth/onboarding, notifications · **added 2026-07-18 (iteration 1)**: designer onboarding/KYC, earnings & payouts, dispute flow, decline sheet, followers/following, explore search-results, settings sub-screens ×3, comments full sheet (pages.md B8/B9, C11–C14 + flow lines) | mobile + dashboard designs |
+| 5 Home page | A1–A10 sections (pages.md Part A) + iteration rows A4b · A7b · A7c · A9b · A9c (2026-07-18) · **marketing kit (2026-07-16)**: HomeNav + HomeFooter, Home section kit (§8.2b) | landing design |
 
 **Stage 0 icon note — extended set (2026-07-16).** Beyond the original
 import, the parity audit requires these Lucide glyphs: `shield-check` (MI-15
@@ -217,6 +222,11 @@ variant). Brand glyphs — the Google 'G' for the X-1
 auth CTA, the GitHub mark (home page), and others as needed — are **not
 Lucide**: they enter as approved additions per the shared-foundations
 iconography rule (§2).
+
+**Stage 4 screen-state rule [Directive 2026-07-18].** Every data-driven
+screen template ships **three frames**: default, empty (EmptyState + its
+first-run copy; demo-data toggle where a flow specs one), and loading
+(Skeleton). A template isn't done until all three exist.
 
 **Naming standards (canonical across the three products) [Decided
 2026-07-17].** Component sets are PascalCase; variant property names are
@@ -320,6 +330,11 @@ Stage 5 and non-blocking; everything else feeds Stages 1–4.
 | --- | --- |
 | HomeNav / HomeFooter | nav: logo + links + GitHub star-count badge + Sign in + Try Cloud · state: top / stuck-blurred · footer: 3 link columns + legal + language · theme ×2 |
 | Home section kit | StatCard ×3 (fade-up) · WalkthroughStep (screenshot + 2 lines + step dots) · ComparisonTable (Cloud vs OSS + CTA row) · CodeSnippetBlock (copy → ✓ morph) · CommunityCard (Discord member count) · **status (2026-07-17):** the one remaining unbuilt Stage-5 row (HomeNav/HomeFooter are done) — in build now; contract stays live, not deferred |
+
+*Iteration note (2026-07-18):* the home FAQ section (pages.md A9b) implies a
+`FAQItem` accordion row (question · expanded/collapsed · one-open-at-a-time
+group) — the build may add it to this kit; annotate the contract row here as
+an iteration addition once the build report confirms it.
 
 ### 8.3 Design-prep needed from content
 
