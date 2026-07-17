@@ -17,12 +17,17 @@ community links → preview → dual CTA **Try Cloud** / **Self Host**.
 | A1 | Nav bar | logo · Product · Docs (GitBook) · Community · GitHub (star count badge) · Sign in · **Try Cloud** (gradient) | sticky, blurs on scroll; star count fetched client-side, animates count-up once |
 | A2 | Hero | H1 "Precision measurement meets social fashion" (copy pass pending); subcopy; dual CTA **Try Cloud** / **Self Host**; hero visual: phone frame auto-playing a silent feed→capture→request loop | CTA hover lifts 2px; visual loop pauses on hover/reduced-motion |
 | A3 | Problem strip | 3 stat cards (manual-measurement error, fragmented records, lost designer reach) | cards fade-up on scroll-into-view (once) |
-| A4 | Product walkthrough | 4-step horizontal scroll-jacked panel (Capture → Vault → Discover → Commission), each step = screenshot + 2 lines | step dots + keyboard arrows; scroll-jack disabled on mobile (vertical stack) |
+| A4 | Product walkthrough | 4-step horizontal scroll-jacked panel (Capture → Vault → Discover → Commission), each step = **real screen thumbnail** (exported from the Stage-4 Figma frames, not illustrative art **[Directive 2026-07-18]**) + 2 lines | step dots + keyboard arrows; scroll-jack disabled on mobile (vertical stack) |
+| A4b | Feature deep-dives **[Directive 2026-07-18]** | benefit-led split panels (alternating media/text) going deeper than A4's steps: Capture ("a tape measure that lives in your camera"), Vault (history, freshness, consent), Discover & Commission (measurements attached, escrow-protected payment) — each = benefit headline · 2–3 line body · real screen thumbnail · quiet link (docs deep-dive) | panels fade-up on scroll-into-view (once, same rule as A3) |
 | A5 | SMPL/AI section (APP-003) | short explainer "AI-assisted body modeling", looping landmark-constellation animation (same asset as MI-12), link → GitBook deep-dive | |
 | A6 | For designers | split panel: "Post outfits, get commissioned, get paid" + earnings screenshot | |
 | A7 | Open source section | `docker compose up` snippet with copy button · architecture mini-diagram · GitHub + CONTRIBUTING links | copy button ✓ morph |
+| A7b | For developers — Contribute **[Directive 2026-07-18]** | stack line (Flutter · Go/Gin `api/common` · Python/FastAPI `api/measure`, architecture.md) · "interesting problems" list (on-device capture QC, escrow ledger, single-image SMPL fitting) · links: good-first-issues filter, CONTRIBUTING.md, Discord · GitHub star-count badge (reuses A1 fetch) | link cards lift 2px on hover; `github_click` fires here too |
+| A7c | Self-host **[Directive 2026-07-18]** | data-ownership pitch (your measurements on your own metal — nothing leaves your server) · `docker compose up -d` one-liner (same snippet asset as A7) · "what ships" list (`api-common` · `api-measure` · `web`, per docker-compose.yml) · link → docs quickstart (GitBook) | copy button ✓ morph (shared with A7); `self_host_click` fires here too |
 | A8 | Community | Discord card (member count), roadmap link, CueLABS note | |
 | A9 | Cloud vs Self-host table (PRD §3) | feature comparison; Cloud column ends in Try Cloud CTA, OSS column in Self Host (→ docs quickstart) | |
+| A9b | FAQ **[Directive 2026-07-18]** | 4–5 product Q&As as accordion rows: "How accurate are the measurements?" · "Who can see my measurements?" (never public; snapshot only inside a request) · "How do designers get paid?" (escrow → payout, order-lifecycle.md) · "Can I self-host?" (→ A7c) · "Is it really open source?" (license) | one panel open at a time; rows deep-linkable (`#faq-n`) |
+| A9c | Final CTA band **[Directive 2026-07-18]** | full-width gradient band: one-line close + dual CTA **Try Cloud** / **Self Host** (repeats the A2 pair — last conversion point before the footer) | CTA hover lifts 2px (as A2); `try_cloud_click` / `self_host_click` |
 | A10 | Footer | product/docs/community columns · privacy (APP-005) · terms · `privacy.cuesoft.io` clause link · language | |
 
 Analytics events (→ Upstat, D2): `page_view`, `demo_start` (A4 engage),
@@ -58,6 +63,9 @@ toggle, support (`clients.cuesoft.io`).
   results (no hard gate).
 - Post permalinks: every post has a public web route `/p/{post_id}` (share
   target for MI-9; renders post detail, request CTA for signed-in users).
+- Search-results state **[Directive 2026-07-18]**: submitting a query swaps
+  the masonry for sectioned results — Designers (UserRow list, Follow MI-7)
+  above Posts (grid) — with per-section empty copy ("No designers match…").
 
 ### B3 `/app/orders` — Requests & orders (both roles)
 - Tabs: **As customer** / **As designer** (designer tab only when creator
@@ -72,6 +80,13 @@ toggle, support (`clients.cuesoft.io`).
 - Designer actions per state: quote (price + due date) / decline with reason /
   mark in-progress / mark shipped (tracking optional) ; customer: pay, confirm
   delivery (releases payout), open dispute.
+- Decline-with-reason sheet (designer) **[Directive 2026-07-18]**: reason enum
+  (Select, design.md §8.2b) + optional note — reason required per
+  flows/designer.md §2; sets the `declined` pill + notifies the customer.
+- Order dispute flow (either party, order-lifecycle.md §1) **[Directive
+  2026-07-18]**: open from paid/in_progress/shipped → reason picker + note →
+  order enters `disputed` (payout frozen, PaymentBox dispute-frozen state
+  MI-15) → staff-resolved thread (resolve = support/admin only).
 
 ### B4 `/app/vault` — Measurement vault
 - Header: freshness ring avatar (MI-11) + "Retake" CTA → capture options
@@ -97,6 +112,9 @@ toggle, support (`clients.cuesoft.io`).
 - Regular user: private vault indicator (measurements NEVER public), saved
   looks tab, order history link. Privacy default: vault visible to no one;
   a measurement snapshot is shared **only** inside a request (APP-005 story).
+- Followers/following lists **[Directive 2026-07-18]**: tapping either count
+  opens a UserRow list sheet (Follow/Following morph MI-7; tabs switch the
+  two lists).
 
 ### B7a `/dashboard/admin/moderation` (staff only)
 - Moderation queue (A-6): open reports with subject preview, reporter
@@ -109,6 +127,25 @@ toggle, support (`clients.cuesoft.io`).
   optional — explainer: "used to recommend nearby designers"; X-10 tier 1,
   data-model.md §2), notifications, privacy & data (export/delete,
   consent history), language, theme.
+- Sub-screens **[Directive 2026-07-18]**: **Notifications** (per-event
+  toggles: quotes, order status, social, payouts) · **Privacy & consent**
+  (consent history, capture-data retention notice, data-model.md §4) ·
+  **Account & data** (export / delete-all with confirm — the B4 rights links
+  resolve here).
+
+### B8 `/app/designer/onboarding` — Designer onboarding & KYC **[Directive 2026-07-18]**
+- Intro screen (what you get: posts, commissions, payouts; flows/designer.md
+  §1) → banking form: bank Select + account number with **Paystack
+  resolution states** (resolving spinner → resolved account-name confirm /
+  mismatch error, retry + support link after 3 fails) → done.
+- KYC-lapse banner state (Banner warn, design.md §8.2b): posts stop accepting
+  requests, payouts queue until re-verification — persistent until resolved.
+
+### B9 `/app/earnings` — Earnings & payouts (designer) **[Directive 2026-07-18]**
+- Expands the B6 self-only earnings tab into a full screen: EarningsSummary
+  cards (released balance / pending escrow) + TransactionRow list (payouts,
+  escrow-held, itemized 10% fee lines, provider refs); payout-account status
+  chip → B8 to fix.
 
 ## Part C — Mobile app (Flutter) — primary surface
 
@@ -119,14 +156,18 @@ Existing screens (splash/welcome/auth/capture) remain the entry path.
 | --- | --- | --- |
 | C1 | Onboarding | Google-only sign-in (flows/auth.md §5 — one CTA screen; password/verification screens retired); post-signup interstitial: "Take your first measurement" (→C6) or "Explore outfits" — skippable |
 | C2 | Home feed | = B1 minus right column; story rail on top; MI-1/2/3/4/5/6/16/18/20 all active |
-| C3 | Explore | search + 3-col grid; long-press peek preview (scale 0.97 + dim, MI haptic light); pull-to-refresh MI-5 |
+| C3 | Explore | search + 3-col grid; long-press peek preview (scale 0.97 + dim, MI haptic light); pull-to-refresh MI-5; search-results state = B2 **[Directive 2026-07-18]** |
 | C4 | Post detail | full-bleed carousel; action row; caption; comments sheet (swipe-up); Request CTA pinned bottom (safe-area) |
 | C5 | Request stepper | MI-10 sheet: Step 1 pick measurement set (vault snapshot picker, freshness warnings); Step 2 notes + budget + delivery (pre-fills from most recent order — no saved address book in v1, data-model.md §6.3); Step 3 review → submit; success: confetti + "view order" |
 | C6 | Capture | existing guide screens restyled: silhouette overlay + countdown (MI-12); processing constellation; results screen: measurement cards stagger-in, "Save to vault" primary, "Retake" quiet; manual-entry fallback (MI-13) |
 | C7 | Vault | = B4 adapted; entry from Profile tab header ring |
-| C8 | Orders | = B3 list + detail; push notifications drive re-entry (badge MI-16) |
+| C8 | Orders | = B3 list + detail, incl. the dispute flow and designer decline sheet **[Directive 2026-07-18]**; push notifications drive re-entry (badge MI-16) |
 | C9 | Profile | own: vault ring header, grid of liked/saved, settings gear; others: designer profile = B6 |
 | C10 | Notifications sheet | activity list (likes, follows, quotes, status changes); grouped by day; swipe-to-clear |
+| C11 | Comments sheet (full) **[Directive 2026-07-18]** | C4's swipe-up sheet expanded to full height: CommentRow list (reply indent, like hearts), composer pinned above keyboard, optimistic post MI-18 |
+| C12 | Followers/following **[Directive 2026-07-18]** | = B6 lists; UserRow + Follow morph (MI-7), tabs Followers / Following |
+| C13 | Designer onboarding & KYC **[Directive 2026-07-18]** | = B8: intro → banking form (Paystack resolution states: resolving / resolved-name confirm / mismatch error) → done; KYC-lapse banner state |
+| C14 | Earnings & payouts **[Directive 2026-07-18]** | = B9: EarningsSummary + TransactionRow list; payout push notifications deep-link here |
 
 Push notifications **[Proposed]**: quote received, payment confirmed, status
 changes, delivery confirm reminder (customer), new request (designer).
