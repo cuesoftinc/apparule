@@ -328,13 +328,21 @@ Stage 5 and non-blocking; everything else feeds Stages 1–4.
 
 | Component | Variants × states |
 | --- | --- |
-| HomeNav / HomeFooter | nav: logo + links + GitHub star-count badge + Sign in + Try Cloud · state: top / stuck-blurred · footer: 3 link columns + legal + language · theme ×2 |
-| Home section kit | StatCard ×3 (fade-up) · WalkthroughStep (screenshot + 2 lines + step dots) · ComparisonTable (Cloud vs OSS + CTA row) · CodeSnippetBlock (copy → ✓ morph) · CommunityCard (Discord member count) · **status (2026-07-17):** the one remaining unbuilt Stage-5 row (HomeNav/HomeFooter are done) — in build now; contract stays live, not deferred |
+| HomeNav / HomeFooter | nav: logo + links + GitHub star-count badge + Sign in + Try Cloud · state: top / stuck-blurred · footer: 3 link columns + legal + language · theme ×2 · **as built (2026-07-18):** the master's GitHub badge reads "Star" with no count — no invented numbers on canvases (accuracy standard below); the live star count is fetched at runtime (pages.md A1) |
+| Home section kit | StatCard ×3 (fade-up) · WalkthroughStep (screenshot + 2 lines + step dots) · ComparisonTable (Cloud vs OSS + CTA row) · CodeSnippetBlock (copy → ✓ morph) · CommunityCard (Discord member count) · **status (2026-07-17):** the one remaining unbuilt Stage-5 row (HomeNav/HomeFooter are done) — in build now; contract stays live, not deferred · **as built (2026-07-18):** WalkthroughStep step dots corrected to ×4 (the A4 walkthrough's four steps; the active dot is set per instance) · the CommunityCard master carries a neutral badge — no member count (accuracy standard below) |
+| FAQItem | question + chevron · state: collapsed / expanded · one-open-at-a-time group, rows deep-linkable (pages.md A9b) · theme ×2 · **as built (2026-07-18):** ≈720px accordion row; chevron rotates 180° on expand/collapse (`base` 200ms) — the iteration addition the note below anticipated |
+
+*Accuracy standard (2026-07-18):* the marketing stat band (StatCard ×3,
+pages.md A3) carries **product claims only** — ±2 cm target accuracy · 2
+photos · 30-day photo auto-delete — never invented research statistics; the
+same rule keeps master badges neutral (no star or member counts on canvases).
 
 *Iteration note (2026-07-18):* the home FAQ section (pages.md A9b) implies a
 `FAQItem` accordion row (question · expanded/collapsed · one-open-at-a-time
 group) — the build may add it to this kit; annotate the contract row here as
-an iteration addition once the build report confirms it.
+an iteration addition once the build report confirms it. **Confirmed
+(2026-07-18):** the build added it — the `FAQItem` row above is the as-built
+contract.
 
 ### 8.3 Design-prep needed from content
 
