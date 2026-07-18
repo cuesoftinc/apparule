@@ -2,7 +2,8 @@
 // standard (2026-07-18): the master carries a neutral badge — no member
 // count on canvases; the live count arrives at runtime (null → neutral).
 import clsx from "clsx";
-import { MessageCircle, Users } from "lucide-react";
+import { Users } from "lucide-react";
+import { DiscordMark } from "@/components/icons/DiscordMark";
 import { Button } from "./Button";
 
 export interface CommunityCardProps {
@@ -26,7 +27,7 @@ export function CommunityCard({
     >
       <div className="flex items-center gap-3">
         <span className="grid size-11 place-items-center rounded-pill bg-accent-gradient text-on-accent">
-          <MessageCircle size={22} />
+          <DiscordMark size={22} />
         </span>
         <div>
           <p className="text-body-lg font-semibold text-text">Join the community</p>
