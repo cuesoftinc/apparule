@@ -77,3 +77,181 @@ body {
 .tnum {
   font-variant-numeric: tabular-nums;
 }
+
+/* MI-19 skeleton shimmer — 1.2s linear, 8% white overlay */
+@keyframes shimmer {
+  to {
+    transform: translateX(200%);
+  }
+}
+
+/* Toast entrance — 250ms entrance token, fade + 8px rise */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* MI-14 timeline connector draw — scaleY over 400ms */
+@keyframes draw-line {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* MI-17 thread typing pulse */
+@keyframes typing-pulse {
+  0%,
+  60%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+/* MI-14 status pill pulse — scale 1→1.06→1 */
+@keyframes status-pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* MI-2 like burst — scale 1→0.8→1.15→1 over 240ms */
+@keyframes like-burst {
+  0% {
+    transform: scale(1);
+  }
+  33% {
+    transform: scale(0.8);
+  }
+  66% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* MI-3 save dip — icon dips −4px then settles as it fills */
+@keyframes save-dip {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(4px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* MI-1 double-tap heart — 96px heart scales 0→1.2→1 with 8° tilt, fades */
+@keyframes big-heart {
+  0% {
+    transform: scale(0) rotate(8deg);
+    opacity: 0.9;
+  }
+  40% {
+    transform: scale(1.2) rotate(8deg);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0;
+  }
+}
+
+/* MI-16 badge increment — springy scale pop (TabBar Orders badge) */
+@keyframes pop-in {
+  0% {
+    transform: scale(0.4);
+  }
+  60% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* MI-12 capture results stagger — fade + 8px rise per card */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* MI-12 silhouette guide — gentle pulse while searching */
+@keyframes silhouette-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+/* MI-12 landmark constellation — staggered twinkle while processing */
+@keyframes landmark-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* MI-13 tape-measure slider (ManualMeasureRow) — gradient track fill */
+.tape-slider {
+  appearance: none;
+  height: 8px;
+  border-radius: var(--ap-radius-pill);
+  background: var(--ap-border);
+  outline-offset: 4px;
+}
+.tape-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--ap-radius-pill);
+  background: var(--ap-accent-gradient);
+  border: 2px solid var(--ap-bg);
+  cursor: pointer;
+}
+.tape-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--ap-radius-pill);
+  background: var(--ap-accent-gradient);
+  border: 2px solid var(--ap-bg);
+  cursor: pointer;
+}

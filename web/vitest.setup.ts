@@ -26,6 +26,29 @@ class MemoryStorage implements Storage {
   }
 }
 
+// jsdom lacks a handful of APIs the Radix primitives touch.
+if (typeof window !== "undefined") {
+  window.HTMLElement.prototype.scrollIntoView ??= () => {};
+  window.HTMLElement.prototype.hasPointerCapture ??= () => false;
+  window.HTMLElement.prototype.setPointerCapture ??= () => {};
+  window.HTMLElement.prototype.releasePointerCapture ??= () => {};
+  window.ResizeObserver ??= class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as unknown as typeof ResizeObserver;
+  window.matchMedia ??= ((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  })) as unknown as typeof window.matchMedia;
+}
+
 for (const name of ["localStorage", "sessionStorage"] as const) {
   const existing = (globalThis as Record<string, unknown>)[name];
   if (!existing || typeof (existing as Storage).getItem !== "function") {
