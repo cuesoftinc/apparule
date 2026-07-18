@@ -2,6 +2,7 @@
 
 > Cross-cutting contracts the flow specs assume: error envelope + catalog,
 > authorization matrix, rate limits, testing strategy, logging rules.
+> Web implementation follows [web-implementation.md](web-implementation.md).
 > Ecosystem-shared conventions originate here and are mirrored by the other
 > products' engineering.md files.
 
