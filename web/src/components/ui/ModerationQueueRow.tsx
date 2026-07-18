@@ -42,25 +42,35 @@ export function ModerationQueueRow({
             />
           </span>
         ) : null}
+        {/* Figma master (93:1219): "Reported post/comment" headline, the
+            excerpt + reporter in the meta line, warn-tinted Spam pill. */}
         <div className="min-w-0 flex-1">
-          <p className="line-clamp-2 text-body text-text">
-            {report.subject_preview.text}
+          <p className="text-body font-semibold text-text">
+            Reported {report.subject_kind}
           </p>
-          <p className="mt-0.5 text-caption text-text-2">
-            {report.subject_kind} · reported by {report.reporter.username} ·{" "}
-            {formatAgo(report.created_at)}
+          <p className="mt-0.5 line-clamp-2 text-caption text-text-2">
+            “{report.subject_preview.text}” · Reported by{" "}
+            {report.reporter.username} · {formatAgo(report.created_at)} ago
           </p>
         </div>
-        <span className="shrink-0 rounded-pill border border-error/40 bg-error/10 px-2.5 py-0.5 text-micro font-semibold text-error">
+        <span className="shrink-0 rounded-pill bg-warn/14 px-2 py-0.5 text-micro font-semibold capitalize text-warn">
           {report.reason}
         </span>
       </div>
       {open ? (
         <div className="flex gap-2">
-          <Button kind="destructive" size="sm" onClick={() => onAction?.("hide_post")}>
-            Hide post
+          <Button
+            kind="quiet"
+            size="sm"
+            onClick={() => onAction?.("hide_post")}
+          >
+            {report.subject_kind === "comment" ? "Hide comment" : "Hide post"}
           </Button>
-          <Button kind="quiet" size="sm" onClick={() => onAction?.("suspend_account")}>
+          <Button
+            kind="destructive"
+            size="sm"
+            onClick={() => onAction?.("suspend_account")}
+          >
             Suspend account
           </Button>
           <Button kind="quiet" size="sm" onClick={() => onAction?.("dismiss")}>
@@ -69,7 +79,7 @@ export function ModerationQueueRow({
         </div>
       ) : (
         <p data-testid="audit-line" className="text-micro text-text-2">
-          {report.status} · by {report.actioned_by ?? "moderator"}
+          Actioned · by {report.actioned_by ?? "moderator"}
         </p>
       )}
     </div>

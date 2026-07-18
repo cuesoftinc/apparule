@@ -9,7 +9,8 @@ describe("MeasurementCard (§8.2)", () => {
     );
     expect(screen.getByText("Shoulder Width")).toBeInTheDocument();
     expect(screen.getByText("42.5 cm")).toBeInTheDocument();
-    expect(screen.getByText("scan")).toBeInTheDocument();
+    // Figma master (48:208): sentence-case source chip
+    expect(screen.getByText("Scan")).toBeInTheDocument();
   });
 
   it.each(["scan", "manual"] as const)("renders source=%s", (source) => {

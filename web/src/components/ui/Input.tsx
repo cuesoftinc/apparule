@@ -39,12 +39,15 @@ export interface TextareaProps
   maxLength?: number;
 }
 
-const frame = (error: boolean, disabled: boolean) =>
+// Figma master (40:76): focus = 2px accent border, error = 1.5px error
+// border, disabled = 40% opacity on the whole field.
+const frame = (error: boolean, disabled: boolean, multiline = false) =>
   clsx(
-    "flex items-center gap-2 rounded-card border bg-bg-elev px-3 transition-colors duration-120 ease-standard",
-    "focus-within:border-accent-start motion-reduce:transition-none",
-    error ? "border-error" : "border-border",
-    disabled && "opacity-50",
+    "flex rounded-card bg-bg-elev px-3 transition-colors duration-120 ease-standard",
+    multiline ? "flex-col items-start gap-2 py-3" : "h-11 items-center gap-2",
+    "focus-within:border-2 focus-within:border-accent-start motion-reduce:transition-none",
+    error ? "border-[1.5px] border-error" : "border border-border",
+    disabled && "opacity-40",
   );
 
 export function Input(props: InputProps | TextareaProps) {
@@ -58,28 +61,29 @@ export function Input(props: InputProps | TextareaProps) {
     const length = String(rest.value ?? "").length;
     return (
       <div className={clsx("flex flex-col gap-1", className)} data-kind="textarea">
-        <div className={clsx(frame(!!error, !!rest.disabled), "py-2")}>
+        <div className={frame(!!error, !!rest.disabled, true)}>
           <textarea
             rows={3}
             maxLength={maxLength}
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? errorId : undefined}
-            className="min-h-20 w-full resize-y bg-transparent text-body text-text outline-none placeholder:text-text-2"
+            className="min-h-16 w-full resize-y bg-transparent text-body text-text outline-none placeholder:text-text-2"
             {...rest}
           />
-        </div>
-        <div className="flex justify-between text-micro text-text-2">
-          {error ? (
-            <span id={errorId} className="text-error">
-              {error}
+          {/* Figma master: counter sits inside the field, bottom-right. */}
+          <div className="flex w-full justify-end text-micro">
+            <span
+              className={clsx("tnum", error ? "text-error" : "text-text-2")}
+            >
+              {length}/{maxLength}
             </span>
-          ) : (
-            <span />
-          )}
-          <span className="tnum">
-            {length}/{maxLength}
-          </span>
+          </div>
         </div>
+        {error ? (
+          <span id={errorId} className="text-caption text-error">
+            {error}
+          </span>
+        ) : null}
       </div>
     );
   }
@@ -90,12 +94,14 @@ export function Input(props: InputProps | TextareaProps) {
 
   return (
     <div className={clsx("flex flex-col gap-1", className)} data-kind={kind}>
-      <div className={clsx(frame(!!error, !!disabled), "h-11")}>
+      <div className={frame(!!error, !!disabled)}>
         {kind === "search" ? (
           <Search size={18} className="shrink-0 text-text-2" aria-hidden />
         ) : null}
         {kind === "currency" ? (
-          <span className="shrink-0 text-body-lg text-text-2">₦</span>
+          <span className="shrink-0 text-body font-semibold text-text-2">
+            ₦
+          </span>
         ) : null}
         <input
           type={kind === "numeric" || kind === "currency" ? "text" : kind === "search" ? "search" : "text"}
@@ -104,17 +110,22 @@ export function Input(props: InputProps | TextareaProps) {
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
           className={clsx(
-            "w-full bg-transparent text-body-lg text-text outline-none placeholder:text-text-2",
+            "w-full bg-transparent text-body text-text outline-none placeholder:text-text-2",
             (kind === "numeric" || kind === "currency") && "tnum",
           )}
           {...rest}
         />
+        {kind === "currency" ? (
+          <span className="shrink-0 text-micro font-semibold text-text-2">
+            NGN
+          </span>
+        ) : null}
         {kind === "numeric" && unit && onUnitChange ? (
           <UnitToggle unit={unit} onUnitChange={onUnitChange} disabled={disabled} />
         ) : null}
       </div>
       {error ? (
-        <span id={errorId} className="text-micro text-error">
+        <span id={errorId} className="text-caption text-error">
           {error}
         </span>
       ) : null}
@@ -122,7 +133,9 @@ export function Input(props: InputProps | TextareaProps) {
   );
 }
 
-/** MI-13 cm/in toggle — flips with a 3D x-rotation, 200ms. */
+/** MI-13 cm/in toggle — flips with a 3D x-rotation, 200ms.
+ * Figma master (40:19): segmented pill on a border-token track; the active
+ * unit fills with the text token, the inactive one reads as text-2. */
 function UnitToggle({
   unit,
   onUnitChange,
@@ -144,13 +157,23 @@ function UnitToggle({
         setTimeout(() => setFlipping(false), 200);
       }}
       className={clsx(
-        "shrink-0 rounded-pill border border-border px-2 py-0.5 text-micro font-semibold text-text-2",
+        "flex shrink-0 items-center gap-[2px] rounded-pill bg-border p-[2px]",
         "transition-transform duration-200 ease-standard [transform-style:preserve-3d]",
         flipping && "[transform:rotateX(360deg)]",
         "motion-reduce:transition-none motion-reduce:[transform:none]",
       )}
     >
-      {unit}
+      {(["cm", "in"] as const).map((u) => (
+        <span
+          key={u}
+          className={clsx(
+            "rounded-pill px-2 py-[2px] text-micro font-semibold",
+            u === unit ? "bg-text text-bg" : "text-text-2",
+          )}
+        >
+          {u}
+        </span>
+      ))}
     </button>
   );
 }

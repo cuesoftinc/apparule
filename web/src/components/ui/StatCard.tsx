@@ -50,7 +50,8 @@ export function StatCard({ stat, label, className }: StatCardProps) {
         className,
       )}
     >
-      <span className="tnum bg-accent-gradient bg-clip-text text-display font-bold text-transparent">
+      {/* Figma master (Stage 5): stat values bind to the text token */}
+      <span className="tnum text-display font-bold text-text">
         {stat}
       </span>
       <span className="text-body text-text-2">{label}</span>

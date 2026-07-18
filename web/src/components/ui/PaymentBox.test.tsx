@@ -30,8 +30,13 @@ describe("PaymentBox (§8.2b, MI-15)", () => {
   });
 
   it("paying state spins and disables", () => {
-    render(<PaymentBox state="paying" role="customer" quoteCents={4_500_000} />);
-    expect(screen.getByRole("button", { name: /paying/i })).toBeDisabled();
+    const { container } = render(
+      <PaymentBox state="paying" role="customer" quoteCents={4_500_000} />,
+    );
+    // Figma Button master: loading swaps the label for a spinner
+    const paying = container.querySelector('button[aria-busy="true"]');
+    expect(paying).not.toBeNull();
+    expect(paying).toBeDisabled();
   });
 
   it("escrow-held morphs to the shield-check (MI-15)", () => {
@@ -40,9 +45,11 @@ describe("PaymentBox (§8.2b, MI-15)", () => {
   });
 
   it("designer view itemizes the 10% fee line", () => {
-    render(<PaymentBox state="released" role="designer" quoteCents={6_200_000} />);
-    expect(screen.getByTestId("fee-line")).toHaveTextContent("−₦6,200");
-    expect(screen.getByText("₦55,800")).toBeInTheDocument();
+    // Figma master (90:1025): the fee is itemized in the quoted body copy
+    render(<PaymentBox state="quoted" role="designer" quoteCents={6_200_000} />);
+    expect(screen.getByTestId("fee-line")).toHaveTextContent(
+      "You receive ₦55,800 after the 10% platform fee",
+    );
   });
 
   it("first-payment escrow explainer expands beneath (MI-15)", () => {
@@ -61,6 +68,10 @@ describe("PaymentBox (§8.2b, MI-15)", () => {
     render(
       <PaymentBox state="dispute-frozen" role="designer" quoteCents={4_500_000} />,
     );
-    expect(screen.getByText(/payout frozen/i)).toBeInTheDocument();
+    // Figma master (90:1093) copy + designer action
+    expect(screen.getByText(/funds frozen/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Respond to dispute" }),
+    ).toBeInTheDocument();
   });
 });

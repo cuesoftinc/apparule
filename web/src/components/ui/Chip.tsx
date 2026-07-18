@@ -29,10 +29,12 @@ export function Chip({
       data-kind={kind}
       aria-pressed={kind === "selected" || undefined}
       className={clsx(
-        "inline-flex h-8 items-center gap-1 rounded-pill border px-3 text-body",
+        // Figma master (41:19): 13px semibold label; selected = solid
+        // text-token fill (reads as active filter, not an action).
+        "inline-flex h-8 items-center gap-1.5 rounded-pill border px-3 text-caption font-semibold",
         "transition-colors duration-120 ease-standard motion-reduce:transition-none",
         kind === "selected"
-          ? "border-transparent bg-accent-gradient font-semibold text-on-accent"
+          ? "border-transparent bg-text text-bg"
           : "border-border bg-bg-elev text-text",
         className,
       )}
@@ -50,7 +52,7 @@ export function Chip({
           }}
           className="-mr-1 grid size-4 place-items-center rounded-pill text-text-2 hover:text-text"
         >
-          <X size={12} strokeWidth={2.5} />
+          <X size={14} strokeWidth={2.5} />
         </span>
       ) : null}
     </button>

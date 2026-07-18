@@ -35,18 +35,24 @@ export function Skeleton({ kind = "line", className }: SkeletonProps) {
   if (kind === "media") {
     return <Shimmer kind={kind} className={clsx("aspect-square w-full", className)} />;
   }
-  // card: feed anatomy — header line + square media + action row (§3)
+  // card: feed anatomy — header, square media, action circles, caption
+  // lines (mirrors the PostCard skeleton master, 52:288)
   return (
     <div data-kind="card" aria-hidden="true" className={clsx("flex flex-col gap-3", className)}>
-      <div className="flex items-center gap-3 px-4 pt-3">
+      <div className="flex items-center gap-3 px-3 pt-2">
         <Shimmer kind="avatar" className="size-8 shrink-0 rounded-pill" />
         <Shimmer kind="line" className="h-3 w-32 rounded-card" />
       </div>
       <Shimmer kind="media" className="aspect-square w-full" />
-      <div className="flex items-center gap-4 px-4 pb-3">
-        <Shimmer kind="line" className="h-6 w-6 rounded-card" />
-        <Shimmer kind="line" className="h-6 w-6 rounded-card" />
-        <Shimmer kind="line" className="h-6 w-6 rounded-card" />
+      <div className="flex items-center gap-4 px-4">
+        <Shimmer kind="line" className="size-6 rounded-pill" />
+        <Shimmer kind="line" className="size-6 rounded-pill" />
+        <Shimmer kind="line" className="size-6 rounded-pill" />
+      </div>
+      <div className="flex flex-col gap-2 px-4 pb-3">
+        <Shimmer kind="line" className="h-3 w-24 rounded-card" />
+        <Shimmer kind="line" className="h-3 w-3/4 rounded-card" />
+        <Shimmer kind="line" className="h-10 w-full rounded-card" />
       </div>
     </div>
   );

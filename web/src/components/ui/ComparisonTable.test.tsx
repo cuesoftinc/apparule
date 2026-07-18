@@ -10,14 +10,14 @@ describe("ComparisonTable (§8.2b marketing, pages.md A9)", () => {
     expect(screen.getByRole("columnheader", { name: "Self-host" })).toBeInTheDocument();
   });
 
-  it("CTA row: Cloud → Try Cloud, OSS → Self Host", async () => {
+  it("CTA row: Cloud → Start on Cloud, OSS → Self-host it (Stage 5 master)", async () => {
     const onTryCloud = vi.fn();
     const onSelfHost = vi.fn();
     render(<ComparisonTable onTryCloud={onTryCloud} onSelfHost={onSelfHost} />);
     const ctaRow = screen.getByTestId("cta-row");
     expect(ctaRow).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Try Cloud" }));
-    await userEvent.click(screen.getByRole("button", { name: "Self Host" }));
+    await userEvent.click(screen.getByRole("button", { name: "Start on Cloud" }));
+    await userEvent.click(screen.getByRole("button", { name: "Self-host it" }));
     expect(onTryCloud).toHaveBeenCalledOnce();
     expect(onSelfHost).toHaveBeenCalledOnce();
   });

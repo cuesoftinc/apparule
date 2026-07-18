@@ -13,17 +13,35 @@ import { StatusPill } from "./StatusPill";
 
 export type RequestCardRole = "customer" | "designer";
 
-/** Next action per role per state (order-lifecycle.md §2 permissions). */
-const NEXT_ACTION: Record<RequestCardRole, Partial<Record<OrderStatus, string>>> = {
+/** Next action per role per state — the full ×10 matrix drawn in the
+ * RequestCard masters (53:614); `primary` actions paint the gradient. */
+const NEXT_ACTION: Record<
+  RequestCardRole,
+  Partial<Record<OrderStatus, { label: string; primary?: boolean }>>
+> = {
   customer: {
-    quoted: "Pay",
-    shipped: "Confirm delivery",
-    delivered: "View order",
+    requested: { label: "Cancel request" },
+    quoted: { label: "Pay", primary: true },
+    paid: { label: "View order" },
+    in_progress: { label: "View updates" },
+    shipped: { label: "Confirm delivery", primary: true },
+    delivered: { label: "View order" },
+    refunded: { label: "View details" },
+    declined: { label: "Find similar" },
+    disputed: { label: "View dispute" },
+    cancelled: { label: "View details" },
   },
   designer: {
-    requested: "Quote",
-    paid: "Start work",
-    in_progress: "Mark shipped",
+    requested: { label: "Send quote", primary: true },
+    quoted: { label: "Edit quote" },
+    paid: { label: "Start work", primary: true },
+    in_progress: { label: "Mark shipped", primary: true },
+    shipped: { label: "Add tracking" },
+    delivered: { label: "View payout" },
+    refunded: { label: "View details" },
+    declined: { label: "View request" },
+    disputed: { label: "Respond", primary: true },
+    cancelled: { label: "View details" },
   },
 };
 
@@ -46,13 +64,16 @@ export function RequestCard({
     role === "customer" ? order.designer.username : order.customer.username;
   const action = NEXT_ACTION[role][order.status];
   const amount = order.quote_cents ?? order.budget_cents;
+  const price = amount !== null ? formatNaira(amount, order.currency) : null;
 
   return (
     <div
       data-role={role}
       data-status={order.status}
       className={clsx(
-        "flex items-center gap-4 rounded-card border border-border bg-bg-elev p-4",
+        // Figma master (53:614): p 12 / gap 12, 64px thumb, title/meta/price
+        // column, pill + action stacked at the trailing edge.
+        "flex items-start gap-3 rounded-card border border-border bg-bg-elev p-3",
         className,
       )}
     >
@@ -70,42 +91,41 @@ export function RequestCard({
           className="object-cover"
         />
       </button>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          {/* 1-line truncation keeps the price visible (as-built fix) */}
-          <button
-            type="button"
-            onClick={onOpen}
-            className="min-w-0 truncate text-left text-body font-semibold text-text"
-          >
-            {order.post.caption}
-          </button>
-        </div>
+      <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
+        {/* 1-line truncation keeps the price visible (as-built fix) */}
+        <button
+          type="button"
+          onClick={onOpen}
+          className="min-w-0 truncate text-left text-body font-semibold text-text"
+        >
+          {order.post.caption}
+        </button>
         <p className="truncate text-caption text-text-2">
           #{order.order_number} · {role === "customer" ? "by" : "for"}{" "}
           {counterparty}
         </p>
-        <div className="mt-1.5 flex items-center gap-3">
-          <StatusPill status={order.status} />
-          {amount !== null ? (
-            <span className="tnum text-body font-semibold text-text">
-              {formatNaira(amount, order.currency)}
-            </span>
-          ) : (
-            <span className="text-caption text-text-2">quote on request</span>
-          )}
-        </div>
+        {price !== null ? (
+          <span className="tnum text-body font-semibold text-text">
+            {price}
+          </span>
+        ) : (
+          <span className="text-caption text-text-2">quote on request</span>
+        )}
       </div>
-      {action ? (
-        <Button
-          kind={action === "Pay" ? "gradient-primary" : "quiet"}
-          size="sm"
-          onClick={() => onAction?.(action)}
-          className="shrink-0"
-        >
-          {action}
-        </Button>
-      ) : null}
+      <div className="flex shrink-0 flex-col items-end gap-2">
+        <StatusPill status={order.status} />
+        {action ? (
+          <Button
+            kind={action.primary ? "gradient-primary" : "quiet"}
+            size="sm"
+            onClick={() => onAction?.(action.label)}
+          >
+            {action.label === "Pay" && price !== null
+              ? `Pay ${price}`
+              : action.label}
+          </Button>
+        ) : null}
+      </div>
     </div>
   );
 }

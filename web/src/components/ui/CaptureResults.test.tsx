@@ -22,19 +22,23 @@ function renderResults(overrides: Partial<Parameters<typeof CaptureResults>[0]> 
 }
 
 describe("CaptureResults (§8.2b)", () => {
+  // Figma master (65:612): the header carries a confidence pill; the full
+  // count/mean summary lives in its title attribute.
   it("header summarizes count, mean confidence, and low-confidence flags", () => {
     renderResults();
-    expect(screen.getByTestId("confidence-summary")).toHaveTextContent(
-      "2 measurements · 77% average confidence · 1 low — consider retaking",
+    const pill = screen.getByTestId("confidence-summary");
+    expect(pill).toHaveTextContent("1 low confidence");
+    expect(pill).toHaveAttribute(
+      "title",
+      "2 measurements · 77% average confidence",
     );
   });
 
   it("omits the low flag when everything clears 0.7", () => {
     renderResults({ confidences: [0.92, 0.88] });
-    expect(screen.getByTestId("confidence-summary")).toHaveTextContent(
-      "2 measurements · 90% average confidence",
-    );
-    expect(screen.getByTestId("confidence-summary")).not.toHaveTextContent("low");
+    const pill = screen.getByTestId("confidence-summary");
+    expect(pill).toHaveTextContent("High confidence");
+    expect(pill).not.toHaveTextContent("low");
   });
 
   it("staggers the card list 60ms apart (MI-12), reduced-motion safe", () => {
@@ -58,7 +62,10 @@ describe("CaptureResults (§8.2b)", () => {
 
   it("saving: save shows loading, retake disabled", () => {
     renderResults({ saving: true });
-    expect(screen.getByRole("button", { name: /Save to vault/ })).toBeDisabled();
+    // Figma Button master: loading swaps the label for a spinner
+    const saving = document.querySelector('button[aria-busy="true"]');
+    expect(saving).not.toBeNull();
+    expect(saving).toBeDisabled();
     expect(screen.getByRole("button", { name: "Retake" })).toBeDisabled();
   });
 });

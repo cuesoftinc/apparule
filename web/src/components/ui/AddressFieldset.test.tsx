@@ -17,7 +17,11 @@ describe("AddressFieldset (§8.2)", () => {
     render(
       <AddressFieldset context="profile-location" value={{}} onChange={() => {}} />,
     );
-    expect(screen.getByText(/recommend nearby designers/i)).toBeInTheDocument();
+    // Figma master copy (74:801)
+    expect(
+      screen.getByText(/recommend designers near you/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/pre-fills from your last order/i)).toBeInTheDocument();
     expect(screen.queryByText("Recipient name")).not.toBeInTheDocument();
   });
 

@@ -12,25 +12,34 @@ import type { Freshness } from "@/models";
 
 export type StatusPillValue = OrderStatus | Freshness;
 
+// Figma master (47:135): borderless pills — a 14% tint of the status token
+// behind a 12px semibold label. fresh strokes the accent gradient.
 const TOKEN_CLASS: Record<StatusPillValue, string> = {
-  quoted: "text-link border-link/40 bg-link/10",
-  shipped: "text-link border-link/40 bg-link/10",
-  paid: "text-success border-success/40 bg-success/10",
-  delivered: "text-success border-success/40 bg-success/10",
-  in_progress: "text-warn border-warn/40 bg-warn/10",
-  refunded: "text-warn border-warn/40 bg-warn/10",
-  declined: "text-error border-error/40 bg-error/10",
-  disputed: "text-error border-error/40 bg-error/10",
-  requested: "text-text-2 border-border bg-bg-elev",
-  cancelled: "text-text-2 border-border bg-bg-elev",
-  fresh: "text-success border-success/40 bg-success/10",
-  aging: "text-warn border-warn/40 bg-warn/10",
-  stale: "text-text-2 border-border bg-bg-elev",
+  quoted: "text-link bg-link/14",
+  shipped: "text-link bg-link/14",
+  paid: "text-success bg-success/14",
+  delivered: "text-success bg-success/14",
+  in_progress: "text-warn bg-warn/14",
+  refunded: "text-warn bg-warn/14",
+  declined: "text-error bg-error/14",
+  disputed: "text-error bg-error/14",
+  requested: "text-text-2 bg-text-2/14",
+  cancelled: "text-text-2 bg-text-2/14",
+  fresh:
+    "bg-[linear-gradient(135deg,color-mix(in_srgb,var(--ap-accent-start)_14%,transparent),color-mix(in_srgb,var(--ap-accent-end)_14%,transparent))]",
+  aging: "text-warn bg-warn/14",
+  stale: "text-text-2 bg-text-2/14",
 };
 
 export interface StatusPillProps {
   status: StatusPillValue;
   className?: string;
+}
+
+/** Figma masters label pills in sentence case ("In progress"). */
+function label(status: StatusPillValue): string {
+  const text = status.replace(/_/g, " ");
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 export function StatusPill({ status, className }: StatusPillProps) {
@@ -51,7 +60,7 @@ export function StatusPill({ status, className }: StatusPillProps) {
     <span
       data-status={status}
       className={clsx(
-        "inline-flex h-6 items-center rounded-pill border px-3 text-caption font-semibold",
+        "inline-flex h-6 items-center rounded-pill px-2 text-micro font-semibold",
         "transition-colors duration-200 ease-standard motion-reduce:transition-none",
         TOKEN_CLASS[status],
         pulse &&
@@ -59,7 +68,13 @@ export function StatusPill({ status, className }: StatusPillProps) {
         className,
       )}
     >
-      {status.replace(/_/g, " ")}
+      {status === "fresh" ? (
+        <span className="bg-accent-gradient bg-clip-text text-transparent">
+          {label(status)}
+        </span>
+      ) : (
+        label(status)
+      )}
     </span>
   );
 }

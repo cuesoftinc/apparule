@@ -9,7 +9,7 @@ describe("RequestCard (§8.2)", () => {
     render(<RequestCard order={fixtureOrder} role="customer" />);
     expect(screen.getByText(/#APR-1042/)).toBeInTheDocument();
     expect(screen.getByText(/by amara.designs/)).toBeInTheDocument();
-    expect(screen.getByText("in progress")).toBeInTheDocument();
+    expect(screen.getByText("In progress")).toBeInTheDocument();
     expect(screen.getByText("₦45,000")).toBeInTheDocument();
   });
 
@@ -27,7 +27,8 @@ describe("RequestCard (§8.2)", () => {
         onAction={onAction}
       />,
     );
-    await userEvent.click(screen.getByRole("button", { name: "Pay" }));
+    // Figma master (53:344): the pay CTA carries the amount
+    await userEvent.click(screen.getByRole("button", { name: "Pay ₦45,000" }));
     expect(onAction).toHaveBeenCalledWith("Pay");
   });
 
@@ -38,7 +39,9 @@ describe("RequestCard (§8.2)", () => {
         role="designer"
       />,
     );
-    expect(screen.getByRole("button", { name: "Quote" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Send quote" }),
+    ).toBeInTheDocument();
     // no quote yet → budget renders instead
     expect(screen.getByText("₦50,000")).toBeInTheDocument();
   });

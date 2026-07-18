@@ -25,16 +25,18 @@ export function FormRow({
   className,
 }: FormRowProps) {
   return (
-    <div className={clsx("flex flex-col gap-1.5", className)} data-error={!!error || undefined}>
+    <div className={clsx("flex flex-col gap-2", className)} data-error={!!error || undefined}>
       <label htmlFor={htmlFor} className="text-body font-semibold text-text">
         {label}
-        {required ? <span className="text-error"> *</span> : null}
+        {/* Figma master (74:801) draws no required marker — announce it
+            to assistive tech only. */}
+        {required ? <span className="sr-only"> (required)</span> : null}
       </label>
       {children}
       {error ? (
-        <p className="text-micro text-error">{error}</p>
+        <p className="text-caption text-error">{error}</p>
       ) : helper ? (
-        <p className="text-micro text-text-2">{helper}</p>
+        <p className="text-caption text-text-2">{helper}</p>
       ) : null}
     </div>
   );

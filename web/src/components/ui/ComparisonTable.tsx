@@ -40,40 +40,54 @@ export function ComparisonTable({
   className,
 }: ComparisonTableProps) {
   return (
-    <table className={clsx("w-full max-w-2xl border-collapse text-body", className)}>
-      <thead>
-        <tr className="border-b border-border text-left">
-          <th className="py-3 pr-4 font-semibold text-text">Feature</th>
-          <th className="w-36 py-3 text-center font-semibold text-text">Cloud</th>
-          <th className="w-36 py-3 text-center font-semibold text-text">Self-host</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row) => (
-          <tr key={row.feature} className="border-b border-border">
-            <td className="py-3 pr-4 text-text">{row.feature}</td>
-            <td className="py-3 text-center">
-              <Cell value={row.cloud} />
+    // Figma master (Stage 5): the table sits in a bordered card; the
+    // Feature header reads as a caption, CTAs are "Start on Cloud" /
+    // "Self-host it".
+    <div
+      className={clsx(
+        "w-full max-w-2xl overflow-hidden rounded-card border border-border bg-bg-elev",
+        className,
+      )}
+    >
+      <table className="w-full border-collapse text-body">
+        <thead>
+          <tr className="border-b border-border text-left">
+            <th className="px-4 py-3 text-caption font-normal text-text-2">
+              Feature
+            </th>
+            <th className="w-36 py-3 text-center font-semibold text-text">Cloud</th>
+            <th className="w-36 px-4 py-3 text-center font-semibold text-text">
+              Self-host
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.feature} className="border-b border-border">
+              <td className="px-4 py-3 text-text">{row.feature}</td>
+              <td className="py-3 text-center">
+                <Cell value={row.cloud} />
+              </td>
+              <td className="px-4 py-3 text-center">
+                <Cell value={row.oss} />
+              </td>
+            </tr>
+          ))}
+          <tr data-testid="cta-row">
+            <td className="py-4" />
+            <td className="py-4 text-center">
+              <Button kind="gradient-primary" size="sm" onClick={onTryCloud}>
+                Start on Cloud
+              </Button>
             </td>
-            <td className="py-3 text-center">
-              <Cell value={row.oss} />
+            <td className="px-4 py-4 text-center">
+              <Button kind="quiet" size="sm" onClick={onSelfHost}>
+                Self-host it
+              </Button>
             </td>
           </tr>
-        ))}
-        <tr data-testid="cta-row">
-          <td className="py-4" />
-          <td className="py-4 text-center">
-            <Button kind="gradient-primary" size="sm" onClick={onTryCloud}>
-              Try Cloud
-            </Button>
-          </td>
-          <td className="py-4 text-center">
-            <Button kind="quiet" size="sm" onClick={onSelfHost}>
-              Self Host
-            </Button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    </div>
   );
 }

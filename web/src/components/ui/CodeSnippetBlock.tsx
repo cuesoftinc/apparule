@@ -38,20 +38,25 @@ export function CodeSnippetBlock({
         <span className="select-none text-bg/50">$ </span>
         {code}
       </code>
+      {/* Figma master (Stage 5): labeled Copy pill; ✓ Copied turns success */}
       <button
         type="button"
         aria-label={copied ? "Copied" : "Copy command"}
         onClick={copy}
         className={clsx(
-          "grid size-8 shrink-0 place-items-center rounded-card text-bg/70 hover:bg-bg/10 hover:text-bg",
-          "transition-transform duration-120 ease-standard motion-reduce:transition-none",
+          "flex h-7 shrink-0 items-center gap-1.5 rounded-pill border px-3 text-micro font-semibold",
+          "transition-colors duration-120 ease-standard motion-reduce:transition-none",
+          copied
+            ? "border-success text-success"
+            : "border-bg/30 text-bg hover:bg-bg/10",
         )}
       >
         {copied ? (
-          <Check size={16} data-testid="copied-check" className="text-success" />
+          <Check size={14} data-testid="copied-check" className="text-success" />
         ) : (
-          <Copy size={16} />
+          <Copy size={14} />
         )}
+        {copied ? "Copied" : "Copy"}
       </button>
     </div>
   );

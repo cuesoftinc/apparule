@@ -6,14 +6,18 @@
 // only, ≤10 items, ≤10MB each, JPEG/PNG/WebP.
 import { useRef } from "react";
 import clsx from "clsx";
-import { GripVertical, ImagePlus, Text, X } from "lucide-react";
-import { Spinner } from "./Spinner";
+import { AlertTriangle, GripVertical, ImagePlus, Text, X } from "lucide-react";
 
 export interface MediaDropzoneProps {
   state?: "empty" | "uploading" | "error";
   /** 0–1 while uploading. */
   progress?: number;
+  /** e.g. "Uploading 3 of 6…" (Figma 94:1137); falls back to percent. */
+  uploadingLabel?: string;
+  /** e.g. "outfit-04.jpg · 2.1 MB" under the progress bar. */
+  fileLabel?: string;
   errorMessage?: string;
+  errorHint?: string;
   onFiles: (files: File[]) => void;
   disabled?: boolean;
   className?: string;
@@ -22,7 +26,10 @@ export interface MediaDropzoneProps {
 export function MediaDropzone({
   state = "empty",
   progress = 0,
-  errorMessage = "That file is too large or not an image (JPEG/PNG/WebP, ≤10MB).",
+  uploadingLabel,
+  fileLabel,
+  errorMessage = "File too large — max 10 MB",
+  errorHint = "Try a smaller export, or JPEG/PNG/WebP only",
   onFiles,
   disabled,
   className,
@@ -47,11 +54,31 @@ export function MediaDropzone({
         )}
       >
         {state === "uploading" ? (
+          // Figma master (94:1137): bold count line, gradient progress bar,
+          // filename meta.
           <>
-            <Spinner size={28} kind="gradient" />
-            <span className="text-body text-text-2 tnum">
-              Uploading… {Math.round(progress * 100)}%
+            <span className="tnum text-body font-semibold text-text">
+              {uploadingLabel ?? `Uploading… ${Math.round(progress * 100)}%`}
             </span>
+            <span className="h-1 w-40 overflow-hidden rounded-pill bg-border">
+              <span
+                data-testid="upload-progress"
+                className="block h-full bg-accent-gradient transition-[width] duration-120 ease-standard motion-reduce:transition-none"
+                style={{ width: `${Math.round(progress * 100)}%` }}
+              />
+            </span>
+            {fileLabel ? (
+              <span className="text-micro text-text-2">{fileLabel}</span>
+            ) : null}
+          </>
+        ) : state === "error" ? (
+          // Figma master (94:1142): the error replaces the dropzone copy.
+          <>
+            <AlertTriangle size={24} className="text-error" />
+            <span role="alert" className="text-body font-semibold text-error">
+              {errorMessage}
+            </span>
+            <span className="text-micro text-text-2">{errorHint}</span>
           </>
         ) : (
           <>
@@ -60,16 +87,11 @@ export function MediaDropzone({
               Drag photos here or <span className="font-semibold text-link">browse</span>
             </span>
             <span className="text-micro text-text-2">
-              Up to 10 images · JPEG/PNG/WebP · 10 MB each
+              Up to 10 photos · JPEG/PNG/WebP · 10 MB each
             </span>
           </>
         )}
       </button>
-      {state === "error" ? (
-        <p role="alert" className="mt-1 text-micro text-error">
-          {errorMessage}
-        </p>
-      ) : null}
       <input
         ref={inputRef}
         type="file"

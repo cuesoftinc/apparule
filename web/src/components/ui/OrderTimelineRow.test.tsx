@@ -25,14 +25,16 @@ describe("OrderTimelineRow (§8.2b, MI-14)", () => {
   });
 
   it("renders label + timestamp", () => {
+    // Figma master (89:1075): absolute "Jul 12, 14:02"-style stamp under
+    // the label.
     render(
       <OrderTimelineRow
         dot="done"
         label="Requested"
-        timestamp={new Date(Date.now() - 2 * 86_400_000).toISOString()}
+        timestamp="2026-07-12T14:02:00"
       />,
     );
     expect(screen.getByText("Requested")).toBeInTheDocument();
-    expect(screen.getByText("2d")).toBeInTheDocument();
+    expect(screen.getByText("Jul 12, 14:02")).toBeInTheDocument();
   });
 });

@@ -34,19 +34,27 @@ export function CaptureResults({
 
   return (
     <div className={clsx("flex flex-col gap-4", className)}>
-      <header className="flex flex-col gap-1">
-        <h2 className="text-title font-bold text-text">Your measurements</h2>
-        <p data-testid="confidence-summary" className="text-body text-text-2">
-          {count} measurement{count === 1 ? "" : "s"} ·{" "}
-          <span className="tnum">{Math.round(mean * 100)}%</span> average
-          confidence
-          {lowCount > 0
-            ? ` · ${lowCount} low — consider retaking`
-            : ""}
-        </p>
+      {/* Figma master (65:612): title + confidence pill header, stacked
+          cards, Save (gradient, wide) beside Retake (quiet). */}
+      <header className="flex items-center justify-between gap-3">
+        <h2 className="text-body-lg font-semibold text-text">
+          Your measurements
+        </h2>
+        <span
+          data-testid="confidence-summary"
+          title={`${count} measurement${count === 1 ? "" : "s"} · ${Math.round(mean * 100)}% average confidence`}
+          className={clsx(
+            "inline-flex h-6 items-center rounded-pill px-2 text-micro font-semibold",
+            lowCount > 0
+              ? "bg-warn/14 text-warn"
+              : "bg-success/14 text-success",
+          )}
+        >
+          {lowCount > 0 ? `${lowCount} low confidence` : "High confidence"}
+        </span>
       </header>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="flex flex-col gap-3">
         {Children.map(children, (child, i) => (
           <div
             style={{ animationDelay: `${i * 60}ms` }}
@@ -57,8 +65,13 @@ export function CaptureResults({
         ))}
       </div>
 
-      <div className="flex flex-col gap-2">
-        <Button kind="gradient-primary" loading={saving} onClick={onSave}>
+      <div className="flex gap-2">
+        <Button
+          kind="gradient-primary"
+          loading={saving}
+          onClick={onSave}
+          className="flex-1"
+        >
           Save to vault
         </Button>
         <Button kind="quiet" disabled={saving} onClick={onRetake}>

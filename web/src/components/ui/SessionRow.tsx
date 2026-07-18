@@ -22,11 +22,12 @@ export interface SessionRowProps {
   className?: string;
 }
 
+// Figma master (93:1158): sentence-case method chips.
 const METHOD_LABEL: Record<string, string> = {
-  mediapipe_2d: "scan",
-  mediapipe_2d_v2: "scan",
-  smpl_v1: "scan (3D)",
-  manual: "manual",
+  mediapipe_2d: "Scan",
+  mediapipe_2d_v2: "Scan",
+  smpl_v1: "Scan (3D)",
+  manual: "Manual",
 };
 
 export function SessionRow({

@@ -57,17 +57,23 @@ export function GoogleAuthButton({
         disabled={disabled || loading}
         aria-busy={loading}
         className={clsx(
-          // md button: 44px height, pill radius, hairline border on bg-elev
-          "flex h-11 items-center justify-center gap-3 rounded-pill border border-border bg-bg-elev px-6",
-          "text-body-lg font-semibold text-text",
+          // Figma master (83:887): 48px, radius/card, hairline border,
+          // 14px semibold; loading keeps the G and swaps the label for a
+          // spinner; pressed tints the surface.
+          "flex h-12 items-center justify-center gap-3 rounded-card border border-border bg-bg-elev px-6",
+          "text-body font-semibold text-text",
           "transition-transform duration-120 ease-standard",
-          "enabled:active:scale-[0.98]", // pressed
-          "disabled:opacity-50 disabled:cursor-not-allowed",
+          "enabled:active:scale-[0.98] enabled:active:bg-[rgba(128,128,128,0.18)]",
+          "disabled:opacity-40 disabled:cursor-not-allowed",
           "motion-reduce:transition-none motion-reduce:active:scale-100",
         )}
       >
-        {loading ? <Spinner size={20} kind="neutral" /> : <GoogleG size={18} />}
-        <span>Continue with Google</span>
+        <GoogleG size={18} />
+        {loading ? (
+          <Spinner size={20} kind="neutral" />
+        ) : (
+          <span>Continue with Google</span>
+        )}
       </button>
       {notice ? (
         <p role="status" className="text-center text-caption text-text-2">

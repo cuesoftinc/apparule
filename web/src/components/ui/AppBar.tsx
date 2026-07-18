@@ -54,8 +54,12 @@ export function AppBar({
       ) : null}
       <div
         className={clsx(
-          "min-w-0 flex-1 truncate font-bold",
-          kind === "root" ? "text-title" : "text-body-lg",
+          "min-w-0 flex-1 truncate font-semibold",
+          // Figma master (85:994): root paints the gradient wordmark;
+          // sub/over-media center a 16px title between the actions.
+          kind === "root"
+            ? "bg-accent-gradient bg-clip-text text-title text-transparent"
+            : "text-center text-body-lg",
         )}
       >
         {title}

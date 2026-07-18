@@ -11,7 +11,7 @@ describe("SessionRow (§8.2b)", () => {
       <SessionRow session={fixtureSession} onDelete={onDelete} />,
     );
     expect(container.querySelector('[data-context="history"]')).not.toBeNull();
-    expect(screen.getByText("scan")).toBeInTheDocument();
+    expect(screen.getByText("Scan")).toBeInTheDocument();
     expect(screen.getByText(/Shoulder Width 42.5 cm/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Delete session" }));
     expect(onDelete).toHaveBeenCalledOnce();
@@ -24,7 +24,7 @@ describe("SessionRow (§8.2b)", () => {
     const radio = screen.getByRole("radio");
     expect(radio).toHaveAttribute("aria-checked", "true");
     expect(screen.getByTestId("picker-radio")).toBeInTheDocument();
-    expect(screen.getByText("fresh")).toBeInTheDocument();
+    expect(screen.getByText("Fresh")).toBeInTheDocument();
     expect(screen.queryByTestId("freshness-warning")).not.toBeInTheDocument();
   });
 

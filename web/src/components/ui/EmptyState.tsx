@@ -5,10 +5,11 @@
 import clsx from "clsx";
 import {
   Bell,
-  Compass,
+  Camera,
+  Home,
   Package,
   Ruler,
-  Users,
+  Search,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "./Button";
@@ -18,33 +19,57 @@ export type EmptyStateContext =
   | "vault"
   | "orders"
   | "explore"
-  | "notifications";
+  | "notifications"
+  | "camera-permission";
 
-const CONTEXT: Record<EmptyStateContext, { icon: LucideIcon; line: string; cta: string }> = {
+// Figma masters (54:459): icon, copy and CTA kind per context; primary CTAs
+// paint the gradient, recovery/secondary ones stay quiet.
+const CONTEXT: Record<
+  EmptyStateContext,
+  {
+    icon: LucideIcon;
+    line: string;
+    cta: string;
+    ctaKind: "gradient-primary" | "quiet";
+    cta2?: string;
+  }
+> = {
   feed: {
-    icon: Users,
+    icon: Home,
     line: "Follow designers to fill your feed",
-    cta: "Explore designers",
+    cta: "Explore outfits",
+    ctaKind: "gradient-primary",
   },
   vault: {
     icon: Ruler,
-    line: "No measurements yet — take your first capture",
-    cta: "Measure now",
+    line: "No measurements yet — take your first scan",
+    cta: "Take measurement",
+    ctaKind: "gradient-primary",
   },
   orders: {
     icon: Package,
-    line: "No orders yet — request an outfit you love",
-    cta: "Explore outfits",
+    line: "No orders yet",
+    cta: "Discover designers",
+    ctaKind: "quiet",
   },
   explore: {
-    icon: Compass,
+    icon: Search,
     line: "Nothing matches that search",
-    cta: "Clear filters",
+    cta: "Clear search",
+    ctaKind: "quiet",
   },
   notifications: {
     icon: Bell,
-    line: "You're all caught up — nothing new",
+    line: "You're all caught up",
     cta: "Back to feed",
+    ctaKind: "quiet",
+  },
+  "camera-permission": {
+    icon: Camera,
+    line: "Camera access is off — enable it in Settings to measure automatically",
+    cta: "Open Settings",
+    ctaKind: "gradient-primary",
+    cta2: "Enter manually instead",
   },
 };
 
@@ -54,6 +79,8 @@ export interface EmptyStateProps {
   line?: string;
   ctaLabel?: string;
   onCta?: () => void;
+  /** camera-permission carries a quiet secondary CTA (98:1274). */
+  onSecondaryCta?: () => void;
   className?: string;
 }
 
@@ -62,6 +89,7 @@ export function EmptyState({
   line,
   ctaLabel,
   onCta,
+  onSecondaryCta,
   className,
 }: EmptyStateProps) {
   const spec = CONTEXT[context];
@@ -86,13 +114,31 @@ export function EmptyState({
         </defs>
         <rect width="100%" height="100%" fill={`url(#es-${context})`} />
       </svg>
-      <span className="relative grid size-16 place-items-center rounded-pill border border-border bg-bg-elev">
-        <Icon size={28} className="text-text-2" />
+      {/* Figma master: 88px dashed ring, 32px text-2 glyph, 13px text-2 line */}
+      <span className="relative grid size-[88px] place-items-center rounded-pill border border-dashed border-border bg-bg-elev">
+        <Icon size={32} className="text-text-2" />
       </span>
-      <p className="relative text-body-lg text-text">{line ?? spec.line}</p>
-      <Button kind="gradient-primary" size="sm" onClick={onCta} className="relative">
+      <p className="relative max-w-80 text-caption text-text-2">
+        {line ?? spec.line}
+      </p>
+      <Button
+        kind={spec.ctaKind}
+        size="sm"
+        onClick={onCta}
+        className="relative"
+      >
         {ctaLabel ?? spec.cta}
       </Button>
+      {spec.cta2 ? (
+        <Button
+          kind="quiet"
+          size="sm"
+          onClick={onSecondaryCta}
+          className="relative"
+        >
+          {spec.cta2}
+        </Button>
+      ) : null}
     </div>
   );
 }

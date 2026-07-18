@@ -56,8 +56,18 @@ export function NotificationRow({
           />
         ) : null}
         <span className="min-w-0 flex-1">
-          <span className={clsx("block text-body text-text", unread && "font-semibold")}>
-            {notification.text}
+          {/* Figma master (92:1208): the actor name is semibold, the action
+              copy stays regular in both read states. */}
+          <span className="block text-body text-text">
+            {notification.actor ? (
+              <span className="font-semibold">
+                {notification.actor.username}{" "}
+              </span>
+            ) : null}
+            {notification.actor &&
+            notification.text.startsWith(notification.actor.username)
+              ? notification.text.slice(notification.actor.username.length + 1)
+              : notification.text}
           </span>
           <time
             dateTime={notification.created_at}

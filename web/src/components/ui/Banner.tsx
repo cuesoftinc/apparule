@@ -5,7 +5,7 @@
 // explainer). Used for KYC-lapse, offline retry, consent notices.
 import { useState } from "react";
 import clsx from "clsx";
-import { AlertTriangle, CheckCircle2, Info, X, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Info, X } from "lucide-react";
 
 export type BannerTone = "info" | "warn" | "error" | "success";
 
@@ -21,11 +21,20 @@ export interface BannerProps {
   className?: string;
 }
 
+// Figma master (95:1220): info=circled-i, warn/error=triangle, success=check.
 const TONE_ICON: Record<BannerTone, typeof Info> = {
   info: Info,
   warn: AlertTriangle,
-  error: XCircle,
+  error: AlertTriangle,
   success: CheckCircle2,
+};
+
+// Action links bind to the tone token (Learn more=link, Re-verify=warn…).
+const TONE_ACTION: Record<BannerTone, string> = {
+  info: "text-link",
+  warn: "text-warn",
+  error: "text-error",
+  success: "text-success",
 };
 
 export function Banner({
@@ -46,7 +55,7 @@ export function Banner({
       data-tone={tone}
       className={clsx(
         "flex items-start gap-3 rounded-card border px-4 py-3 text-body",
-        tone === "info" && "border-border bg-bg-elev text-text",
+        tone === "info" && "border-link/40 bg-link/10 text-text",
         tone === "warn" && "border-warn/40 bg-warn/10 text-text",
         tone === "error" && "border-error/40 bg-error/10 text-text",
         tone === "success" && "border-success/40 bg-success/10 text-text",
@@ -57,7 +66,7 @@ export function Banner({
         size={20}
         className={clsx(
           "mt-0.5 shrink-0",
-          tone === "info" && "text-text-2",
+          tone === "info" && "text-link",
           tone === "warn" && "text-warn",
           tone === "error" && "text-error",
           tone === "success" && "text-success",
@@ -68,7 +77,10 @@ export function Banner({
         <button
           type="button"
           onClick={onAction}
-          className="shrink-0 font-semibold text-link underline-offset-2 hover:underline"
+          className={clsx(
+            "shrink-0 font-semibold underline-offset-2 hover:underline",
+            TONE_ACTION[tone],
+          )}
         >
           {actionLabel}
         </button>

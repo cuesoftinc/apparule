@@ -9,9 +9,10 @@ export function CaughtUpDivider({ className }: { className?: string }) {
       data-testid="caught-up"
       className={clsx("flex items-center gap-4 py-6", className)}
     >
+      {/* Figma master (96:1214): accent-ringed check + text-token label */}
       <span className="h-px flex-1 bg-border" />
-      <span className="flex items-center gap-2 text-body text-text-2">
-        <CheckCircle2 size={20} className="text-success" />
+      <span className="flex items-center gap-2 text-body font-semibold text-text">
+        <CheckCircle2 size={20} className="text-accent-start" />
         You&apos;re all caught up
       </span>
       <span className="h-px flex-1 bg-border" />

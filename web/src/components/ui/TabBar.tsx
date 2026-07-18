@@ -8,10 +8,10 @@
 import Link from "next/link";
 import clsx from "clsx";
 import {
-  Compass,
   Home,
   Package,
-  PlusSquare,
+  Plus,
+  Search,
   User,
   type LucideIcon,
 } from "lucide-react";
@@ -23,10 +23,12 @@ export interface TabBarItemSpec {
   icon: LucideIcon;
 }
 
+// Figma master (49:384): explore uses the search glyph; create renders the
+// 40px gradient FAB.
 export const DEFAULT_TAB_ITEMS: TabBarItemSpec[] = [
   { key: "home", label: "Home", href: "/dashboard", icon: Home },
-  { key: "explore", label: "Explore", href: "/dashboard/explore", icon: Compass },
-  { key: "create", label: "Create", href: "/dashboard/create", icon: PlusSquare },
+  { key: "explore", label: "Explore", href: "/dashboard/explore", icon: Search },
+  { key: "create", label: "Create", href: "/dashboard/create", icon: Plus },
   { key: "orders", label: "Orders", href: "/dashboard/orders", icon: Package },
   { key: "profile", label: "Profile", href: "/dashboard/profile", icon: User },
 ];
@@ -49,7 +51,7 @@ export function TabBar({
     <nav
       aria-label="Tabs"
       className={clsx(
-        "flex h-12 items-stretch border-t border-border bg-bg",
+        "flex h-14 items-stretch border-t border-border bg-bg",
         className,
       )}
     >
@@ -70,19 +72,33 @@ export function TabBar({
               !active && "text-text-2 hover:text-text",
             )}
           >
-            <span className="relative">
-              <Icon size={24} strokeWidth={active ? 2.5 : 2} />
+            <span className="relative flex flex-col items-center gap-[3px]">
+              {item.key === "create" ? (
+                // Figma master: 40px accent-gradient FAB with a white plus
+                // and the pink glow shadow.
+                <span className="grid size-10 place-items-center rounded-pill bg-accent-gradient text-on-accent shadow-[0_3px_8px_rgba(224,48,107,0.35)]">
+                  <Icon size={20} strokeWidth={2.5} />
+                </span>
+              ) : (
+                <Icon size={24} />
+              )}
               {badge ? (
                 <span
                   key={badge}
                   data-testid="tab-badge"
                   className={clsx(
-                    "tnum absolute -right-2 -top-1.5 grid min-w-4 place-items-center rounded-pill bg-like px-1 text-[10px] font-bold leading-4 text-on-accent",
+                    "tnum absolute -top-2.5 left-1/2 ml-[5.5px] grid min-w-4 -translate-x-1/2 place-items-center rounded-pill bg-like px-1 text-[10px] font-semibold leading-4 text-on-accent",
                     "animate-[pop-in_300ms_var(--ap-ease-standard)] motion-reduce:animate-none",
                   )}
                 >
                   {badge}
                 </span>
+              ) : null}
+              {active ? (
+                <span
+                  data-testid="active-dot"
+                  className="absolute -bottom-[7px] size-1 rounded-pill bg-accent-gradient"
+                />
               ) : null}
             </span>
           </Link>

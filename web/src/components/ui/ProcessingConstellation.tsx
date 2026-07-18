@@ -43,79 +43,76 @@ export function ProcessingConstellation({
   imageAlt = "Captured photo",
   className,
 }: ProcessingConstellationProps) {
-  const stroke =
-    state === "failed" ? "var(--ap-error)" : state === "success" ? "var(--ap-success)" : "white";
   return (
-    <div
-      data-state={state}
-      className={clsx(
-        "relative aspect-[3/4] w-full overflow-hidden rounded-card bg-black",
-        className,
-      )}
-    >
-      {imageSrc ? (
-        // eslint-disable-next-line @next/next/no-img-element -- mock/demo asset, unoptimized by design
-        <img
-          src={imageSrc}
-          alt={imageAlt}
-          className="absolute inset-0 size-full object-cover opacity-60"
-        />
-      ) : null}
+    <div data-state={state} className={clsx("flex flex-col gap-2", className)}>
+      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-card bg-black">
+        {imageSrc ? (
+          // eslint-disable-next-line @next/next/no-img-element -- mock/demo asset, unoptimized by design
+          <img
+            src={imageSrc}
+            alt={imageAlt}
+            className="absolute inset-0 size-full object-cover opacity-60"
+          />
+        ) : null}
 
-      <svg
-        data-testid="constellation"
-        viewBox="0 0 200 300"
-        aria-hidden="true"
-        className="absolute inset-0 m-auto h-[85%]"
-      >
-        <g stroke={stroke} strokeOpacity={0.6} strokeWidth={1.5}>
-          {SEGMENTS.map(([a, b]) => (
-            <line
-              key={`${a}-${b}`}
-              x1={LANDMARKS[a][0]}
-              y1={LANDMARKS[a][1]}
-              x2={LANDMARKS[b][0]}
-              y2={LANDMARKS[b][1]}
+        {/* Figma master (64:748): the landmark constellation strokes the
+            accent in every state; the status line sits below the photo. */}
+        <svg
+          data-testid="constellation"
+          viewBox="0 0 200 300"
+          aria-hidden="true"
+          className="absolute inset-0 m-auto h-[85%]"
+        >
+          <g
+            stroke="var(--ap-accent-start)"
+            strokeOpacity={0.6}
+            strokeWidth={1.5}
+          >
+            {SEGMENTS.map(([a, b]) => (
+              <line
+                key={`${a}-${b}`}
+                x1={LANDMARKS[a][0]}
+                y1={LANDMARKS[a][1]}
+                x2={LANDMARKS[b][0]}
+                y2={LANDMARKS[b][1]}
+              />
+            ))}
+          </g>
+          {LANDMARKS.map(([x, y], i) => (
+            <circle
+              key={`${x}-${y}`}
+              data-testid="landmark"
+              cx={x}
+              cy={y}
+              r={4}
+              fill="var(--ap-accent-start)"
+              style={state === "processing" ? { animationDelay: `${i * 90}ms` } : undefined}
+              className={clsx(
+                state === "processing" &&
+                  "animate-[landmark-pulse_1.2s_ease-in-out_infinite] motion-reduce:animate-none",
+              )}
             />
           ))}
-        </g>
-        {LANDMARKS.map(([x, y], i) => (
-          <circle
-            key={`${x}-${y}`}
-            data-testid="landmark"
-            cx={x}
-            cy={y}
-            r={4}
-            fill={stroke}
-            style={state === "processing" ? { animationDelay: `${i * 90}ms` } : undefined}
-            className={clsx(
-              state === "processing" &&
-                "animate-[landmark-pulse_1.2s_ease-in-out_infinite] motion-reduce:animate-none",
-            )}
-          />
-        ))}
-      </svg>
+        </svg>
+      </div>
 
       <div
         role="status"
-        className="absolute inset-x-0 bottom-6 flex flex-col items-center gap-2 px-4 text-white"
+        className={clsx(
+          "flex items-center justify-center gap-1 text-caption",
+          state === "processing" && "text-text-2",
+          state === "success" && "text-success",
+          state === "failed" && "text-error",
+        )}
       >
-        {state === "success" ? (
-          <span className="grid size-10 place-items-center rounded-pill bg-success text-on-accent">
-            <Check size={24} aria-hidden="true" />
-          </span>
-        ) : null}
-        {state === "failed" ? (
-          <span className="grid size-10 place-items-center rounded-pill bg-error text-on-accent">
-            <X size={24} aria-hidden="true" />
-          </span>
-        ) : null}
-        <span className="text-body font-semibold">
+        {state === "success" ? <Check size={14} aria-hidden="true" /> : null}
+        {state === "failed" ? <X size={14} aria-hidden="true" /> : null}
+        <span>
           {state === "processing"
             ? "Measuring…"
             : state === "success"
-              ? "Measurements ready"
-              : "Capture failed"}
+              ? "Done"
+              : "Couldn't measure — retake"}
         </span>
       </div>
     </div>

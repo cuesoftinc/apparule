@@ -82,18 +82,19 @@ export function ManualMeasureRow({
           error={undefined}
         />
       </div>
-      {/* tape-measure themed slider: gradient fill + tick marks */}
-      <div className="relative">
+      {/* tape-measure ruler (Figma 66:695): visible tick marks under a
+          transparent track, accent-dot thumb */}
+      <div className="relative h-6">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-1/2 flex h-2 -translate-y-1/2 justify-between px-0.5"
+          className="pointer-events-none absolute inset-x-1 top-1/2 flex -translate-y-1/2 items-end justify-between"
         >
-          {Array.from({ length: 21 }).map((_, i) => (
+          {Array.from({ length: 41 }).map((_, i) => (
             <span
               key={i}
               className={clsx(
-                "w-px bg-border",
-                i % 5 === 0 ? "h-2" : "h-1 self-center",
+                "w-px bg-text-2/60",
+                i % 5 === 0 ? "h-3" : "h-1.5",
               )}
             />
           ))}
@@ -106,7 +107,7 @@ export function ManualMeasureRow({
           step={0.5}
           value={valueCm ?? min}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="tape-slider relative w-full"
+          className="tape-slider absolute inset-0 w-full"
         />
       </div>
       {error ? <p className="text-micro text-error">{error}</p> : null}

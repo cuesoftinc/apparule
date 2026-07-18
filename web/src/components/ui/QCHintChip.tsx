@@ -2,7 +2,14 @@
 // Fail codes from capture-qc.md §1–2; canonical retake copy from the
 // flows/vault.md QC-failures row (the same strings the 422 envelope carries).
 import clsx from "clsx";
-import { AlertTriangle } from "lucide-react";
+import {
+  Camera,
+  Ruler,
+  Search,
+  User,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 
 export type QcFailCode =
   | "no_body"
@@ -32,24 +39,40 @@ export const QC_GUIDANCE: Record<QcFailCode, string> = {
   too_far: "Move closer — fill more of the frame",
 };
 
+/** Figma masters (62:634): the leading glyph names the failure family. */
+const QC_ICON: Record<QcFailCode, LucideIcon> = {
+  no_body: User,
+  multiple_bodies: User,
+  partial_body: Ruler,
+  undecodable_image: X,
+  low_resolution: Camera,
+  poor_lighting: Camera,
+  blurry: Camera,
+  not_frontal: User,
+  camera_tilt: Camera,
+  arms_position: User,
+  too_far: Search,
+};
+
 export interface QCHintChipProps {
   code: QcFailCode;
   className?: string;
 }
 
 export function QCHintChip({ code, className }: QCHintChipProps) {
+  const Icon = QC_ICON[code];
   return (
     <span
       role="status"
       data-code={code}
       className={clsx(
-        // On-media capture UI — raw white on a dark scrim is the documented
-        // token exception (web-implementation.md §3 note).
-        "inline-flex max-w-full items-center gap-2 rounded-pill bg-black/70 px-4 py-2 text-body font-semibold text-white backdrop-blur-sm",
+        // Figma master (62:634): inverse surface — text-token bg, bg-token
+        // content (same technique as Toast), 13px semibold.
+        "inline-flex max-w-full items-center gap-2 rounded-pill bg-text px-3 py-2 text-caption font-semibold text-bg drop-shadow-[0_4px_6px_rgba(0,0,0,0.25)]",
         className,
       )}
     >
-      <AlertTriangle size={16} className="shrink-0 text-warn" />
+      <Icon size={16} className="shrink-0" aria-hidden />
       <span className="truncate">{QC_GUIDANCE[code]}</span>
     </span>
   );

@@ -27,10 +27,13 @@ describe("ProcessingConstellation (§8.2b)", () => {
     expect(dots[1].getAttribute("style")).toContain("animation-delay");
   });
 
+  // Figma master (64:748): status caption below the photo.
   it("success / failed announce their status", () => {
     const { rerender } = render(<ProcessingConstellation state="success" />);
-    expect(screen.getByRole("status")).toHaveTextContent("Measurements ready");
+    expect(screen.getByRole("status")).toHaveTextContent("Done");
     rerender(<ProcessingConstellation state="failed" />);
-    expect(screen.getByRole("status")).toHaveTextContent("Capture failed");
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Couldn't measure — retake",
+    );
   });
 });

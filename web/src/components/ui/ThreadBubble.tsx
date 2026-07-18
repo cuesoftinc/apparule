@@ -42,11 +42,13 @@ export function ThreadBubble({
     >
       <div
         className={clsx(
+          // Figma master (91:1114): sent = inverse surface (text-token
+          // fill), received = soft border-token fill; sending fades.
           "max-w-[75%] overflow-hidden rounded-card text-body",
           content !== "image" && "px-4 py-2.5",
-          sent
-            ? "bg-accent-gradient text-on-accent"
-            : "border border-border bg-bg-elev text-text",
+          sent ? "bg-text text-bg" : "bg-border/40 text-text",
+          content === "image" &&
+            (sent ? "border-4 border-text" : "border-4 border-border/40"),
           state === "sending" && content !== "typing" && "opacity-60",
         )}
       >

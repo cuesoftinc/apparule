@@ -4,7 +4,7 @@
 // the vault "Retake" options (pages.md B4 header; phone hand-off QR was cut
 // from scope).
 import clsx from "clsx";
-import { Camera, PencilRuler } from "lucide-react";
+import { Camera, ChevronRight, PencilRuler } from "lucide-react";
 
 export type CaptureOptionMode = "webcam-upload" | "manual-entry";
 
@@ -14,17 +14,18 @@ export interface CaptureOptionCardProps {
   className?: string;
 }
 
+// Figma masters (66:721) carry the canonical copy.
 const OPTION_COPY: Record<
   CaptureOptionMode,
   { title: string; body: string }
 > = {
   "webcam-upload": {
-    title: "Webcam upload",
-    body: "Two photos and your height — the AI does the rest.",
+    title: "Use your camera",
+    body: "Full-body photo, we measure automatically",
   },
   "manual-entry": {
-    title: "Manual entry",
-    body: "Tape-measure sliders and numeric input, cm or in.",
+    title: "Enter manually",
+    body: "Tape-measure your key metrics",
   },
 };
 
@@ -43,13 +44,15 @@ export function CaptureOptionCard({ mode, onClick, className }: CaptureOptionCar
         className,
       )}
     >
-      <span className="grid size-11 shrink-0 place-items-center rounded-pill bg-accent-gradient text-on-accent">
-        <Icon size={24} aria-hidden="true" />
+      {/* Figma master: soft accent-tint disc with an accent glyph */}
+      <span className="grid size-10 shrink-0 place-items-center rounded-pill bg-accent-start/12 text-accent-start">
+        <Icon size={20} aria-hidden="true" />
       </span>
-      <span className="flex min-w-0 flex-col gap-0.5">
-        <span className="text-body-lg font-semibold text-text">{copy.title}</span>
-        <span className="text-body text-text-2">{copy.body}</span>
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="text-body font-semibold text-text">{copy.title}</span>
+        <span className="text-caption text-text-2">{copy.body}</span>
       </span>
+      <ChevronRight size={16} className="shrink-0 text-text-2" aria-hidden />
     </button>
   );
 }

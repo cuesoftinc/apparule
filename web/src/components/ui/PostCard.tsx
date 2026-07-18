@@ -73,8 +73,8 @@ export function PostCard({
         className,
       )}
     >
-      {/* header */}
-      <header className="flex items-center gap-3 px-4 py-3">
+      {/* header — Figma master (52:462): px 12 / py 8 / gap 8 */}
+      <header className="flex items-center gap-2 px-3 py-2">
         <Avatar
           size={32}
           name={post.designer.display_name}
@@ -116,9 +116,15 @@ export function PostCard({
             />
           </span>
         ) : null}
-        {/* MI-4 carousel: desktop hover chevrons + progress dots */}
+        {/* MI-4 carousel: count pill (Figma 52:368) + desktop hover chevrons */}
         {media.length > 1 ? (
           <>
+            <span
+              data-testid="carousel-count"
+              className="tnum absolute right-3 top-3 flex h-[22px] items-center rounded-pill bg-text px-2 text-micro font-semibold text-bg"
+            >
+              {slide + 1}/{media.length}
+            </span>
             {slide > 0 ? (
               <button
                 type="button"
@@ -145,25 +151,29 @@ export function PostCard({
                 <ChevronRight size={16} />
               </button>
             ) : null}
-            <div
-              data-testid="carousel-dots"
-              className="absolute inset-x-0 bottom-2 flex justify-center gap-1"
-            >
-              {media.map((m, i) => (
-                <span
-                  key={m.id}
-                  className={clsx(
-                    "rounded-pill transition-all duration-120 ease-standard",
-                    i === slide
-                      ? "size-1.5 bg-accent-gradient" // active dot 6px, gradient
-                      : "size-1 bg-white/70",
-                  )}
-                />
-              ))}
-            </div>
           </>
         ) : null}
       </div>
+
+      {/* Figma master: progress dots sit below the media, not over it */}
+      {media.length > 1 ? (
+        <div
+          data-testid="carousel-dots"
+          className="flex w-full justify-center gap-1 pt-2.5"
+        >
+          {media.map((m, i) => (
+            <span
+              key={m.id}
+              className={clsx(
+                "rounded-pill transition-all duration-120 ease-standard",
+                i === slide
+                  ? "size-1.5 bg-accent-gradient" // active dot 6px, gradient
+                  : "size-1 bg-border",
+              )}
+            />
+          ))}
+        </div>
+      ) : null}
 
       {/* action row */}
       <ActionRow
@@ -174,27 +184,35 @@ export function PostCard({
         onToggleSave={() => onToggleSave?.()}
         onComment={onComment}
         onShare={onShare}
-        className="px-2 pt-1"
+        className="px-1.5 pt-1"
       />
 
-      {/* like count + caption + comments + timestamp */}
-      <div className="flex flex-col gap-1 px-4">
+      {/* like count + caption + comments + CTA + timestamp — Figma master:
+          one px-16 column at 4px rhythm, semibold caption, inline "more" */}
+      <div className="flex flex-col items-start gap-1 px-4">
         <span className="tnum text-body font-semibold text-text">
           {post.like_count.toLocaleString("en-NG")} likes
         </span>
-        <p className={clsx("text-body text-text", !captionOpen && "line-clamp-2")}>
-          <span className="font-semibold">{post.designer.username}</span>{" "}
-          {post.caption}
+        <p
+          className={clsx(
+            "text-body font-semibold text-text",
+            !captionOpen && "line-clamp-2",
+          )}
+        >
+          {post.designer.username} {post.caption}
+          {!captionOpen && post.caption.length > 80 ? (
+            <>
+              {" "}
+              <button
+                type="button"
+                onClick={() => setCaptionOpen(true)}
+                className="font-normal text-text-2"
+              >
+                more
+              </button>
+            </>
+          ) : null}
         </p>
-        {!captionOpen && post.caption.length > 80 ? (
-          <button
-            type="button"
-            onClick={() => setCaptionOpen(true)}
-            className="w-fit text-body text-text-2"
-          >
-            more
-          </button>
-        ) : null}
         {post.comment_count > 0 ? (
           <button
             type="button"
@@ -204,23 +222,19 @@ export function PostCard({
             View all {post.comment_count} comments
           </button>
         ) : null}
-      </div>
-
-      {/* request CTA — full-width quiet button on designer posts */}
-      {showCta ? (
-        <div className="px-4 pt-3">
+        {/* request CTA — full-width quiet button on designer posts */}
+        {showCta ? (
           <Button kind="quiet" size="md" className="w-full" onClick={onRequest}>
             Request this outfit
           </Button>
-        </div>
-      ) : null}
-
-      <time
-        dateTime={post.created_at}
-        className="px-4 pt-2 text-micro uppercase text-text-2"
-      >
-        {formatAgo(post.created_at)}
-      </time>
+        ) : null}
+        <time
+          dateTime={post.created_at}
+          className="text-micro uppercase tracking-[0.4px] text-text-2"
+        >
+          {formatAgo(post.created_at)}
+        </time>
+      </div>
     </article>
   );
 }

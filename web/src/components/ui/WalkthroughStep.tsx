@@ -43,8 +43,9 @@ export function WalkthroughStep({
             key={i}
             data-active={i === step || undefined}
             className={clsx(
-              "rounded-pill transition-all duration-120 ease-standard",
-              i === step ? "h-1.5 w-4 bg-accent-gradient" : "size-1.5 bg-border",
+              // Figma master: equal-size dots; the active one takes accent
+              "size-1.5 rounded-pill transition-colors duration-120 ease-standard",
+              i === step ? "bg-accent-gradient" : "bg-border",
             )}
           />
         ))}
