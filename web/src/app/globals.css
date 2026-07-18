@@ -1,26 +1,79 @@
 @import "tailwindcss";
+@import "../design/tokens.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/*
+ * Tailwind 4 theme wired to the Apparule token layer (docs/design.md §2).
+ * Utilities resolve to the CSS vars, so theme switching (light/dark, manual
+ * or system) needs no class swaps. Spacing keeps Tailwind's default 4px base
+ * grid — identical to the design.md scale (4/8/12/16/24/32/48/64).
+ */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Colors */
+  --color-bg: var(--ap-bg);
+  --color-bg-elev: var(--ap-bg-elev);
+  --color-border: var(--ap-border);
+  --color-text: var(--ap-text);
+  --color-text-2: var(--ap-text-2);
+  --color-accent-start: var(--ap-accent-start);
+  --color-accent-end: var(--ap-accent-end);
+  --color-on-accent: var(--ap-on-accent);
+  --color-link: var(--ap-link);
+  --color-like: var(--ap-like);
+  --color-success: var(--ap-success);
+  --color-warn: var(--ap-warn);
+  --color-error: var(--ap-error);
+
+  /* Radii — 8px cards/sheets, full-round avatars/pills */
+  --radius-card: var(--ap-radius-card);
+  --radius-pill: var(--ap-radius-pill);
+
+  /* Motion easing (durations use Tailwind's numeric duration-<ms> utilities) */
+  --ease-standard: var(--ap-ease-standard);
+  --ease-exit: var(--ap-ease-exit);
+
+  /* Type scale 12/13/14(base)/16/20/24/32 — names mirror the Figma styles:
+     Micro/12 · Caption/13 · Body/14 · Body/16 · Title/20 · Title/24 · Display/32 */
+  --text-micro: 12px;
+  --text-micro--line-height: 16px;
+  --text-caption: 13px;
+  --text-caption--line-height: 18px;
+  --text-body: 14px;
+  --text-body--line-height: 20px;
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 22px;
+  --text-title: 20px;
+  --text-title--line-height: 26px;
+  --text-title-lg: 24px;
+  --text-title-lg--line-height: 30px;
+  --text-display: 32px;
+  --text-display--line-height: 40px;
+
+  /* Fonts — system stack on app surfaces (design.md §2 Type) */
+  --font-sans: var(--ap-font-sans);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* The "Apparule gradient" (accent-start → accent-end) as a background-image
+   utility — story rings, primary CTAs, active states (design.md §2). */
+@utility bg-accent-gradient {
+  background-image: var(--ap-accent-gradient);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--ap-bg);
+  color: var(--ap-text);
+  font-family: var(--ap-font-sans);
+  font-size: 14px; /* design.md §2 — 14 is base */
+}
+
+/* Focus states — 2px accent ring, 2px offset, :focus-visible only (shared
+   foundations rule, design.md §2). Gradient rings aren't expressible via
+   outline-color; accent-start is the ring hue. */
+:focus-visible {
+  outline: 2px solid var(--ap-accent-start);
+  outline-offset: 2px;
+}
+
+/* Tabular numerals for measurements and money (design.md §2 Type) */
+.tnum {
+  font-variant-numeric: tabular-nums;
 }

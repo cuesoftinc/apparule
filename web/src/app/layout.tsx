@@ -1,20 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { ThemeProvider, themeInitScript } from "@/design/ThemeProvider";
+import { AuthProvider } from "@/controllers/auth/AuthContext";
 
 export const metadata: Metadata = {
   title: "Apparule",
-  description: "Body-measurement platform for a better-fitting shopping experience.",
+  description:
+    "Precision measurement meets social fashion — capture your measurements, discover designers, commission outfits.",
 };
 
 export default function RootLayout({
@@ -23,11 +15,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    // suppressHydrationWarning: the pre-paint script may set data-theme
+    // before React hydrates the <html> element.
+    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
+      <head>
+        {/* Apply the persisted manual theme override before first paint. */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
+      <body className="min-h-full flex flex-col bg-bg text-text">
+        <ThemeProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
