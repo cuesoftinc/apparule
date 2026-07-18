@@ -21,6 +21,7 @@
 - [Capture QC & Confidence](capture-qc.md)
 - [OpenAPI Draft](api/openapi.yaml)
 - [Engineering Contracts](engineering.md)
+- [Web Implementation Standard](web-implementation.md)
 - [Deployment](deployment.md)
 
 ## Flows
