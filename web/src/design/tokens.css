@@ -1,0 +1,120 @@
+/**
+ * Apparule design tokens — mirrors docs/design.md §2 exactly.
+ *
+ * Source of truth: the Figma `apparule/tokens` variable collection
+ * (Style Guide page, true Light/Dark modes — design.md §7). Values here were
+ * verified against the Style Guide swatches on 2026-07-18; the two must never
+ * diverge.
+ *
+ * Theming model:
+ *   - Light values on `:root` (default).
+ *   - Dark values on `[data-theme="dark"]` (manual override).
+ *   - System preference honored when no manual override is set
+ *     (`:root:not([data-theme="light"])` inside prefers-color-scheme: dark).
+ *
+ * No raw hexes in components — bind these vars (same rule as Figma).
+ */
+
+:root {
+  /* ---- Color (light) — design.md §2 ---- */
+  --ap-bg: #ffffff; /* app background */
+  --ap-bg-elev: #ffffff; /* sheets, cards, modals */
+  --ap-border: #dbdbdb; /* hairline dividers (1px) */
+  --ap-text: #111111; /* primary text */
+  --ap-text-2: #737373; /* secondary/meta */
+  --ap-accent-start: #e1306c; /* Apparule gradient start (two vars: gradient stops can't bind one variable) */
+  --ap-accent-end: #f77737; /* Apparule gradient end */
+  --ap-on-accent: #ffffff; /* text/icons on accent-gradient and destructive fills */
+  --ap-link: #00376b; /* usernames, links */
+  --ap-like: #ed4956; /* heart active (same both modes) */
+  --ap-success: #2e7d32; /* order states, payment states */
+  --ap-warn: #b26a00;
+  --ap-error: #c62828;
+
+  /* The "Apparule gradient" — story rings, primary CTAs, active states */
+  --ap-accent-gradient: linear-gradient(
+    135deg,
+    var(--ap-accent-start),
+    var(--ap-accent-end)
+  );
+
+  /* ---- Spacing scale (4px base grid; no off-scale values) ---- */
+  --ap-space-4: 4px;
+  --ap-space-8: 8px;
+  --ap-space-12: 12px;
+  --ap-space-16: 16px;
+  --ap-space-24: 24px;
+  --ap-space-32: 32px;
+  --ap-space-48: 48px;
+  --ap-space-64: 64px;
+
+  /* ---- Radii: 8px cards/sheets, full-round avatars/pills ---- */
+  --ap-radius-card: 8px;
+  --ap-radius-pill: 9999px;
+
+  /* ---- Motion durations ---- */
+  --ap-duration-fast: 120ms;
+  --ap-duration-base: 200ms;
+  --ap-duration-entrance: 250ms;
+  --ap-duration-slow: 300ms;
+
+  /* ---- Motion easing ---- */
+  --ap-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ap-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* ---- Z-index layers (nothing outside these six) ---- */
+  --ap-z-base: 0;
+  --ap-z-sticky: 10;
+  --ap-z-dropdown: 20;
+  --ap-z-overlay: 30;
+  --ap-z-sheet: 40;
+  --ap-z-toast: 50;
+
+  /* ---- Type: system stack on app surfaces (design.md §2 Type) ---- */
+  --ap-font-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+
+  color-scheme: light;
+}
+
+/* Dark mode — manual override (theme provider sets data-theme on <html>) */
+[data-theme="dark"] {
+  --ap-bg: #000000; /* true black dark mode, IG-style */
+  --ap-bg-elev: #121212;
+  --ap-border: #262626;
+  --ap-text: #fafafa;
+  --ap-text-2: #a8a8a8;
+  --ap-accent-start: #e1306c; /* gradient identical both modes */
+  --ap-accent-end: #f77737;
+  --ap-on-accent: #ffffff;
+  --ap-link: #e0f1ff;
+  --ap-like: #ed4956;
+  --ap-success: #4ecb71; /* brightened equivalents — Figma Style Guide values */
+  --ap-warn: #ffb020;
+  --ap-error: #ff6b6e;
+
+  color-scheme: dark;
+}
+
+/* Dark mode — system default when no manual override is present.
+   Values must stay identical to the [data-theme="dark"] block above. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
+    --ap-bg: #000000;
+    --ap-bg-elev: #121212;
+    --ap-border: #262626;
+    --ap-text: #fafafa;
+    --ap-text-2: #a8a8a8;
+    --ap-accent-start: #e1306c;
+    --ap-accent-end: #f77737;
+    --ap-on-accent: #ffffff;
+    --ap-link: #e0f1ff;
+    --ap-like: #ed4956;
+    --ap-success: #4ecb71;
+    --ap-warn: #ffb020;
+    --ap-error: #ff6b6e;
+
+    color-scheme: dark;
+  }
+}

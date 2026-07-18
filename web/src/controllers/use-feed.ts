@@ -1,0 +1,145 @@
+"use client";
+
+// Feed controller — owns feed state; PostCard views render from it.
+// Likes/saves are optimistic everywhere (MI-18): flip first, roll back on
+// failure (the view layer re-toasts with Retry).
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { Post } from "@/models";
+import { feedRepo, type ExploreFilters } from "@/models/repositories/feed-repo";
+import { postsRepo } from "@/models/repositories/posts-repo";
+
+export interface FeedState {
+  posts: Post[];
+  loading: boolean;
+  loadingMore: boolean;
+  error: string | null;
+  /** MI-6: caught-up divider once the ranked page is exhausted. */
+  caughtUp: boolean;
+}
+
+function togglePost(
+  posts: Post[],
+  id: string,
+  mutate: (post: Post) => Post,
+): Post[] {
+  return posts.map((p) => (p.id === id ? mutate(p) : p));
+}
+
+export function useFeed(mode: "feed" | "explore" = "feed", filters?: ExploreFilters) {
+  const [state, setState] = useState<FeedState>({
+    posts: [],
+    loading: true,
+    loadingMore: false,
+    error: null,
+    caughtUp: false,
+  });
+  const cursorRef = useRef<string | null>(null);
+  const filtersKey = JSON.stringify(filters ?? {});
+
+  // Effect-safe fetch (react-hooks/set-state-in-effect): setState only in
+  // promise callbacks; `loading` starts true and reload() re-arms it from
+  // event handlers.
+  const load = useCallback(() => {
+    const request =
+      mode === "feed"
+        ? feedRepo.feed()
+        : feedRepo.explore(JSON.parse(filtersKey));
+    return request.then(
+      (page) => {
+        cursorRef.current = page.next_cursor;
+        setState({
+          posts: page.items,
+          loading: false,
+          loadingMore: false,
+          error: null,
+          caughtUp: page.next_cursor === null,
+        });
+      },
+      (e: unknown) => {
+        setState((s) => ({
+          ...s,
+          loading: false,
+          error: e instanceof Error ? e.message : "Failed to load feed",
+        }));
+      },
+    );
+  }, [mode, filtersKey]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  /** Event-handler refresh: shows the skeleton again, then refetches. */
+  const reload = useCallback(() => {
+    setState((s) => ({ ...s, loading: true, error: null }));
+    return load();
+  }, [load]);
+
+  const loadMore = useCallback(async () => {
+    const cursor = cursorRef.current;
+    if (!cursor) return;
+    setState((s) => ({ ...s, loadingMore: true }));
+    try {
+      const page =
+        mode === "feed"
+          ? await feedRepo.feed(cursor)
+          : await feedRepo.explore(JSON.parse(filtersKey), cursor);
+      cursorRef.current = page.next_cursor;
+      setState((s) => ({
+        ...s,
+        posts: [...s.posts, ...page.items],
+        loadingMore: false,
+        caughtUp: page.next_cursor === null,
+      }));
+    } catch {
+      setState((s) => ({ ...s, loadingMore: false }));
+    }
+  }, [mode, filtersKey]);
+
+  /** Optimistic like toggle (MI-1/MI-2 + MI-18 rollback). */
+  const toggleLike = useCallback(async (post: Post) => {
+    const liked = !post.liked;
+    const delta = liked ? 1 : -1;
+    setState((s) => ({
+      ...s,
+      posts: togglePost(s.posts, post.id, (p) => ({
+        ...p,
+        liked,
+        like_count: p.like_count + delta,
+      })),
+    }));
+    try {
+      await (liked ? postsRepo.like(post.id) : postsRepo.unlike(post.id));
+    } catch {
+      setState((s) => ({
+        ...s,
+        posts: togglePost(s.posts, post.id, (p) => ({
+          ...p,
+          liked: !liked,
+          like_count: p.like_count - delta,
+        })),
+      }));
+      throw new Error("like_failed");
+    }
+  }, []);
+
+  /** Optimistic save toggle (MI-3 + MI-18 rollback). */
+  const toggleSave = useCallback(async (post: Post) => {
+    const saved = !post.saved;
+    setState((s) => ({
+      ...s,
+      posts: togglePost(s.posts, post.id, (p) => ({ ...p, saved })),
+    }));
+    try {
+      await (saved ? postsRepo.save(post.id) : postsRepo.unsave(post.id));
+    } catch {
+      setState((s) => ({
+        ...s,
+        posts: togglePost(s.posts, post.id, (p) => ({ ...p, saved: !saved })),
+      }));
+      throw new Error("save_failed");
+    }
+  }, []);
+
+  return { ...state, reload, loadMore, toggleLike, toggleSave };
+}
