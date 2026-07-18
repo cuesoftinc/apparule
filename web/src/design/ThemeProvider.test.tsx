@@ -27,6 +27,11 @@ beforeEach(() => {
 });
 
 describe("ThemeProvider", () => {
+  it("themeInitScript stays in sync with the storage key", async () => {
+    const { themeInitScript } = await import("./ThemeProvider");
+    expect(themeInitScript).toContain(`"${THEME_STORAGE_KEY}"`);
+  });
+
   it("defaults to system (no data-theme attribute)", () => {
     render(
       <ThemeProvider>

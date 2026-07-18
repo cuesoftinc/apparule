@@ -41,7 +41,10 @@ const USERNAME_RE = /^[a-z0-9._]{3,30}$/;
 
 let nextId = 1;
 function id(prefix: string): string {
-  return `${prefix}-${nextId++}-${Math.random().toString(36).slice(2, 8)}`;
+  // crypto.randomUUID over Math.random — mock-only ids, but CodeQL
+  // (js/insecure-randomness) is right that randomness feeding identifiers
+  // should be cryptographic by default.
+  return `${prefix}-${nextId++}-${crypto.randomUUID().slice(0, 8)}`;
 }
 
 function deepClone<T>(value: T): T {

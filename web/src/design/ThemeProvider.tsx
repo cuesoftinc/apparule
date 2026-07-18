@@ -115,9 +115,9 @@ export function useTheme(): ThemeContextValue {
 }
 
 /**
- * Pre-paint theme bootstrap (inlined by the root layout). Kept here so the
- * storage key and semantics live in one module.
+ * Pre-paint theme bootstrap (inlined by the root layout). A fully static
+ * string — no runtime code construction (CodeQL js/bad-code-sanitization);
+ * the literal storage key must match THEME_STORAGE_KEY (unit-tested).
  */
-export const themeInitScript = `(function(){try{var t=localStorage.getItem(${JSON.stringify(
-  THEME_STORAGE_KEY,
-)});if(t==="light"||t==="dark"){document.documentElement.setAttribute("data-theme",t);}}catch(e){}})();`;
+export const themeInitScript =
+  '(function(){try{var t=localStorage.getItem("apparule.theme");if(t==="light"||t==="dark"){document.documentElement.setAttribute("data-theme",t);}}catch(e){}})();';
