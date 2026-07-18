@@ -5,10 +5,11 @@ test.describe("TEST_MODE auth smoke", () => {
   test("signin → dashboard redirect", async ({ page }) => {
     await page.goto("/signin");
 
-    // Exactly one auth CTA (X-1, flows/auth.md).
+    // Exactly one auth CTA (X-1, flows/auth.md) — scoped to the screen
+    // content (the Next dev-tools overlay adds its own button in dev).
     const cta = page.getByRole("button", { name: /continue with google/i });
     await expect(cta).toBeVisible();
-    expect(await page.getByRole("button").count()).toBe(1);
+    expect(await page.locator("main").getByRole("button").count()).toBe(1);
 
     await cta.click();
     await page.waitForURL("**/dashboard");

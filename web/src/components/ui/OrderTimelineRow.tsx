@@ -65,7 +65,13 @@ export function OrderTimelineRow({
           {label}
         </span>
         {timestamp ? (
-          <time dateTime={timestamp} className="tnum text-micro text-text-2">
+          // suppressHydrationWarning: render-time timestamps may differ
+          // between server and client by design
+          <time
+            dateTime={timestamp}
+            suppressHydrationWarning
+            className="tnum text-micro text-text-2"
+          >
             {format(new Date(timestamp), "MMM d, HH:mm")}
           </time>
         ) : dot === "pending" ? (

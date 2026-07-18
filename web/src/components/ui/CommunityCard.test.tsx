@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { CommunityCard } from "./CommunityCard";
 
-describe("CommunityCard (§8.2b marketing)", () => {
-  it("renders the neutral badge with no invented member count", () => {
+describe("CommunityCard (§8.2b marketing — compact master 144:3724)", () => {
+  it("renders the neutral member line with no invented count", () => {
     render(<CommunityCard />);
-    expect(screen.getByTestId("member-badge")).toHaveTextContent("Discord");
+    expect(screen.getByTestId("member-badge")).toHaveTextContent(
+      "Fit checks & dev chat, daily",
+    );
     expect(screen.getByTestId("member-badge")).not.toHaveTextContent("members");
   });
 
@@ -14,8 +16,10 @@ describe("CommunityCard (§8.2b marketing)", () => {
     expect(screen.getByTestId("member-badge")).toHaveTextContent("412 members");
   });
 
-  it("carries the join CTA", () => {
+  it("carries the Join CTA", () => {
     render(<CommunityCard />);
-    expect(screen.getByRole("button", { name: "Join Discord" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Join Discord" }),
+    ).toBeInTheDocument();
   });
 });

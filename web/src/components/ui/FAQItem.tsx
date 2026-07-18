@@ -37,11 +37,19 @@ export interface FAQItemProps {
   /** Deep-link id, e.g. "faq-1" (renders as the row's DOM id). */
   id: string;
   question: string;
+  /** Analytics seam — pages.md A9b `faq_open` fires from the page here. */
+  onOpenChange?: (open: boolean) => void;
   children: ReactNode;
   className?: string;
 }
 
-export function FAQItem({ id, question, children, className }: FAQItemProps) {
+export function FAQItem({
+  id,
+  question,
+  onOpenChange,
+  children,
+  className,
+}: FAQItemProps) {
   const group = useContext(FAQGroupContext);
   const [localOpen, setLocalOpen] = useState(false);
   const open = group ? group.openId === id : localOpen;
@@ -51,6 +59,7 @@ export function FAQItem({ id, question, children, className }: FAQItemProps) {
     } else {
       setLocalOpen((o) => !o);
     }
+    onOpenChange?.(!open);
   };
 
   return (

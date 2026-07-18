@@ -1,8 +1,10 @@
 // ComparisonTable — design.md §8.2b Home section kit: Cloud vs OSS + CTA
 // row (pages.md A9: Cloud column ends in Try Cloud, OSS column in Self
-// Host → docs quickstart).
+// Host → docs quickstart). Figma master 143:2 (enriched landing, 2026-07-18):
+// icon/check (success) = included, icon/x (text-2) = not available; 100px
+// rows, 140px CTA columns closing in "Start on Cloud" / "Self-host it".
 import clsx from "clsx";
-import { Check, Minus } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { Button } from "./Button";
 
 export interface ComparisonRow {
@@ -11,18 +13,20 @@ export interface ComparisonRow {
   oss: boolean | string;
 }
 
+// The Figma master's row set (143:9–143:59) — capability rows only, no
+// invented pricing (accuracy standard).
 const DEFAULT_ROWS: ComparisonRow[] = [
-  { feature: "AI body measurement", cloud: true, oss: true },
-  { feature: "Social feed & commissions", cloud: true, oss: true },
-  { feature: "Escrow payments (Paystack)", cloud: true, oss: "bring your own keys" },
-  { feature: "Managed hosting & backups", cloud: true, oss: false },
-  { feature: "Your data on your metal", cloud: false, oss: true },
-  { feature: "Support", cloud: "included", oss: "community" },
+  { feature: "Instant setup", cloud: true, oss: false },
+  { feature: "Automatic updates", cloud: true, oss: false },
+  { feature: "Custom domain", cloud: true, oss: true },
+  { feature: "Runs on your infrastructure", cloud: false, oss: true },
+  { feature: "Offline / air-gapped", cloud: false, oss: true },
+  { feature: "Priority support & SLA", cloud: true, oss: false },
 ];
 
 function Cell({ value }: { value: boolean | string }) {
-  if (value === true) return <Check size={18} className="mx-auto text-success" aria-label="Included" />;
-  if (value === false) return <Minus size={18} className="mx-auto text-text-2" aria-label="Not included" />;
+  if (value === true) return <Check size={24} className="mx-auto text-success" aria-label="Included" />;
+  if (value === false) return <X size={24} className="mx-auto text-text-2" aria-label="Not included" />;
   return <span className="text-caption text-text-2">{value}</span>;
 }
 
@@ -40,23 +44,23 @@ export function ComparisonTable({
   className,
 }: ComparisonTableProps) {
   return (
-    // Figma master (Stage 5): the table sits in a bordered card; the
-    // Feature header reads as a caption, CTAs are "Start on Cloud" /
-    // "Self-host it".
     <div
       className={clsx(
-        "w-full max-w-2xl overflow-hidden rounded-card border border-border bg-bg-elev",
+        "w-full max-w-[640px] overflow-hidden rounded-card border border-border bg-bg-elev",
         className,
       )}
     >
       <table className="w-full border-collapse text-body">
         <thead>
           <tr className="border-b border-border text-left">
-            <th className="px-4 py-3 text-caption font-normal text-text-2">
+            {/* Figma master: Feature reads Caption/13 Semi Bold in text-2 */}
+            <th className="h-25 px-6 text-caption font-semibold text-text-2">
               Feature
             </th>
-            <th className="w-36 py-3 text-center font-semibold text-text">Cloud</th>
-            <th className="w-36 px-4 py-3 text-center font-semibold text-text">
+            <th className="h-25 w-35 text-center text-body-lg font-semibold text-text">
+              Cloud
+            </th>
+            <th className="h-25 w-35 px-6 pl-0 text-center text-body-lg font-semibold text-text">
               Self-host
             </th>
           </tr>
@@ -64,23 +68,23 @@ export function ComparisonTable({
         <tbody>
           {rows.map((row) => (
             <tr key={row.feature} className="border-b border-border">
-              <td className="px-4 py-3 text-text">{row.feature}</td>
-              <td className="py-3 text-center">
+              <td className="h-25 px-6 text-text">{row.feature}</td>
+              <td className="h-25 text-center">
                 <Cell value={row.cloud} />
               </td>
-              <td className="px-4 py-3 text-center">
+              <td className="h-25 px-6 pl-0 text-center">
                 <Cell value={row.oss} />
               </td>
             </tr>
           ))}
           <tr data-testid="cta-row">
-            <td className="py-4" />
-            <td className="py-4 text-center">
+            <td className="h-25 px-6" />
+            <td className="h-25 text-center">
               <Button kind="gradient-primary" size="sm" onClick={onTryCloud}>
                 Start on Cloud
               </Button>
             </td>
-            <td className="px-4 py-4 text-center">
+            <td className="h-25 px-6 pl-0 text-center">
               <Button kind="quiet" size="sm" onClick={onSelfHost}>
                 Self-host it
               </Button>

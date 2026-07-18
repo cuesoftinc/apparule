@@ -49,10 +49,16 @@ const KIND_META = {
 
 export interface TransactionRowProps {
   entry: EarningsEntry;
+  /**
+   * Optional label override — the enriched-landing instances (186:140/150)
+   * carry free-text first lines ("Payout to GTBank •••• 4521"); defaults to
+   * the derived `{kind} · {order_number}` line.
+   */
+  label?: string;
   className?: string;
 }
 
-export function TransactionRow({ entry, className }: TransactionRowProps) {
+export function TransactionRow({ entry, label, className }: TransactionRowProps) {
   const meta = KIND_META[entry.kind];
   const Icon = meta.icon;
   const negative = entry.amount_cents < 0;
@@ -69,7 +75,7 @@ export function TransactionRow({ entry, className }: TransactionRowProps) {
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-body font-semibold text-text">
-          {meta.label} · {entry.order_number}
+          {label ?? `${meta.label} · ${entry.order_number}`}
         </p>
         <p className="truncate text-micro text-text-2">
           {formatAgo(entry.created_at)}
