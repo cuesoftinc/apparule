@@ -14,7 +14,7 @@ community links → preview → dual CTA **Try Cloud** / **Self Host**.
 
 | # | Section | Content & components | Interactions |
 | --- | --- | --- | --- |
-| A1 | Nav bar | logo · Product · Docs (GitBook) · Community · GitHub (star count badge) · Sign in · **Try Cloud** (gradient) | sticky, blurs on scroll; star count fetched client-side, animates count-up once |
+| A1 | Nav bar | logo · Product · Docs (GitBook) · Community · GitHub (star badge — the live count is populated at runtime; static designs render the badge with no number per the accuracy standard, design.md §8.2b) · Sign in · **Try Cloud** (gradient) | sticky, blurs on scroll; star count fetched client-side, animates count-up once |
 | A2 | Hero | H1 "Precision measurement meets social fashion" (copy pass pending); subcopy; dual CTA **Try Cloud** / **Self Host**; hero visual: phone frame auto-playing a silent feed→capture→request loop | CTA hover lifts 2px; visual loop pauses on hover/reduced-motion |
 | A3 | Problem strip | 3 stat cards (manual-measurement error, fragmented records, lost designer reach) | cards fade-up on scroll-into-view (once) |
 | A4 | Product walkthrough | 4-step horizontal scroll-jacked panel (Capture → Vault → Discover → Commission), each step = **real screen thumbnail** (exported from the Stage-4 Figma frames, not illustrative art **[Directive 2026-07-18]**) + 2 lines | step dots + keyboard arrows; scroll-jack disabled on mobile (vertical stack) |
@@ -22,7 +22,7 @@ community links → preview → dual CTA **Try Cloud** / **Self Host**.
 | A5 | SMPL/AI section (APP-003) | short explainer "AI-assisted body modeling", looping landmark-constellation animation (same asset as MI-12), link → GitBook deep-dive | |
 | A6 | For designers | split panel: "Post outfits, get commissioned, get paid" + earnings screenshot | |
 | A7 | Open source section | `docker compose up` snippet with copy button · architecture mini-diagram · GitHub + CONTRIBUTING links | copy button ✓ morph |
-| A7b | For developers — Contribute **[Directive 2026-07-18]** | stack line (Flutter · Go/Gin `api/common` · Python/FastAPI `api/measure`, architecture.md) · "interesting problems" list (on-device capture QC, escrow ledger, single-image SMPL fitting) · links: good-first-issues filter, CONTRIBUTING.md, Discord · GitHub star-count badge (reuses A1 fetch) | link cards lift 2px on hover; `github_click` fires here too |
+| A7b | For developers — Contribute **[Directive 2026-07-18]** | stack line (Flutter · Go/Gin `api/common` · Python/FastAPI `api/measure`, architecture.md) · "interesting problems" list (on-device capture QC, escrow ledger, single-image SMPL fitting) · links: good-first-issues filter, CONTRIBUTING.md, Discord · GitHub star badge (live count populated at runtime, reusing the A1 fetch; renders with no number in static designs, as A1) | link cards lift 2px on hover; `github_click` fires here too |
 | A7c | Self-host **[Directive 2026-07-18]** | data-ownership pitch (your measurements on your own metal — nothing leaves your server) · `docker compose up -d` one-liner (same snippet asset as A7) · "what ships" list (`api-common` · `api-measure` · `web`, per docker-compose.yml) · link → docs quickstart (GitBook) | copy button ✓ morph (shared with A7); `self_host_click` fires here too |
 | A8 | Community | Discord card (member count), roadmap link, CueLABS note | |
 | A9 | Cloud vs Self-host table (PRD §3) | feature comparison; Cloud column ends in Try Cloud CTA, OSS column in Self Host (→ docs quickstart) | |
@@ -154,7 +154,8 @@ Existing screens (splash/welcome/auth/capture) remain the entry path.
 
 | # | Screen | Spec |
 | --- | --- | --- |
-| C1 | Onboarding | Google-only sign-in (flows/auth.md §5 — one CTA screen; password/verification screens retired); post-signup interstitial: "Take your first measurement" (→C6) or "Explore outfits" — skippable |
+| C1 | Onboarding | Google-only sign-in (flows/auth.md §5 — one CTA screen; password/verification screens retired); first sign-in hands off to C1b |
+| C1b | Post-signup interstitial | "Take your first measurement" (→C6) or "Explore outfits" (→C3) — skippable; split out of the C1 row 2026-07-18 (the QA loop built it as its own screen) |
 | C2 | Home feed | = B1 minus right column; story rail on top; MI-1/2/3/4/5/6/16/18/20 all active |
 | C3 | Explore | search + 3-col grid; long-press peek preview (scale 0.97 + dim, MI haptic light); pull-to-refresh MI-5; search-results state = B2 **[Directive 2026-07-18]** |
 | C4 | Post detail | full-bleed carousel; action row; caption; comments sheet (swipe-up); Request CTA pinned bottom (safe-area) |

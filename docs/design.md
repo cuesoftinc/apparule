@@ -226,7 +226,10 @@ iconography rule (§2).
 **Stage 4 screen-state rule [Directive 2026-07-18].** Every data-driven
 screen template ships **three frames**: default, empty (EmptyState + its
 first-run copy; demo-data toggle where a flow specs one), and loading
-(Skeleton). A template isn't done until all three exist.
+(Skeleton). A template isn't done until all three exist. **As built
+(2026-07-18 QA loop):** the rule is met on the core data-driven templates —
+default / empty / loading frames exist across feed, explore, vault, orders,
+and notifications, and their dashboard equivalents.
 
 **Naming standards (canonical across the three products) [Decided
 2026-07-17].** Component sets are PascalCase; variant property names are
@@ -344,6 +347,12 @@ an iteration addition once the build report confirms it. **Confirmed
 (2026-07-18):** the build added it — the `FAQItem` row above is the as-built
 contract.
 
+*As-built fixes (2026-07-18 QA loop):* three master corrections from the QA
+pass — `Sheet`: the master's slot strokes are removed (slots render clean in
+instances); `Input` textarea kind: inner text-area height fixed;
+`RequestCard`: the title truncates to 1 line (ellipsis) so the price is
+always visible.
+
 ### 8.3 Design-prep needed from content
 
 Outfit photography for realistic feed mocks is now **sourced** (2026-07-16):
@@ -354,3 +363,40 @@ for inappropriate provenance — a conflict-related archive image — and
 replaced from the curated pool; the attribution grid on the Assets page is
 maintained (every image keeps its caption). Still needed: hero H1 copy
 (prd §8.6); the Afrocentric pattern asset (§2) at 3 opacities.
+
+### 8.4 Prototype (built 2026-07-18)
+
+> The click-through layer wired over the Stage-4/5 frames, and the standard
+> it follows **[Decided 2026-07-18]**. Prototype wiring is part of "done"
+> for a flow the same way the §8.1 three-frame rule is for a screen.
+
+**Named flows (starting points per page).** Every prototype flow has a named
+starting point on its Figma page:
+
+- **Mobile** — "Onboarding → first order" starting at C1 (pages.md Part C),
+  plus separate state starts for the designer onboarding/KYC, payout,
+  dispute, and decline paths.
+- **Dashboard** — "Feed" (B1), plus starts for the moderation, decline,
+  creator-upsell, and payout states.
+- **Home** — "Marketing site" (Part A), whose CTA hands off cross-page into
+  the app flow.
+
+**Wiring conventions.**
+
+- Reactions are `ON_CLICK` → `NAVIGATE` between top-level frames.
+- Transitions: `DISSOLVE` ~150–200ms for nav/tab switches; `SMART_ANIMATE`
+  for pushes and backs; `AFTER_TIMEOUT` for async verification states
+  (e.g. processing → results), which advance on their own.
+- Empty, loading, QA, and index frames stay **out** of the flow by design —
+  they exist for the §8.1 screen-state rule and for QA, not for wiring; the
+  prototype walks real user paths only.
+
+**Reachability.** Verified by BFS over the reaction graph from each flow's
+starting point: every wired frame is reachable, and there are no dead ends
+besides intentional terminals.
+
+**Cross-page links (move-wire-restore).** The plugin API rejects creating a
+cross-page `NAVIGATE` reaction outright, but an existing reaction persists
+across page moves — so cross-page links (the Home CTA handoff) are wired by
+temporarily moving the source frame to the destination page, adding the
+wire there, and moving the frame back.
