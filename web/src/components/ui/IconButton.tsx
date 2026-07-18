@@ -25,8 +25,8 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
           "inline-grid place-items-center rounded-pill text-text",
           "transition-transform duration-120 ease-standard enabled:active:scale-90",
           "motion-reduce:transition-none motion-reduce:active:scale-100",
-          "disabled:opacity-50 disabled:cursor-not-allowed",
-          "hover:bg-border/40",
+          "disabled:opacity-40 disabled:cursor-not-allowed",
+          "hover:bg-border/40 enabled:active:bg-[rgba(128,128,128,0.18)]",
           size === "md" ? "size-11" : "size-9",
           className,
         )}

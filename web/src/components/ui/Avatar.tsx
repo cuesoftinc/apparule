@@ -6,7 +6,7 @@
 // Initials render when no image URL is provided.
 import clsx from "clsx";
 import Image from "next/image";
-import { BadgeCheck } from "lucide-react";
+import { Check } from "lucide-react";
 
 export type AvatarSize = 32 | 44 | 56 | 96;
 export type AvatarRing = "none" | "gradient" | "amber" | "gray";
@@ -71,13 +71,17 @@ export function Avatar({
             aria-label={name}
             style={dimension}
             className={clsx(
-              "grid select-none place-items-center rounded-pill bg-border/60 font-semibold text-text",
+              // Figma master (42:189): solid border-token fill, text-2
+              // initials (12px at 32 → 28px at 96).
+              "grid select-none place-items-center rounded-pill bg-border font-semibold text-text-2",
               ring !== "none" && "border-2 border-bg",
               size >= 96
-                ? "text-title"
+                ? "text-[28px]"
                 : size >= 56
                   ? "text-body-lg"
-                  : "text-caption",
+                  : size >= 44
+                    ? "text-body"
+                    : "text-micro",
             )}
           >
             {initials(name)}
@@ -85,14 +89,19 @@ export function Avatar({
         )}
       </span>
       {verified ? (
+        // Figma master: accent-gradient disc, 2px bg keyline, white check,
+        // flush to the bottom-right corner (14px at 32/44 → 28px at 96).
         <span
           data-testid="verified-badge"
           title="Verified designer"
-          className="absolute -bottom-0.5 -right-0.5 grid place-items-center rounded-pill bg-bg"
+          className={clsx(
+            "absolute bottom-0 right-0 grid place-items-center rounded-pill border-2 border-bg bg-accent-gradient text-on-accent",
+            size >= 96 ? "size-7" : size >= 56 ? "size-5" : "size-3.5",
+          )}
         >
-          <BadgeCheck
-            size={size >= 56 ? 18 : 14}
-            className="fill-link text-bg"
+          <Check
+            size={size >= 96 ? 17 : size >= 56 ? 12 : 8}
+            strokeWidth={3}
             aria-label="Verified designer"
           />
         </span>

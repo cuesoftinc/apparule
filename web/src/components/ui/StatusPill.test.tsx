@@ -4,12 +4,19 @@ import { ORDER_STATUSES } from "@/models";
 import { StatusPill } from "./StatusPill";
 
 describe("StatusPill (§8.2, MI-14)", () => {
+  // Figma master (47:135): sentence-case labels ("In progress").
+  const label = (status: string) => {
+    const text = status.replace(/_/g, " ");
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  };
+
   it("renders all 10 order states", () => {
     for (const status of ORDER_STATUSES) {
       const { unmount } = render(<StatusPill status={status} />);
-      expect(
-        screen.getByText(status.replace(/_/g, " ")),
-      ).toHaveAttribute("data-status", status);
+      expect(screen.getByText(label(status))).toHaveAttribute(
+        "data-status",
+        status,
+      );
       unmount();
     }
   });
@@ -17,27 +24,30 @@ describe("StatusPill (§8.2, MI-14)", () => {
   it.each(["fresh", "aging", "stale"] as const)(
     "renders freshness=%s",
     (freshness) => {
-      render(<StatusPill status={freshness} />);
-      expect(screen.getByText(freshness)).toHaveAttribute("data-status", freshness);
+      const { container } = render(<StatusPill status={freshness} />);
+      expect(screen.getByText(label(freshness))).toBeInTheDocument();
+      expect(
+        container.querySelector(`[data-status="${freshness}"]`),
+      ).not.toBeNull();
     },
   );
 
   it("maps states to the decided tokens (spot checks)", () => {
     const { rerender } = render(<StatusPill status="quoted" />);
-    expect(screen.getByText("quoted").className).toContain("text-link");
+    expect(screen.getByText("Quoted").className).toContain("text-link");
     rerender(<StatusPill status="delivered" />);
-    expect(screen.getByText("delivered").className).toContain("text-success");
+    expect(screen.getByText("Delivered").className).toContain("text-success");
     rerender(<StatusPill status="in_progress" />);
-    expect(screen.getByText("in progress").className).toContain("text-warn");
+    expect(screen.getByText("In progress").className).toContain("text-warn");
     rerender(<StatusPill status="disputed" />);
-    expect(screen.getByText("disputed").className).toContain("text-error");
+    expect(screen.getByText("Disputed").className).toContain("text-error");
     rerender(<StatusPill status="cancelled" />);
-    expect(screen.getByText("cancelled").className).toContain("text-text-2");
+    expect(screen.getByText("Cancelled").className).toContain("text-text-2");
   });
 
   it("pulses once on status change (MI-14)", () => {
     const { rerender } = render(<StatusPill status="quoted" />);
     rerender(<StatusPill status="paid" />);
-    expect(screen.getByText("paid").className).toContain("status-pulse");
+    expect(screen.getByText("Paid").className).toContain("status-pulse");
   });
 });

@@ -20,8 +20,10 @@ describe("MediaDropzone (§8.2b)", () => {
   });
 
   it("error state announces the size/type message", () => {
+    // Figma master (94:1142): headline + type hint inside the dropzone
     render(<MediaDropzone state="error" onFiles={() => {}} />);
-    expect(screen.getByRole("alert")).toHaveTextContent(/JPEG\/PNG\/WebP/);
+    expect(screen.getByRole("alert")).toHaveTextContent(/File too large/);
+    expect(screen.getByText(/JPEG\/PNG\/WebP only/)).toBeInTheDocument();
   });
 
   it("file picks call onFiles", async () => {

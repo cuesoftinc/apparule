@@ -34,20 +34,42 @@ export function CaptureOverlay({
     <div
       data-guide={guide}
       className={clsx(
-        "relative aspect-[3/4] w-full overflow-hidden rounded-card bg-black",
+        // Figma master (63:701): 9:16 viewport, 40% scrim, corner marks,
+        // top instruction line.
+        "relative aspect-[9/16] w-full overflow-hidden rounded-card bg-black",
         className,
       )}
     >
       <div className="absolute inset-0">{children}</div>
+      <div className="absolute inset-0 bg-black/40" aria-hidden />
 
-      {/* Dashed standing-silhouette guide (head → shoulders → arms-out →
-          ankles), centered over the viewport. */}
+      {/* viewfinder corner marks */}
+      <svg
+        data-testid="corner-marks"
+        viewBox="0 0 360 640"
+        aria-hidden="true"
+        className="absolute inset-0 size-full"
+        preserveAspectRatio="none"
+      >
+        <g fill="none" stroke="white" strokeWidth={3} strokeLinecap="round">
+          <path d="M24 56 V32 H48 M312 32 H336 V56 M336 584 V608 H312 M48 608 H24 V584" />
+        </g>
+      </svg>
+
+      {/* instruction line — 16px semibold white, top-centered */}
+      <p className="absolute inset-x-4 top-[9%] text-center text-body-lg font-semibold text-white">
+        {guide === "aligned" ? "Perfect — hold still" : "Stand inside the outline"}
+      </p>
+
+      {/* Standing-silhouette guide (head → shoulders → arms-out → ankles),
+          centered over the viewport; dashed while searching, solid success
+          stroke when aligned (MI-12). */}
       <svg
         data-testid="silhouette"
         viewBox="0 0 200 300"
         aria-hidden="true"
         className={clsx(
-          "absolute inset-0 m-auto h-[85%]",
+          "absolute inset-0 m-auto h-[70%]",
           guide === "searching" &&
             "animate-[silhouette-pulse_2s_ease-in-out_infinite] motion-reduce:animate-none motion-reduce:opacity-70",
           guide !== "searching" && "opacity-80",
@@ -57,7 +79,7 @@ export function CaptureOverlay({
           fill="none"
           stroke={guide === "aligned" ? "var(--ap-success)" : "white"}
           strokeWidth={2.5}
-          strokeDasharray="6 6"
+          strokeDasharray={guide === "aligned" ? undefined : "6 6"}
           strokeLinecap="round"
           strokeLinejoin="round"
         >

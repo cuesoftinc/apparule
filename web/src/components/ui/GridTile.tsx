@@ -5,7 +5,7 @@
 // carousel. Explore masonry + profile grids.
 import clsx from "clsx";
 import Image from "next/image";
-import { Copy, Heart, MessageCircle } from "lucide-react";
+import { Camera, Copy, Heart, MessageCircle } from "lucide-react";
 import { Skeleton } from "./Skeleton";
 
 export interface GridTileProps {
@@ -29,7 +29,7 @@ export function GridTile({
   onClick,
   className,
 }: GridTileProps) {
-  if (skeleton || !src) {
+  if (skeleton) {
     return <Skeleton kind="media" className={clsx("rounded-none", className)} />;
   }
   return (
@@ -42,7 +42,14 @@ export function GridTile({
         className,
       )}
     >
-      <Image src={src} alt={alt} fill sizes="(max-width: 768px) 33vw, 300px" className="object-cover" />
+      {src ? (
+        <Image src={src} alt={alt} fill sizes="(max-width: 768px) 33vw, 300px" className="object-cover" />
+      ) : (
+        // Figma master (86:984): media-less default shows a camera glyph
+        <span className="absolute inset-0 grid place-items-center text-text-2">
+          <Camera size={24} aria-hidden />
+        </span>
+      )}
       {carousel ? (
         <span
           data-testid="carousel-badge"

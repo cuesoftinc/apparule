@@ -35,10 +35,12 @@ describe("Sheet (§8.2)", () => {
         <p>Body</p>
       </Sheet>,
     );
+    // Figma master (50:256): full-bleed progress track + a single centered
+    // "Step n of N · Label" caption for the current step.
     const stepper = screen.getByTestId("sheet-stepper");
-    expect(stepper).toHaveTextContent("Measurements");
+    expect(stepper).toHaveTextContent("Step 2 of 3 · Notes & budget");
     expect(
-      screen.getByText("Notes & budget"),
+      screen.getByText(/Step 2 of 3/),
     ).toHaveAttribute("aria-current", "step");
   });
 

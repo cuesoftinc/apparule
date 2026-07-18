@@ -230,28 +230,48 @@ body {
   }
 }
 
-/* MI-13 tape-measure slider (ManualMeasureRow) — gradient track fill */
+/* MI-13 tape-measure slider (ManualMeasureRow) — Figma master 66:695:
+   transparent track over the ruler ticks; accent dot thumb (ring when the
+   row is active). */
 .tape-slider {
   appearance: none;
-  height: 8px;
-  border-radius: var(--ap-radius-pill);
-  background: var(--ap-border);
+  height: 100%;
+  background: transparent;
   outline-offset: 4px;
+}
+.tape-slider::-webkit-slider-runnable-track {
+  background: transparent;
+}
+.tape-slider::-moz-range-track {
+  background: transparent;
 }
 .tape-slider::-webkit-slider-thumb {
   appearance: none;
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border-radius: var(--ap-radius-pill);
   background: var(--ap-accent-gradient);
-  border: 2px solid var(--ap-bg);
   cursor: pointer;
 }
 .tape-slider::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border-radius: var(--ap-radius-pill);
   background: var(--ap-accent-gradient);
-  border: 2px solid var(--ap-bg);
+  border: none;
   cursor: pointer;
+}
+[data-state="active"] .tape-slider::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 3px var(--ap-bg),
+    0 0 0 5px var(--ap-accent-start);
+}
+[data-state="active"] .tape-slider::-moz-range-thumb {
+  box-shadow:
+    0 0 0 3px var(--ap-bg),
+    0 0 0 5px var(--ap-accent-start);
+}
+/* active row: the numeric value reads in the accent (MI-13 master) */
+[data-state="active"] input[inputmode="decimal"] {
+  color: var(--ap-accent-start);
 }

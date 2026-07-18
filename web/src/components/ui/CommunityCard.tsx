@@ -50,7 +50,12 @@ export function CommunityCard({
         Builders, designers, and tailors shaping open-source fashion tech —
         roadmap talk, capture-QC debugging, and show-and-tell.
       </p>
-      <Button kind="quiet" size="sm" onClick={() => window.open(discordHref, "_blank")}>
+      {/* Figma master (Stage 5): the Join CTA paints the gradient */}
+      <Button
+        kind="gradient-primary"
+        size="sm"
+        onClick={() => window.open(discordHref, "_blank")}
+      >
         Join Discord
       </Button>
     </div>

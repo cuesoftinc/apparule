@@ -47,6 +47,8 @@ export function AddressFieldset({
       disabled={disabled}
       className={clsx("flex flex-col gap-4", className)}
     >
+      {/* Figma master (74:801): address → city → state → country → phone,
+          stacked full-width; recipient/line-2 are web data-model additions */}
       {context === "delivery" ? (
         <>
           <FormRow label="Recipient name" required error={errors.recipient_name}>
@@ -57,19 +59,11 @@ export function AddressFieldset({
               error={errors.recipient_name}
             />
           </FormRow>
-          <FormRow label="Phone" required error={errors.phone}>
-            <Input
-              value={value.phone ?? ""}
-              onChange={(e) => set({ phone: e.target.value })}
-              placeholder="+234…"
-              error={errors.phone}
-            />
-          </FormRow>
           <FormRow label="Address line 1" required error={errors.line1}>
             <Input
               value={value.line1 ?? ""}
               onChange={(e) => set({ line1: e.target.value })}
-              placeholder="Street address"
+              placeholder="14 Adeola Odeku St"
               error={errors.line1}
             />
           </FormRow>
@@ -81,40 +75,60 @@ export function AddressFieldset({
             />
           </FormRow>
         </>
-      ) : (
-        <p className="text-caption text-text-2">
-          Used to recommend nearby designers — optional, and never shown
-          publicly.
-        </p>
-      )}
-      <div className="grid grid-cols-2 gap-4">
-        <FormRow label="City" required={context === "delivery"} error={errors.city}>
-          <Input
-            value={value.city ?? ""}
-            onChange={(e) => set({ city: e.target.value })}
-            placeholder="City"
-            error={errors.city}
-          />
-        </FormRow>
-        <FormRow label="State" required={context === "delivery"} error={errors.state}>
-          <Select
-            aria-label="State"
-            options={STATE_OPTIONS}
-            value={value.state || undefined}
-            onValueChange={(state) => set({ state })}
-            placeholder="Select state"
-            error={errors.state}
-            disabled={disabled}
-          />
-        </FormRow>
-      </div>
-      <FormRow label="Country" required={context === "delivery"} error={errors.country}>
+      ) : null}
+      <FormRow label="City" required={context === "delivery"} error={errors.city}>
         <Input
-          value={value.country ?? "NG"}
-          onChange={(e) => set({ country: e.target.value })}
-          error={errors.country}
+          value={value.city ?? ""}
+          onChange={(e) => set({ city: e.target.value })}
+          placeholder="Ikeja"
+          error={errors.city}
         />
       </FormRow>
+      <FormRow label="State" required={context === "delivery"} error={errors.state}>
+        <Select
+          aria-label="State"
+          options={STATE_OPTIONS}
+          value={value.state || undefined}
+          onValueChange={(state) => set({ state })}
+          placeholder="Lagos"
+          error={errors.state}
+          disabled={disabled}
+        />
+      </FormRow>
+      <FormRow label="Country" required={context === "delivery"} error={errors.country}>
+        <Select
+          aria-label="Country"
+          options={[{ value: "NG", label: "Nigeria" }]}
+          value={value.country ?? "NG"}
+          onValueChange={(country) => set({ country })}
+          error={errors.country}
+          disabled={disabled}
+        />
+      </FormRow>
+      {context === "delivery" ? (
+        <>
+          <FormRow label="Phone" required error={errors.phone}>
+            <Input
+              value={value.phone ?? ""}
+              onChange={(e) => set({ phone: e.target.value })}
+              placeholder="+234 801 234 5678"
+              error={errors.phone}
+            />
+          </FormRow>
+          <p className="text-caption text-text-2">
+            Saved with this order — address changes never affect placed orders
+          </p>
+        </>
+      ) : (
+        <div className="flex flex-col gap-1">
+          <p className="text-caption text-text-2">
+            Used to recommend designers near you
+          </p>
+          <p className="text-caption text-text-2">
+            Pre-fills from your last order
+          </p>
+        </div>
+      )}
     </fieldset>
   );
 }

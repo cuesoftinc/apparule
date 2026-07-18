@@ -7,8 +7,10 @@ import clsx from "clsx";
 import { useId } from "react";
 
 export interface SpinnerProps {
-  size?: 20 | 28;
-  kind?: "gradient" | "neutral";
+  /** 20 inline / 28 refresh (§8.2b) · 18/16 inside Button loading (39:66). */
+  size?: 16 | 18 | 20 | 28;
+  /** on-accent strokes white — spinners on accent/destructive fills. */
+  kind?: "gradient" | "neutral" | "on-accent";
   /** MI-5: pull-to-refresh grows with pull distance (0–1). */
   progress?: number;
   className?: string;
@@ -55,7 +57,13 @@ export function Spinner({
         cy={c}
         r={r}
         fill="none"
-        stroke={kind === "gradient" ? `url(#${gradientId})` : "var(--ap-text-2)"}
+        stroke={
+          kind === "gradient"
+            ? `url(#${gradientId})`
+            : kind === "on-accent"
+              ? "var(--ap-on-accent)"
+              : "var(--ap-text-2)"
+        }
         strokeWidth={stroke}
         strokeLinecap="round"
         strokeDasharray={circumference}

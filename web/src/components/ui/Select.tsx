@@ -45,10 +45,14 @@ export function Select({
         <RadixSelect.Trigger
           aria-invalid={error ? true : undefined}
           className={clsx(
-            "flex h-11 items-center justify-between gap-2 rounded-card border bg-bg-elev px-3 text-body-lg text-text",
+            // Figma form-kit frame (74:801): 14px value, 1.5px error border,
+            // 2px accent focus, 40% disabled.
+            "flex h-11 items-center justify-between gap-2 rounded-card bg-bg-elev px-3 text-body text-text",
             "transition-colors duration-120 ease-standard motion-reduce:transition-none",
-            "data-[placeholder]:text-text-2 disabled:opacity-50",
-            error ? "border-error" : "border-border focus:border-accent-start",
+            "data-[placeholder]:text-text-2 disabled:opacity-40",
+            error
+              ? "border-[1.5px] border-error"
+              : "border border-border focus:border-2 focus:border-accent-start",
           )}
           {...rest}
         >
@@ -71,7 +75,7 @@ export function Select({
           </RadixSelect.Content>
         </RadixSelect.Portal>
       </RadixSelect.Root>
-      {error ? <span className="text-micro text-error">{error}</span> : null}
+      {error ? <span className="text-caption text-error">{error}</span> : null}
     </div>
   );
 }

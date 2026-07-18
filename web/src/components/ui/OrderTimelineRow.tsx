@@ -4,7 +4,7 @@
 // pending / terminal-error · connector drawn / undrawn (MI-14: the dot
 // draws its connector line over 400ms) · label + timestamp.
 import clsx from "clsx";
-import { formatAgo } from "@/lib/format";
+import { format } from "date-fns";
 
 export type TimelineDot = "done" | "current" | "pending" | "terminal-error";
 
@@ -53,20 +53,23 @@ export function OrderTimelineRow({
           />
         ) : null}
       </div>
-      <div className="flex flex-1 items-baseline justify-between gap-3 pb-6">
+      {/* Figma master (89:1075): label with the timestamp stacked beneath;
+          pending rows read "Pending" */}
+      <div className="flex flex-1 flex-col gap-0.5 pb-6">
         <span
           className={clsx(
             "text-body",
             dot === "pending" ? "text-text-2" : "font-semibold text-text",
-            dot === "terminal-error" && "text-error",
           )}
         >
           {label}
         </span>
         {timestamp ? (
-          <time dateTime={timestamp} className="shrink-0 text-caption text-text-2">
-            {formatAgo(timestamp)}
+          <time dateTime={timestamp} className="tnum text-micro text-text-2">
+            {format(new Date(timestamp), "MMM d, HH:mm")}
           </time>
+        ) : dot === "pending" ? (
+          <span className="text-micro text-text-2">Pending</span>
         ) : null}
       </div>
     </div>

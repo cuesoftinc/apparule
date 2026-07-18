@@ -24,12 +24,12 @@ describe("FormRow (§8.2)", () => {
     expect(screen.queryByText("3–30 chars")).not.toBeInTheDocument();
   });
 
-  it("marks required fields", () => {
+  it("marks required fields for assistive tech (no visual star — 74:801)", () => {
     render(
       <FormRow label="Phone" required>
         <Input aria-label="Phone" />
       </FormRow>,
     );
-    expect(screen.getByText("*")).toBeInTheDocument();
+    expect(screen.getByText("(required)")).toHaveClass("sr-only");
   });
 });

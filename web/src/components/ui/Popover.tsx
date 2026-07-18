@@ -32,7 +32,8 @@ export function Popover({
           side={side}
           align={align}
           sideOffset={4}
-          className="z-20 min-w-48 rounded-card border border-border bg-bg-elev py-1 shadow-lg"
+          // Figma master (96:1191): hairline dividers between menu items
+          className="z-20 min-w-48 divide-y divide-border overflow-hidden rounded-card border border-border bg-bg-elev shadow-lg"
         >
           {children}
         </RadixPopover.Content>

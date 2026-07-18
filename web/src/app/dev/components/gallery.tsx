@@ -392,12 +392,14 @@ export function ComponentGallery() {
             source="scan"
             confidence={0.92}
             history={[41.8, 42.0, 42.5]}
+            updatedAt={daysAgo(12)}
           />
           <MeasurementCard
             name="hip_width"
             valueCm={36.8}
             source="manual"
             confidence={0.62}
+            updatedAt={daysAgo(12)}
           />
         </div>
       </Section>
@@ -441,7 +443,7 @@ export function ComponentGallery() {
 
       <Section title="EmptyState">
         <div className="grid gap-4 md:grid-cols-2">
-          {(["feed", "vault", "orders", "explore", "notifications"] as EmptyStateContext[]).map((ctx) => (
+          {(["feed", "vault", "orders", "explore", "notifications", "camera-permission"] as EmptyStateContext[]).map((ctx) => (
             <EmptyState key={ctx} context={ctx} />
           ))}
         </div>

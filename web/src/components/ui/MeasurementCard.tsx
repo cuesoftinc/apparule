@@ -5,7 +5,8 @@
 // with/without history sparkline (bespoke SVG — no chart kits, reuse
 // policy). Tap → history sheet (wired by the vault view).
 import clsx from "clsx";
-import { formatCm } from "@/lib/format";
+import { Camera, Pencil } from "lucide-react";
+import { formatAgo, formatCm } from "@/lib/format";
 import { humanizeMeasureName } from "./ManualMeasureRow";
 import type { MeasureUnit } from "./Input";
 
@@ -17,6 +18,8 @@ export interface MeasurementCardProps {
   confidence?: number | null;
   /** Oldest → newest values for the sparkline (omit to hide). */
   history?: number[];
+  /** ISO timestamp for the "Updated 12d ago" meta line (Figma 48:208). */
+  updatedAt?: string | null;
   onClick?: () => void;
   className?: string;
 }
@@ -28,10 +31,12 @@ export function MeasurementCard({
   source,
   confidence = null,
   history,
+  updatedAt,
   onClick,
   className,
 }: MeasurementCardProps) {
   const lowConfidence = confidence !== null && confidence < 0.7;
+  const SourceIcon = source === "scan" ? Camera : Pencil;
   return (
     <button
       type="button"
@@ -43,43 +48,44 @@ export function MeasurementCard({
         className,
       )}
     >
+      {/* Figma master (48:208): 13px text-2 metric name; neutral outlined
+          source chip with a 12px icon + sentence-case label. */}
       <div className="flex w-full items-center justify-between gap-2">
-        <span className="text-body font-semibold text-text">
+        <span className="text-caption text-text-2">
           {humanizeMeasureName(name)}
         </span>
-        <span
-          className={clsx(
-            "rounded-pill border px-2 py-0.5 text-micro font-semibold",
-            source === "scan"
-              ? "border-link/40 text-link"
-              : "border-border text-text-2",
-          )}
-        >
-          {source}
+        <span className="flex h-5 items-center gap-1 rounded-pill border border-border px-2 text-micro font-semibold text-text-2">
+          <SourceIcon size={12} aria-hidden />
+          {source === "scan" ? "Scan" : "Manual"}
         </span>
       </div>
-      <span className="tnum text-title-lg font-bold text-text">
+      <span className="tnum text-title-lg font-semibold text-text">
         {formatCm(valueCm, unit)}
       </span>
       {lowConfidence ? (
         <span
           data-testid="low-confidence"
-          className="w-fit rounded-pill border border-warn/40 bg-warn/10 px-2 py-0.5 text-micro font-semibold text-warn"
+          className="flex h-5 w-fit items-center rounded-pill bg-warn/14 px-2 text-micro font-semibold text-warn"
         >
-          low confidence
+          Low confidence · {confidence!.toFixed(2)}
         </span>
       ) : null}
       {history && history.length > 1 ? (
         <Sparkline values={history} />
       ) : null}
+      {updatedAt ? (
+        <span className="text-micro text-text-2">
+          Updated {formatAgo(updatedAt)} ago
+        </span>
+      ) : null}
     </button>
   );
 }
 
-/** Bespoke sparkline — history trend, accent-gradient stroke. */
+/** Bespoke sparkline — history trend, accent-gradient stroke (168×32). */
 export function Sparkline({ values }: { values: number[] }) {
-  const width = 120;
-  const height = 28;
+  const width = 168;
+  const height = 32;
   const min = Math.min(...values);
   const max = Math.max(...values);
   const range = max - min || 1;
