@@ -128,7 +128,7 @@ feed at the base itself.
 | --- | --- | --- |
 | Part A (A1–A10 + A4b/A7b/A7c/A9b/A9c) | `/` | Public home page |
 | B2 permalink note | `/p/{post_id}` | Public post detail (MI-9 share target; request CTA for signed-in users) |
-| flows/auth.md §5 | `/login` | Single auth screen — GoogleAuthButton + legal links **[Proposed]** |
+| flows/auth.md §5 | `/signin` | Single auth screen — GoogleAuthButton + legal links **[Decided 2026-07-18, route canon]** |
 | B1 | `/dashboard` | Feed (story rail, PostCard column, freshness + suggestions) |
 | B2 | `/dashboard/explore` | Discover (masonry, filters, search-results state) |
 | B3 | `/dashboard/orders` · `/dashboard/orders/{id}` | Requests & orders — tabs, detail (snapshot, thread, timeline, payment box, decline sheet, dispute flow) |
