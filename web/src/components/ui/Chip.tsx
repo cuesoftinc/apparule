@@ -8,8 +8,10 @@ import { X } from "lucide-react";
 
 export type ChipKind = "default" | "selected" | "removable";
 
-export interface ChipProps
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onSelect"> {
+export interface ChipProps extends Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  "onSelect"
+> {
   kind?: ChipKind;
   label: string;
   /** Removable chips call this from the ✕ affordance. */
@@ -42,7 +44,11 @@ export function Chip({
     return (
       <span
         data-kind="removable"
-        className={clsx(PILL_CLASSES, "border-border bg-bg-elev text-text", className)}
+        className={clsx(
+          PILL_CLASSES,
+          "border-border bg-bg-elev text-text",
+          className,
+        )}
       >
         <button
           type="button"

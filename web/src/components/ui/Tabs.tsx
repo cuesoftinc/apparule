@@ -22,7 +22,11 @@ export function Tabs({
   onChange,
   className,
 }: TabsProps) {
-  const items: { key: "first" | "second"; content: React.ReactNode; name: string }[] =
+  const items: {
+    key: "first" | "second";
+    content: React.ReactNode;
+    name: string;
+  }[] =
     kind === "text"
       ? [
           { key: "first", content: labels[0], name: labels[0] },

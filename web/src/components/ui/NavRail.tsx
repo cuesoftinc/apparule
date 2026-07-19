@@ -33,12 +33,22 @@ export interface NavRailItemSpec {
 // Figma master (84:1046): explore = search glyph, create = plain plus.
 export const DEFAULT_NAV_ITEMS: NavRailItemSpec[] = [
   { key: "home", label: "Home", href: "/dashboard", icon: Home },
-  { key: "explore", label: "Explore", href: "/dashboard/explore", icon: Search },
+  {
+    key: "explore",
+    label: "Explore",
+    href: "/dashboard/explore",
+    icon: Search,
+  },
   { key: "create", label: "Create", href: "/dashboard/create", icon: Plus },
   { key: "orders", label: "Orders", href: "/dashboard/orders", icon: Package },
   { key: "vault", label: "Vault", href: "/dashboard/vault", icon: Ruler },
   { key: "profile", label: "Profile", href: "/dashboard/profile", icon: User },
-  { key: "settings", label: "Settings", href: "/dashboard/settings", icon: Settings },
+  {
+    key: "settings",
+    label: "Settings",
+    href: "/dashboard/settings",
+    icon: Settings,
+  },
 ];
 
 export interface NavRailProps {

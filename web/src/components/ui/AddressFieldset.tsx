@@ -11,11 +11,43 @@ import { Input } from "./Input";
 import { Select } from "./Select";
 
 export const NG_STATES = [
-  "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue",
-  "Borno", "Cross River", "Delta", "Ebonyi", "Edo", "Ekiti", "Enugu",
-  "FCT Abuja", "Gombe", "Imo", "Jigawa", "Kaduna", "Kano", "Katsina",
-  "Kebbi", "Kogi", "Kwara", "Lagos", "Nasarawa", "Niger", "Ogun", "Ondo",
-  "Osun", "Oyo", "Plateau", "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara",
+  "Abia",
+  "Adamawa",
+  "Akwa Ibom",
+  "Anambra",
+  "Bauchi",
+  "Bayelsa",
+  "Benue",
+  "Borno",
+  "Cross River",
+  "Delta",
+  "Ebonyi",
+  "Edo",
+  "Ekiti",
+  "Enugu",
+  "FCT Abuja",
+  "Gombe",
+  "Imo",
+  "Jigawa",
+  "Kaduna",
+  "Kano",
+  "Katsina",
+  "Kebbi",
+  "Kogi",
+  "Kwara",
+  "Lagos",
+  "Nasarawa",
+  "Niger",
+  "Ogun",
+  "Ondo",
+  "Osun",
+  "Oyo",
+  "Plateau",
+  "Rivers",
+  "Sokoto",
+  "Taraba",
+  "Yobe",
+  "Zamfara",
 ] as const;
 
 const STATE_OPTIONS = NG_STATES.map((s) => ({ value: s, label: s }));
@@ -55,7 +87,12 @@ export function AddressFieldset({
           stacked full-width; recipient/line-2 are web data-model additions */}
       {context === "delivery" ? (
         <>
-          <FormRow label="Recipient name" htmlFor={fieldId("recipient")} required error={errors.recipient_name}>
+          <FormRow
+            label="Recipient name"
+            htmlFor={fieldId("recipient")}
+            required
+            error={errors.recipient_name}
+          >
             <Input
               id={fieldId("recipient")}
               value={value.recipient_name ?? ""}
@@ -64,7 +101,12 @@ export function AddressFieldset({
               error={errors.recipient_name}
             />
           </FormRow>
-          <FormRow label="Address line 1" htmlFor={fieldId("line1")} required error={errors.line1}>
+          <FormRow
+            label="Address line 1"
+            htmlFor={fieldId("line1")}
+            required
+            error={errors.line1}
+          >
             <Input
               id={fieldId("line1")}
               value={value.line1 ?? ""}
@@ -83,7 +125,12 @@ export function AddressFieldset({
           </FormRow>
         </>
       ) : null}
-      <FormRow label="City" htmlFor={fieldId("city")} required={context === "delivery"} error={errors.city}>
+      <FormRow
+        label="City"
+        htmlFor={fieldId("city")}
+        required={context === "delivery"}
+        error={errors.city}
+      >
         <Input
           id={fieldId("city")}
           value={value.city ?? ""}
@@ -92,7 +139,11 @@ export function AddressFieldset({
           error={errors.city}
         />
       </FormRow>
-      <FormRow label="State" required={context === "delivery"} error={errors.state}>
+      <FormRow
+        label="State"
+        required={context === "delivery"}
+        error={errors.state}
+      >
         <Select
           aria-label="State"
           options={STATE_OPTIONS}
@@ -103,7 +154,11 @@ export function AddressFieldset({
           disabled={disabled}
         />
       </FormRow>
-      <FormRow label="Country" required={context === "delivery"} error={errors.country}>
+      <FormRow
+        label="Country"
+        required={context === "delivery"}
+        error={errors.country}
+      >
         <Select
           aria-label="Country"
           options={[{ value: "NG", label: "Nigeria" }]}
@@ -115,7 +170,12 @@ export function AddressFieldset({
       </FormRow>
       {context === "delivery" ? (
         <>
-          <FormRow label="Phone" htmlFor={fieldId("phone")} required error={errors.phone}>
+          <FormRow
+            label="Phone"
+            htmlFor={fieldId("phone")}
+            required
+            error={errors.phone}
+          >
             <Input
               id={fieldId("phone")}
               value={value.phone ?? ""}

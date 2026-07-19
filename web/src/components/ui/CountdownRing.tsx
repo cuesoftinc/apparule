@@ -13,7 +13,11 @@ export interface CountdownRingProps {
   className?: string;
 }
 
-export function CountdownRing({ value, size = 96, className }: CountdownRingProps) {
+export function CountdownRing({
+  value,
+  size = 96,
+  className,
+}: CountdownRingProps) {
   const stroke = 4;
   const r = (size - stroke) / 2;
   const c = size / 2;
@@ -30,7 +34,12 @@ export function CountdownRing({ value, size = 96, className }: CountdownRingProp
     >
       {/* On-media capture UI — raw white by design (web-implementation.md §3
           token-exception note). */}
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        aria-hidden="true"
+      >
         <circle
           cx={c}
           cy={c}

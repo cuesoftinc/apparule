@@ -14,7 +14,10 @@ describe("Input (§8.2 + §8.2b kinds)", () => {
 
   it("error state exposes aria-invalid + message", () => {
     render(<Input aria-label="username" error="That username is taken" />);
-    expect(screen.getByLabelText("username")).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByLabelText("username")).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
     expect(screen.getByText("That username is taken")).toBeInTheDocument();
   });
 
@@ -46,7 +49,14 @@ describe("Input (§8.2 + §8.2b kinds)", () => {
 
   it("textarea kind counts down from 500 (0–500 counter)", async () => {
     function Wrapper() {
-      return <Input kind="textarea" aria-label="notes" value="hello" onChange={() => {}} />;
+      return (
+        <Input
+          kind="textarea"
+          aria-label="notes"
+          value="hello"
+          onChange={() => {}}
+        />
+      );
     }
     render(<Wrapper />);
     expect(screen.getByText("5/500")).toBeInTheDocument();

@@ -81,7 +81,12 @@ export function VaultThumb() {
         <StatusBar />
         <AppBar kind="sub" title="Measurement vault" onBack={() => {}} />
         <div className="flex items-center gap-4 px-4 py-4">
-          <Avatar size={96} ring="gradient" name="Kiki Adeyemi" src="/demo/outfit-w16.jpg" />
+          <Avatar
+            size={96}
+            ring="gradient"
+            name="Kiki Adeyemi"
+            src="/demo/outfit-w16.jpg"
+          />
           <div className="flex flex-col items-start gap-1">
             <span className="text-body-lg font-semibold text-text">
               Measured 12 days ago
@@ -128,7 +133,11 @@ export function ExploreThumb() {
         </div>
         <div className="flex gap-2 overflow-hidden px-4 pb-3">
           {demoExploreChips.map((label, i) => (
-            <Chip key={label} label={label} kind={i === 0 ? "selected" : "default"} />
+            <Chip
+              key={label}
+              label={label}
+              kind={i === 0 ? "selected" : "default"}
+            />
           ))}
         </div>
         <div className="grid grid-cols-3 gap-0.5">
@@ -150,14 +159,22 @@ export function OrdersThumb() {
         <StatusBar />
         <AppBar kind="sub" title="Orders" />
         <div className="px-4 pt-2">
-          <Tabs labels={["As customer", "As designer"]} active="first" onChange={() => {}} />
+          <Tabs
+            labels={["As customer", "As designer"]}
+            active="first"
+            onChange={() => {}}
+          />
         </div>
         <div className="flex flex-col gap-3 px-4 pt-3">
           {demoOrders.slice(0, 4).map((order) => (
             <RequestCard key={order.id} order={order} role="customer" />
           ))}
         </div>
-        <TabBar activeKey="orders" ordersBadge={2} className="absolute inset-x-0 bottom-0" />
+        <TabBar
+          activeKey="orders"
+          ordersBadge={2}
+          className="absolute inset-x-0 bottom-0"
+        />
       </div>
     </ThumbShell>
   );

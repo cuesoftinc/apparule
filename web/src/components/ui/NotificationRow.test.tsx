@@ -13,21 +13,28 @@ describe("NotificationRow (§8.2b)", () => {
   it("read rows drop the dot", () => {
     render(
       <NotificationRow
-        notification={{ ...fixtureNotification, read_at: new Date().toISOString() }}
+        notification={{
+          ...fixtureNotification,
+          read_at: new Date().toISOString(),
+        }}
       />,
     );
     expect(screen.queryByTestId("unread-dot")).not.toBeInTheDocument();
   });
 
-  it.each(["like", "follow", "comment", "quote", "status_change", "payout"] as const)(
-    "renders kind=%s",
-    (kind) => {
-      const { container } = render(
-        <NotificationRow notification={{ ...fixtureNotification, kind }} />,
-      );
-      expect(container.querySelector(`[data-kind="${kind}"]`)).not.toBeNull();
-    },
-  );
+  it.each([
+    "like",
+    "follow",
+    "comment",
+    "quote",
+    "status_change",
+    "payout",
+  ] as const)("renders kind=%s", (kind) => {
+    const { container } = render(
+      <NotificationRow notification={{ ...fixtureNotification, kind }} />,
+    );
+    expect(container.querySelector(`[data-kind="${kind}"]`)).not.toBeNull();
+  });
 
   it("trailing: post thumb for content rows, Follow for follow rows", async () => {
     const onFollowBack = vi.fn();
@@ -37,7 +44,11 @@ describe("NotificationRow (§8.2b)", () => {
     expect(document.querySelector("img")).not.toBeNull();
     rerender(
       <NotificationRow
-        notification={{ ...fixtureNotification, kind: "follow", thumb_url: null }}
+        notification={{
+          ...fixtureNotification,
+          kind: "follow",
+          thumb_url: null,
+        }}
         onFollowBack={onFollowBack}
       />,
     );

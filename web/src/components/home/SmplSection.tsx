@@ -16,8 +16,8 @@ export function SmplSection() {
           </h2>
           <p className="mt-4 text-body-lg text-text-2">
             Two photos become a full measurement set. SMPL landmark detection
-            maps your proportions — no tape, no guessing. The constellation
-            you see while it works is the real model output.
+            maps your proportions — no tape, no guessing. The constellation you
+            see while it works is the real model output.
           </p>
           <a
             href="https://cuesoft.gitbook.io/apparule/system/architecture"

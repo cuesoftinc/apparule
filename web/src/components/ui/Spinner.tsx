@@ -38,7 +38,9 @@ export function Spinner({
       viewBox={`0 0 ${size} ${size}`}
       role="status"
       aria-label={ariaLabel}
-      style={progress !== undefined ? { transform: `scale(${scale})` } : undefined}
+      style={
+        progress !== undefined ? { transform: `scale(${scale})` } : undefined
+      }
       className={clsx(
         progress === undefined && "animate-spin motion-reduce:animate-none",
         className,

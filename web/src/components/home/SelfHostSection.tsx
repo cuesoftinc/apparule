@@ -17,15 +17,18 @@ export function SelfHostSection() {
     >
       <div className="flex flex-col items-start gap-10 md:flex-row md:gap-16">
         <div className="max-w-[560px] flex-1">
-          <h2 id="self-host-heading" className="text-title-lg font-bold text-text">
+          <h2
+            id="self-host-heading"
+            className="text-title-lg font-bold text-text"
+          >
             Self-host — own your data
           </h2>
           <p className="mt-4 text-body text-text-2">
             Run Apparule for your atelier, your fashion school, or your
-            city&apos;s designer community. One command brings up every
-            service — API, CV pipeline, dashboard — on your own Postgres and
-            S3-compatible storage. Your customers&apos; measurements never
-            leave your box.
+            city&apos;s designer community. One command brings up every service
+            — API, CV pipeline, dashboard — on your own Postgres and
+            S3-compatible storage. Your customers&apos; measurements never leave
+            your box.
           </p>
           <div className="mt-6 max-w-[420px]">
             <CodeSnippetBlock code="docker compose up -d" />

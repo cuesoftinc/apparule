@@ -69,7 +69,12 @@ export function DashVaultThumb() {
   return (
     <DashShell activeKey="vault">
       <div className="flex items-center gap-5">
-        <Avatar size={96} ring="gradient" name="Kiki Adeyemi" src="/demo/outfit-w16.jpg" />
+        <Avatar
+          size={96}
+          ring="gradient"
+          name="Kiki Adeyemi"
+          src="/demo/outfit-w16.jpg"
+        />
         <div className="flex flex-col items-start gap-1">
           <span className="text-title font-semibold text-text">
             Measured 12 days ago
@@ -96,8 +101,8 @@ export function DashVaultThumb() {
         +8 more measurements →
       </p>
       <p className="mt-3 max-w-[600px] text-caption text-text-2">
-        Sessions are kept until you delete them. A snapshot is shared only
-        when you send a request.
+        Sessions are kept until you delete them. A snapshot is shared only when
+        you send a request.
       </p>
       <p className="mt-2 flex gap-6 text-caption font-semibold text-link">
         <span>Download my data</span>
@@ -116,7 +121,11 @@ export function DashExploreThumb() {
       </div>
       <div className="mt-4 flex w-[720px] gap-2 overflow-hidden">
         {demoExploreChips.map((label, i) => (
-          <Chip key={label} label={label} kind={i === 0 ? "selected" : "default"} />
+          <Chip
+            key={label}
+            label={label}
+            kind={i === 0 ? "selected" : "default"}
+          />
         ))}
         {/* canvas 264:8047: trailing removable location chip */}
         <Chip label="Lagos" kind="removable" onRemove={() => {}} />
@@ -135,7 +144,11 @@ export function DashOrdersThumb() {
   return (
     <DashShell activeKey="orders">
       <div className="w-[630px]">
-        <Tabs labels={["As customer", "As designer"]} active="first" onChange={() => {}} />
+        <Tabs
+          labels={["As customer", "As designer"]}
+          active="first"
+          onChange={() => {}}
+        />
         <div className="mt-4 flex flex-col gap-4">
           {demoOrders.map((order) => (
             <RequestCard key={order.id} order={order} role="customer" />
@@ -162,23 +175,51 @@ export function DashOrderDetailThumb() {
             Measurement snapshot — locked to this order · sent Jul 12
           </p>
           <div className="mt-2 flex gap-2">
-            {["shoulder 42.5", "hip 96.2", "sleeve 58.0", "waist 78.4", "+10 more"].map(
-              (v) => (
-                <span
-                  key={v}
-                  className="tnum rounded-pill border border-border px-3 py-1 text-caption text-text-2"
-                >
-                  {v}
-                </span>
-              ),
-            )}
+            {[
+              "shoulder 42.5",
+              "hip 96.2",
+              "sleeve 58.0",
+              "waist 78.4",
+              "+10 more",
+            ].map((v) => (
+              <span
+                key={v}
+                className="tnum rounded-pill border border-border px-3 py-1 text-caption text-text-2"
+              >
+                {v}
+              </span>
+            ))}
           </div>
           <div className="mt-4">
-            <OrderTimelineRow dot="done" connector="drawn" label="Requested" timestamp={timelineDaysAgo(10)} />
-            <OrderTimelineRow dot="done" connector="drawn" label="Quoted — ₦45,000" timestamp={timelineDaysAgo(8)} />
-            <OrderTimelineRow dot="done" connector="drawn" label="Paid — held in escrow" timestamp={timelineDaysAgo(6)} />
-            <OrderTimelineRow dot="current" connector="undrawn" label="In progress" timestamp={timelineDaysAgo(4)} />
-            <OrderTimelineRow dot="pending" connector="none" label="Delivered" />
+            <OrderTimelineRow
+              dot="done"
+              connector="drawn"
+              label="Requested"
+              timestamp={timelineDaysAgo(10)}
+            />
+            <OrderTimelineRow
+              dot="done"
+              connector="drawn"
+              label="Quoted — ₦45,000"
+              timestamp={timelineDaysAgo(8)}
+            />
+            <OrderTimelineRow
+              dot="done"
+              connector="drawn"
+              label="Paid — held in escrow"
+              timestamp={timelineDaysAgo(6)}
+            />
+            <OrderTimelineRow
+              dot="current"
+              connector="undrawn"
+              label="In progress"
+              timestamp={timelineDaysAgo(4)}
+            />
+            <OrderTimelineRow
+              dot="pending"
+              connector="none"
+              label="Delivered"
+            />
           </div>
           <div className="mt-4">
             <PaymentBox
@@ -193,9 +234,19 @@ export function DashOrderDetailThumb() {
             Thread — amara.designs
           </p>
           <div className="mt-3 flex flex-col gap-3">
-            <ThreadBubble side="received" text="Sewing started today — shoulders first." />
-            <ThreadBubble side="sent" text="Can't wait! The fabric is gorgeous." />
-            <ThreadBubble side="received" content="image" imageUrl="/demo/outfit-w14.jpg" />
+            <ThreadBubble
+              side="received"
+              text="Sewing started today — shoulders first."
+            />
+            <ThreadBubble
+              side="sent"
+              text="Can't wait! The fabric is gorgeous."
+            />
+            <ThreadBubble
+              side="received"
+              content="image"
+              imageUrl="/demo/outfit-w14.jpg"
+            />
           </div>
           <div className="mt-4">
             <Input placeholder="Message amara.designs" readOnly />

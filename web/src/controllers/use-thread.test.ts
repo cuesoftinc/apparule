@@ -95,7 +95,9 @@ describe("useThread", () => {
       return sent;
     });
     await act(() => result.current.retry(failed!));
-    expect(result.current.messages.some((m) => m.state === "failed")).toBe(false);
+    expect(result.current.messages.some((m) => m.state === "failed")).toBe(
+      false,
+    );
     expect(result.current.messages.map((m) => m.id)).toContain("m-ok");
   });
 });

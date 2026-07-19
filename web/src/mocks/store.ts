@@ -267,7 +267,8 @@ export class MockStore {
       }
       account.username = patch.username;
     }
-    if (patch.display_name !== undefined) account.display_name = patch.display_name;
+    if (patch.display_name !== undefined)
+      account.display_name = patch.display_name;
     if (patch.profile_location !== undefined) {
       account.profile_location = patch.profile_location;
       // The designer profile's cached location mirrors the account's —
@@ -714,7 +715,11 @@ export class MockStore {
       .map((d) => this.summaryOf(this.accountByUsername(d.username), viewer));
   }
 
-  setFollow(viewerUsername: string, designerUsername: string, on: boolean): void {
+  setFollow(
+    viewerUsername: string,
+    designerUsername: string,
+    on: boolean,
+  ): void {
     const viewer = this.accountByUsername(viewerUsername);
     if (!this.designerByUsername(designerUsername)) {
       throw new MockApiError("not_found", "Designer not found", 404);
@@ -950,7 +955,10 @@ export class MockStore {
 
   // -- orders ---------------------------------------------------------------
 
-  ordersFor(username: string, role: "customer" | "designer"): CommissionRequest[] {
+  ordersFor(
+    username: string,
+    role: "customer" | "designer",
+  ): CommissionRequest[] {
     const account = this.accountByUsername(username);
     const designer = this.designerByUsername(username);
     return deepClone(
@@ -1048,10 +1056,7 @@ export class MockStore {
       "state",
       "country",
     ];
-    if (
-      !input.delivery ||
-      requiredDelivery.some((k) => !input.delivery[k])
-    ) {
+    if (!input.delivery || requiredDelivery.some((k) => !input.delivery[k])) {
       throw new MockApiError(
         "validation_failed",
         "Delivery address is incomplete",
@@ -1164,7 +1169,10 @@ export class MockStore {
     });
   }
 
-  private orderAsDesigner(orderId: string, username: string): CommissionRequest {
+  private orderAsDesigner(
+    orderId: string,
+    username: string,
+  ): CommissionRequest {
     const designer = this.designerByUsername(username);
     const order = this.orders.find((o) => o.id === orderId);
     if (!order || !designer || order.designer.id !== designer.id) {
@@ -1173,7 +1181,10 @@ export class MockStore {
     return order;
   }
 
-  private orderAsCustomer(orderId: string, username: string): CommissionRequest {
+  private orderAsCustomer(
+    orderId: string,
+    username: string,
+  ): CommissionRequest {
     const account = this.accountByUsername(username);
     const order = this.orders.find(
       (o) => o.id === orderId && o.customer.id === account.id,
@@ -1190,7 +1201,11 @@ export class MockStore {
   ): CommissionRequest {
     const order = this.orderAsDesigner(orderId, designerUsername);
     if (!Number.isInteger(quoteCents) || quoteCents <= 0) {
-      throw new MockApiError("validation_failed", "quote_cents must be a positive integer", 422);
+      throw new MockApiError(
+        "validation_failed",
+        "quote_cents must be a positive integer",
+        422,
+      );
     }
     if (order.status !== "quoted") {
       // Requote is allowed while `quoted` — replaces the quote without a
@@ -1217,7 +1232,11 @@ export class MockStore {
   ): CommissionRequest {
     const order = this.orderAsDesigner(orderId, designerUsername);
     if (!reason) {
-      throw new MockApiError("validation_failed", "Decline reason is required", 422);
+      throw new MockApiError(
+        "validation_failed",
+        "Decline reason is required",
+        422,
+      );
     }
     this.transition(order, "declined", "designer");
     order.decline_reason = reason;
@@ -1274,7 +1293,10 @@ export class MockStore {
     return deepClone(order);
   }
 
-  confirmDelivery(orderId: string, customerUsername: string): CommissionRequest {
+  confirmDelivery(
+    orderId: string,
+    customerUsername: string,
+  ): CommissionRequest {
     const order = this.orderAsCustomer(orderId, customerUsername);
     this.transition(order, "delivered", "customer");
     if (order.payment) order.payment.state = "released";
@@ -1376,7 +1398,11 @@ export class MockStore {
     const account = this.accountByUsername(username);
     return deepClone(
       this.notifications
-        .filter((n) => n.account_id === account.id || n.account_id === this.designerByUsername(username)?.id)
+        .filter(
+          (n) =>
+            n.account_id === account.id ||
+            n.account_id === this.designerByUsername(username)?.id,
+        )
         .sort(
           (a, b) =>
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
@@ -1398,7 +1424,11 @@ export class MockStore {
 
   // -- designer & earnings --------------------------------------------------
 
-  enableDesigner(username: string, displayName: string, bio?: string): DesignerProfile {
+  enableDesigner(
+    username: string,
+    displayName: string,
+    bio?: string,
+  ): DesignerProfile {
     const account = this.accountByUsername(username);
     let designer = this.designerByUsername(username);
     if (!designer) {
@@ -1508,7 +1538,9 @@ export class MockStore {
           currency: order.currency,
           order_number: `#${order.order_number}`,
           provider_ref: null,
-          created_at: order.events.find((e) => e.kind === "paid")?.created_at ?? order.created_at,
+          created_at:
+            order.events.find((e) => e.kind === "paid")?.created_at ??
+            order.created_at,
         });
       } else if (order.payment.state === "released") {
         balance += net;
@@ -1578,7 +1610,11 @@ export class MockStore {
     return deepClone(report);
   }
 
-  setBlock(blockerUsername: string, blockedUsername: string, on: boolean): void {
+  setBlock(
+    blockerUsername: string,
+    blockedUsername: string,
+    on: boolean,
+  ): void {
     const blocker = this.accountByUsername(blockerUsername);
     const blocked = this.accountByUsername(blockedUsername);
     const key = `${blocker.id}:${blocked.id}`;
@@ -1590,20 +1626,14 @@ export class MockStore {
   private requireStaff(username: string): Account {
     const account = this.accountByUsername(username);
     if (!account.is_staff) {
-      throw new MockApiError(
-        "forbidden",
-        "Moderation is staff-only",
-        403,
-      );
+      throw new MockApiError("forbidden", "Moderation is staff-only", 403);
     }
     return account;
   }
 
   moderationQueue(moderatorUsername: string): Report[] {
     this.requireStaff(moderatorUsername);
-    return deepClone(
-      this.reports.filter((r) => r.status === "open"),
-    );
+    return deepClone(this.reports.filter((r) => r.status === "open"));
   }
 
   actOnReport(
@@ -1646,7 +1676,11 @@ export class MockStore {
     return deepClone(this.accountByUsername(username).consent);
   }
 
-  recordConsent(username: string, document: "tos" | "privacy", version: string) {
+  recordConsent(
+    username: string,
+    document: "tos" | "privacy",
+    version: string,
+  ) {
     const account = this.accountByUsername(username);
     const record = {
       document,

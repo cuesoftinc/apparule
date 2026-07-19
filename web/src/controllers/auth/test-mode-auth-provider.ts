@@ -3,11 +3,7 @@
 // account repository; a sessionStorage flag makes the session sticky across
 // reloads within the tab.
 import { accountRepo } from "@/models/repositories/account-repo";
-import type {
-  AuthProviderAdapter,
-  AuthSession,
-  SignInResult,
-} from "./types";
+import type { AuthProviderAdapter, AuthSession, SignInResult } from "./types";
 
 const SESSION_FLAG = "apparule.testmode.signedin";
 

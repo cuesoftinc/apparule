@@ -62,7 +62,11 @@ export function ManualMeasureRow({
       data-state={error ? "error" : active ? "active" : "default"}
       className={clsx(
         "flex flex-col gap-2 rounded-card border p-4 transition-colors duration-120 ease-standard",
-        error ? "border-error" : active ? "border-accent-start" : "border-border",
+        error
+          ? "border-error"
+          : active
+            ? "border-accent-start"
+            : "border-border",
         "motion-reduce:transition-none",
         className,
       )}

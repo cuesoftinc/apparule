@@ -38,7 +38,10 @@ function togglePost(
  */
 export const FEED_PAGE_SIZE = 4;
 
-export function useFeed(mode: "feed" | "explore" = "feed", filters?: ExploreFilters) {
+export function useFeed(
+  mode: "feed" | "explore" = "feed",
+  filters?: ExploreFilters,
+) {
   const [state, setState] = useState<FeedState>({
     posts: [],
     loading: true,

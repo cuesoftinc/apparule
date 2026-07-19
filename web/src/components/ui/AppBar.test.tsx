@@ -10,10 +10,17 @@ describe("AppBar (§8.2b)", () => {
   });
 
   it("root: title + trailing action slot, no back chevron", () => {
-    render(<AppBar title="Apparule" trailing={<button type="button">Bell</button>} />);
+    render(
+      <AppBar
+        title="Apparule"
+        trailing={<button type="button">Bell</button>}
+      />,
+    );
     expect(screen.getByText("Apparule")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Bell" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Back" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Back" }),
+    ).not.toBeInTheDocument();
   });
 
   it("sub: chevron-left fires onBack", async () => {

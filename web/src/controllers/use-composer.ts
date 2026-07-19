@@ -44,57 +44,54 @@ export function useComposer() {
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
 
-  const addFiles = useCallback(
-    (files: File[]) => {
-      setDropError(null);
-      setMedia((prev) => {
-        const room = MAX_ITEMS - prev.length;
-        const accepted: ComposerMediaItem[] = [];
-        for (const file of files.slice(0, room)) {
-          if (!ALLOWED.includes(file.type)) {
-            setDropError("Images must be JPEG, PNG, or WebP");
-            continue;
-          }
-          if (file.size > MAX_BYTES) {
-            setDropError("Images must be 10 MB or smaller");
-            continue;
-          }
-          const item: ComposerMediaItem = {
-            localId: crypto.randomUUID(),
-            previewUrl: URL.createObjectURL(file),
-            url: null,
-            altText: "",
-            error: null,
-          };
-          accepted.push(item);
-          // Upload in the background; tile shows progress state until done.
-          postsRepo.uploadMedia(file).then(
-            (uploaded) => {
-              setMedia((current) =>
-                current.map((m) =>
-                  m.localId === item.localId ? { ...m, url: uploaded.url } : m,
-                ),
-              );
-            },
-            () => {
-              setMedia((current) =>
-                current.map((m) =>
-                  m.localId === item.localId
-                    ? { ...m, error: "Upload failed" }
-                    : m,
-                ),
-              );
-            },
-          );
+  const addFiles = useCallback((files: File[]) => {
+    setDropError(null);
+    setMedia((prev) => {
+      const room = MAX_ITEMS - prev.length;
+      const accepted: ComposerMediaItem[] = [];
+      for (const file of files.slice(0, room)) {
+        if (!ALLOWED.includes(file.type)) {
+          setDropError("Images must be JPEG, PNG, or WebP");
+          continue;
         }
-        if (files.length > room) {
-          setDropError(`Posts carry at most ${MAX_ITEMS} images`);
+        if (file.size > MAX_BYTES) {
+          setDropError("Images must be 10 MB or smaller");
+          continue;
         }
-        return [...prev, ...accepted];
-      });
-    },
-    [],
-  );
+        const item: ComposerMediaItem = {
+          localId: crypto.randomUUID(),
+          previewUrl: URL.createObjectURL(file),
+          url: null,
+          altText: "",
+          error: null,
+        };
+        accepted.push(item);
+        // Upload in the background; tile shows progress state until done.
+        postsRepo.uploadMedia(file).then(
+          (uploaded) => {
+            setMedia((current) =>
+              current.map((m) =>
+                m.localId === item.localId ? { ...m, url: uploaded.url } : m,
+              ),
+            );
+          },
+          () => {
+            setMedia((current) =>
+              current.map((m) =>
+                m.localId === item.localId
+                  ? { ...m, error: "Upload failed" }
+                  : m,
+              ),
+            );
+          },
+        );
+      }
+      if (files.length > room) {
+        setDropError(`Posts carry at most ${MAX_ITEMS} images`);
+      }
+      return [...prev, ...accepted];
+    });
+  }, []);
 
   const removeItem = useCallback((localId: string) => {
     setMedia((prev) => prev.filter((m) => m.localId !== localId));
@@ -139,8 +136,7 @@ export function useComposer() {
           media: media.map((m) => ({
             url: m.url!,
             // Alt text required; default per design.md §5.
-            alt_text:
-              m.altText.trim() || `Outfit by ${designerDisplayName}`,
+            alt_text: m.altText.trim() || `Outfit by ${designerDisplayName}`,
           })),
         });
         router.push("/dashboard");

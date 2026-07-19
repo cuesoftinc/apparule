@@ -13,9 +13,15 @@ describe("ProcessingConstellation (§8.2b)", () => {
 
   it("draws the landmark constellation over the photo", () => {
     render(
-      <ProcessingConstellation state="processing" imageSrc="/demo/outfit-w00.jpg" />,
+      <ProcessingConstellation
+        state="processing"
+        imageSrc="/demo/outfit-w00.jpg"
+      />,
     );
-    expect(screen.getByRole("img")).toHaveAttribute("src", "/demo/outfit-w00.jpg");
+    expect(screen.getByRole("img")).toHaveAttribute(
+      "src",
+      "/demo/outfit-w00.jpg",
+    );
     expect(screen.getAllByTestId("landmark").length).toBeGreaterThanOrEqual(13);
   });
 
@@ -23,7 +29,9 @@ describe("ProcessingConstellation (§8.2b)", () => {
     render(<ProcessingConstellation state="processing" />);
     const dots = screen.getAllByTestId("landmark");
     expect(dots[0].getAttribute("class")).toContain("landmark-pulse");
-    expect(dots[0].getAttribute("class")).toContain("motion-reduce:animate-none");
+    expect(dots[0].getAttribute("class")).toContain(
+      "motion-reduce:animate-none",
+    );
     expect(dots[1].getAttribute("style")).toContain("animation-delay");
   });
 

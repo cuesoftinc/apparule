@@ -6,7 +6,9 @@ describe("HomeFooter (§8.2b marketing, parity canon 2026-07-19)", () => {
   it("renders the four canon link columns", () => {
     render(<HomeFooter />);
     for (const heading of ["Product", "Docs", "Community", "Legal"]) {
-      expect(screen.getByRole("heading", { name: heading })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: heading }),
+      ).toBeInTheDocument();
     }
   });
 
@@ -15,8 +17,14 @@ describe("HomeFooter (§8.2b marketing, parity canon 2026-07-19)", () => {
     const canon: [string, string][] = [
       ["Docs", "https://cuesoft.gitbook.io/apparule"],
       ["Quickstart", "https://cuesoft.gitbook.io/apparule/setup"],
-      ["API reference", "https://cuesoft.gitbook.io/apparule/system/api-surface"],
-      ["Self-host guide", "https://cuesoft.gitbook.io/apparule/system/deployment"],
+      [
+        "API reference",
+        "https://cuesoft.gitbook.io/apparule/system/api-surface",
+      ],
+      [
+        "Self-host guide",
+        "https://cuesoft.gitbook.io/apparule/system/deployment",
+      ],
       ["GitHub", "https://github.com/cuesoftinc/apparule"],
       ["Discord", "https://discord.gg/CDfZxxrxbb"],
       ["Roadmap", "https://cuesoft.gitbook.io/apparule/product/roadmap"],

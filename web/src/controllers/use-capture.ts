@@ -15,11 +15,7 @@ import { vaultRepo } from "@/models/repositories/vault-repo";
 const PROCESSING_MS = 1800;
 
 export type CapturePhase =
-  | "idle"
-  | "processing"
-  | "results"
-  | "qc_failed"
-  | "saving";
+  "idle" | "processing" | "results" | "qc_failed" | "saving";
 
 export interface QcFailure {
   code: string;

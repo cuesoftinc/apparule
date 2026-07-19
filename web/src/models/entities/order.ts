@@ -111,10 +111,7 @@ export type DeclineReason =
   | "other";
 
 export type DisputeReason =
-  | "not_received"
-  | "not_as_described"
-  | "size_wrong"
-  | "other";
+  "not_received" | "not_as_described" | "size_wrong" | "other";
 
 export interface CommissionRequest {
   id: string;

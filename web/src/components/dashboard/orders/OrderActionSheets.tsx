@@ -83,7 +83,12 @@ export function QuoteSheet({
           />
         </FormRow>
         <footer className="flex justify-end">
-          <Button kind="gradient-primary" type="submit" disabled={!valid} loading={busy}>
+          <Button
+            kind="gradient-primary"
+            type="submit"
+            disabled={!valid}
+            loading={busy}
+          >
             Send quote
           </Button>
         </footer>
@@ -128,7 +133,12 @@ export function DeclineSheet({
           onChange={(e) => setNote(e.target.value)}
         />
         <footer className="flex justify-end">
-          <Button kind="destructive" type="submit" disabled={!reason} loading={busy}>
+          <Button
+            kind="destructive"
+            type="submit"
+            disabled={!reason}
+            loading={busy}
+          >
             Decline
           </Button>
         </footer>
@@ -176,7 +186,12 @@ export function DisputeSheet({
           onChange={(e) => setDetail(e.target.value)}
         />
         <footer className="flex justify-end">
-          <Button kind="destructive" type="submit" disabled={!reason} loading={busy}>
+          <Button
+            kind="destructive"
+            type="submit"
+            disabled={!reason}
+            loading={busy}
+          >
             Open dispute
           </Button>
         </footer>

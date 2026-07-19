@@ -70,9 +70,7 @@ export function MeasurementCard({
           Low confidence · {confidence!.toFixed(2)}
         </span>
       ) : null}
-      {history && history.length > 1 ? (
-        <Sparkline values={history} />
-      ) : null}
+      {history && history.length > 1 ? <Sparkline values={history} /> : null}
       {updatedAt ? (
         <span className="text-micro text-text-2">
           Updated {formatAgoPhrase(updatedAt)}
@@ -91,7 +89,10 @@ export function Sparkline({ values }: { values: number[] }) {
   const range = max - min || 1;
   const step = width / (values.length - 1);
   const points = values
-    .map((v, i) => `${(i * step).toFixed(1)},${(height - 4 - ((v - min) / range) * (height - 8)).toFixed(1)}`)
+    .map(
+      (v, i) =>
+        `${(i * step).toFixed(1)},${(height - 4 - ((v - min) / range) * (height - 8)).toFixed(1)}`,
+    )
     .join(" ");
   return (
     <svg
@@ -112,7 +113,11 @@ export function Sparkline({ values }: { values: number[] }) {
       />
       <circle
         cx={width}
-        cy={height - 4 - ((values[values.length - 1] - min) / range) * (height - 8)}
+        cy={
+          height -
+          4 -
+          ((values[values.length - 1] - min) / range) * (height - 8)
+        }
         r="2.5"
         fill="var(--ap-accent-end)"
       />

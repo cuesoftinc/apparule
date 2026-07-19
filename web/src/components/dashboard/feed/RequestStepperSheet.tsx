@@ -48,7 +48,8 @@ function ConfettiBurst() {
           key={i}
           className="absolute left-1/2 top-1/3 h-2 w-2 rounded-full"
           style={{
-            background: i % 2 === 0 ? "var(--ap-accent-start)" : "var(--ap-accent-end)",
+            background:
+              i % 2 === 0 ? "var(--ap-accent-start)" : "var(--ap-accent-end)",
             animation: `ap-confetti 0.8s var(--ap-ease-exit) forwards`,
             transform: `rotate(${i * 30}deg)`,
           }}
@@ -153,10 +154,13 @@ export function RequestStepperSheet({
           ) : null}
 
           {step === 0 ? (
-            <fieldset className="flex flex-col gap-2" data-testid="stepper-step-1">
+            <fieldset
+              className="flex flex-col gap-2"
+              data-testid="stepper-step-1"
+            >
               <legend className="pb-2 text-body text-text-2">
-                Pick the measurement set to share — only {post.designer.username}{" "}
-                sees it, only for this order.
+                Pick the measurement set to share — only{" "}
+                {post.designer.username} sees it, only for this order.
               </legend>
               {sessionsLoading ? (
                 <Skeleton kind="card" />
@@ -221,7 +225,9 @@ export function RequestStepperSheet({
                       : ""
                   }
                   onChange={(e) => {
-                    const parsed = Number(e.target.value.replace(/[^\d.]/g, ""));
+                    const parsed = Number(
+                      e.target.value.replace(/[^\d.]/g, ""),
+                    );
                     setDetail(
                       "budgetCents",
                       Number.isFinite(parsed) && e.target.value !== ""
@@ -240,7 +246,9 @@ export function RequestStepperSheet({
               <FormRow label="Target date (optional)">
                 <DateInput
                   aria-label="Target date"
-                  value={details.targetDate ? new Date(details.targetDate) : null}
+                  value={
+                    details.targetDate ? new Date(details.targetDate) : null
+                  }
                   onChange={(date) =>
                     setDetail(
                       "targetDate",

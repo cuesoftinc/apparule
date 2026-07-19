@@ -19,7 +19,9 @@ describe("CaptureOverlay (§8.2b)", () => {
     render(<CaptureOverlay guide="searching" />);
     const silhouette = screen.getByTestId("silhouette");
     expect(silhouette.getAttribute("class")).toContain("silhouette-pulse");
-    expect(silhouette.getAttribute("class")).toContain("motion-reduce:animate-none");
+    expect(silhouette.getAttribute("class")).toContain(
+      "motion-reduce:animate-none",
+    );
   });
 
   it("aligned: guide turns success", () => {
@@ -30,7 +32,9 @@ describe("CaptureOverlay (§8.2b)", () => {
 
   it("countdown: renders the CountdownRing at the current tick", () => {
     render(<CaptureOverlay guide="countdown" countdownValue={2} />);
-    expect(screen.getByRole("timer", { name: "Capturing in 2" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("timer", { name: "Capturing in 2" }),
+    ).toBeInTheDocument();
   });
 
   it("qc-hint: chip slot renders the code's guidance", () => {

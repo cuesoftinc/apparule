@@ -16,20 +16,27 @@ export function DesignersSection() {
     >
       <div className="flex flex-col items-start gap-10 md:flex-row md:items-center md:gap-16">
         <div className="max-w-[480px] flex-1">
-          <h2 id="designers-heading" className="text-title-lg font-bold text-text">
+          <h2
+            id="designers-heading"
+            className="text-title-lg font-bold text-text"
+          >
             Post outfits, get commissioned, get paid
           </h2>
           <p className="mt-4 text-body-lg text-text-2">
-            Every request arrives with the customer&apos;s measurement
-            snapshot. Quote, sew, ship — funds sit in escrow and release on
-            delivery confirmation.
+            Every request arrives with the customer&apos;s measurement snapshot.
+            Quote, sew, ship — funds sit in escrow and release on delivery
+            confirmation.
           </p>
         </div>
         <div className="w-full max-w-[400px] shrink-0">
           <EarningsSummary earnings={designerEarningsDemo.earnings} />
           <div className="mt-2">
             {designerEarningsDemo.transactions.map((t) => (
-              <TransactionRow key={t.entry.id} entry={t.entry} label={t.label} />
+              <TransactionRow
+                key={t.entry.id}
+                entry={t.entry}
+                label={t.label}
+              />
             ))}
           </div>
         </div>

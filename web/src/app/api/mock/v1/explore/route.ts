@@ -41,7 +41,8 @@ export async function GET(request: Request) {
       store.rankedPage(
         actor,
         fingerprint,
-        () => store.explore(actor, q, tags, priceBand, maxTurnaroundDays, nearMe),
+        () =>
+          store.explore(actor, q, tags, priceBand, maxTurnaroundDays, nearMe),
         url.searchParams.get("cursor"),
         parseLimit(url),
       ),

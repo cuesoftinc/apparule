@@ -38,6 +38,8 @@ describe("Banner / InlineAlert (§8.2b)", () => {
 
   it("persistent banners render no dismiss affordance", () => {
     render(<Banner tone="warn">Persistent</Banner>);
-    expect(screen.queryByRole("button", { name: "Dismiss" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Dismiss" }),
+    ).not.toBeInTheDocument();
   });
 });

@@ -14,7 +14,9 @@ describe("CountdownRing (§8.2b)", () => {
     const { container, rerender } = render(<CountdownRing value={3} />);
     const arcAt = () =>
       Number(
-        container.querySelectorAll("circle")[1]?.getAttribute("stroke-dashoffset"),
+        container
+          .querySelectorAll("circle")[1]
+          ?.getAttribute("stroke-dashoffset"),
       );
     const full = arcAt(); // 3/3 → offset 0
     expect(full).toBeCloseTo(0, 5);

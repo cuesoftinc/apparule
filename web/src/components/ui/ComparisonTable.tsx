@@ -25,8 +25,14 @@ const DEFAULT_ROWS: ComparisonRow[] = [
 ];
 
 function Cell({ value }: { value: boolean | string }) {
-  if (value === true) return <Check size={24} className="mx-auto text-success" aria-label="Included" />;
-  if (value === false) return <X size={24} className="mx-auto text-text-2" aria-label="Not included" />;
+  if (value === true)
+    return (
+      <Check size={24} className="mx-auto text-success" aria-label="Included" />
+    );
+  if (value === false)
+    return (
+      <X size={24} className="mx-auto text-text-2" aria-label="Not included" />
+    );
   return <span className="text-caption text-text-2">{value}</span>;
 }
 

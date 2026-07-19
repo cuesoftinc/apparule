@@ -16,7 +16,10 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PostCard } from "@/components/ui/PostCard";
 import { Sheet } from "@/components/ui/Sheet";
 import { StoryRailItem } from "@/components/ui/StoryRailItem";
-import { UnfollowConfirmSheet, type UnfollowTarget } from "../UnfollowConfirmSheet";
+import {
+  UnfollowConfirmSheet,
+  type UnfollowTarget,
+} from "../UnfollowConfirmSheet";
 import { PostDetailView } from "../post/PostDetailView";
 import { FeedSidebar } from "./FeedSidebar";
 import { PostOptionsSheet } from "./PostOptionsSheet";
@@ -28,7 +31,9 @@ const FRESH_MS = 48 * 60 * 60 * 1000; // story ring = outfits <48h (MI-8)
 
 /** Story-rail projection — module fn so the clock read stays out of render
  * scope (same shape as models' freshnessOf). */
-function storyDesignersOf(posts: Post[]): { username: string; fresh: boolean }[] {
+function storyDesignersOf(
+  posts: Post[],
+): { username: string; fresh: boolean }[] {
   const now = Date.now();
   const byUsername = new Map<string, { username: string; fresh: boolean }>();
   for (const post of posts) {
@@ -169,7 +174,11 @@ export function FeedView() {
           />
         ) : (
           <>
-            <ul ref={listRef} className="flex flex-col gap-6" data-testid="feed-list">
+            <ul
+              ref={listRef}
+              className="flex flex-col gap-6"
+              data-testid="feed-list"
+            >
               {feed.posts.map((post) => (
                 <li
                   key={post.id}

@@ -5,8 +5,14 @@ import { StatCard } from "@/components/ui/StatCard";
 
 const STATS = [
   { stat: "±2 cm", label: "target accuracy vs a professional tape measure" },
-  { stat: "2 photos", label: "all it takes to build a full measurement profile" },
-  { stat: "30 days", label: "capture photos auto-delete — measurements stay yours" },
+  {
+    stat: "2 photos",
+    label: "all it takes to build a full measurement profile",
+  },
+  {
+    stat: "30 days",
+    label: "capture photos auto-delete — measurements stay yours",
+  },
 ] as const;
 
 export function StatBand() {

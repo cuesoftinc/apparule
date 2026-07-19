@@ -120,9 +120,7 @@ export function FeedSidebar({
                       suggestions.toggleFollow(row),
                     )
                   }
-                  onOpen={() =>
-                    router.push(`/dashboard/${row.username}`)
-                  }
+                  onOpen={() => router.push(`/dashboard/${row.username}`)}
                 />
               </li>
             ))}

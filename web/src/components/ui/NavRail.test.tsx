@@ -16,7 +16,9 @@ describe("NavRail (§8.2b)", () => {
     renderRail({ expanded: true });
     expect(DEFAULT_NAV_ITEMS).toHaveLength(7);
     for (const item of DEFAULT_NAV_ITEMS) {
-      expect(screen.getByRole("link", { name: item.label })).toBeInTheDocument();
+      expect(
+        screen.getByRole("link", { name: item.label }),
+      ).toBeInTheDocument();
     }
   });
 
@@ -30,18 +32,26 @@ describe("NavRail (§8.2b)", () => {
 
   it("collapsed 72 / expanded 244 widths", () => {
     const { rerender } = renderRail();
-    expect(screen.getByRole("navigation")).toHaveAttribute("data-expanded", "false");
+    expect(screen.getByRole("navigation")).toHaveAttribute(
+      "data-expanded",
+      "false",
+    );
     rerender(
       <ThemeProvider>
         <NavRail activeKey="home" expanded />
       </ThemeProvider>,
     );
-    expect(screen.getByRole("navigation")).toHaveAttribute("data-expanded", "true");
+    expect(screen.getByRole("navigation")).toHaveAttribute(
+      "data-expanded",
+      "true",
+    );
   });
 
   it("footer slot carries theme toggle + support link", () => {
     renderRail({ expanded: true });
-    expect(screen.getByRole("button", { name: /switch to .* theme/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /switch to .* theme/i }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /support/i })).toHaveAttribute(
       "href",
       "https://clients.cuesoft.io",

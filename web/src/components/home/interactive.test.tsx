@@ -15,9 +15,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
 }));
 
-const stars = vi.fn<() => Promise<number | null>>(() =>
-  Promise.resolve(null),
-);
+const stars = vi.fn<() => Promise<number | null>>(() => Promise.resolve(null));
 vi.mock("@/models/repositories/github-repo", async (importOriginal) => {
   const original =
     await importOriginal<typeof import("@/models/repositories/github-repo")>();
@@ -71,7 +69,9 @@ describe("HeroSection (A2)", () => {
 
   it("Try Cloud tracks and hands off to /signin", async () => {
     render(<HeroSection />);
-    await userEvent.click(screen.getAllByRole("button", { name: "Try Cloud" })[0]);
+    await userEvent.click(
+      screen.getAllByRole("button", { name: "Try Cloud" })[0],
+    );
     expect(names()).toContain("try_cloud_click");
     expect(push).toHaveBeenCalledWith("/signin");
   });
@@ -92,7 +92,9 @@ describe("HeroPhoneMock loop (A2)", () => {
     );
     expect(screen.getByText("amara.designs")).toBeInTheDocument();
     expect(screen.getByText("kikithreads")).toBeInTheDocument();
-    expect(screen.getAllByText("Request this outfit").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Request this outfit").length).toBeGreaterThan(
+      0,
+    );
   });
 
   it("advances feed → capture on the loop timer and pauses on hover", () => {
@@ -216,7 +218,9 @@ describe("FinalCtaBand (A9c)", () => {
       screen.getByText("Open-source · MIT licensed · Self-host in one line"),
     ).toBeInTheDocument();
 
-    await userEvent.click(screen.getAllByRole("button", { name: "Try Cloud" })[0]);
+    await userEvent.click(
+      screen.getAllByRole("button", { name: "Try Cloud" })[0],
+    );
     expect(names()).toContain("try_cloud_click");
     expect(push).toHaveBeenCalledWith("/signin");
 
@@ -255,7 +259,9 @@ describe("HomeNavBar (A1)", () => {
         <HomeNavBar />
       </ThemeProvider>,
     );
-    const toggle = screen.getByRole("button", { name: /switch to dark theme/i });
+    const toggle = screen.getByRole("button", {
+      name: /switch to dark theme/i,
+    });
     await userEvent.click(toggle);
     expect(document.documentElement).toHaveAttribute("data-theme", "dark");
     await userEvent.click(
@@ -274,7 +280,9 @@ describe("HomeNavBar (A1)", () => {
       "href",
       "/signin",
     );
-    await userEvent.click(screen.getAllByRole("button", { name: "Try Cloud" })[0]);
+    await userEvent.click(
+      screen.getAllByRole("button", { name: "Try Cloud" })[0],
+    );
     expect(names()).toContain("try_cloud_click");
     expect(push).toHaveBeenCalledWith("/signin");
   });

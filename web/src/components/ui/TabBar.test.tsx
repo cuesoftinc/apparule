@@ -20,9 +20,9 @@ describe("TabBar (§8.2)", () => {
     "marks active tab ×5 — %s",
     (key) => {
       render(<TabBar activeKey={key} />);
-      const active = screen.getAllByRole("link").filter(
-        (l) => l.getAttribute("aria-current") === "page",
-      );
+      const active = screen
+        .getAllByRole("link")
+        .filter((l) => l.getAttribute("aria-current") === "page");
       expect(active).toHaveLength(1);
       expect(active[0]).toHaveAttribute("data-state", "active");
     },

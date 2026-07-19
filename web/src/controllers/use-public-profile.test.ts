@@ -76,7 +76,12 @@ describe("usePublicProfile.syncPost", () => {
     });
     // In the modal: liked + commented + UNSAVED.
     postGet.mockResolvedValue(
-      post("p1", { liked: true, like_count: 4, comment_count: 2, saved: false }),
+      post("p1", {
+        liked: true,
+        like_count: 4,
+        comment_count: 2,
+        saved: false,
+      }),
     );
     profileSaved.mockResolvedValueOnce({ items: [], next_cursor: null });
 

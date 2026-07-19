@@ -105,8 +105,8 @@ export function AccountDataView() {
       >
         <div className="flex flex-col gap-4">
           <p className="text-body text-text-2">
-            This requests permanent deletion of your account and vault. You
-            have 30 days to change your mind.
+            This requests permanent deletion of your account and vault. You have
+            30 days to change your mind.
           </p>
           <footer className="flex justify-end gap-2">
             <Button kind="quiet" onClick={() => setConfirmOpen(false)}>

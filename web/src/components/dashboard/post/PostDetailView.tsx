@@ -196,7 +196,10 @@ export function PostDetailView({
                   }
                 })
                 .catch(() =>
-                  showToast({ kind: "error", message: "Couldn't save the post" }),
+                  showToast({
+                    kind: "error",
+                    message: "Couldn't save the post",
+                  }),
                 );
             }}
           />

@@ -30,7 +30,10 @@ describe("Sheet (§8.2)", () => {
         open
         onOpenChange={() => {}}
         title="Request"
-        stepper={{ steps: ["Measurements", "Notes & budget", "Review"], current: 1 }}
+        stepper={{
+          steps: ["Measurements", "Notes & budget", "Review"],
+          current: 1,
+        }}
       >
         <p>Body</p>
       </Sheet>,
@@ -39,9 +42,10 @@ describe("Sheet (§8.2)", () => {
     // "Step n of N · Label" caption for the current step.
     const stepper = screen.getByTestId("sheet-stepper");
     expect(stepper).toHaveTextContent("Step 2 of 3 · Notes & budget");
-    expect(
-      screen.getByText(/Step 2 of 3/),
-    ).toHaveAttribute("aria-current", "step");
+    expect(screen.getByText(/Step 2 of 3/)).toHaveAttribute(
+      "aria-current",
+      "step",
+    );
   });
 
   it("desktop width follows the size axis (default 480px modal, wide post-detail)", () => {

@@ -1,10 +1,6 @@
 // Mock: POST /api/v1/requests/{id}/pay — escrow hold lands immediately in
 // the mock (no provider redirect); Idempotency-Key honored.
-import {
-  actorUsername,
-  handle,
-  jsonResponse,
-} from "@/mocks/http";
+import { actorUsername, handle, jsonResponse } from "@/mocks/http";
 import { getStore } from "@/mocks/store";
 
 type Params = { params: Promise<{ id: string }> };

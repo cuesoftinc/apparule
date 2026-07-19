@@ -51,7 +51,11 @@ export const ordersRepo = {
     }),
 
   /** POST /api/v1/requests/{id}/status — designer: in_progress | shipped only. */
-  setStatus: (id: string, status: "in_progress" | "shipped", tracking?: string) =>
+  setStatus: (
+    id: string,
+    status: "in_progress" | "shipped",
+    tracking?: string,
+  ) =>
     apiFetch<CommissionRequest>(`/v1/requests/${id}/status`, {
       method: "POST",
       json: { status, tracking },

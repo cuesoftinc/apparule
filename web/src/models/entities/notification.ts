@@ -2,12 +2,7 @@
 // derives from read_at IS NULL) + NotificationRow kinds (design.md §8.2b).
 
 export type NotificationKind =
-  | "like"
-  | "follow"
-  | "comment"
-  | "quote"
-  | "status_change"
-  | "payout";
+  "like" | "follow" | "comment" | "quote" | "status_change" | "payout";
 
 export interface Notification {
   id: string;

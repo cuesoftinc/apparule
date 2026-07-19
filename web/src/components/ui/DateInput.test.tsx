@@ -48,7 +48,9 @@ describe("DateInput (§8.2b)", () => {
 
   it("minDueDate is tomorrow (due_at ≥ today+1)", () => {
     const min = minDueDate(new Date("2026-07-18T15:00:00"));
-    expect(min.getTime()).toBe(startOfDay(new Date("2026-07-19T00:00:00")).getTime());
+    expect(min.getTime()).toBe(
+      startOfDay(new Date("2026-07-19T00:00:00")).getTime(),
+    );
   });
 
   it("DatePickerPopover disables days before minDate", async () => {

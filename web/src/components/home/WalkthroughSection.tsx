@@ -67,7 +67,10 @@ export function WalkthroughSection() {
       aria-labelledby="walkthrough-heading"
       className="mx-auto w-full max-w-[1128px] px-6 py-12"
     >
-      <h2 id="walkthrough-heading" className="text-title-lg font-bold text-text">
+      <h2
+        id="walkthrough-heading"
+        className="text-title-lg font-bold text-text"
+      >
         How it works
       </h2>
       <div

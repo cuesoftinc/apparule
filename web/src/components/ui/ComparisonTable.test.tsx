@@ -6,8 +6,12 @@ import { ComparisonTable } from "./ComparisonTable";
 describe("ComparisonTable (§8.2b marketing, pages.md A9)", () => {
   it("renders Cloud and Self-host columns", () => {
     render(<ComparisonTable />);
-    expect(screen.getByRole("columnheader", { name: "Cloud" })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: "Self-host" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("columnheader", { name: "Cloud" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("columnheader", { name: "Self-host" }),
+    ).toBeInTheDocument();
   });
 
   it("CTA row: Cloud → Start on Cloud, OSS → Self-host it (Stage 5 master)", async () => {
@@ -16,7 +20,9 @@ describe("ComparisonTable (§8.2b marketing, pages.md A9)", () => {
     render(<ComparisonTable onTryCloud={onTryCloud} onSelfHost={onSelfHost} />);
     const ctaRow = screen.getByTestId("cta-row");
     expect(ctaRow).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Start on Cloud" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "Start on Cloud" }),
+    );
     await userEvent.click(screen.getByRole("button", { name: "Self-host it" }));
     expect(onTryCloud).toHaveBeenCalledOnce();
     expect(onSelfHost).toHaveBeenCalledOnce();

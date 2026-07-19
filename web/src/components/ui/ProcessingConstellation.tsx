@@ -22,19 +22,35 @@ export interface ProcessingConstellationProps {
 // hips, knees, ankles) in the 200×300 guide space.
 const LANDMARKS: [number, number][] = [
   [100, 40], // nose
-  [72, 88], [128, 88], // shoulders
-  [56, 130], [144, 130], // elbows
-  [48, 170], [152, 170], // wrists
-  [82, 164], [118, 164], // hips
-  [78, 222], [122, 222], // knees
-  [74, 280], [126, 280], // ankles
+  [72, 88],
+  [128, 88], // shoulders
+  [56, 130],
+  [144, 130], // elbows
+  [48, 170],
+  [152, 170], // wrists
+  [82, 164],
+  [118, 164], // hips
+  [78, 222],
+  [122, 222], // knees
+  [74, 280],
+  [126, 280], // ankles
 ];
 
 const SEGMENTS: [number, number][] = [
-  [0, 1], [0, 2], [1, 2], // head → shoulders
-  [1, 3], [3, 5], [2, 4], [4, 6], // arms
-  [1, 7], [2, 8], [7, 8], // torso
-  [7, 9], [9, 11], [8, 10], [10, 12], // legs
+  [0, 1],
+  [0, 2],
+  [1, 2], // head → shoulders
+  [1, 3],
+  [3, 5],
+  [2, 4],
+  [4, 6], // arms
+  [1, 7],
+  [2, 8],
+  [7, 8], // torso
+  [7, 9],
+  [9, 11],
+  [8, 10],
+  [10, 12], // legs
 ];
 
 export function ProcessingConstellation({
@@ -86,7 +102,11 @@ export function ProcessingConstellation({
               cy={y}
               r={4}
               fill="var(--ap-accent-start)"
-              style={state === "processing" ? { animationDelay: `${i * 90}ms` } : undefined}
+              style={
+                state === "processing"
+                  ? { animationDelay: `${i * 90}ms` }
+                  : undefined
+              }
               className={clsx(
                 state === "processing" &&
                   "animate-[landmark-pulse_1.2s_ease-in-out_infinite] motion-reduce:animate-none",

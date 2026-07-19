@@ -194,8 +194,7 @@ export function ExploreView() {
                         showToast({
                           kind: "error",
                           message: `Couldn't follow ${row.username}`,
-                          onRetry: () =>
-                            void explore.toggleDesignerFollow(row),
+                          onRetry: () => void explore.toggleDesignerFollow(row),
                         }),
                       )
                     }
@@ -205,9 +204,7 @@ export function ExploreView() {
                         unfollow: () => explore.toggleDesignerFollow(row),
                       })
                     }
-                    onOpen={() =>
-                      router.push(`/dashboard/${row.username}`)
-                    }
+                    onOpen={() => router.push(`/dashboard/${row.username}`)}
                   />
                 </li>
               ))}

@@ -12,7 +12,9 @@ describe("Popover / MenuItem (§8.2b)", () => {
         <MenuItem label="Report post" destructive icon={Flag} />
       </Popover>,
     );
-    expect(screen.getByRole("menuitem", { name: "Copy link" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitem", { name: "Copy link" }),
+    ).toBeInTheDocument();
   });
 
   it("destructive items carry the error tone", () => {
@@ -21,10 +23,9 @@ describe("Popover / MenuItem (§8.2b)", () => {
         <MenuItem label="Report post" destructive />
       </Popover>,
     );
-    expect(screen.getByRole("menuitem", { name: "Report post" })).toHaveAttribute(
-      "data-destructive",
-      "true",
-    );
+    expect(
+      screen.getByRole("menuitem", { name: "Report post" }),
+    ).toHaveAttribute("data-destructive", "true");
   });
 
   it("item selection fires onSelect", async () => {

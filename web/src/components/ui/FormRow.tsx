@@ -25,7 +25,10 @@ export function FormRow({
   className,
 }: FormRowProps) {
   return (
-    <div className={clsx("flex flex-col gap-2", className)} data-error={!!error || undefined}>
+    <div
+      className={clsx("flex flex-col gap-2", className)}
+      data-error={!!error || undefined}
+    >
       <label htmlFor={htmlFor} className="text-body font-semibold text-text">
         {label}
         {/* Figma master (74:801) draws no required marker — announce it

@@ -66,9 +66,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           // width (spinner 18 md / 16 sm, on-accent on filled kinds).
           <Spinner
             size={size === "md" ? 18 : 16}
-            kind={
-              kind === "quiet" || kind === "link" ? "neutral" : "on-accent"
-            }
+            kind={kind === "quiet" || kind === "link" ? "neutral" : "on-accent"}
           />
         ) : (
           children

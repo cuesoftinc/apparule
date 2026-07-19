@@ -18,9 +18,9 @@ describe("Chip (§8.2)", () => {
 
   it("never wraps its label (pill contract, system QA)", () => {
     render(<Chip label="2-week turnaround" />);
-    expect(screen.getByRole("button", { name: "2-week turnaround" })).toHaveClass(
-      "whitespace-nowrap",
-    );
+    expect(
+      screen.getByRole("button", { name: "2-week turnaround" }),
+    ).toHaveClass("whitespace-nowrap");
   });
 
   it("selected chip exposes aria-pressed", () => {
@@ -42,9 +42,16 @@ describe("Chip (§8.2)", () => {
     const onRemove = vi.fn();
     const onClick = vi.fn();
     render(
-      <Chip kind="removable" label="near me" onRemove={onRemove} onClick={onClick} />,
+      <Chip
+        kind="removable"
+        label="near me"
+        onRemove={onRemove}
+        onClick={onClick}
+      />,
     );
-    await userEvent.click(screen.getByRole("button", { name: "Remove near me" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "Remove near me" }),
+    );
     expect(onRemove).toHaveBeenCalledOnce();
     expect(onClick).not.toHaveBeenCalled();
   });
@@ -73,7 +80,9 @@ describe("Chip (§8.2)", () => {
   });
 
   it("disabled removable chip disables the label button too", () => {
-    render(<Chip kind="removable" label="near me" onRemove={() => {}} disabled />);
+    render(
+      <Chip kind="removable" label="near me" onRemove={() => {}} disabled />,
+    );
     expect(screen.getByRole("button", { name: "near me" })).toBeDisabled();
   });
 });

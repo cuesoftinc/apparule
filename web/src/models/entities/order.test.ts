@@ -31,7 +31,12 @@ describe("order state machine (order-lifecycle.md §1)", () => {
   });
 
   it("terminal states have no outgoing edges", () => {
-    for (const terminal of ["delivered", "refunded", "declined", "cancelled"] as const) {
+    for (const terminal of [
+      "delivered",
+      "refunded",
+      "declined",
+      "cancelled",
+    ] as const) {
       expect(ORDER_TRANSITIONS[terminal]).toHaveLength(0);
     }
   });

@@ -1,10 +1,5 @@
 // Mock: GET /api/v1/requests?role=customer|designer (api.md §5).
-import {
-  actorUsername,
-  handle,
-  jsonResponse,
-  paginate,
-} from "@/mocks/http";
+import { actorUsername, handle, jsonResponse, paginate } from "@/mocks/http";
 import { getStore } from "@/mocks/store";
 
 export async function GET(request: Request) {

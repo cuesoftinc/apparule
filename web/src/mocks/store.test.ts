@@ -43,7 +43,9 @@ describe("seed narrative", () => {
     const sessions = store.sessionsFor("kiki.adeyemi");
     expect(sessions.length).toBeGreaterThanOrEqual(3);
     const newest = sessions[0];
-    const shoulder = newest.measurements.find((m) => m.name === "shoulder_width");
+    const shoulder = newest.measurements.find(
+      (m) => m.name === "shoulder_width",
+    );
     expect(shoulder?.value_cm).toBe(42.5);
   });
 
@@ -154,7 +156,12 @@ describe("order lifecycle enforcement", () => {
       expect.arrayContaining([{ name: "shoulder_width", value_cm: 42.5 }]),
     );
 
-    const quoted = store.quote(created.id, "maisonbisi", 5_500_000, "2026-08-10");
+    const quoted = store.quote(
+      created.id,
+      "maisonbisi",
+      5_500_000,
+      "2026-08-10",
+    );
     expect(quoted.status).toBe("quoted");
 
     const paid = store.pay(created.id, "kiki.adeyemi");
@@ -206,7 +213,9 @@ describe("engagement", () => {
     expect(after.like_count).toBe(before + 1);
     expect(after.liked).toBe(true);
     store.setEngagement("post-ankara-gown", "kiki.adeyemi", "like", false);
-    expect(store.post("post-ankara-gown", "kiki.adeyemi").like_count).toBe(before);
+    expect(store.post("post-ankara-gown", "kiki.adeyemi").like_count).toBe(
+      before,
+    );
   });
 
   it("rejects over-length comments", () => {
@@ -216,11 +225,21 @@ describe("engagement", () => {
   });
 
   it("explore price bands follow the decided defaults", () => {
-    const budget = store.explore("kiki.adeyemi", undefined, undefined, "budget");
+    const budget = store.explore(
+      "kiki.adeyemi",
+      undefined,
+      undefined,
+      "budget",
+    );
     // ₦22,000 shirt is the only sub-25k priced post
     expect(budget.map((p) => p.id)).toEqual(["post-print-brothers"]);
     // the ₦150,000 bridal gown demos the premium band (P1 realism)
-    const premium = store.explore("kiki.adeyemi", undefined, undefined, "premium");
+    const premium = store.explore(
+      "kiki.adeyemi",
+      undefined,
+      undefined,
+      "premium",
+    );
     expect(premium.map((p) => p.id)).toEqual(["post-bridal-gown"]);
   });
 
@@ -380,8 +399,16 @@ describe("W3 seed — all ten order states render from boot", () => {
       store.ordersFor("kiki.adeyemi", "customer").map((o) => o.status),
     );
     for (const s of [
-      "requested", "quoted", "paid", "in_progress", "shipped",
-      "delivered", "refunded", "declined", "disputed", "cancelled",
+      "requested",
+      "quoted",
+      "paid",
+      "in_progress",
+      "shipped",
+      "delivered",
+      "refunded",
+      "declined",
+      "disputed",
+      "cancelled",
     ]) {
       expect(statuses.has(s as never), `missing seeded state ${s}`).toBe(true);
     }
@@ -393,8 +420,17 @@ describe("W3 seed — all ten order states render from boot", () => {
       ...store.notificationsFor("maisonbisi").map((n) => n.kind),
       ...store.notificationsFor("tunde.o").map((n) => n.kind),
     ]);
-    for (const k of ["like", "follow", "comment", "quote", "status_change", "payout"]) {
-      expect(kinds.has(k as never), `missing notification kind ${k}`).toBe(true);
+    for (const k of [
+      "like",
+      "follow",
+      "comment",
+      "quote",
+      "status_change",
+      "payout",
+    ]) {
+      expect(kinds.has(k as never), `missing notification kind ${k}`).toBe(
+        true,
+      );
     }
   });
 });
@@ -468,7 +504,13 @@ describe("ranked pagination (api.md §5 — snapshot cursors)", () => {
     actor = "kiki.adeyemi",
     fingerprint = "feed",
   ) =>
-    store.rankedPage(actor, fingerprint, () => store.feed(actor), cursor, limit);
+    store.rankedPage(
+      actor,
+      fingerprint,
+      () => store.feed(actor),
+      cursor,
+      limit,
+    );
 
   it("freezes the rank per scroll session — no duplicates or skips mid-scroll", () => {
     const page1 = feedPage(null, 4);
@@ -595,7 +637,11 @@ describe("session exports (F2-9 / PLAT-004)", () => {
         value_cm: 40 + i / 10,
       })),
     );
-    const { url } = store.sessionExport("sess-recent-scan", "kiki.adeyemi", "pdf");
+    const { url } = store.sessionExport(
+      "sess-recent-scan",
+      "kiki.adeyemi",
+      "pdf",
+    );
     const body = Buffer.from(url.split(",")[1], "base64").toString("utf8");
     // 4 header lines + 62 measurements = 66 lines → 2 pages
     expect(body).toContain("/Count 2");
@@ -626,11 +672,17 @@ describe("designer KYC gate + payout scripting", () => {
       store.createRequest("tunde.o", post.id, {
         session_id: "sess-recent-scan",
         delivery: {
-          recipient_name: "T", phone: "1", line1: "x",
-          city: "Lagos", state: "Lagos", country: "NG",
+          recipient_name: "T",
+          phone: "1",
+          line1: "x",
+          city: "Lagos",
+          state: "Lagos",
+          country: "NG",
         },
       }),
-    ).toThrow(expect.objectContaining({ code: "post_unavailable", status: 409 }));
+    ).toThrow(
+      expect.objectContaining({ code: "post_unavailable", status: 409 }),
+    );
   });
 
   it("scripts Paystack resolution: resolved name / mismatch / lapse", () => {
@@ -640,21 +692,36 @@ describe("designer KYC gate + payout scripting", () => {
     expect(() =>
       store.resolveBank("kiki.adeyemi", "058", "0012345678"),
     ).toThrow(expect.objectContaining({ code: "bank_resolution_failed" }));
-    const lapsed = store.attachPayoutAccount("kiki.adeyemi", "058", "9999999999");
+    const lapsed = store.attachPayoutAccount(
+      "kiki.adeyemi",
+      "058",
+      "9999999999",
+    );
     expect(lapsed.kyc_state).toBe("lapsed");
-    const verified = store.attachPayoutAccount("kiki.adeyemi", "058", "0123456789");
+    const verified = store.attachPayoutAccount(
+      "kiki.adeyemi",
+      "058",
+      "0123456789",
+    );
     expect(verified.kyc_state).toBe("verified");
     expect(store.me("kiki.adeyemi").designer.kyc_complete).toBe(true);
   });
 
   it("allows requote while quoted without a transition", () => {
-    const requoted = store.quote("req-apr-1033", "amara.designs", 4_200_000, "2026-08-15");
+    const requoted = store.quote(
+      "req-apr-1033",
+      "amara.designs",
+      4_200_000,
+      "2026-08-15",
+    );
     expect(requoted.status).toBe("quoted");
     expect(requoted.quote_cents).toBe(4_200_000);
   });
 
   it("customer cancel is legal from requested/quoted only", () => {
-    expect(store.cancel("req-apr-1031", "kiki.adeyemi").status).toBe("cancelled");
+    expect(store.cancel("req-apr-1031", "kiki.adeyemi").status).toBe(
+      "cancelled",
+    );
     expect(() => store.cancel("req-apr-1042", "kiki.adeyemi")).toThrow(
       expect.objectContaining({ code: "invalid_transition" }),
     );

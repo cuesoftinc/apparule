@@ -32,7 +32,16 @@ const session = (id: string, daysOld: number, status = "complete") => ({
   method: "manual",
   input_height_cm: 168,
   status,
-  measurements: [{ id: "m", session_id: id, name: "shoulder_width", value_cm: 42, source: "pipeline", confidence: null }],
+  measurements: [
+    {
+      id: "m",
+      session_id: id,
+      name: "shoulder_width",
+      value_cm: 42,
+      source: "pipeline",
+      confidence: null,
+    },
+  ],
   pipeline_meta: {},
   created_at: new Date(Date.now() - daysOld * 86_400_000).toISOString(),
 });
@@ -51,7 +60,11 @@ beforeEach(() => {
   listOrders.mockReset();
   createRequest.mockReset();
   sessions.mockResolvedValue({
-    items: [session("s-new", 5), session("s-old", 120), session("s-pending", 1, "pending_save")],
+    items: [
+      session("s-new", 5),
+      session("s-old", 120),
+      session("s-pending", 1, "pending_save"),
+    ],
     next_cursor: null,
   });
   listOrders.mockResolvedValue({
@@ -110,7 +123,11 @@ describe("useRequestStepper", () => {
 
   it("maps the failure taxonomy (duplicate_request keeps the code)", async () => {
     createRequest.mockRejectedValue(
-      new ApiError("duplicate_request", "You already have an open request", 409),
+      new ApiError(
+        "duplicate_request",
+        "You already have an open request",
+        409,
+      ),
     );
     const { result } = renderHook(() => useRequestStepper(post));
     await waitFor(() => expect(result.current.sessions.length).toBe(2));

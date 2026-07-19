@@ -24,7 +24,12 @@ export async function POST(request: Request, { params }: Params) {
       );
     }
     return jsonResponse(
-      getStore().quote(id, actorUsername(request), body.quote_cents, body.due_at),
+      getStore().quote(
+        id,
+        actorUsername(request),
+        body.quote_cents,
+        body.due_at,
+      ),
     );
   });
 }

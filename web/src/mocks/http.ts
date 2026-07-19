@@ -88,9 +88,7 @@ export function paginate<T>(
   const cursorRaw = url.searchParams.get("cursor");
   let offset = 0;
   if (cursorRaw) {
-    const parsed = Number(
-      Buffer.from(cursorRaw, "base64url").toString("utf8"),
-    );
+    const parsed = Number(Buffer.from(cursorRaw, "base64url").toString("utf8"));
     if (Number.isFinite(parsed) && parsed >= 0) offset = parsed;
   }
   const slice = items.slice(offset, offset + limit);

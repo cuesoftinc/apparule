@@ -8,20 +8,33 @@ describe("AddressFieldset (§8.2)", () => {
     render(
       <AddressFieldset context="delivery" value={{}} onChange={() => {}} />,
     );
-    for (const label of ["Recipient name", "Phone", "Address line 1", "City", "State", "Country"]) {
+    for (const label of [
+      "Recipient name",
+      "Phone",
+      "Address line 1",
+      "City",
+      "State",
+      "Country",
+    ]) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
   });
 
   it("profile-location context renders the near-me explainer instead", () => {
     render(
-      <AddressFieldset context="profile-location" value={{}} onChange={() => {}} />,
+      <AddressFieldset
+        context="profile-location"
+        value={{}}
+        onChange={() => {}}
+      />,
     );
     // Figma master copy (74:801)
     expect(
       screen.getByText(/recommend designers near you/i),
     ).toBeInTheDocument();
-    expect(screen.getByText(/pre-fills from your last order/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/pre-fills from your last order/i),
+    ).toBeInTheDocument();
     expect(screen.queryByText("Recipient name")).not.toBeInTheDocument();
   });
 

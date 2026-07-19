@@ -34,8 +34,8 @@ export function ComposerView() {
           Post outfits, get commissioned, get paid
         </h1>
         <p className="text-body text-text-2">
-          Turn your work into a storefront: publish looks, receive requests
-          with exact measurements attached, and get paid through escrow.
+          Turn your work into a storefront: publish looks, receive requests with
+          exact measurements attached, and get paid through escrow.
         </p>
         <div>
           <Link
@@ -50,7 +50,8 @@ export function ComposerView() {
     );
   }
 
-  const kycPending = account?.designer.enabled && !account.designer.kyc_complete;
+  const kycPending =
+    account?.designer.enabled && !account.designer.kyc_complete;
 
   const addTag = (e: FormEvent) => {
     e.preventDefault();
@@ -81,9 +82,7 @@ export function ComposerView() {
         <Banner
           tone="warn"
           actionLabel="Finish verification"
-          onAction={() =>
-            router.push("/dashboard/designer/onboarding")
-          }
+          onAction={() => router.push("/dashboard/designer/onboarding")}
         >
           You can publish now, but posts won&apos;t accept requests until your
           payout account is verified.
@@ -94,8 +93,14 @@ export function ComposerView() {
         <Banner tone="error">{composer.publishError}</Banner>
       ) : null}
 
-      <section aria-labelledby="composer-media-h" className="flex flex-col gap-3">
-        <h2 id="composer-media-h" className="text-body font-semibold text-text-2">
+      <section
+        aria-labelledby="composer-media-h"
+        className="flex flex-col gap-3"
+      >
+        <h2
+          id="composer-media-h"
+          className="text-body font-semibold text-text-2"
+        >
           Photos ({composer.media.length}/10)
         </h2>
         {composer.media.length < 10 ? (
@@ -122,7 +127,10 @@ export function ComposerView() {
                     </span>
                   ) : null}
                   {item.error ? (
-                    <span role="alert" className="absolute inset-x-0 bottom-0 bg-error py-0.5 text-center text-micro text-on-accent">
+                    <span
+                      role="alert"
+                      className="absolute inset-x-0 bottom-0 bg-error py-0.5 text-center text-micro text-on-accent"
+                    >
                       {item.error}
                     </span>
                   ) : null}
@@ -227,10 +235,7 @@ export function ComposerView() {
           </div>
         </FormRow>
 
-        <FormRow
-          label="Base price"
-          helper="Leave empty for “quote on request”"
-        >
+        <FormRow label="Base price" helper="Leave empty for “quote on request”">
           <Input
             kind="currency"
             aria-label="Base price"

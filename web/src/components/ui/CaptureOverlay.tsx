@@ -10,7 +10,8 @@ import clsx from "clsx";
 import { CountdownRing } from "./CountdownRing";
 import { QCHintChip, type QcFailCode } from "./QCHintChip";
 
-export type CaptureGuideState = "searching" | "aligned" | "countdown" | "qc-hint";
+export type CaptureGuideState =
+  "searching" | "aligned" | "countdown" | "qc-hint";
 
 export interface CaptureOverlayProps {
   guide: CaptureGuideState;
@@ -58,7 +59,9 @@ export function CaptureOverlay({
 
       {/* instruction line — 16px semibold white, top-centered */}
       <p className="absolute inset-x-4 top-[9%] text-center text-body-lg font-semibold text-white">
-        {guide === "aligned" ? "Perfect — hold still" : "Stand inside the outline"}
+        {guide === "aligned"
+          ? "Perfect — hold still"
+          : "Stand inside the outline"}
       </p>
 
       {/* Standing-silhouette guide (head → shoulders → arms-out → ankles),

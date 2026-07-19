@@ -2,7 +2,10 @@
 // against the enriched-landing copy + accuracy-standard invariants.
 import { afterEach, describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { setAnalyticsTransport, type AnalyticsEvent } from "@/controllers/use-analytics";
+import {
+  setAnalyticsTransport,
+  type AnalyticsEvent,
+} from "@/controllers/use-analytics";
 import { ThemeProvider } from "@/design/ThemeProvider";
 import { ArchitectureDiagram } from "./ArchitectureDiagram";
 import { CommunitySection } from "./CommunitySection";
@@ -38,7 +41,9 @@ describe("FeatureDeepDives (A4b)", () => {
     expect(panels).toHaveLength(4);
     expect(screen.getByText("Capture once, keep it fresh")).toBeInTheDocument();
     expect(screen.getByText("Find designers near you")).toBeInTheDocument();
-    expect(screen.getByText("Escrow-protected commissions")).toBeInTheDocument();
+    expect(
+      screen.getByText("Escrow-protected commissions"),
+    ).toBeInTheDocument();
     expect(
       screen.getByText("Your measurements ride with every order"),
     ).toBeInTheDocument();
@@ -101,7 +106,9 @@ describe("SelfHostSection (A7c)", () => {
     const events: AnalyticsEvent[] = [];
     setAnalyticsTransport({ send: (e) => events.push(e) });
     render(<SelfHostSection />);
-    const link = screen.getByRole("link", { name: /read the self-host guide/i });
+    const link = screen.getByRole("link", {
+      name: /read the self-host guide/i,
+    });
     // avoid jsdom navigation noise
     link.addEventListener("click", (e) => e.preventDefault());
     link.click();

@@ -1,10 +1,5 @@
 // Mock: GET/DELETE /api/v1/posts/{id} (public permalink /p/{id}).
-import {
-  actorUsername,
-  handle,
-  jsonResponse,
-  noContent,
-} from "@/mocks/http";
+import { actorUsername, handle, jsonResponse, noContent } from "@/mocks/http";
 import { getStore } from "@/mocks/store";
 
 type Params = { params: Promise<{ id: string }> };
