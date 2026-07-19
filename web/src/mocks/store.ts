@@ -177,11 +177,11 @@ export class MockStore {
   updateMe(
     username: string,
     patch: Partial<
-      Pick<
-        Account,
-        "username" | "display_name" | "profile_location" | "notification_prefs"
-      >
-    >,
+      Pick<Account, "username" | "display_name" | "profile_location">
+    > & {
+      /** Partial per-event toggles — merged over the existing prefs. */
+      notification_prefs?: Partial<NotificationPrefs>;
+    },
   ): Account {
     const account = this.accountByUsername(username);
     if (patch.username && patch.username !== account.username) {
