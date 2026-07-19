@@ -6,6 +6,7 @@
 // states (MI-19, MI-6). Render-only over useFeed.
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { Post } from "@/models";
 import { useAuth } from "@/controllers/auth/AuthContext";
 import { useFeed } from "@/controllers/use-feed";
@@ -44,6 +45,7 @@ function storyDesignersOf(posts: Post[]): { username: string; fresh: boolean }[]
 export function FeedView() {
   const feed = useFeed("feed");
   const { account } = useAuth();
+  const router = useRouter();
   const { showToast } = useToasts();
   const [requestPost, setRequestPost] = useState<Post | null>(null);
   const [optionsPost, setOptionsPost] = useState<Post | null>(null);
@@ -163,7 +165,7 @@ export function FeedView() {
             context="feed"
             line="Follow designers to fill your feed"
             ctaLabel="Explore designers"
-            onCta={() => window.location.assign("/dashboard/explore")}
+            onCta={() => router.push("/dashboard/explore")}
           />
         ) : (
           <>

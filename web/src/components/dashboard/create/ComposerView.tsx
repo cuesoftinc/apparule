@@ -7,6 +7,7 @@
 // requests gate (flows/designer.md §1). Render-only over useComposer.
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/controllers/auth/AuthContext";
 import { useComposer } from "@/controllers/use-composer";
 import { Banner } from "@/components/ui/Banner";
@@ -20,6 +21,7 @@ import { useToasts } from "../toast-context";
 
 export function ComposerView() {
   const { account } = useAuth();
+  const router = useRouter();
   const composer = useComposer();
   const { showToast } = useToasts();
   const [tagDraft, setTagDraft] = useState("");
@@ -80,7 +82,7 @@ export function ComposerView() {
           tone="warn"
           actionLabel="Finish verification"
           onAction={() =>
-            window.location.assign("/dashboard/designer/onboarding")
+            router.push("/dashboard/designer/onboarding")
           }
         >
           You can publish now, but posts won&apos;t accept requests until your

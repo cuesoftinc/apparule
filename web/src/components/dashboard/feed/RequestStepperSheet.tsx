@@ -8,6 +8,7 @@
 import { useId, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import type { Post } from "@/models";
 import { formatNaira, formatCm } from "@/lib/format";
@@ -64,6 +65,7 @@ export function RequestStepperSheet({
 }: RequestStepperSheetProps) {
   const stepper = useRequestStepper(post);
   const budgetId = useId();
+  const router = useRouter();
   const [snapshotOpen, setSnapshotOpen] = useState(false);
 
   const close = (open: boolean) => {
@@ -141,7 +143,7 @@ export function RequestStepperSheet({
               onAction={
                 failure.code === "duplicate_request"
                   ? () => {
-                      window.location.assign("/dashboard/orders");
+                      router.push("/dashboard/orders");
                     }
                   : undefined
               }
@@ -163,7 +165,7 @@ export function RequestStepperSheet({
                   context="vault"
                   line="You need measurements first — capture or enter them in your vault."
                   ctaLabel="Go to vault"
-                  onCta={() => window.location.assign("/dashboard/vault")}
+                  onCta={() => router.push("/dashboard/vault")}
                 />
               ) : (
                 <ul className="flex flex-col gap-2">

@@ -6,6 +6,7 @@
 // search → sectioned results (Designers above Posts). Render-only over
 // useExplore.
 import { useMemo, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import type { Post } from "@/models";
 import { useExplore } from "@/controllers/use-explore";
 import { Chip } from "@/components/ui/Chip";
@@ -38,6 +39,7 @@ const TURNAROUNDS = [
 ] as const;
 
 export function ExploreView() {
+  const router = useRouter();
   const explore = useExplore();
   const { showToast } = useToasts();
   const [openPostId, setOpenPostId] = useState<string | null>(null);
@@ -204,7 +206,7 @@ export function ExploreView() {
                       })
                     }
                     onOpen={() =>
-                      window.location.assign(`/dashboard/${row.username}`)
+                      router.push(`/dashboard/${row.username}`)
                     }
                   />
                 </li>

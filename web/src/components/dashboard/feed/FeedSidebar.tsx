@@ -4,6 +4,7 @@
 // designers (Follow, MI-7). Renders from the vault + suggestions
 // controllers; hidden below xl by the feed view.
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { formatAgoPhrase } from "@/lib/format";
 import { useVault } from "@/controllers/use-vault";
 import { useSuggestions } from "@/controllers/use-suggestions";
@@ -27,6 +28,7 @@ export function FeedSidebar({
   onUnfollow: (username: string, unfollow: () => Promise<void>) => void;
 }) {
   const { account } = useAuth();
+  const router = useRouter();
   const vault = useVault();
   const suggestions = useSuggestions();
   const { showToast } = useToasts();
@@ -119,7 +121,7 @@ export function FeedSidebar({
                     )
                   }
                   onOpen={() =>
-                    window.location.assign(`/dashboard/${row.username}`)
+                    router.push(`/dashboard/${row.username}`)
                   }
                 />
               </li>

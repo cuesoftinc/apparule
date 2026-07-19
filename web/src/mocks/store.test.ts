@@ -128,7 +128,7 @@ describe("order lifecycle enforcement", () => {
   it("rejects illegal transitions with invalid_transition", () => {
     expect(() =>
       store.setStatus("req-apr-1058", "maisonbisi", "in_progress"),
-    ).toThrowError(
+    ).toThrow(
       expect.objectContaining({ code: "invalid_transition", status: 409 }),
     );
   });
@@ -187,11 +187,11 @@ describe("order lifecycle enforcement", () => {
         session_id: "sess-recent-scan",
         delivery,
       }),
-    ).toThrowError(expect.objectContaining({ code: "duplicate_request" }));
+    ).toThrow(expect.objectContaining({ code: "duplicate_request" }));
   });
 
   it("order detail is party-only (strangers get not_found)", () => {
-    expect(() => store.order("req-apr-1042", "tunde.o")).toThrowError(
+    expect(() => store.order("req-apr-1042", "tunde.o")).toThrow(
       expect.objectContaining({ code: "not_found", status: 404 }),
     );
   });
@@ -212,7 +212,7 @@ describe("engagement", () => {
   it("rejects over-length comments", () => {
     expect(() =>
       store.addComment("post-ankara-gown", "kiki.adeyemi", "x".repeat(501)),
-    ).toThrowError(expect.objectContaining({ code: "validation_failed" }));
+    ).toThrow(expect.objectContaining({ code: "validation_failed" }));
   });
 
   it("explore price bands follow the decided defaults", () => {
@@ -324,7 +324,7 @@ describe("earnings (designer view)", () => {
   });
 
   it("non-designers get a 403", () => {
-    expect(() => store.earnings("kiki.adeyemi")).toThrowError(
+    expect(() => store.earnings("kiki.adeyemi")).toThrow(
       expect.objectContaining({ status: 403 }),
     );
   });
@@ -346,7 +346,7 @@ describe("idempotency (api.md §4)", () => {
 
   it("conflicts on the same key with a different payload", () => {
     store.idempotent("k2", "a", () => 1);
-    expect(() => store.idempotent("k2", "b", () => 2)).toThrowError(
+    expect(() => store.idempotent("k2", "b", () => 2)).toThrow(
       expect.objectContaining({ code: "idempotency_conflict", status: 409 }),
     );
   });
@@ -356,7 +356,7 @@ describe("profile", () => {
   it("rejects taken usernames with name_taken", () => {
     expect(() =>
       store.updateMe("kiki.adeyemi", { username: "maisonbisi" }),
-    ).toThrowError(expect.objectContaining({ code: "name_taken", status: 409 }));
+    ).toThrow(expect.objectContaining({ code: "name_taken", status: 409 }));
   });
 
   it("errors are MockApiError instances (envelope-able)", () => {
@@ -440,7 +440,7 @@ describe("capture path (webcam, B4)", () => {
         input_height_cm: 168,
         filename: "fixture-blurry.jpg",
       }),
-    ).toThrowError(expect.objectContaining({ code: "blurry", status: 422 }));
+    ).toThrow(expect.objectContaining({ code: "blurry", status: 422 }));
   });
 
   it("upload → pending_save → save flips complete; retake deletes", () => {
@@ -455,7 +455,7 @@ describe("capture path (webcam, B4)", () => {
     const saved = store.saveSession(session.id, "kiki.adeyemi");
     expect(saved.status).toBe("complete");
     // double-save is an invalid transition
-    expect(() => store.saveSession(session.id, "kiki.adeyemi")).toThrowError(
+    expect(() => store.saveSession(session.id, "kiki.adeyemi")).toThrow(
       expect.objectContaining({ code: "invalid_transition" }),
     );
   });
@@ -607,7 +607,7 @@ describe("session exports (F2-9 / PLAT-004)", () => {
   it("exports are tenant-scoped: another user's session reads not_found", () => {
     expect(() =>
       store.sessionExport("sess-recent-scan", "tunde.o", "csv"),
-    ).toThrowError(expect.objectContaining({ code: "not_found", status: 404 }));
+    ).toThrow(expect.objectContaining({ code: "not_found", status: 404 }));
   });
 });
 
@@ -630,7 +630,7 @@ describe("designer KYC gate + payout scripting", () => {
           city: "Lagos", state: "Lagos", country: "NG",
         },
       }),
-    ).toThrowError(expect.objectContaining({ code: "post_unavailable", status: 409 }));
+    ).toThrow(expect.objectContaining({ code: "post_unavailable", status: 409 }));
   });
 
   it("scripts Paystack resolution: resolved name / mismatch / lapse", () => {
@@ -639,7 +639,7 @@ describe("designer KYC gate + payout scripting", () => {
     expect(resolved.account_name).toBe("KIKI ADEYEMI");
     expect(() =>
       store.resolveBank("kiki.adeyemi", "058", "0012345678"),
-    ).toThrowError(expect.objectContaining({ code: "bank_resolution_failed" }));
+    ).toThrow(expect.objectContaining({ code: "bank_resolution_failed" }));
     const lapsed = store.attachPayoutAccount("kiki.adeyemi", "058", "9999999999");
     expect(lapsed.kyc_state).toBe("lapsed");
     const verified = store.attachPayoutAccount("kiki.adeyemi", "058", "0123456789");
@@ -655,7 +655,7 @@ describe("designer KYC gate + payout scripting", () => {
 
   it("customer cancel is legal from requested/quoted only", () => {
     expect(store.cancel("req-apr-1031", "kiki.adeyemi").status).toBe("cancelled");
-    expect(() => store.cancel("req-apr-1042", "kiki.adeyemi")).toThrowError(
+    expect(() => store.cancel("req-apr-1042", "kiki.adeyemi")).toThrow(
       expect.objectContaining({ code: "invalid_transition" }),
     );
   });
@@ -671,7 +671,7 @@ describe("notification prefs + moderation gate + thread auto-reply", () => {
 
   it("moderation queue is staff-only (kiki yes, tunde no)", () => {
     expect(store.moderationQueue("kiki.adeyemi").length).toBeGreaterThan(0);
-    expect(() => store.moderationQueue("tunde.o")).toThrowError(
+    expect(() => store.moderationQueue("tunde.o")).toThrow(
       expect.objectContaining({ code: "forbidden", status: 403 }),
     );
   });
