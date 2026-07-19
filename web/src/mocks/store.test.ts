@@ -47,6 +47,15 @@ describe("seed narrative", () => {
     expect(shoulder?.value_cm).toBe(42.5);
   });
 
+  it("designer posts_count matches the actually seeded posts (system QA)", () => {
+    for (const designer of store.designers) {
+      const actual = store.posts.filter(
+        (p) => p.designer.username === designer.username,
+      ).length;
+      expect(designer.posts_count, designer.username).toBe(actual);
+    }
+  });
+
   it("feed contains only followed designers (amara + bisi, not tunde)", () => {
     const feed = store.feed("kiki.adeyemi");
     expect(feed.length).toBeGreaterThan(0);

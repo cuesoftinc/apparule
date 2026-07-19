@@ -4,6 +4,13 @@ import userEvent from "@testing-library/user-event";
 import { Button } from "./Button";
 
 describe("Button (§8.2)", () => {
+  it("never wraps its label (pill contract, system QA — 390px CTA wrap)", () => {
+    render(<Button>Start on Cloud</Button>);
+    expect(screen.getByRole("button", { name: "Start on Cloud" })).toHaveClass(
+      "whitespace-nowrap",
+    );
+  });
+
   it.each(["gradient-primary", "quiet", "destructive", "link"] as const)(
     "renders kind=%s",
     (kind) => {

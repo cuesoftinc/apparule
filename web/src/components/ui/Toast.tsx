@@ -4,6 +4,7 @@
 // variants success / error+retry / neutral. Optimistic-action failures
 // re-toast with Retry (MI-18). Entrance/exit use entrance/exit tokens.
 import { useEffect } from "react";
+import Link from "next/link";
 import clsx from "clsx";
 import { Check, X } from "lucide-react";
 
@@ -14,6 +15,8 @@ export interface ToastProps {
   message: string;
   /** error toasts render a Retry action when provided (MI-18 rollback). */
   onRetry?: () => void;
+  /** Trailing link action ("Saved to your looks" → View, MI-3). */
+  link?: { href: string; label: string };
   onDismiss?: () => void;
   /** Auto-dismiss delay; 0 disables (design default 3s). */
   autoDismissMs?: number;
@@ -30,6 +33,7 @@ export function Toast({
   kind = "neutral",
   message,
   onRetry,
+  link,
   onDismiss,
   autoDismissMs = 3000,
   className,
@@ -67,6 +71,14 @@ export function Toast({
         >
           Retry
         </button>
+      ) : null}
+      {link ? (
+        <Link
+          href={link.href}
+          className="font-semibold text-accent-start underline-offset-2 hover:underline"
+        >
+          {link.label}
+        </Link>
       ) : null}
     </div>
   );

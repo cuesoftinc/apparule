@@ -91,7 +91,7 @@ export function DevelopersSection() {
           CONTRIBUTING.md →
         </a>
         <a
-          href="https://discord.gg/cuesoft"
+          href="https://discord.gg/CDfZxxrxbb"
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => track("contribute_click", { link: "discord" })}

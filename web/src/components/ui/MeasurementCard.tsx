@@ -6,7 +6,7 @@
 // policy). Tap → history sheet (wired by the vault view).
 import clsx from "clsx";
 import { Camera, Pencil } from "lucide-react";
-import { formatAgo, formatCm } from "@/lib/format";
+import { formatAgoPhrase, formatCm } from "@/lib/format";
 import { humanizeMeasureName } from "./ManualMeasureRow";
 import type { MeasureUnit } from "./Input";
 
@@ -75,7 +75,7 @@ export function MeasurementCard({
       ) : null}
       {updatedAt ? (
         <span className="text-micro text-text-2">
-          Updated {formatAgo(updatedAt)} ago
+          Updated {formatAgoPhrase(updatedAt)}
         </span>
       ) : null}
     </button>

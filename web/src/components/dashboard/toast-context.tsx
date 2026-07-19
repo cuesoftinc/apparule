@@ -18,6 +18,8 @@ export interface ToastInput {
   kind?: ToastKind;
   message: string;
   onRetry?: () => void;
+  /** Trailing link action (MI-3 "Saved to your looks" → View). */
+  link?: { href: string; label: string };
 }
 
 interface ToastEntry extends ToastInput {
@@ -59,6 +61,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               key={t.id}
               kind={t.kind}
               message={t.message}
+              link={t.link}
               onRetry={
                 t.onRetry
                   ? () => {

@@ -20,7 +20,7 @@ export function SmplSection() {
             you see while it works is the real model output.
           </p>
           <a
-            href="https://docs.apparule.cuesoft.io/ai-modeling"
+            href="https://cuesoft.gitbook.io/apparule/system/architecture"
             target="_blank"
             rel="noopener noreferrer"
             className="mt-6 inline-block text-body font-semibold text-link hover:underline"

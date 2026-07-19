@@ -6,7 +6,7 @@
 import clsx from "clsx";
 import Image from "next/image";
 import type { ModerationAction, Report } from "@/models";
-import { formatAgo } from "@/lib/format";
+import { formatAgoPhrase } from "@/lib/format";
 import { Button } from "./Button";
 
 export interface ModerationQueueRowProps {
@@ -50,7 +50,7 @@ export function ModerationQueueRow({
           </p>
           <p className="mt-0.5 line-clamp-2 text-caption text-text-2">
             “{report.subject_preview.text}” · Reported by{" "}
-            {report.reporter.username} · {formatAgo(report.created_at)} ago
+            {report.reporter.username} · {formatAgoPhrase(report.created_at)}
           </p>
         </div>
         <span className="shrink-0 rounded-pill bg-warn/14 px-2 py-0.5 text-micro font-semibold capitalize text-warn">
@@ -58,7 +58,7 @@ export function ModerationQueueRow({
         </span>
       </div>
       {open ? (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             kind="quiet"
             size="sm"

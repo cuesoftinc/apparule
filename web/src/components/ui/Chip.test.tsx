@@ -16,6 +16,13 @@ describe("Chip (§8.2)", () => {
     },
   );
 
+  it("never wraps its label (pill contract, system QA)", () => {
+    render(<Chip label="2-week turnaround" />);
+    expect(screen.getByRole("button", { name: "2-week turnaround" })).toHaveClass(
+      "whitespace-nowrap",
+    );
+  });
+
   it("selected chip exposes aria-pressed", () => {
     render(<Chip kind="selected" label="aso-oke" />);
     expect(screen.getByRole("button", { name: "aso-oke" })).toHaveAttribute(

@@ -4,7 +4,7 @@
 // designers (Follow, MI-7). Renders from the vault + suggestions
 // controllers; hidden below xl by the feed view.
 import Link from "next/link";
-import { formatAgo } from "@/lib/format";
+import { formatAgoPhrase } from "@/lib/format";
 import { useVault } from "@/controllers/use-vault";
 import { useSuggestions } from "@/controllers/use-suggestions";
 import { useAuth } from "@/controllers/auth/AuthContext";
@@ -51,7 +51,7 @@ export function FeedSidebar({
             <Tooltip
               label={
                 latestComplete
-                  ? `Measured ${formatAgo(latestComplete.created_at)} ago — retake?`
+                  ? `Measured ${formatAgoPhrase(latestComplete.created_at)} — retake?`
                   : "No measurements yet"
               }
               placement="bottom"
@@ -70,7 +70,7 @@ export function FeedSidebar({
             <div className="min-w-0">
               <p className="text-body font-semibold text-text">
                 {latestComplete
-                  ? `Measured ${formatAgo(latestComplete.created_at)} ago`
+                  ? `Measured ${formatAgoPhrase(latestComplete.created_at)}`
                   : "No measurements yet"}
               </p>
               <Link href="/dashboard/vault" className="text-caption text-link">

@@ -10,6 +10,7 @@ import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 import type { Post } from "@/models";
 import { formatAgo, formatNaira } from "@/lib/format";
 import { usePost } from "@/controllers/use-post";
+import { useAuth } from "@/controllers/auth/AuthContext";
 import { ActionRow } from "@/components/ui/ActionRow";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
@@ -17,6 +18,7 @@ import { CommentRow } from "@/components/ui/CommentRow";
 import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Input";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { maybeFirstSaveToast } from "../first-save";
 import { useToasts } from "../toast-context";
 
 export interface PostDetailViewProps {
@@ -32,6 +34,7 @@ export function PostDetailView({
 }: PostDetailViewProps) {
   const { post, comments, loading, error, toggleLike, toggleSave, addComment } =
     usePost(postId);
+  const { account } = useAuth();
   const { showToast } = useToasts();
   const [slide, setSlide] = useState(0);
   const [draft, setDraft] = useState("");
@@ -184,11 +187,18 @@ export function PostDetailView({
                 }),
               )
             }
-            onToggleSave={() =>
-              toggleSave().catch(() =>
-                showToast({ kind: "error", message: "Couldn't save the post" }),
-              )
-            }
+            onToggleSave={() => {
+              const wasSaved = post.saved;
+              toggleSave()
+                .then(() => {
+                  if (!wasSaved) {
+                    maybeFirstSaveToast(showToast, account?.username ?? null);
+                  }
+                })
+                .catch(() =>
+                  showToast({ kind: "error", message: "Couldn't save the post" }),
+                );
+            }}
           />
           <p className="text-caption text-text-2">
             {formatAgo(post.created_at)}

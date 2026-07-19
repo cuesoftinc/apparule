@@ -284,7 +284,7 @@ export function ProfileView({ username }: { username: string }) {
               </Link>
             )}
           </div>
-          <ul className="flex gap-6 text-body text-text">
+          <ul className="flex flex-wrap gap-x-6 gap-y-1 text-body text-text">
             <li>
               <span className="tnum font-semibold">{formatCount(d.posts_count)}</span> posts
             </li>

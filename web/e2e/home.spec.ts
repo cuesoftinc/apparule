@@ -1,8 +1,8 @@
 // "Marketing site" journey (design.md §8.4, web-implementation.md §7):
 // Part A scroll — every section renders — plus the FAQ accordion, the
 // Try Cloud / Sign in CTA handoff into /signin, and the theme toggle.
-// Runs in TEST_MODE: the star badge deterministically keeps its neutral
-// "Star" label (no third-party fetch in CI).
+// Runs in TEST_MODE: the A7b star badge deterministically keeps its
+// neutral "Star" label (no third-party fetch in CI).
 import { expect, test } from "@playwright/test";
 
 test.describe("Marketing site — home page", () => {
@@ -15,8 +15,10 @@ test.describe("Marketing site — home page", () => {
     ).toBeVisible();
     await expect(page.getByTestId("hero-phone")).toBeVisible();
 
-    // A1 nav — neutral star badge in TEST_MODE (accuracy standard)
-    await expect(page.getByTestId("star-badge")).toContainText("Star");
+    // A1 nav — plain GitHub text link (parity canon adjudication); the
+    // neutral star badge lives on A7b only (accuracy standard)
+    await expect(page.getByTestId("nav-github")).toHaveText("GitHub");
+    await expect(page.getByTestId("dev-star-badge")).toContainText("Star");
 
     // A3 stat band — the honest product claims
     await expect(page.getByText("±2 cm", { exact: true })).toBeVisible();
@@ -127,10 +129,9 @@ test.describe("Marketing site — home page", () => {
 
   test("Try Cloud CTA hands off to /signin", async ({ page }) => {
     await page.goto("/");
-    await page
-      .locator("nav")
-      .getByRole("button", { name: "Try Cloud" })
-      .click();
+    // Parity canon: the nav CTA is Sign in — Try Cloud hands off from the
+    // hero (and A9c/comparison) instead.
+    await page.getByRole("button", { name: "Try Cloud" }).first().click();
     await page.waitForURL("**/signin");
     await expect(
       page.getByRole("button", { name: /continue with google/i }),
@@ -273,5 +274,131 @@ test.describe("W2.1 live-QA — containers, landmarks, avatars", () => {
         0.05,
       );
     }
+  });
+});
+
+// System-QA regressions (2026-07-19).
+test.describe("system QA regressions", () => {
+  test("unknown routes render the branded 404, not the Next.js default", async ({
+    page,
+  }) => {
+    await page.goto("/definitely-not-a-page");
+    await expect(
+      page.getByRole("heading", { name: "This page doesn't exist" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Back to Apparule" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("This page could not be found"),
+    ).toHaveCount(0);
+  });
+
+  test("comparison-table CTAs keep to one line at 390 (no pill wrap)", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    const cta = page.getByRole("button", { name: "Start on Cloud" });
+    await cta.scrollIntoViewIfNeeded();
+    for (const name of ["Start on Cloud", "Self-host it"]) {
+      const box = await page.getByRole("button", { name }).boundingBox();
+      expect(box, `${name} rendered`).not.toBeNull();
+      // sm buttons are h-9 (36px) — a wrapped label pushes past the pill
+      expect(box!.height, `${name} single-line height`).toBeLessThanOrEqual(38);
+    }
+  });
+});
+
+// Marketing nav/footer link-parity canon (SKILL.md, ratified 2026-07-19):
+// the exact link sets and verified URLs, asserted on the live DOM.
+test.describe("nav/footer parity canon", () => {
+  test("nav carries the four canon links + the Sign in CTA", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const nav = page.getByRole("navigation", { name: "Home" });
+    await expect(nav.getByRole("link", { name: "Features" })).toHaveAttribute(
+      "href",
+      "#product",
+    );
+    await expect(
+      nav.getByRole("link", { name: "For designers" }),
+    ).toHaveAttribute("href", "#designers");
+    await expect(nav.getByRole("link", { name: "Docs" })).toHaveAttribute(
+      "href",
+      "https://cuesoft.gitbook.io/apparule",
+    );
+    await expect(nav.getByTestId("nav-github")).toHaveAttribute(
+      "href",
+      "https://github.com/cuesoftinc/apparule",
+    );
+    await expect(nav.getByTestId("star-badge")).toHaveCount(0);
+    await expect(nav.getByRole("link", { name: "Sign in" })).toHaveAttribute(
+      "href",
+      "/signin",
+    );
+    await expect(nav.getByText("Try Cloud")).toHaveCount(0);
+  });
+
+  test("footer carries the canon columns, URLs and legal bar", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const footer = page.locator("footer");
+    const canon: [string, string][] = [
+      ["Docs", "https://cuesoft.gitbook.io/apparule"],
+      ["Quickstart", "https://cuesoft.gitbook.io/apparule/setup"],
+      ["API reference", "https://cuesoft.gitbook.io/apparule/system/api-surface"],
+      ["Self-host guide", "https://cuesoft.gitbook.io/apparule/system/deployment"],
+      ["GitHub", "https://github.com/cuesoftinc/apparule"],
+      ["Discord", "https://discord.gg/CDfZxxrxbb"],
+      ["Roadmap", "https://cuesoft.gitbook.io/apparule/product/roadmap"],
+      ["CueLABS", "https://cuelabs.cuesoft.io"],
+      ["Privacy", "https://privacy.cuesoft.io"],
+      ["Terms", "https://terms.cuesoft.io"],
+      ["Status", "https://status.cuesoft.io"],
+      ["Cuesoft Inc.", "https://cuesoft.io"],
+      ["MIT License", "https://github.com/cuesoftinc/apparule/blob/main/LICENSE"],
+    ];
+    for (const [name, href] of canon) {
+      await expect(
+        footer.getByRole("link", { name, exact: true }),
+        `footer link ${name}`,
+      ).toHaveAttribute("href", href);
+    }
+    await expect(
+      footer.getByRole("link", { name: /Security policy/ }),
+    ).toHaveAttribute(
+      "href",
+      "https://github.com/cuesoftinc/apparule/blob/main/SECURITY.md",
+    );
+    await expect(
+      footer.getByText(/© Cuesoft Inc\. 2026\. Apparule\. CueLABS™ Division\./),
+    ).toBeVisible();
+    await expect(footer.getByLabel("Language")).toBeVisible();
+    await expect(footer.getByText("Contributing")).toHaveCount(0);
+    await expect(footer.getByText("Good first issues")).toHaveCount(0);
+  });
+
+  test("theme toggle flips and persists on home and dashboard", async ({
+    page,
+  }) => {
+    // marketing surface
+    await page.goto("/");
+    await page.getByRole("button", { name: /switch to dark theme/i }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await page.reload();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+
+    // dashboard surface (same apparule.theme key via NavRail toggle)
+    await page.goto("/signin");
+    await page.getByRole("button", { name: /continue with google/i }).click();
+    await page.waitForURL("**/dashboard");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await page.getByRole("button", { name: /switch to light theme/i }).click();
+    await expect(page.locator("html")).not.toHaveAttribute("data-theme", "dark");
+    await page.reload();
+    await expect(page.locator("html")).not.toHaveAttribute("data-theme", "dark");
   });
 });

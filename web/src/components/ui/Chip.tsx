@@ -31,7 +31,9 @@ export function Chip({
       className={clsx(
         // Figma master (41:19): 13px semibold label; selected = solid
         // text-token fill (reads as active filter, not an action).
-        "inline-flex h-8 items-center gap-1.5 rounded-pill border px-3 text-caption font-semibold",
+        // whitespace-nowrap: a chip is a fixed-height pill — wrapped labels
+        // clip out of it in constrained rows (walkthrough mini-screens).
+        "inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-pill border px-3 text-caption font-semibold",
         "transition-colors duration-120 ease-standard motion-reduce:transition-none",
         kind === "selected"
           ? "border-transparent bg-text text-bg"

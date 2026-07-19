@@ -18,7 +18,7 @@ export interface CommunityCardProps {
 
 export function CommunityCard({
   memberCount = null,
-  discordHref = "https://discord.gg/cuesoft",
+  discordHref = "https://discord.gg/CDfZxxrxbb",
   className,
 }: CommunityCardProps) {
   return (

@@ -7,7 +7,7 @@
 // data). Render-only over useVault.
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { formatAgo } from "@/lib/format";
+import { formatAgoPhrase } from "@/lib/format";
 import type { MeasurementSession } from "@/models";
 import { useAuth } from "@/controllers/auth/AuthContext";
 import { useVault } from "@/controllers/use-vault";
@@ -72,7 +72,7 @@ export function VaultView() {
         <div className="flex min-w-0 flex-1 flex-col gap-2 pt-1">
           <h1 className="text-title-lg font-bold text-text">
             {latestComplete
-              ? `Measured ${formatAgo(latestComplete.created_at)} ago`
+              ? `Measured ${formatAgoPhrase(latestComplete.created_at)}`
               : "No measurements yet"}
           </h1>
           <p className="text-body text-text-2">

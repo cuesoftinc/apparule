@@ -83,7 +83,12 @@ export function DateInput({
         <RadixPopover.Portal>
           <RadixPopover.Content
             sideOffset={4}
-            className="z-20 rounded-card border border-border bg-bg-elev p-3 shadow-lg"
+            // z-40 (sheet layer): the calendar opens from inside the quote
+            // Sheet (z-40 dialog) — at the z-20 dropdown layer the dialog
+            // paints over it and swallows every click, so the due date could
+            // never be picked. Same layer as the sheet, later in portal
+            // order wins (the same class of fix as Select, W3).
+            className="z-40 rounded-card border border-border bg-bg-elev p-3 shadow-lg"
           >
             <DatePickerPopover
               value={value}

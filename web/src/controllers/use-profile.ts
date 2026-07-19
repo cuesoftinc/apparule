@@ -63,10 +63,17 @@ export function useProfile() {
 
 export function useEarnings(ownUsername: string | null = null) {
   const [earnings, setEarnings] = useState<Earnings | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Non-designers (ownUsername null) never hit the endpoint — it would be a
+  // guaranteed 403 (console noise on every visit); the hook boots straight
+  // into the B9 upsell state instead.
+  const [loading, setLoading] = useState(ownUsername !== null);
+  const [error, setError] = useState<string | null>(
+    ownUsername ? null : "Earnings are available to designer profiles only",
+  );
   /** Taxonomy code (e.g. designer_profile_required → B9 upsell state). */
-  const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(
+    ownUsername ? null : "designer_profile_required",
+  );
   /** Payout-account card data (Figma 210:3) — own designer profile. */
   const [payoutAccount, setPayoutAccount] = useState<
     DesignerProfile["payout_account"] | null
@@ -108,8 +115,9 @@ export function useEarnings(ownUsername: string | null = null) {
   );
 
   useEffect(() => {
+    if (!ownUsername) return; // upsell state set at init — nothing to fetch
     void load();
-  }, [load]);
+  }, [load, ownUsername]);
 
   const reload = useCallback(() => {
     setLoading(true);

@@ -17,7 +17,7 @@ export function CommunitySection() {
         <CommunityCard />
         <div>
           <a
-            href="https://github.com/cuesoftinc/apparule#roadmap"
+            href="https://cuesoft.gitbook.io/apparule/product/roadmap"
             target="_blank"
             rel="noopener noreferrer"
             className="text-body font-semibold text-link hover:underline"

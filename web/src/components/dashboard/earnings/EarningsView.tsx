@@ -91,7 +91,7 @@ export function EarningsView() {
                     </span>
                   </p>
                   <p className="text-caption text-text-2">
-                    Payouts arrive within 1 business day of release · fee 10%
+                    Payouts arrive within 2 business days of release · fee 10%
                     per order
                   </p>
                   <Link
