@@ -8,7 +8,7 @@
 // `faq_open` fires on expand.
 import { useEffect, useSyncExternalStore } from "react";
 import { FAQGroup, FAQItem } from "@/components/ui/FAQItem";
-import { track } from "@/controllers/analytics";
+import { track } from "@/controllers/use-analytics";
 
 const FAQS = [
   {

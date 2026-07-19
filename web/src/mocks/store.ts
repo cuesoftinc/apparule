@@ -996,7 +996,11 @@ export class MockStore {
     if (!Number.isInteger(quoteCents) || quoteCents <= 0) {
       throw new MockApiError("validation_failed", "quote_cents must be a positive integer", 422);
     }
-    this.transition(order, "quoted", "designer");
+    if (order.status !== "quoted") {
+      // Requote is allowed while `quoted` — replaces the quote without a
+      // transition (flows/designer.md §2); otherwise requested → quoted.
+      this.transition(order, "quoted", "designer");
+    }
     order.quote_cents = quoteCents;
     order.due_at = dueAt;
     this.notify({

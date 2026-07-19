@@ -5,7 +5,7 @@
 // outline), MIT microcopy. CTA hover lifts 2px (as A2);
 // `try_cloud_click` / `self_host_click` fire here.
 import { useRouter } from "next/navigation";
-import { track } from "@/controllers/analytics";
+import { track } from "@/controllers/use-analytics";
 
 const PILL_BASE =
   "flex items-center justify-center rounded-pill px-7 py-3.5 text-body-lg font-semibold transition-transform duration-120 ease-standard hover:-translate-y-0.5 active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:translate-y-0";

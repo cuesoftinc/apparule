@@ -7,7 +7,7 @@ import userEvent from "@testing-library/user-event";
 import {
   setAnalyticsTransport,
   type AnalyticsEvent,
-} from "@/controllers/analytics";
+} from "@/controllers/use-analytics";
 import { ThemeProvider } from "@/design/ThemeProvider";
 
 const push = vi.fn();

@@ -4,7 +4,7 @@
 // its CTA row: Cloud → Try Cloud handoff (/signin), OSS → docs quickstart.
 import { useRouter } from "next/navigation";
 import { ComparisonTable } from "@/components/ui/ComparisonTable";
-import { track } from "@/controllers/analytics";
+import { track } from "@/controllers/use-analytics";
 
 export function ComparisonSection() {
   const router = useRouter();

@@ -7,7 +7,7 @@
 import { Camera, User, Wallet } from "lucide-react";
 import { DiscordMark } from "@/components/icons/DiscordMark";
 import { GitHubMark } from "@/components/icons/GitHubMark";
-import { track } from "@/controllers/analytics";
+import { track } from "@/controllers/use-analytics";
 import { useGithubStars } from "@/controllers/use-github-stars";
 import { GITHUB_REPO_URL } from "@/models/repositories/github-repo";
 

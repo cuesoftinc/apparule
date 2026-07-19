@@ -6,7 +6,7 @@
 // A7c section.
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { track } from "@/controllers/analytics";
+import { track } from "@/controllers/use-analytics";
 import { HeroPhoneMock } from "./HeroPhoneMock";
 
 export function HeroSection() {

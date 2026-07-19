@@ -2,7 +2,7 @@
 // against the enriched-landing copy + accuracy-standard invariants.
 import { afterEach, describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { setAnalyticsTransport, type AnalyticsEvent } from "@/controllers/analytics";
+import { setAnalyticsTransport, type AnalyticsEvent } from "@/controllers/use-analytics";
 import { ThemeProvider } from "@/design/ThemeProvider";
 import { ArchitectureDiagram } from "./ArchitectureDiagram";
 import { CommunitySection } from "./CommunitySection";

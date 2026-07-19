@@ -6,7 +6,7 @@ import {
   track,
   usePageView,
   type AnalyticsEvent,
-} from "./analytics";
+} from "./use-analytics";
 
 afterEach(() => {
   setAnalyticsTransport(null);

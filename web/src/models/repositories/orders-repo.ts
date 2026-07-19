@@ -57,6 +57,13 @@ export const ordersRepo = {
       json: { status, tracking },
     }),
 
+  /** POST /api/v1/requests/{id}/cancel — customer withdraws / rejects the
+   * quote (order-lifecycle.md §1; endpoint is mock-ahead-of-contract). */
+  cancel: (id: string) =>
+    apiFetch<CommissionRequest>(`/v1/requests/${id}/cancel`, {
+      method: "POST",
+    }),
+
   /** POST /api/v1/requests/{id}/pay — escrow hold (MI-15). */
   pay: (id: string, idempotencyKey: string) =>
     apiFetch<CommissionRequest>(`/v1/requests/${id}/pay`, {

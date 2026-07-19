@@ -1,11 +1,18 @@
-// Account + consent repository — api.md §2 (auth & consent group).
+// Account + consent repository — api.md §2 (auth & consent group) plus the
+// B7 Account & data rights endpoints (export / delete-all).
 import { apiFetch } from "@/lib/api";
-import type { Account, ConsentRecord, ProfileLocation } from "../entities/account";
+import type {
+  Account,
+  ConsentRecord,
+  NotificationPrefs,
+  ProfileLocation,
+} from "../entities/account";
 
 export interface AccountPatch {
   username?: string;
   display_name?: string;
   profile_location?: ProfileLocation | null;
+  notification_prefs?: Partial<NotificationPrefs>;
 }
 
 export const accountRepo = {
@@ -25,4 +32,11 @@ export const accountRepo = {
       method: "POST",
       json: { document, version },
     }),
+
+  /** GET /api/v1/me/export — "Download my data" (data-model §4 rights). */
+  exportData: () => apiFetch<Record<string, unknown>>("/v1/me/export"),
+
+  /** POST /api/v1/me/deletion — delete-all request (confirm-gated in UI). */
+  requestDeletion: () =>
+    apiFetch<Account>("/v1/me/deletion", { method: "POST" }),
 };
