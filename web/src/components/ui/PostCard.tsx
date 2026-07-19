@@ -228,8 +228,11 @@ export function PostCard({
             Request this outfit
           </Button>
         ) : null}
+        {/* suppressHydrationWarning: relative timestamps are computed at
+            render time and may differ between server and client by design */}
         <time
           dateTime={post.created_at}
+          suppressHydrationWarning
           className="text-micro uppercase tracking-[0.4px] text-text-2"
         >
           {formatAgo(post.created_at)}

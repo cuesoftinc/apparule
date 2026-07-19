@@ -4,7 +4,7 @@
 // + Sign in + Try Cloud (gradient) · state top / stuck-blurred (blurs on
 // scroll). Accuracy standard: the badge renders "Star" with no number until
 // the live count arrives at runtime (fetched client-side by the page, A1).
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import clsx from "clsx";
 import Link from "next/link";
 import { Star } from "lucide-react";
@@ -22,6 +22,14 @@ export interface HomeNavProps {
   starCount?: number | null;
   githubHref?: string;
   onTryCloud?: () => void;
+  /** Analytics seam: `github_click` fires here (pages.md A1). */
+  onGithubClick?: () => void;
+  /**
+   * Trailing slot before Sign in — the page mounts the theme toggle here
+   * (W2 adaptation: light/dark QA + the §8.4 marketing journey need a
+   * public-surface toggle; the Figma nav master carries no toggle).
+   */
+  trailing?: ReactNode;
   className?: string;
 }
 
@@ -36,6 +44,8 @@ export function HomeNav({
   starCount = null,
   githubHref = "https://github.com/cuesoftinc/apparule",
   onTryCloud,
+  onGithubClick,
+  trailing,
   className,
 }: HomeNavProps) {
   const [stuck, setStuck] = useState(false);
@@ -80,7 +90,9 @@ export function HomeNav({
           target="_blank"
           rel="noopener noreferrer"
           data-testid="star-badge"
-          className="flex h-9 items-center gap-2 rounded-pill border border-border px-3 text-body font-semibold text-text hover:bg-border/30"
+          onClick={onGithubClick}
+          // hidden <sm: 375-width adaptation (Figma nav is 1440-only)
+          className="hidden h-9 items-center gap-2 rounded-pill border border-border px-3 text-body font-semibold text-text hover:bg-border/30 sm:flex"
         >
           <GitHubMark size={16} />
           <Star size={14} className="text-warn" />
@@ -88,7 +100,11 @@ export function HomeNav({
             {starCount === null ? "Star" : starCount.toLocaleString("en-NG")}
           </span>
         </a>
-        <Link href="/signin" className="text-body font-semibold text-text hover:text-text-2">
+        {trailing}
+        <Link
+          href="/signin"
+          className="whitespace-nowrap text-body font-semibold text-text hover:text-text-2"
+        >
           Sign in
         </Link>
         <Button kind="gradient-primary" size="sm" onClick={onTryCloud}>

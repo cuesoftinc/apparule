@@ -8,13 +8,15 @@ export interface FooterColumn {
   links: { label: string; href: string }[];
 }
 
+// Canvas footer content (Home instance 186:272, enriched landing).
 const DEFAULT_COLUMNS: FooterColumn[] = [
   {
     heading: "Product",
     links: [
-      { label: "How it works", href: "/#product" },
+      { label: "Features", href: "/#product" },
+      { label: "Try Cloud", href: "/signin" },
+      { label: "Self Host", href: "/#self-host" },
       { label: "For designers", href: "/#designers" },
-      { label: "Cloud vs self-host", href: "/#compare" },
     ],
   },
   {
@@ -22,7 +24,9 @@ const DEFAULT_COLUMNS: FooterColumn[] = [
     links: [
       { label: "Quickstart", href: "https://docs.apparule.cuesoft.io" },
       { label: "API reference", href: "/docs/api" },
-      { label: "Self-hosting", href: "https://docs.apparule.cuesoft.io/self-host" },
+      { label: "GitBook", href: "https://docs.apparule.cuesoft.io" },
+      { label: "Self-host guide", href: "https://docs.apparule.cuesoft.io/self-host" },
+      { label: "Contributing", href: "https://github.com/cuesoftinc/apparule/blob/main/CONTRIBUTING.md" },
     ],
   },
   {
@@ -31,6 +35,8 @@ const DEFAULT_COLUMNS: FooterColumn[] = [
       { label: "GitHub", href: "https://github.com/cuesoftinc/apparule" },
       { label: "Discord", href: "https://discord.gg/cuesoft" },
       { label: "Roadmap", href: "https://github.com/cuesoftinc/apparule#roadmap" },
+      { label: "Good first issues", href: "https://github.com/cuesoftinc/apparule/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22" },
+      { label: "CueLABS", href: "https://cuesoft.io" },
     ],
   },
 ];
@@ -49,8 +55,8 @@ export function HomeFooter({ columns = DEFAULT_COLUMNS, className }: HomeFooterP
             Apparule
           </span>
           <p className="mt-2 text-caption text-text-2">
-            Precision measurement meets social fashion. A CueLABS open-source
-            product.
+            AI body measurement and made-to-measure fashion — open source,
+            made for Lagos.
           </p>
         </div>
         {columns.map((column) => (
@@ -69,7 +75,7 @@ export function HomeFooter({ columns = DEFAULT_COLUMNS, className }: HomeFooterP
         ))}
       </div>
       <div className="mx-auto mt-10 flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 border-t border-border pt-6 text-caption text-text-2">
-        <span>© {new Date().getFullYear()} Cuesoft</span>
+        <span>© {new Date().getFullYear()} Cuesoft · CueLABS</span>
         <a href="/privacy" className="hover:text-text">
           Privacy
         </a>

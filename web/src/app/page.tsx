@@ -1,65 +1,66 @@
-import Image from "next/image";
+// Public home page `/` — pages.md Part A (A1–A10 + A4b/A7b/A7c/A9b/A9c),
+// composed from registry component instances against the enriched Figma
+// landing (frame 186:2). Views render-only: demo data flows from
+// controllers/home-demo, the star count from the github repository, and
+// analytics through the controller transport.
+import type { Metadata } from "next";
+import { HomeFooter } from "@/components/ui/HomeFooter";
+import { CommunitySection } from "@/components/home/CommunitySection";
+import { ComparisonSection } from "@/components/home/ComparisonSection";
+import { DesignersSection } from "@/components/home/DesignersSection";
+import { DevelopersSection } from "@/components/home/DevelopersSection";
+import { FaqSection } from "@/components/home/FaqSection";
+import { FeatureDeepDives } from "@/components/home/FeatureDeepDives";
+import { FinalCtaBand } from "@/components/home/FinalCtaBand";
+import { HeroSection } from "@/components/home/HeroSection";
+import { HomeNavBar } from "@/components/home/HomeNavBar";
+import { PageViewTracker } from "@/components/home/PageViewTracker";
+import { SelfHostSection } from "@/components/home/SelfHostSection";
+import { SmplSection } from "@/components/home/SmplSection";
+import { StatBand } from "@/components/home/StatBand";
+import { WalkthroughSection } from "@/components/home/WalkthroughSection";
 
-export default function Home() {
+// Hero copy is the canonical description (canvas 186:18/186:19).
+const DESCRIPTION =
+  "Apparule turns two phone photos into a complete, private body-measurement profile. Commission Lagos designers who sew to your measurements — no size charts, no guesswork.";
+
+export const metadata: Metadata = {
+  title: "Apparule — Two photos. A perfect fit.",
+  description: DESCRIPTION,
+  openGraph: {
+    title: "Apparule — Two photos. A perfect fit.",
+    description: DESCRIPTION,
+    url: "https://apparule.cuesoft.io",
+    siteName: "Apparule",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Apparule — Two photos. A perfect fit.",
+    description: DESCRIPTION,
+  },
+};
+
+export default function HomePage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <div className="flex min-h-screen flex-col bg-bg text-text">
+      <PageViewTracker path="/" />
+      <HomeNavBar />
+      <main className="flex-1">
+        <HeroSection />
+        <StatBand />
+        <WalkthroughSection />
+        <FeatureDeepDives />
+        <SmplSection />
+        <DesignersSection />
+        <DevelopersSection />
+        <SelfHostSection />
+        <ComparisonSection />
+        <FaqSection />
+        <CommunitySection />
+        <FinalCtaBand />
       </main>
+      <HomeFooter />
     </div>
   );
 }

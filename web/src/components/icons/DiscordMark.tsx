@@ -1,10 +1,17 @@
 // Brand glyph `icon/brand-discord` — the Discord mark (not Lucide; approved
 // brand addition per the shared-foundations iconography rule, design.md §2).
-export function DiscordMark({ size = 16 }: { size?: number }) {
+export function DiscordMark({
+  size = 16,
+  className,
+}: {
+  size?: number;
+  className?: string;
+}) {
   return (
     <svg
       width={size}
       height={size}
+      className={className}
       viewBox="0 0 127.14 96.36"
       fill="currentColor"
       aria-hidden="true"

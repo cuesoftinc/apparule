@@ -1,0 +1,41 @@
+"use client";
+
+// A1 nav wrapper — HomeNav instance wired to the controllers: live star
+// count (count-up once, neutral "Star" fallback), Try Cloud → /signin
+// handoff, `github_click` / `try_cloud_click`, and the theme toggle
+// (W2 adaptation: the public surface needs light/dark switching for the
+// §8.4 journey; mirrors the NavRail footer toggle).
+import { useRouter } from "next/navigation";
+import { Moon, Sun } from "lucide-react";
+import { HomeNav } from "@/components/ui/HomeNav";
+import { IconButton } from "@/components/ui/IconButton";
+import { useTheme } from "@/design/ThemeProvider";
+import { track } from "@/controllers/analytics";
+import { useGithubStars } from "@/controllers/use-github-stars";
+
+export function HomeNavBar() {
+  const router = useRouter();
+  const stars = useGithubStars();
+  const { preference, setPreference } = useTheme();
+  const nextTheme = preference === "dark" ? "light" : "dark";
+
+  return (
+    <HomeNav
+      starCount={stars}
+      onGithubClick={() => track("github_click", { section: "nav" })}
+      onTryCloud={() => {
+        track("try_cloud_click", { section: "nav" });
+        router.push("/signin");
+      }}
+      trailing={
+        <IconButton
+          size="sm"
+          aria-label={`Switch to ${nextTheme} theme`}
+          onClick={() => setPreference(nextTheme)}
+        >
+          {preference === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+        </IconButton>
+      }
+    />
+  );
+}
