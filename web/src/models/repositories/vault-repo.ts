@@ -49,6 +49,39 @@ export const vaultRepo = {
    */
   deleteSession: (id: string) =>
     apiFetch<void>(`/v1/sessions/${id}`, { method: "DELETE" }),
+
+  /**
+   * POST /api/v1/me/sessions (multipart) — webcam capture upload (B4).
+   * Returns a `pending_save` session with per-measurement confidence; QC
+   * failures surface as 422 with the capture-qc.md code + guidance.
+   */
+  createCaptureSession: (
+    image: File,
+    inputHeightCm: number,
+    idempotencyKey: string,
+  ) => {
+    const form = new FormData();
+    form.set("image", image);
+    form.set("input_height_cm", String(inputHeightCm));
+    return apiFetch<MeasurementSession>("/v1/me/sessions", {
+      method: "POST",
+      body: form,
+      headers: { "Idempotency-Key": idempotencyKey },
+    });
+  },
+
+  /** POST /api/v1/sessions/{id}/save — pending_save → complete. */
+  saveSession: (id: string) =>
+    apiFetch<MeasurementSession>(`/v1/sessions/${id}/save`, {
+      method: "POST",
+    }),
+
+  /** POST /api/v1/sessions/{id}/exports — pdf/csv → signed URL (PLAT-004). */
+  exportSession: (id: string, format: "csv" | "pdf" = "csv") =>
+    apiFetch<{ url: string; format: string }>(`/v1/sessions/${id}/exports`, {
+      method: "POST",
+      json: { format },
+    }),
 };
 
 /** Latest value per measurement name across complete sessions (vault grid). */

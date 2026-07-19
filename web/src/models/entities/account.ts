@@ -13,6 +13,18 @@ export interface ConsentRecord {
   accepted_at: string;
 }
 
+/**
+ * Per-event notification toggles (pages.md B7 Notifications sub-screen).
+ * W3 addition ahead of the api.md contract — carried on the account so
+ * `PATCH /me` persists them (deviation noted in the stage report).
+ */
+export interface NotificationPrefs {
+  quotes: boolean;
+  order_status: boolean;
+  social: boolean;
+  payouts: boolean;
+}
+
 export interface Account {
   id: string;
   firebase_uid: string;
@@ -27,6 +39,9 @@ export interface Account {
     enabled: boolean;
     kyc_complete: boolean;
   };
+  /** Staff flag gates the B7a moderation queue (A-6). W3 mock-ahead addition. */
+  is_staff: boolean;
+  notification_prefs: NotificationPrefs;
   consent: ConsentRecord[];
   created_at: string;
 }

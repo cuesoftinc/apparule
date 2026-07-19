@@ -8,7 +8,7 @@
 // First engagement fires `demo_start`.
 import { useRef } from "react";
 import { WalkthroughStep } from "@/components/ui/WalkthroughStep";
-import { track } from "@/controllers/analytics";
+import { track } from "@/controllers/use-analytics";
 import {
   CaptureThumb,
   ExploreThumb,

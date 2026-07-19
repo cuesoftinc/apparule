@@ -38,6 +38,21 @@ export function apiBasePath(): string {
   return env.testMode ? "/api/mock" : `${env.apiBaseUrl}/api`;
 }
 
+/**
+ * Part of the TEST_MODE mock seam (web-implementation.md §5 seam 2): the QA
+ * loop can act as another seeded persona by setting
+ * `sessionStorage["apparule.testmode.actor"]` — the mock server honors the
+ * `x-mock-actor` header; real-backend mode never sends it.
+ */
+function testModeActor(): string | null {
+  if (!env.testMode || typeof window === "undefined") return null;
+  try {
+    return window.sessionStorage.getItem("apparule.testmode.actor");
+  } catch {
+    return null;
+  }
+}
+
 export interface ApiRequestInit extends RequestInit {
   /** JSON body convenience — serialized and content-typed automatically. */
   json?: unknown;
@@ -52,10 +67,12 @@ export async function apiFetch<T>(
   init: ApiRequestInit = {},
 ): Promise<T> {
   const { json, headers, ...rest } = init;
+  const actor = testModeActor();
   const res = await fetch(`${apiBasePath()}${path}`, {
     ...rest,
     headers: {
       ...(json !== undefined ? { "Content-Type": "application/json" } : {}),
+      ...(actor ? { "x-mock-actor": actor } : {}),
       ...(headers ?? {}),
     },
     ...(json !== undefined ? { body: JSON.stringify(json) } : {}),

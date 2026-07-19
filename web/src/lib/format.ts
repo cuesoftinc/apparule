@@ -20,6 +20,17 @@ export function formatCm(valueCm: number, unit: "cm" | "in" = "cm"): string {
   return `${valueCm % 1 === 0 ? valueCm.toFixed(0) : valueCm.toFixed(1)} cm`;
 }
 
+/** Compact social counts ("12.4k followers", IG-style — Figma 182:969). */
+export function formatCount(value: number): string {
+  if (value < 1000) return String(value);
+  if (value < 1_000_000) {
+    const k = value / 1000;
+    return `${k >= 100 ? Math.round(k) : Math.round(k * 10) / 10}k`;
+  }
+  const m = value / 1_000_000;
+  return `${Math.round(m * 10) / 10}m`;
+}
+
 /** Relative day label for meta lines ("today", "3d", "2w"). */
 export function formatAgo(iso: string, now: Date = new Date()): string {
   const ms = now.getTime() - new Date(iso).getTime();

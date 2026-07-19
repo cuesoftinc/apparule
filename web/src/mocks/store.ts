@@ -4,6 +4,7 @@
 // HMR and shared by all route handlers.
 import type {
   Account,
+  BankResolution,
   Comment,
   CommissionRequest,
   DeclineReason,
@@ -14,12 +15,16 @@ import type {
   MeasurementSession,
   ModerationAction,
   Notification,
+  NotificationKind,
+  NotificationPrefs,
   OrderStatus,
   Post,
+  PublicProfile,
   Report,
   ReportReason,
   ReportSubjectKind,
   ThreadMessage,
+  UserSummary,
 } from "@/models";
 import { canTransition } from "@/models";
 import { MockApiError } from "./http";
@@ -38,6 +43,35 @@ import {
 } from "./seed";
 
 const USERNAME_RE = /^[a-z0-9._]{3,30}$/;
+
+/**
+ * QC failure taxonomy (capture-qc.md §1–2) with the canonical retake copy
+ * (flows/vault.md). The webcam capture path reproduces a code when the
+ * uploaded file's name contains it (designated fixture images).
+ */
+export const QC_FAILURES: Record<string, string> = {
+  no_body: "Make sure your whole body is visible",
+  multiple_bodies: "Make sure you're alone in frame",
+  partial_body: "Include head to ankles",
+  undecodable_image: "That image couldn't be read — try another photo",
+  low_resolution: "Move closer or use a higher-quality camera",
+  poor_lighting: "Find better lighting — avoid strong backlight",
+  blurry: "Hold steady and retake",
+  not_frontal: "Face the camera straight on",
+  camera_tilt: "Hold the phone upright",
+  arms_position: "Keep arms slightly away from your body",
+  too_far: "Move closer — fill more of the frame",
+};
+
+/** Notification kind → the pref that gates it (pages.md B7 Notifications). */
+const KIND_TO_PREF: Record<NotificationKind, keyof NotificationPrefs> = {
+  quote: "quotes",
+  status_change: "order_status",
+  like: "social",
+  follow: "social",
+  comment: "social",
+  payout: "payouts",
+};
 
 let nextId = 1;
 function id(prefix: string): string {
@@ -70,6 +104,10 @@ export class MockStore {
   /** Idempotency replay cache: key → serialized response (api.md §4). */
   idempotency = new Map<string, { payloadHash: string; response: unknown }>();
   orderCounter = 1059;
+  /** Uploaded media (composer) — stands in for object storage. */
+  media = new Map<string, { data: string; contentType: string }>();
+  /** Threads that already received the scripted counterparty reply (MI-17). */
+  autoReplied = new Set<string>();
 
   // -- helpers --------------------------------------------------------------
 
@@ -94,6 +132,15 @@ export class MockStore {
   }
 
   private notify(input: Omit<Notification, "id" | "created_at" | "read_at">) {
+    // Per-event toggles (pages.md B7): a disabled pref drops the event for
+    // that recipient — account_id may be an account or designer-profile id.
+    const designer = this.designers.find((d) => d.id === input.account_id);
+    const account = this.accounts.find(
+      (a) => a.id === (designer?.account_id ?? input.account_id),
+    );
+    if (account && !account.notification_prefs[KIND_TO_PREF[input.kind]]) {
+      return;
+    }
     this.notifications.unshift({
       ...input,
       id: id("ntf"),
@@ -129,7 +176,12 @@ export class MockStore {
 
   updateMe(
     username: string,
-    patch: Partial<Pick<Account, "username" | "display_name" | "profile_location">>,
+    patch: Partial<
+      Pick<Account, "username" | "display_name" | "profile_location">
+    > & {
+      /** Partial per-event toggles — merged over the existing prefs. */
+      notification_prefs?: Partial<NotificationPrefs>;
+    },
   ): Account {
     const account = this.accountByUsername(username);
     if (patch.username && patch.username !== account.username) {
@@ -153,6 +205,34 @@ export class MockStore {
     if (patch.profile_location !== undefined) {
       account.profile_location = patch.profile_location;
     }
+    if (patch.notification_prefs !== undefined) {
+      account.notification_prefs = {
+        ...account.notification_prefs,
+        ...patch.notification_prefs,
+      };
+    }
+    return deepClone(account);
+  }
+
+  /** GDPR-parity data export (pages.md B7 Account & data; data-model §4). */
+  exportData(username: string): Record<string, unknown> {
+    const account = this.accountByUsername(username);
+    return deepClone({
+      account,
+      sessions: this.sessions.filter((s) => s.customer_id === account.id),
+      orders: this.orders.filter((o) => o.customer.id === account.id),
+      consent: account.consent,
+      saved_post_ids: [...this.saves]
+        .filter((k) => k.startsWith(`${account.id}:`))
+        .map((k) => k.split(":")[1]),
+      exported_at: new Date().toISOString(),
+    });
+  }
+
+  /** Delete-all request — flags the account; purge is a backend job later. */
+  requestDeletion(username: string): Account {
+    const account = this.accountByUsername(username);
+    account.deletion_state = "deletion_pending";
     return deepClone(account);
   }
 
@@ -232,15 +312,14 @@ export class MockStore {
   ): Post {
     const account = this.accountByUsername(designerUsername);
     const designer = this.designerByUsername(designerUsername);
+    // Posting is allowed pre-KYC; accepting requests is not (flows/designer.md
+    // §1 — the A-2 gate lives on createRequest as `post_unavailable`).
     if (!designer || !account.designer.enabled) {
       throw new MockApiError(
-        "kyc_incomplete",
-        "Enable a designer profile and complete KYC to post",
+        "designer_profile_required",
+        "Enable a designer profile to post",
         403,
       );
-    }
-    if (!account.designer.kyc_complete) {
-      throw new MockApiError("kyc_incomplete", "Complete KYC to post", 403);
     }
     if (input.media.length === 0 || input.media.length > 10) {
       throw new MockApiError(
@@ -359,6 +438,113 @@ export class MockStore {
     return deepClone(comment);
   }
 
+  // -- profiles & social lists (pages.md B6/B2 — mock-ahead-of-contract) ----
+
+  private summaryOf(account: Account, viewer: Account): UserSummary {
+    const designer = this.designerByUsername(account.username);
+    return {
+      username: account.username,
+      display_name: account.display_name,
+      avatar_url: account.avatar_url,
+      verified: designer?.verified ?? false,
+      is_designer: designer !== undefined,
+      meta: designer ? designer.bio.split(/[.·]/)[0].trim() : null,
+      viewer_follows:
+        designer !== undefined &&
+        this.follows.has(`${viewer.id}:${account.username}`),
+    };
+  }
+
+  profileFor(username: string, viewerUsername: string): PublicProfile {
+    const viewer = this.accountByUsername(viewerUsername);
+    const designer = this.designerByUsername(username);
+    if (designer) {
+      return {
+        kind: "designer",
+        designer: deepClone(designer),
+        viewer_follows: this.follows.has(`${viewer.id}:${username}`),
+        viewer_is_self: viewer.username === username,
+      };
+    }
+    const account = this.accountByUsername(username);
+    return {
+      kind: "user",
+      account: {
+        username: account.username,
+        display_name: account.display_name,
+        avatar_url: account.avatar_url,
+      },
+      viewer_is_self: viewer.username === username,
+    };
+  }
+
+  postsBy(username: string, viewerUsername: string): Post[] {
+    const viewer = this.accountByUsername(viewerUsername);
+    return this.posts
+      .filter((p) => p.designer.username === username)
+      .sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      )
+      .map((p) => this.viewPost(p, viewer.id));
+  }
+
+  savedPosts(viewerUsername: string): Post[] {
+    const viewer = this.accountByUsername(viewerUsername);
+    return this.posts
+      .filter((p) => this.saves.has(`${viewer.id}:${p.id}`))
+      .map((p) => this.viewPost(p, viewer.id));
+  }
+
+  followersOf(designerUsername: string, viewerUsername: string): UserSummary[] {
+    if (!this.designerByUsername(designerUsername)) {
+      throw new MockApiError("not_found", "Designer not found", 404);
+    }
+    const viewer = this.accountByUsername(viewerUsername);
+    return this.accounts
+      .filter((a) => this.follows.has(`${a.id}:${designerUsername}`))
+      .map((a) => this.summaryOf(a, viewer));
+  }
+
+  followingOf(username: string, viewerUsername: string): UserSummary[] {
+    const subject = this.accountByUsername(username);
+    const viewer = this.accountByUsername(viewerUsername);
+    return [...this.follows]
+      .filter((k) => k.startsWith(`${subject.id}:`))
+      .map((k) => k.split(":")[1])
+      .map((designerUsername) => {
+        const account = this.accounts.find(
+          (a) => a.username === designerUsername,
+        );
+        return account ? this.summaryOf(account, viewer) : null;
+      })
+      .filter((row): row is UserSummary => row !== null);
+  }
+
+  suggestedDesigners(viewerUsername: string): UserSummary[] {
+    const viewer = this.accountByUsername(viewerUsername);
+    return this.designers
+      .filter(
+        (d) =>
+          d.username !== viewer.username &&
+          !this.follows.has(`${viewer.id}:${d.username}`),
+      )
+      .map((d) => this.summaryOf(this.accountByUsername(d.username), viewer));
+  }
+
+  searchDesigners(q: string, viewerUsername: string): UserSummary[] {
+    const viewer = this.accountByUsername(viewerUsername);
+    const needle = q.toLowerCase();
+    return this.designers
+      .filter(
+        (d) =>
+          d.username.includes(needle) ||
+          d.display_name.toLowerCase().includes(needle) ||
+          d.bio.toLowerCase().includes(needle),
+      )
+      .map((d) => this.summaryOf(this.accountByUsername(d.username), viewer));
+  }
+
   setFollow(viewerUsername: string, designerUsername: string, on: boolean): void {
     const viewer = this.accountByUsername(viewerUsername);
     if (!this.designerByUsername(designerUsername)) {
@@ -429,6 +615,99 @@ export class MockStore {
     };
     this.sessions.unshift(session);
     return deepClone(session);
+  }
+
+  /**
+   * Webcam capture path (B4): multipart upload → QC → pending_save session
+   * with per-measurement confidence (api.md §2 v2 schema). QC failures are
+   * reproduced when the file name contains a QC code (designated fixtures).
+   */
+  createCaptureSession(
+    username: string,
+    input: { input_height_cm: number; filename: string },
+  ): MeasurementSession {
+    const account = this.accountByUsername(username);
+    if (
+      !Number.isFinite(input.input_height_cm) ||
+      input.input_height_cm < 100 ||
+      input.input_height_cm > 230
+    ) {
+      throw new MockApiError(
+        "validation_failed",
+        "Height must be 100-230 cm",
+        422,
+      );
+    }
+    const name = input.filename.toLowerCase();
+    for (const [code, guidance] of Object.entries(QC_FAILURES)) {
+      if (name.includes(code)) {
+        throw new MockApiError(code, guidance, 422, { guidance });
+      }
+    }
+    const sessionId = id("sess");
+    const scale = input.input_height_cm / 168;
+    const seededResults: [string, number, number][] = [
+      ["shoulder_width", 42.7, 0.93],
+      ["hip_width", 36.9, 0.9],
+      ["chest_girth", 91.2, 0.74],
+      ["waist_girth", 78.1, 0.68], // low-confidence chip renders from seed
+    ];
+    const session: MeasurementSession = {
+      id: sessionId,
+      customer_id: account.id,
+      method: "mediapipe_2d_v2",
+      input_height_cm: input.input_height_cm,
+      status: "pending_save",
+      measurements: seededResults.map(([mName, value, confidence], i) => ({
+        id: `${sessionId}-m${i}`,
+        session_id: sessionId,
+        name: mName,
+        value_cm: Math.round(value * scale * 10) / 10,
+        source: "pipeline",
+        confidence,
+      })),
+      pipeline_meta: { model_version: "mp2d-v2.3", qc: "pass" },
+      created_at: new Date().toISOString(),
+    };
+    this.sessions.unshift(session);
+    return deepClone(session);
+  }
+
+  /** "Save to vault" — flips pending_save → complete (flows/vault.md §1). */
+  saveSession(sessionId: string, username: string): MeasurementSession {
+    const account = this.accountByUsername(username);
+    const session = this.sessions.find(
+      (s) => s.id === sessionId && s.customer_id === account.id,
+    );
+    if (!session) throw new MockApiError("not_found", "Session not found", 404);
+    if (session.status !== "pending_save") {
+      throw new MockApiError(
+        "invalid_transition",
+        "Only unsaved capture results can be saved",
+        409,
+      );
+    }
+    session.status = "complete";
+    return deepClone(session);
+  }
+
+  /** PLAT-004 export — the mock returns an inline data URL as the signed URL. */
+  sessionExport(
+    sessionId: string,
+    username: string,
+    format: "csv" | "pdf",
+  ): { url: string; format: string } {
+    const session = this.session(sessionId, username);
+    const rows = [
+      "name,value_cm,source,confidence",
+      ...session.measurements.map(
+        (m) => `${m.name},${m.value_cm},${m.source},${m.confidence ?? ""}`,
+      ),
+    ].join("\n");
+    return {
+      url: `data:text/csv;base64,${Buffer.from(rows, "utf8").toString("base64")}`,
+      format,
+    };
   }
 
   session(sessionId: string, username: string): MeasurementSession {
@@ -520,6 +799,16 @@ export class MockStore {
     const customer = this.accountByUsername(customerUsername);
     const post = this.posts.find((p) => p.id === postId);
     if (!post) throw new MockApiError("not_found", "Post not found", 404);
+    // A-2 gate: posts of non-KYC (or KYC-lapsed) designers don't accept
+    // requests (flows/designer.md §1).
+    const postDesigner = this.designerByUsername(post.designer.username);
+    if (!postDesigner || postDesigner.payout_account.kyc_state !== "verified") {
+      throw new MockApiError(
+        "post_unavailable",
+        "This outfit is no longer available",
+        409,
+      );
+    }
     const session = this.sessions.find(
       (s) => s.id === input.session_id && s.customer_id === customer.id,
     );
@@ -631,6 +920,29 @@ export class MockStore {
       created_at: now,
     };
     this.orders.unshift(order);
+    this.notify({
+      account_id: order.designer.id,
+      kind: "status_change",
+      payload_ref: order.id,
+      text: `${customer.username} requested ${post.caption.split(" — ")[0]} (#${order.order_number})`,
+      actor: { username: customer.username, avatar_url: customer.avatar_url },
+      thumb_url: order.post.thumb_url,
+    });
+    return deepClone(order);
+  }
+
+  /** Customer withdraws (requested) or rejects the quote (quoted). */
+  cancel(orderId: string, customerUsername: string): CommissionRequest {
+    const order = this.orderAsCustomer(orderId, customerUsername);
+    this.transition(order, "cancelled", "customer");
+    this.notify({
+      account_id: order.designer.id,
+      kind: "status_change",
+      payload_ref: order.id,
+      text: `${order.customer.username} cancelled request #${order.order_number}`,
+      actor: { username: order.customer.username, avatar_url: null },
+      thumb_url: order.post.thumb_url,
+    });
     return deepClone(order);
   }
 
@@ -684,7 +996,11 @@ export class MockStore {
     if (!Number.isInteger(quoteCents) || quoteCents <= 0) {
       throw new MockApiError("validation_failed", "quote_cents must be a positive integer", 422);
     }
-    this.transition(order, "quoted", "designer");
+    if (order.status !== "quoted") {
+      // Requote is allowed while `quoted` — replaces the quote without a
+      // transition (flows/designer.md §2); otherwise requested → quoted.
+      this.transition(order, "quoted", "designer");
+    }
     order.quote_cents = quoteCents;
     order.due_at = dueAt;
     this.notify({
@@ -830,18 +1146,31 @@ export class MockStore {
     }
     const account = this.accountByUsername(username);
     const designer = this.designerByUsername(username);
+    const order = this.orders.find((o) => o.id === orderId)!;
+    const authorIsDesigner =
+      designer !== undefined && order.designer.id === designer.id;
     const message: ThreadMessage = {
       id: id("msg"),
       request_id: orderId,
-      author_id:
-        designer && this.orders.find((o) => o.id === orderId)?.designer.id === designer.id
-          ? designer.id
-          : account.id,
+      author_id: authorIsDesigner ? designer.id : account.id,
       body,
       image_url: imageUrl,
       created_at: new Date().toISOString(),
     };
     this.messages.push(message);
+    // Scripted counterparty reply (once per thread) — gives the MI-17
+    // "responding…" indicator a real payoff in TEST_MODE.
+    if (!authorIsDesigner && !this.autoReplied.has(orderId)) {
+      this.autoReplied.add(orderId);
+      this.messages.push({
+        id: id("msg"),
+        request_id: orderId,
+        author_id: order.designer.id,
+        body: "Got it — thanks! I'll take a look and reply properly shortly.",
+        image_url: null,
+        created_at: new Date(Date.now() + 1).toISOString(),
+      });
+    }
     return deepClone(message);
   }
 
@@ -902,6 +1231,34 @@ export class MockStore {
     return deepClone(designer);
   }
 
+  /**
+   * Paystack account resolution (pages.md B8 scripted states): a 10-digit
+   * number resolves to the holder's registered name; numbers starting "00"
+   * reproduce the mismatch/unresolvable path deterministically.
+   */
+  resolveBank(
+    username: string,
+    bankCode: string,
+    accountNumber: string,
+  ): BankResolution {
+    const account = this.accountByUsername(username);
+    if (!bankCode) {
+      throw new MockApiError("validation_failed", "Pick your bank", 422);
+    }
+    if (!/^\d{10}$/.test(accountNumber) || accountNumber.startsWith("00")) {
+      throw new MockApiError(
+        "bank_resolution_failed",
+        "Could not resolve that account number",
+        422,
+      );
+    }
+    return {
+      account_name: account.display_name.toUpperCase(),
+      bank_code: bankCode,
+      account_number: accountNumber,
+    };
+  }
+
   attachPayoutAccount(
     username: string,
     bankCode: string,
@@ -916,21 +1273,18 @@ export class MockStore {
         403,
       );
     }
-    if (!/^\d{10}$/.test(accountNumber)) {
-      // Paystack resolution mismatch path (pages.md B8)
-      throw new MockApiError(
-        "bank_resolution_failed",
-        "Could not resolve that account number",
-        422,
-      );
-    }
+    // Same deterministic failure script as resolveBank.
+    this.resolveBank(username, bankCode, accountNumber);
+    // Designated fixture: 9999999999 attaches, then the provider invalidates
+    // it — reproduces the KYC-lapse banner state (flows/designer.md §1).
+    const lapsed = accountNumber === "9999999999";
     designer.payout_account = {
       provider_ref: `PSTK-RCP-${accountNumber.slice(-5)}`,
       bank_name: bankCode,
       account_last4: accountNumber.slice(-4),
-      kyc_state: "verified",
+      kyc_state: lapsed ? "lapsed" : "verified",
     };
-    account.designer.kyc_complete = true;
+    account.designer.kyc_complete = !lapsed;
     return deepClone(designer.payout_account);
   }
 
@@ -1036,7 +1390,21 @@ export class MockStore {
     else this.blocks.delete(key);
   }
 
-  moderationQueue(): Report[] {
+  /** B7a is staff-only (pages.md) — non-staff read as forbidden. */
+  private requireStaff(username: string): Account {
+    const account = this.accountByUsername(username);
+    if (!account.is_staff) {
+      throw new MockApiError(
+        "forbidden",
+        "Moderation is staff-only",
+        403,
+      );
+    }
+    return account;
+  }
+
+  moderationQueue(moderatorUsername: string): Report[] {
+    this.requireStaff(moderatorUsername);
     return deepClone(
       this.reports.filter((r) => r.status === "open"),
     );
@@ -1047,9 +1415,9 @@ export class MockStore {
     moderatorUsername: string,
     action: ModerationAction,
   ): Report {
+    const moderator = this.requireStaff(moderatorUsername);
     const report = this.reports.find((r) => r.id === reportId);
     if (!report) throw new MockApiError("not_found", "Report not found", 404);
-    const moderator = this.accountByUsername(moderatorUsername);
     if (action === "hide_post" && report.subject_kind === "post") {
       this.posts = this.posts.filter((p) => p.id !== report.subject_id);
     }
@@ -1060,6 +1428,20 @@ export class MockStore {
     report.status = action === "dismiss" ? "dismissed" : "actioned";
     report.actioned_by = moderator.id;
     return deepClone(report);
+  }
+
+  // -- media (composer uploads — stands in for object storage) --------------
+
+  uploadMedia(data: string, contentType: string): { id: string; url: string } {
+    const mediaId = id("med");
+    this.media.set(mediaId, { data, contentType });
+    return { id: mediaId, url: `/api/mock/v1/media/${mediaId}` };
+  }
+
+  getMedia(mediaId: string): { data: string; contentType: string } {
+    const item = this.media.get(mediaId);
+    if (!item) throw new MockApiError("not_found", "Media not found", 404);
+    return item;
   }
 
   // -- consent ----------------------------------------------------------------

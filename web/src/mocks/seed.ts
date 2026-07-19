@@ -9,9 +9,12 @@ import type {
   Account,
   Comment,
   CommissionRequest,
+  DeclineReason,
   DesignerProfile,
+  DisputeReason,
   MeasurementSession,
   Notification,
+  OrderStatus,
   Post,
   Report,
 } from "@/models";
@@ -24,6 +27,10 @@ export function daysAgo(days: number, base: Date = NOW()): string {
 
 function hoursAgo(hours: number): string {
   return new Date(NOW().getTime() - hours * 60 * 60 * 1000).toISOString();
+}
+
+function defaultPrefs() {
+  return { quotes: true, order_status: true, social: true, payouts: true };
 }
 
 // ---------------------------------------------------------------------------
@@ -41,6 +48,10 @@ export const seedAccounts: Account[] = [
     profile_location: { city: "Lagos", state: "Lagos", country: "NG" },
     deletion_state: "active",
     designer: { enabled: false, kyc_complete: false },
+    // The TEST_MODE user doubles as staff so the B7a moderation queue is
+    // walkable from the seeded session (A-6).
+    is_staff: true,
+    notification_prefs: defaultPrefs(),
     consent: [
       { document: "tos", version: "1.0", accepted_at: daysAgo(40) },
       { document: "privacy", version: "1.0", accepted_at: daysAgo(40) },
@@ -57,6 +68,8 @@ export const seedAccounts: Account[] = [
     profile_location: { city: "Lagos", state: "Lagos", country: "NG" },
     deletion_state: "active",
     designer: { enabled: true, kyc_complete: true },
+    is_staff: false,
+    notification_prefs: defaultPrefs(),
     consent: [
       { document: "tos", version: "1.0", accepted_at: daysAgo(200) },
       { document: "privacy", version: "1.0", accepted_at: daysAgo(200) },
@@ -73,6 +86,8 @@ export const seedAccounts: Account[] = [
     profile_location: { city: "Lagos", state: "Lagos", country: "NG" },
     deletion_state: "active",
     designer: { enabled: true, kyc_complete: true },
+    is_staff: false,
+    notification_prefs: defaultPrefs(),
     consent: [
       { document: "tos", version: "1.0", accepted_at: daysAgo(180) },
       { document: "privacy", version: "1.0", accepted_at: daysAgo(180) },
@@ -89,6 +104,8 @@ export const seedAccounts: Account[] = [
     profile_location: { city: "Lagos", state: "Lagos", country: "NG" },
     deletion_state: "active",
     designer: { enabled: true, kyc_complete: true },
+    is_staff: false,
+    notification_prefs: defaultPrefs(),
     consent: [
       { document: "tos", version: "1.0", accepted_at: daysAgo(220) },
       { document: "privacy", version: "1.0", accepted_at: daysAgo(220) },
@@ -258,7 +275,7 @@ export const seedPosts: Post[] = [
     tags: ["agbada", "menswear", "traditional"],
     priceCents: 5_500_000,
     turnaround: 21,
-    media: [{ file: "outfit-w11.jpg", alt: "Man wearing a tailored agbada" }],
+    media: [{ file: "outfit-w06.jpg", alt: "Men in traditional ceremonial dress" }],
     likes: 301,
     comments: 4,
     createdDaysAgo: 6,
@@ -412,8 +429,106 @@ export const seedSessions: MeasurementSession[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Orders — #APR-1042 (in_progress) and #APR-1058 (delivered/paid out)
+// Orders — all ten lifecycle states from seed (web-implementation.md §6:
+// every StatusPill, OrderTimelineRow, and PaymentBox variant renders from
+// boot). #APR-1042 (in_progress) and #APR-1058 (delivered) carry the full
+// detailed narrative; the other eight are helper-built.
 // ---------------------------------------------------------------------------
+
+const KIKI_DELIVERY = {
+  recipient_name: "Kiki Adeyemi",
+  phone: "+2348012345678",
+  line1: "14 Adeola Odeku St",
+  city: "Lagos",
+  state: "Lagos",
+  country: "NG",
+};
+
+interface SeedOrderInput {
+  num: number;
+  postId: string;
+  status: OrderStatus;
+  createdDaysAgo: number;
+  events: { kind: string; actor: "customer" | "designer" | "system"; at: number }[];
+  quote?: number | null;
+  budget?: number | null;
+  dueInDays?: number | null;
+  payment?: "held" | "released" | "refunded" | null;
+  tracking?: string | null;
+  decline?: DeclineReason | null;
+  dispute?: { reason: DisputeReason; detail: string | null } | null;
+  notes?: string;
+}
+
+const postById = (id: string) => {
+  const post = seedPosts.find((p) => p.id === id)!;
+  return post;
+};
+
+function makeOrder(input: SeedOrderInput): CommissionRequest {
+  const post = postById(input.postId);
+  const id = `req-apr-${input.num}`;
+  const quote = input.quote ?? null;
+  return {
+    id,
+    order_number: `APR-${input.num}`,
+    post: {
+      id: post.id,
+      caption: post.caption.split(" — ")[0],
+      thumb_url: post.media[0].url,
+    },
+    customer: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
+    designer: {
+      id: post.designer.id,
+      username: post.designer.username,
+      avatar_url: post.designer.avatar_url,
+    },
+    status: input.status,
+    notes: input.notes ?? "",
+    budget_cents: input.budget ?? null,
+    quote_cents: quote,
+    currency: "NGN",
+    due_at: input.dueInDays != null ? daysAgo(-input.dueInDays) : null,
+    target_date: null,
+    tracking: input.tracking ?? null,
+    decline_reason: input.decline ?? null,
+    dispute: input.dispute ?? null,
+    delivery: KIKI_DELIVERY,
+    snapshot: {
+      id: `snap-${input.num}`,
+      request_id: id,
+      values: {
+        method: "mediapipe_2d_v2",
+        measured_at: daysAgo(12),
+        measurements: [
+          { name: "shoulder_width", value_cm: 42.5 },
+          { name: "hip_width", value_cm: 36.8 },
+        ],
+      },
+      created_at: daysAgo(input.createdDaysAgo),
+    },
+    events: input.events.map((e, i) => ({
+      id: `evt-${input.num}-${i}`,
+      request_id: id,
+      kind: e.kind,
+      actor: e.actor,
+      created_at: daysAgo(e.at),
+    })),
+    payment:
+      input.payment && quote !== null
+        ? {
+            id: `pay-${input.num}`,
+            request_id: id,
+            provider: "paystack",
+            state: input.payment,
+            currency: "NGN",
+            amount_cents: quote,
+            platform_fee_cents: Math.round(quote * 0.1),
+          }
+        : null,
+    created_at: daysAgo(input.createdDaysAgo),
+  };
+}
 
 export const seedOrders: CommissionRequest[] = [
   {
@@ -536,6 +651,114 @@ export const seedOrders: CommissionRequest[] = [
     },
     created_at: daysAgo(40),
   },
+  makeOrder({
+    num: 1031,
+    postId: "post-agbada",
+    status: "requested",
+    createdDaysAgo: 1,
+    budget: 6_000_000,
+    notes: "Need it for my brother's wedding in August.",
+    events: [{ kind: "requested", actor: "customer", at: 1 }],
+  }),
+  makeOrder({
+    num: 1033,
+    postId: "post-print-couple",
+    status: "quoted",
+    createdDaysAgo: 3,
+    quote: 4_000_000,
+    budget: 4_500_000,
+    dueInDays: 12,
+    notes: "Two-piece for an engagement shoot.",
+    events: [
+      { kind: "requested", actor: "customer", at: 3 },
+      { kind: "quoted", actor: "designer", at: 1.5 },
+    ],
+  }),
+  makeOrder({
+    num: 1036,
+    postId: "post-runway-orange",
+    status: "paid",
+    createdDaysAgo: 6,
+    quote: 8_500_000,
+    dueInDays: 21,
+    payment: "held",
+    events: [
+      { kind: "requested", actor: "customer", at: 6 },
+      { kind: "quoted", actor: "designer", at: 5 },
+      { kind: "paid", actor: "customer", at: 4 },
+    ],
+  }),
+  makeOrder({
+    num: 1044,
+    postId: "post-print-brothers",
+    status: "shipped",
+    createdDaysAgo: 20,
+    quote: 2_200_000,
+    dueInDays: -2,
+    payment: "held",
+    tracking: "GIG-5567-LAG",
+    events: [
+      { kind: "requested", actor: "customer", at: 20 },
+      { kind: "quoted", actor: "designer", at: 19 },
+      { kind: "paid", actor: "customer", at: 18 },
+      { kind: "in_progress", actor: "designer", at: 15 },
+      { kind: "shipped", actor: "designer", at: 3 },
+    ],
+  }),
+  makeOrder({
+    num: 1018,
+    postId: "post-dance-troupe",
+    status: "disputed",
+    createdDaysAgo: 25,
+    quote: 3_000_000,
+    payment: "held",
+    dispute: {
+      reason: "not_as_described",
+      detail: "Colours differ from the reference photos.",
+    },
+    events: [
+      { kind: "requested", actor: "customer", at: 25 },
+      { kind: "quoted", actor: "designer", at: 24 },
+      { kind: "paid", actor: "customer", at: 22 },
+      { kind: "in_progress", actor: "designer", at: 20 },
+      { kind: "disputed", actor: "customer", at: 2 },
+    ],
+  }),
+  makeOrder({
+    num: 1012,
+    postId: "post-fabric-drop",
+    status: "declined",
+    createdDaysAgo: 30,
+    decline: "workload",
+    events: [
+      { kind: "requested", actor: "customer", at: 30 },
+      { kind: "declined", actor: "designer", at: 29 },
+    ],
+  }),
+  makeOrder({
+    num: 1009,
+    postId: "post-ankara-gown",
+    status: "refunded",
+    createdDaysAgo: 60,
+    quote: 4_200_000,
+    payment: "refunded",
+    events: [
+      { kind: "requested", actor: "customer", at: 60 },
+      { kind: "quoted", actor: "designer", at: 58 },
+      { kind: "paid", actor: "customer", at: 55 },
+      { kind: "refunded", actor: "system", at: 41 },
+    ],
+  }),
+  makeOrder({
+    num: 1005,
+    postId: "post-chromat-look",
+    status: "cancelled",
+    createdDaysAgo: 45,
+    events: [
+      { kind: "requested", actor: "customer", at: 45 },
+      { kind: "cancelled", actor: "customer", at: 44 },
+    ],
+  }),
 ];
 
 export const seedThreadMessages = [
@@ -586,6 +809,50 @@ export const seedThreadMessages = [
 // ---------------------------------------------------------------------------
 
 export const seedNotifications: Notification[] = [
+  {
+    id: "ntf-quote",
+    account_id: "acc-kiki",
+    kind: "quote",
+    payload_ref: "req-apr-1033",
+    text: "amara.designs quoted your request #APR-1033 — ₦40,000",
+    actor: { username: "amara.designs", avatar_url: null },
+    thumb_url: "/demo/outfit-w16.jpg",
+    read_at: null,
+    created_at: hoursAgo(6),
+  },
+  {
+    id: "ntf-comment",
+    account_id: "acc-kiki",
+    kind: "comment",
+    payload_ref: "post-asooke-set",
+    text: "maisonbisi replied to your comment on Hand-woven aso-oke two-piece",
+    actor: { username: "maisonbisi", avatar_url: null },
+    thumb_url: "/demo/outfit-w13.jpg",
+    read_at: null,
+    created_at: hoursAgo(28),
+  },
+  {
+    id: "ntf-payout-bisi",
+    account_id: "des-bisi",
+    kind: "payout",
+    payload_ref: "req-apr-1058",
+    text: "Payout released for order #APR-1058 — ₦55,800",
+    actor: { username: "kiki.adeyemi", avatar_url: null },
+    thumb_url: "/demo/outfit-w13.jpg",
+    read_at: daysAgo(6),
+    created_at: daysAgo(7),
+  },
+  {
+    id: "ntf-request-tunde",
+    account_id: "des-tunde",
+    kind: "status_change",
+    payload_ref: "req-apr-1031",
+    text: "kiki.adeyemi requested Classic agbada (#APR-1031)",
+    actor: { username: "kiki.adeyemi", avatar_url: null },
+    thumb_url: "/demo/outfit-w06.jpg",
+    read_at: null,
+    created_at: daysAgo(1),
+  },
   {
     id: "ntf-1",
     account_id: "acc-kiki",
@@ -650,8 +917,15 @@ export const seedReports: Report[] = [
   },
 ];
 
-/** kiki follows amara + bisi (tunde is the "suggested designer"). */
+/**
+ * kiki follows amara + bisi (tunde is the "suggested designer"); the
+ * designer-to-designer edges fill the B6 followers/following sheets.
+ */
 export const seedFollows: [string, string][] = [
   ["acc-kiki", "amara.designs"],
   ["acc-kiki", "maisonbisi"],
+  ["acc-amara", "tunde.o"],
+  ["acc-amara", "maisonbisi"],
+  ["acc-tunde", "amara.designs"],
+  ["acc-bisi", "amara.designs"],
 ];

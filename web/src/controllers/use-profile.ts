@@ -3,13 +3,14 @@
 // Profile controller — own account editing (username claim/rename, location)
 // per pages.md B6/B7; designer enablement + earnings via designerRepo.
 import { useCallback, useEffect, useState } from "react";
-import type { Account, Earnings } from "@/models";
+import type { Account, DesignerProfile, Earnings } from "@/models";
 import { ApiError } from "@/lib/api";
 import {
   accountRepo,
   type AccountPatch,
 } from "@/models/repositories/account-repo";
 import { designerRepo } from "@/models/repositories/designer-repo";
+import { profilesRepo } from "@/models/repositories/profiles-repo";
 
 export function useProfile() {
   const [account, setAccount] = useState<Account | null>(null);
@@ -60,10 +61,33 @@ export function useProfile() {
   return { account, loading, error, reload, update };
 }
 
-export function useEarnings() {
+export function useEarnings(ownUsername: string | null = null) {
   const [earnings, setEarnings] = useState<Earnings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  /** Taxonomy code (e.g. designer_profile_required → B9 upsell state). */
+  const [errorCode, setErrorCode] = useState<string | null>(null);
+  /** Payout-account card data (Figma 210:3) — own designer profile. */
+  const [payoutAccount, setPayoutAccount] = useState<
+    DesignerProfile["payout_account"] | null
+  >(null);
+
+  useEffect(() => {
+    if (!ownUsername) return;
+    let cancelled = false;
+    profilesRepo.get(ownUsername).then(
+      (fetched) => {
+        if (cancelled || fetched.kind !== "designer") return;
+        setPayoutAccount(fetched.designer.payout_account);
+      },
+      () => {
+        // no designer profile — the upsell state covers it
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [ownUsername]);
 
   const load = useCallback(
     () =>
@@ -71,10 +95,12 @@ export function useEarnings() {
         (fetched) => {
           setEarnings(fetched);
           setError(null);
+          setErrorCode(null);
           setLoading(false);
         },
         (e: unknown) => {
           setError(e instanceof Error ? e.message : "Failed to load earnings");
+          setErrorCode(e instanceof ApiError ? e.code : null);
           setLoading(false);
         },
       ),
@@ -88,8 +114,9 @@ export function useEarnings() {
   const reload = useCallback(() => {
     setLoading(true);
     setError(null);
+    setErrorCode(null);
     return load();
   }, [load]);
 
-  return { earnings, loading, error, reload };
+  return { earnings, loading, error, errorCode, payoutAccount, reload };
 }

@@ -6,3 +6,4 @@ export * from "./entities/measurement";
 export * from "./entities/order";
 export * from "./entities/notification";
 export * from "./entities/moderation";
+export * from "./entities/profile";

@@ -65,7 +65,10 @@ export function Select({
           <RadixSelect.Content
             position="popper"
             sideOffset={4}
-            className="z-20 max-h-72 min-w-[var(--radix-select-trigger-width)] overflow-y-auto rounded-card border border-border bg-bg-elev py-1 shadow-lg"
+            // z-40 (sheet layer): a Select opened from inside a Sheet must
+            // paint above the z-30 dialog overlay — same layer as the sheet,
+            // later in portal order (W3 fix; was z-20 dropdown).
+            className="z-40 max-h-72 min-w-[var(--radix-select-trigger-width)] overflow-y-auto rounded-card border border-border bg-bg-elev py-1 shadow-lg"
           >
             <RadixSelect.Viewport>
               {options.map((option) => (

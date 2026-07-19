@@ -16,6 +16,16 @@ export const postsRepo = {
   /** GET /api/v1/posts/{id} — public permalink /p/{id}. */
   get: (id: string) => apiFetch<Post>(`/v1/posts/${id}`),
 
+  /** POST /api/v1/media — composer image upload (object-storage stand-in). */
+  uploadMedia: (image: File) => {
+    const form = new FormData();
+    form.set("image", image);
+    return apiFetch<{ id: string; url: string }>("/v1/media", {
+      method: "POST",
+      body: form,
+    });
+  },
+
   /** POST /api/v1/posts (designer, KYC-gated). */
   create: (input: PostCreate) =>
     apiFetch<Post>("/v1/posts", { method: "POST", json: input }),

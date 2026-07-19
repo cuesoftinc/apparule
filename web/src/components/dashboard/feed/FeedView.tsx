@@ -1,0 +1,192 @@
+"use client";
+
+// B1 — Feed (pages.md): story rail (fresh outfits, MI-8) · 630px PostCard
+// column with MI-1/2/3/4/9 + the request stepper CTA (MI-10) · right column
+// (freshness MI-11 + suggestions MI-7) · skeleton / empty / caught-up
+// states (MI-19, MI-6). Render-only over useFeed.
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import type { Post } from "@/models";
+import { useFeed } from "@/controllers/use-feed";
+import { CaughtUpDivider } from "@/components/ui/CaughtUpDivider";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { PostCard } from "@/components/ui/PostCard";
+import { StoryRailItem } from "@/components/ui/StoryRailItem";
+import { UnfollowConfirmSheet, type UnfollowTarget } from "../UnfollowConfirmSheet";
+import { FeedSidebar } from "./FeedSidebar";
+import { PostOptionsSheet } from "./PostOptionsSheet";
+import { RequestStepperSheet } from "./RequestStepperSheet";
+import { useToasts } from "../toast-context";
+
+const FRESH_MS = 48 * 60 * 60 * 1000; // story ring = outfits <48h (MI-8)
+
+/** Story-rail projection — module fn so the clock read stays out of render
+ * scope (same shape as models' freshnessOf). */
+function storyDesignersOf(posts: Post[]): { username: string; fresh: boolean }[] {
+  const now = Date.now();
+  const byUsername = new Map<string, { username: string; fresh: boolean }>();
+  for (const post of posts) {
+    const existing = byUsername.get(post.designer.username);
+    const fresh = now - new Date(post.created_at).getTime() < FRESH_MS;
+    byUsername.set(post.designer.username, {
+      username: post.designer.username,
+      fresh: (existing?.fresh ?? false) || fresh,
+    });
+  }
+  return [...byUsername.values()];
+}
+
+export function FeedView() {
+  const feed = useFeed("feed");
+  const { showToast } = useToasts();
+  const [requestPost, setRequestPost] = useState<Post | null>(null);
+  const [optionsPost, setOptionsPost] = useState<Post | null>(null);
+  const [unfollowTarget, setUnfollowTarget] = useState<UnfollowTarget | null>(
+    null,
+  );
+  const [flashPostId, setFlashPostId] = useState<string | null>(null);
+
+  // Story rail: followed designers, ring lit while they have <48h posts.
+  const storyDesigners = useMemo(
+    () => storyDesignersOf(feed.posts),
+    [feed.posts],
+  );
+
+  const like = (post: Post) =>
+    feed.toggleLike(post).catch(() =>
+      showToast({
+        kind: "error",
+        message: "Couldn't like the post",
+        onRetry: () => void feed.toggleLike(post),
+      }),
+    );
+  const save = (post: Post) =>
+    feed.toggleSave(post).catch(() =>
+      showToast({
+        kind: "error",
+        message: "Couldn't save the post",
+        onRetry: () => void feed.toggleSave(post),
+      }),
+    );
+
+  const copyShareLink = async (post: Post) => {
+    try {
+      await navigator.clipboard.writeText(
+        `${window.location.origin}/p/${post.id}`,
+      );
+    } catch {
+      // clipboard unavailable
+    }
+    showToast({ kind: "neutral", message: "Link copied" });
+    flash(post.id);
+  };
+
+  /** MI-9: post flashes a 1px gradient border 400ms on copy. */
+  const flash = (postId: string) => {
+    setFlashPostId(postId);
+    setTimeout(() => setFlashPostId(null), 400);
+  };
+
+  return (
+    <div className="mx-auto flex max-w-5xl justify-center gap-16 px-4 py-6">
+      <div className="flex w-full max-w-[630px] flex-col">
+        <h1 className="sr-only">Home feed</h1>
+
+        {storyDesigners.length > 0 ? (
+          <section aria-label="Fresh outfits" className="pb-4">
+            <ul className="flex gap-4 overflow-x-auto pb-1">
+              {storyDesigners.map((d) => (
+                <li key={d.username}>
+                  <Link href={`/dashboard/${d.username}`}>
+                    <StoryRailItem
+                      username={d.username}
+                      state={d.fresh ? "unseen" : "seen"}
+                    />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        {feed.loading ? (
+          <div aria-busy="true" className="flex flex-col gap-8">
+            <PostCard skeleton />
+            <PostCard skeleton />
+          </div>
+        ) : feed.error ? (
+          <EmptyState
+            context="feed"
+            line="The feed couldn't load — try again."
+            ctaLabel="Retry"
+            onCta={() => void feed.reload()}
+          />
+        ) : feed.posts.length === 0 ? (
+          <EmptyState
+            context="feed"
+            line="Follow designers to fill your feed"
+            ctaLabel="Explore designers"
+            onCta={() => window.location.assign("/dashboard/explore")}
+          />
+        ) : (
+          <>
+            <ul className="flex flex-col gap-6" data-testid="feed-list">
+              {feed.posts.map((post) => (
+                <li
+                  key={post.id}
+                  className={
+                    flashPostId === post.id
+                      ? "rounded-card p-px [background:linear-gradient(45deg,var(--ap-accent-start),var(--ap-accent-end))]"
+                      : "p-px"
+                  }
+                >
+                  {/* PostCard is itself an <article> */}
+                  <div className="bg-bg">
+                    <PostCard
+                      post={post}
+                      onToggleLike={() => void like(post)}
+                      onToggleSave={() => void save(post)}
+                      onComment={() => window.location.assign(`/p/${post.id}`)}
+                      onShare={() => void copyShareLink(post)}
+                      onOverflow={() => setOptionsPost(post)}
+                      onRequest={() => setRequestPost(post)}
+                    />
+                  </div>
+                </li>
+              ))}
+            </ul>
+            {feed.caughtUp ? <CaughtUpDivider className="py-6" /> : null}
+          </>
+        )}
+      </div>
+
+      <div className="hidden xl:block">
+        <FeedSidebar
+          onUnfollow={(username, unfollow) =>
+            setUnfollowTarget({ username, unfollow })
+          }
+        />
+      </div>
+
+      <RequestStepperSheet
+        post={requestPost}
+        onOpenChange={(open) => {
+          if (!open) setRequestPost(null);
+        }}
+      />
+      <PostOptionsSheet
+        post={optionsPost}
+        onOpenChange={(open) => {
+          if (!open) setOptionsPost(null);
+        }}
+        onCopied={flash}
+      />
+      <UnfollowConfirmSheet
+        target={unfollowTarget}
+        onOpenChange={(open) => {
+          if (!open) setUnfollowTarget(null);
+        }}
+      />
+    </div>
+  );
+}

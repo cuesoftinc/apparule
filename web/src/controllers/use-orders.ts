@@ -96,6 +96,7 @@ export function useOrder(id: string) {
     setStatus: (status: "in_progress" | "shipped", tracking?: string) =>
       run(() => ordersRepo.setStatus(id, status, tracking)),
     pay: (idempotencyKey: string) => run(() => ordersRepo.pay(id, idempotencyKey)),
+    cancel: () => run(() => ordersRepo.cancel(id)),
     confirmDelivery: () => run(() => ordersRepo.confirmDelivery(id)),
     dispute: (reason: DisputeReason, detail?: string) =>
       run(() => ordersRepo.dispute(id, reason, detail)),

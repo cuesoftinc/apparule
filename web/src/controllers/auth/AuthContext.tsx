@@ -26,6 +26,8 @@ interface AuthContextValue {
   providerName: AuthProviderAdapter["name"];
   signInWithGoogle: () => Promise<SignInResult>;
   signOut: () => Promise<void>;
+  /** Re-resolve /me — e.g. after designer onboarding flips account state. */
+  refreshAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -72,6 +74,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus("signed_out");
   }, [provider]);
 
+  const refreshAccount = useCallback(async () => {
+    const session = await provider.restore();
+    if (session) setAccount(session.account);
+  }, [provider]);
+
   const value = useMemo(
     () => ({
       status,
@@ -79,8 +86,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       providerName: provider.name,
       signInWithGoogle,
       signOut,
+      refreshAccount,
     }),
-    [status, account, provider.name, signInWithGoogle, signOut],
+    [status, account, provider.name, signInWithGoogle, signOut, refreshAccount],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

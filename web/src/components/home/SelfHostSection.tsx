@@ -5,7 +5,7 @@
 // copy-✓ morph (A7 asset) · "what ships" line · architecture mini-diagram ·
 // docs quickstart link. `self_host_click` fires on the docs handoff.
 import { CodeSnippetBlock } from "@/components/ui/CodeSnippetBlock";
-import { track } from "@/controllers/analytics";
+import { track } from "@/controllers/use-analytics";
 import { ArchitectureDiagram } from "./ArchitectureDiagram";
 
 export function SelfHostSection() {

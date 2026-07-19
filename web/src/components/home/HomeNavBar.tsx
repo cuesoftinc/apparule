@@ -10,7 +10,7 @@ import { Moon, Sun } from "lucide-react";
 import { HomeNav } from "@/components/ui/HomeNav";
 import { IconButton } from "@/components/ui/IconButton";
 import { useTheme } from "@/design/ThemeProvider";
-import { track } from "@/controllers/analytics";
+import { track } from "@/controllers/use-analytics";
 import { useGithubStars } from "@/controllers/use-github-stars";
 
 export function HomeNavBar() {
