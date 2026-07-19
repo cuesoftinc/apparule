@@ -202,6 +202,28 @@ pointer cursor on controls.
 - Semantic-HTML landmarks (one `<main>`, one `nav[aria-label="Primary"]`)
   are enforced by e2e across all 15 dashboard screens, not spot-checked.
 
+**Mobile-responsiveness as-built notes (2026-07-19, PR #101):** the P1
+mobile pass **[Directive]** — home and every dashboard route render fully
+inside the mobile boundary at 390 (768 sanity); the document never
+side-scrolls, and wide elements scroll within their own containers:
+
+- `web/e2e/mobile-responsive.spec.ts` sweeps all 19 routes (public +
+  dashboard, settings sub-screens and order detail included) asserting
+  `document.scrollWidth <= viewport` at 390 AND 768, plus wide-element
+  containment: any `table`/`pre`/`code` wider than the viewport must sit
+  inside an `overflow-x: auto` container that itself fits. It supersedes
+  the old 12-route dashboard.spec sweep.
+- The A9 comparison table scrolls horizontally within its card below its
+  min-content width (the "Self-host it" CTA was clipped at 390).
+- One `@layer base` rule — `fieldset { min-inline-size: 0 }` — normalizes
+  the fieldset default that defeats child truncation (the request
+  stepper's snapshot picker overflowed the 390 viewport this way).
+- Thread image attachments carry `max-w-full` so a fixed-width bubble
+  image never crops at narrow widths.
+- Interactive overlays are part of the audited surface: stepper steps
+  1–3, quote sheet + due-date picker, decline/dispute/confirm-delivery,
+  capture and history sheets, explore post modal, followers sheet.
+
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the
