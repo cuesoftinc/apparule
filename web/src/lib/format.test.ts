@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatAgo, formatCm, formatNaira } from "./format";
+import { formatAgo, formatAgoPhrase, formatCm, formatNaira } from "./format";
 
 describe("format utilities", () => {
   it("formats kobo to naira", () => {
@@ -19,5 +19,15 @@ describe("format utilities", () => {
     expect(formatAgo("2026-07-18T11:00:00Z", now)).toBe("1h");
     expect(formatAgo("2026-07-16T12:00:00Z", now)).toBe("2d");
     expect(formatAgo("2026-07-04T12:00:00Z", now)).toBe("2w");
+  });
+
+  it("phrases relative ages for prose meta lines (system QA: no '22 May ago')", () => {
+    const now = new Date("2026-07-18T12:00:00Z");
+    expect(formatAgoPhrase("2026-07-18T11:59:59Z", now)).toBe("just now");
+    expect(formatAgoPhrase("2026-07-16T12:00:00Z", now)).toBe("2d ago");
+    expect(formatAgoPhrase("2026-07-04T12:00:00Z", now)).toBe("2w ago");
+    // ≥30d switches to an absolute date — prefixed, never suffixed with "ago"
+    expect(formatAgoPhrase("2026-05-22T12:00:00Z", now)).toBe("on 22 May");
+    expect(formatAgoPhrase("2026-05-22T12:00:00Z", now)).not.toMatch(/ago/);
   });
 });

@@ -212,7 +212,7 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
 
       {/* Figma 179:536: two-column desktop — order content left, the thread
           as a right-rail card. Single column below lg. */}
-      <div className="grid gap-8 pt-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-8 pt-4 lg:grid-cols-[minmax(0,1fr)_360px]">
       <div className="flex flex-col gap-6">
         <header
           aria-label="Order summary"

@@ -319,3 +319,94 @@ test("designer side (actor seam): decline with reason; earnings itemize the rele
   await expect(page.getByTestId("transactions-list")).toContainText("APR-1044");
   await expect(page.getByTestId("payout-status-chip")).toBeVisible();
 });
+
+test("designer quote via the UI: the due-date calendar works inside the quote sheet", async ({
+  page,
+  request,
+}) => {
+  // Regression: the DateInput popover sat on the z-20 dropdown layer under
+  // the z-40 quote Sheet, so the calendar swallowed no clicks and a quote
+  // could never be sent from the UI. Close the seeded open order on this
+  // post first (no-op 409 when an earlier test already delivered it), then
+  // file a fresh request as kiki via the API.
+  const close = await request.post("/api/mock/v1/requests/req-apr-1044/confirm-delivery", {
+    headers: { "x-mock-actor": "kiki.adeyemi" },
+  });
+  expect([200, 409]).toContain(close.status());
+  const res = await request.post("/api/mock/v1/posts/post-print-brothers/requests", {
+    headers: { "x-mock-actor": "kiki.adeyemi" },
+    data: {
+      session_id: "sess-recent-scan",
+      notes: "Quote regression fixture",
+      delivery: {
+        recipient_name: "Kiki Adeyemi",
+        phone: "+2348012345678",
+        line1: "14 Adeola Odeku St",
+        city: "Lagos",
+        state: "Lagos",
+        country: "NG",
+      },
+    },
+  });
+  expect(res.status()).toBe(201);
+  const order = await res.json();
+
+  await page.addInitScript(() => {
+    window.sessionStorage.setItem("apparule.testmode.actor", "tunde.o");
+  });
+  await signIn(page);
+  await page.goto(`/dashboard/orders/${order.id}`);
+
+  await page.getByRole("button", { name: "Send quote" }).click();
+  const sheet = page.getByRole("dialog");
+  await sheet.getByLabel("Quote amount").fill("58000");
+  await sheet.getByLabel("Due date").click();
+  const picker = page.getByTestId("date-picker");
+  await expect(picker).toBeVisible();
+  // the calendar must actually receive the click (the z-layer regression)
+  await picker.getByRole("button", { name: "Next month" }).click();
+  await picker
+    .getByRole("button", { name: "15", exact: true })
+    .first()
+    .click();
+  await sheet.getByRole("button", { name: "Send quote" }).click();
+
+  await expect(page.getByText("Quoted", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText(/₦58,000/).first()).toBeVisible();
+});
+
+test("no horizontal overflow on dashboard screens at 390 (system QA regression)", async ({
+  page,
+}) => {
+  // Regression: at 390 the order-detail grid (min-content sizing), the
+  // moderation action row and the profile stats row all pushed past the
+  // viewport (178/58/17px).
+  await page.setViewportSize({ width: 390, height: 844 });
+  await signIn(page);
+  for (const route of [
+    "/dashboard",
+    "/dashboard/explore",
+    "/dashboard/orders",
+    "/dashboard/orders/req-apr-1042",
+    "/dashboard/vault",
+    "/dashboard/create",
+    "/dashboard/kiki.adeyemi",
+    "/dashboard/amara.designs",
+    "/dashboard/settings",
+    "/dashboard/admin/moderation",
+    "/dashboard/designer/onboarding",
+    "/dashboard/earnings",
+  ]) {
+    await page.goto(route);
+    // networkidle never settles against the dev server (HMR socket) — wait
+    // for the screen's <main> content instead.
+    await expect(page.locator("main")).toBeVisible();
+    await page.waitForTimeout(400);
+    const overflow = await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth -
+        document.documentElement.clientWidth,
+    );
+    expect(overflow, `${route} horizontal overflow`).toBeLessThanOrEqual(2);
+  }
+});

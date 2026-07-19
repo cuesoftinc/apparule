@@ -7,6 +7,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { Post } from "@/models";
+import { useAuth } from "@/controllers/auth/AuthContext";
 import { useFeed } from "@/controllers/use-feed";
 import { CaughtUpDivider } from "@/components/ui/CaughtUpDivider";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -16,6 +17,7 @@ import { UnfollowConfirmSheet, type UnfollowTarget } from "../UnfollowConfirmShe
 import { FeedSidebar } from "./FeedSidebar";
 import { PostOptionsSheet } from "./PostOptionsSheet";
 import { RequestStepperSheet } from "./RequestStepperSheet";
+import { maybeFirstSaveToast } from "../first-save";
 import { useToasts } from "../toast-context";
 
 const FRESH_MS = 48 * 60 * 60 * 1000; // story ring = outfits <48h (MI-8)
@@ -38,6 +40,7 @@ function storyDesignersOf(posts: Post[]): { username: string; fresh: boolean }[]
 
 export function FeedView() {
   const feed = useFeed("feed");
+  const { account } = useAuth();
   const { showToast } = useToasts();
   const [requestPost, setRequestPost] = useState<Post | null>(null);
   const [optionsPost, setOptionsPost] = useState<Post | null>(null);
@@ -61,13 +64,22 @@ export function FeedView() {
       }),
     );
   const save = (post: Post) =>
-    feed.toggleSave(post).catch(() =>
-      showToast({
-        kind: "error",
-        message: "Couldn't save the post",
-        onRetry: () => void feed.toggleSave(post),
-      }),
-    );
+    feed
+      .toggleSave(post)
+      .then(() => {
+        // MI-3: post.saved is the pre-toggle value — false means this
+        // toggle saved it.
+        if (!post.saved) {
+          maybeFirstSaveToast(showToast, account?.username ?? null);
+        }
+      })
+      .catch(() =>
+        showToast({
+          kind: "error",
+          message: "Couldn't save the post",
+          onRetry: () => void feed.toggleSave(post),
+        }),
+      );
 
   const copyShareLink = async (post: Post) => {
     try {

@@ -62,7 +62,16 @@ export function RequestCard({
 }: RequestCardProps) {
   const counterparty =
     role === "customer" ? order.designer.username : order.customer.username;
-  const action = NEXT_ACTION[role][order.status];
+  let action = NEXT_ACTION[role][order.status];
+  // "Add tracking" only makes sense while tracking is missing — once the
+  // shipment carries a ref the row's shortcut is just "View order".
+  if (
+    role === "designer" &&
+    order.status === "shipped" &&
+    order.tracking !== null
+  ) {
+    action = { label: "View order" };
+  }
   const amount = order.quote_cents ?? order.budget_cents;
   const price = amount !== null ? formatNaira(amount, order.currency) : null;
 

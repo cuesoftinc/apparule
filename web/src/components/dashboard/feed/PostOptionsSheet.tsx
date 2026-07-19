@@ -116,14 +116,16 @@ export function PostOptionsSheet({
           </footer>
         </form>
       ) : (
-        <nav aria-label="Post options">
+        // role="menu": MenuItem renders role="menuitem", which ARIA
+        // requires to be owned by a menu container (system QA a11y fix).
+        <div role="menu" aria-label="Post options">
           <MenuItem label="Copy link" onSelect={() => void copyLink()} />
           <MenuItem
             label="Report post"
             destructive
             onSelect={() => setReporting(true)}
           />
-        </nav>
+        </div>
       )}
     </Sheet>
   );

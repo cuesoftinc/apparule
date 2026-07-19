@@ -132,7 +132,9 @@ export const seedDesigners: DesignerProfile[] = [
     location: { city: "Lagos", state: "Lagos", country: "NG" },
     followers_count: 1284,
     following_count: 87,
-    posts_count: 4,
+    // posts_count mirrors the actual seeded posts (system QA: the profile
+    // header said "4 posts" over a 3-tile grid).
+    posts_count: 3,
   },
   {
     id: "des-tunde",

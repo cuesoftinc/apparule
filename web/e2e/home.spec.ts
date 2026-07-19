@@ -275,3 +275,36 @@ test.describe("W2.1 live-QA — containers, landmarks, avatars", () => {
     }
   });
 });
+
+// System-QA regressions (2026-07-19).
+test.describe("system QA regressions", () => {
+  test("unknown routes render the branded 404, not the Next.js default", async ({
+    page,
+  }) => {
+    await page.goto("/definitely-not-a-page");
+    await expect(
+      page.getByRole("heading", { name: "This page doesn't exist" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Back to Apparule" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("This page could not be found"),
+    ).toHaveCount(0);
+  });
+
+  test("comparison-table CTAs keep to one line at 390 (no pill wrap)", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    const cta = page.getByRole("button", { name: "Start on Cloud" });
+    await cta.scrollIntoViewIfNeeded();
+    for (const name of ["Start on Cloud", "Self-host it"]) {
+      const box = await page.getByRole("button", { name }).boundingBox();
+      expect(box, `${name} rendered`).not.toBeNull();
+      // sm buttons are h-9 (36px) — a wrapped label pushes past the pill
+      expect(box!.height, `${name} single-line height`).toBeLessThanOrEqual(38);
+    }
+  });
+});

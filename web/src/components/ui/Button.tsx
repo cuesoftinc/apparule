@@ -41,7 +41,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         data-kind={kind}
         data-size={size}
         className={clsx(
-          "inline-flex items-center justify-center gap-2 rounded-card font-semibold",
+          // whitespace-nowrap: pill/button labels never wrap — at narrow
+          // widths a wrapped label overflows the fixed-height pill (the
+          // 390px comparison-table CTAs were the live repro).
+          "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-card font-semibold",
           "transition-transform duration-120 ease-standard enabled:active:scale-[0.98]",
           "motion-reduce:transition-none motion-reduce:active:scale-100",
           "disabled:opacity-40 disabled:cursor-not-allowed",

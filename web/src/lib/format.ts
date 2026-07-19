@@ -31,6 +31,20 @@ export function formatCount(value: number): string {
   return `${Math.round(m * 10) / 10}m`;
 }
 
+/**
+ * Full relative phrase for prose meta lines ("2d ago", "just now",
+ * "on 22 May"). formatAgo alone switches to an absolute date after 30d, so
+ * templates that append " ago" produced "Updated 22 May ago" (system QA).
+ */
+export function formatAgoPhrase(iso: string, now: Date = new Date()): string {
+  const days = Math.floor(
+    (now.getTime() - new Date(iso).getTime()) / (24 * 60 * 60 * 1000),
+  );
+  if (days >= 30) return `on ${formatAgo(iso, now)}`;
+  const label = formatAgo(iso, now);
+  return label === "now" ? "just now" : `${label} ago`;
+}
+
 /** Relative day label for meta lines ("today", "3d", "2w"). */
 export function formatAgo(iso: string, now: Date = new Date()): string {
   const ms = now.getTime() - new Date(iso).getTime();

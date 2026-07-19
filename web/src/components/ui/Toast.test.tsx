@@ -18,6 +18,21 @@ describe("Toast (§8.2)", () => {
     expect(onRetry).toHaveBeenCalledOnce();
   });
 
+  it("renders a trailing link action (MI-3 first save)", () => {
+    render(
+      <Toast
+        kind="success"
+        message="Saved to your looks"
+        link={{ href: "/dashboard/kiki.adeyemi", label: "View" }}
+        autoDismissMs={0}
+      />,
+    );
+    expect(screen.getByRole("link", { name: "View" })).toHaveAttribute(
+      "href",
+      "/dashboard/kiki.adeyemi",
+    );
+  });
+
   it("auto-dismisses after 3s by default", () => {
     vi.useFakeTimers();
     const onDismiss = vi.fn();
