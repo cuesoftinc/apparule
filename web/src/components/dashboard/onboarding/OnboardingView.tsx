@@ -5,7 +5,7 @@
 // (resolving spinner → resolved account-name confirm / mismatch error,
 // retry + support link after 3 fails) → done. Shows the KYC-lapse banner
 // when the payout account lapses. Render-only over useOnboarding.
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BadgeCheck, Banknote, Shirt } from "lucide-react";
 import { useAuth } from "@/controllers/auth/AuthContext";
@@ -29,7 +29,7 @@ const BANKS = [
 ];
 
 export function OnboardingView() {
-  const { account } = useAuth();
+  const { account, refreshAccount } = useAuth();
   const alreadyDesigner = account?.designer.enabled ?? false;
   const onboarding = useOnboarding(
     alreadyDesigner ? (account?.username ?? null) : null,
@@ -45,6 +45,14 @@ export function OnboardingView() {
       ? "banking"
       : onboarding.step;
   const kycLapsed = onboarding.existingPayout?.kyc_state === "lapsed";
+
+  // Profile enablement / KYC completion change the account — keep the auth
+  // context in sync so B5/B7 gates react without a full reload.
+  useEffect(() => {
+    if (onboarding.step === "banking" || onboarding.step === "done") {
+      void refreshAccount();
+    }
+  }, [onboarding.step, refreshAccount]);
 
   const canResolve =
     bankCode !== undefined && /^\d{10}$/.test(accountNumber.trim());

@@ -223,3 +223,181 @@ describe("profile", () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// W3 surface — full-state seed, profiles/social lists, capture, payouts,
+// moderation gate, thread auto-reply (web-implementation.md §6 narrative).
+// ---------------------------------------------------------------------------
+
+describe("W3 seed — all ten order states render from boot", () => {
+  it("seeds at least one order per lifecycle state for kiki", () => {
+    const statuses = new Set(
+      store.ordersFor("kiki.adeyemi", "customer").map((o) => o.status),
+    );
+    for (const s of [
+      "requested", "quoted", "paid", "in_progress", "shipped",
+      "delivered", "refunded", "declined", "disputed", "cancelled",
+    ]) {
+      expect(statuses.has(s as never), `missing seeded state ${s}`).toBe(true);
+    }
+  });
+
+  it("seeds notifications of every kind", () => {
+    const kinds = new Set([
+      ...store.notificationsFor("kiki.adeyemi").map((n) => n.kind),
+      ...store.notificationsFor("maisonbisi").map((n) => n.kind),
+      ...store.notificationsFor("tunde.o").map((n) => n.kind),
+    ]);
+    for (const k of ["like", "follow", "comment", "quote", "status_change", "payout"]) {
+      expect(kinds.has(k as never), `missing notification kind ${k}`).toBe(true);
+    }
+  });
+});
+
+describe("profiles & social lists", () => {
+  it("resolves designer and regular-user profiles with viewer state", () => {
+    const amara = store.profileFor("amara.designs", "kiki.adeyemi");
+    expect(amara.kind).toBe("designer");
+    if (amara.kind === "designer") {
+      expect(amara.viewer_follows).toBe(true);
+      expect(amara.viewer_is_self).toBe(false);
+    }
+    const kiki = store.profileFor("kiki.adeyemi", "kiki.adeyemi");
+    expect(kiki.kind).toBe("user");
+    expect(kiki.viewer_is_self).toBe(true);
+  });
+
+  it("followers/following/suggested project UserRow summaries", () => {
+    const followers = store.followersOf("amara.designs", "kiki.adeyemi");
+    expect(followers.map((f) => f.username)).toContain("kiki.adeyemi");
+    const following = store.followingOf("amara.designs", "kiki.adeyemi");
+    expect(following.map((f) => f.username)).toEqual(
+      expect.arrayContaining(["tunde.o", "maisonbisi"]),
+    );
+    // tunde is the seeded suggestion (not followed by kiki)
+    expect(
+      store.suggestedDesigners("kiki.adeyemi").map((d) => d.username),
+    ).toEqual(["tunde.o"]);
+  });
+
+  it("saved posts round-trip through engagement", () => {
+    store.setEngagement("post-agbada", "kiki.adeyemi", "save", true);
+    expect(store.savedPosts("kiki.adeyemi").map((p) => p.id)).toContain(
+      "post-agbada",
+    );
+  });
+});
+
+describe("capture path (webcam, B4)", () => {
+  it("QC fixture file names reproduce 422 codes with guidance", () => {
+    expect(() =>
+      store.createCaptureSession("kiki.adeyemi", {
+        input_height_cm: 168,
+        filename: "fixture-blurry.jpg",
+      }),
+    ).toThrowError(expect.objectContaining({ code: "blurry", status: 422 }));
+  });
+
+  it("upload → pending_save → save flips complete; retake deletes", () => {
+    const session = store.createCaptureSession("kiki.adeyemi", {
+      input_height_cm: 168,
+      filename: "photo.jpg",
+    });
+    expect(session.status).toBe("pending_save");
+    expect(session.measurements.some((m) => (m.confidence ?? 1) < 0.7)).toBe(
+      true,
+    );
+    const saved = store.saveSession(session.id, "kiki.adeyemi");
+    expect(saved.status).toBe("complete");
+    // double-save is an invalid transition
+    expect(() => store.saveSession(session.id, "kiki.adeyemi")).toThrowError(
+      expect.objectContaining({ code: "invalid_transition" }),
+    );
+  });
+});
+
+describe("designer KYC gate + payout scripting", () => {
+  it("pre-KYC designers can post but their posts serve post_unavailable", () => {
+    store.enableDesigner("kiki.adeyemi", "Kiki Studio");
+    const post = store.createPost("kiki.adeyemi", {
+      caption: "First look",
+      style_tags: ["test"],
+      base_price_cents: null,
+      turnaround_days: 7,
+      media: [{ url: "/demo/outfit-w00.jpg", alt_text: "Look" }],
+    });
+    expect(post.id).toBeTruthy();
+    expect(() =>
+      store.createRequest("tunde.o", post.id, {
+        session_id: "sess-recent-scan",
+        delivery: {
+          recipient_name: "T", phone: "1", line1: "x",
+          city: "Lagos", state: "Lagos", country: "NG",
+        },
+      }),
+    ).toThrowError(expect.objectContaining({ code: "post_unavailable", status: 409 }));
+  });
+
+  it("scripts Paystack resolution: resolved name / mismatch / lapse", () => {
+    store.enableDesigner("kiki.adeyemi", "Kiki Studio");
+    const resolved = store.resolveBank("kiki.adeyemi", "058", "0123456789");
+    expect(resolved.account_name).toBe("KIKI ADEYEMI");
+    expect(() =>
+      store.resolveBank("kiki.adeyemi", "058", "0012345678"),
+    ).toThrowError(expect.objectContaining({ code: "bank_resolution_failed" }));
+    const lapsed = store.attachPayoutAccount("kiki.adeyemi", "058", "9999999999");
+    expect(lapsed.kyc_state).toBe("lapsed");
+    const verified = store.attachPayoutAccount("kiki.adeyemi", "058", "0123456789");
+    expect(verified.kyc_state).toBe("verified");
+    expect(store.me("kiki.adeyemi").designer.kyc_complete).toBe(true);
+  });
+
+  it("allows requote while quoted without a transition", () => {
+    const requoted = store.quote("req-apr-1033", "amara.designs", 4_200_000, "2026-08-15");
+    expect(requoted.status).toBe("quoted");
+    expect(requoted.quote_cents).toBe(4_200_000);
+  });
+
+  it("customer cancel is legal from requested/quoted only", () => {
+    expect(store.cancel("req-apr-1031", "kiki.adeyemi").status).toBe("cancelled");
+    expect(() => store.cancel("req-apr-1042", "kiki.adeyemi")).toThrowError(
+      expect.objectContaining({ code: "invalid_transition" }),
+    );
+  });
+});
+
+describe("notification prefs + moderation gate + thread auto-reply", () => {
+  it("drops notifications the recipient's prefs disable", () => {
+    store.updateMe("kiki.adeyemi", { notification_prefs: { quotes: false } });
+    const before = store.notificationsFor("kiki.adeyemi").length;
+    store.quote("req-apr-1031", "tunde.o", 6_000_000, "2026-08-20");
+    expect(store.notificationsFor("kiki.adeyemi").length).toBe(before);
+  });
+
+  it("moderation queue is staff-only (kiki yes, tunde no)", () => {
+    expect(store.moderationQueue("kiki.adeyemi").length).toBeGreaterThan(0);
+    expect(() => store.moderationQueue("tunde.o")).toThrowError(
+      expect.objectContaining({ code: "forbidden", status: 403 }),
+    );
+  });
+
+  it("scripts one counterparty auto-reply per thread (MI-17)", () => {
+    const before = store.messagesFor("req-apr-1042", "kiki.adeyemi").length;
+    store.addMessage("req-apr-1042", "kiki.adeyemi", "Any progress?", null);
+    const after = store.messagesFor("req-apr-1042", "kiki.adeyemi");
+    expect(after.length).toBe(before + 2); // sent + scripted reply
+    expect(after[after.length - 1].author_id).toBe("des-amara");
+    store.addMessage("req-apr-1042", "kiki.adeyemi", "Hello again", null);
+    expect(store.messagesFor("req-apr-1042", "kiki.adeyemi").length).toBe(
+      before + 3, // no second auto-reply
+    );
+  });
+
+  it("exports data + flags deletion_pending", () => {
+    const exported = store.exportData("kiki.adeyemi");
+    expect(exported.sessions).toBeTruthy();
+    expect(store.requestDeletion("kiki.adeyemi").deletion_state).toBe(
+      "deletion_pending",
+    );
+  });
+});

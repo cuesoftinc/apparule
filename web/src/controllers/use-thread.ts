@@ -19,12 +19,16 @@ export function useThread(orderId: string, viewerPartyId: string | null) {
   const [loading, setLoading] = useState(true);
   const [typing, setTyping] = useState(false);
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Server ids already shown — written only in async callbacks (lint-safe);
+  // `send` diffs against it to spot the scripted counterparty reply.
+  const knownIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     let cancelled = false;
     ordersRepo.messages(orderId).then(
       (page) => {
         if (cancelled) return;
+        knownIds.current = new Set(page.items.map((m) => m.id));
         setMessages(page.items.map((m) => ({ ...m, state: "sent" })));
         setLoading(false);
       },
@@ -57,17 +61,15 @@ export function useThread(orderId: string, viewerPartyId: string | null) {
             m.id === optimistic.id ? { ...saved, state: "sent" } : m,
           ),
         );
-        // Counterparty replies land at/after the sent message's timestamp
-        // (the mock's scripted auto-reply) — reveal after the MI-17 pulse.
+        // Unseen counterparty replies (the mock's scripted auto-reply) —
+        // reveal after the MI-17 pulse.
+        knownIds.current.add(saved.id);
         const page = await ordersRepo.messages(orderId);
-        const sentAt = new Date(saved.created_at).getTime();
         const incoming = page.items.filter(
-          (m) =>
-            m.id !== saved.id &&
-            m.author_id !== saved.author_id &&
-            new Date(m.created_at).getTime() >= sentAt,
+          (m) => !knownIds.current.has(m.id) && m.author_id !== saved.author_id,
         );
         if (incoming.length > 0) {
+          for (const m of incoming) knownIds.current.add(m.id);
           setTyping(true);
           typingTimer.current = setTimeout(() => {
             setTyping(false);
