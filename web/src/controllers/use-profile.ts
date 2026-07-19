@@ -64,6 +64,8 @@ export function useEarnings() {
   const [earnings, setEarnings] = useState<Earnings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  /** Taxonomy code (e.g. designer_profile_required → B9 upsell state). */
+  const [errorCode, setErrorCode] = useState<string | null>(null);
 
   const load = useCallback(
     () =>
@@ -71,10 +73,12 @@ export function useEarnings() {
         (fetched) => {
           setEarnings(fetched);
           setError(null);
+          setErrorCode(null);
           setLoading(false);
         },
         (e: unknown) => {
           setError(e instanceof Error ? e.message : "Failed to load earnings");
+          setErrorCode(e instanceof ApiError ? e.code : null);
           setLoading(false);
         },
       ),
@@ -88,8 +92,9 @@ export function useEarnings() {
   const reload = useCallback(() => {
     setLoading(true);
     setError(null);
+    setErrorCode(null);
     return load();
   }, [load]);
 
-  return { earnings, loading, error, reload };
+  return { earnings, loading, error, errorCode, reload };
 }

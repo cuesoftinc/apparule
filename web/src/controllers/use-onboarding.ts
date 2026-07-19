@@ -4,10 +4,11 @@
 // profile (display name/bio → POST /designer-profile) → banking form with
 // the scripted Paystack resolution states (resolving → resolved-name
 // confirm / mismatch error; support link after 3 fails) → done.
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { BankResolution, DesignerProfile } from "@/models";
 import { ApiError } from "@/lib/api";
 import { designerRepo } from "@/models/repositories/designer-repo";
+import { profilesRepo } from "@/models/repositories/profiles-repo";
 
 export type OnboardingStep = "intro" | "profile" | "banking" | "done";
 export type ResolutionState =
@@ -20,9 +21,30 @@ export const SUPPORT_URL = "https://clients.cuesoft.io";
 /** Retry + support link after 3 resolution fails (pages.md B8). */
 export const MAX_RESOLUTION_FAILS = 3;
 
-export function useOnboarding() {
+export function useOnboarding(existingDesignerUsername: string | null = null) {
   const [step, setStep] = useState<OnboardingStep>("intro");
   const [profile, setProfile] = useState<DesignerProfile | null>(null);
+  /** Current payout account for returning designers (KYC-lapse banner). */
+  const [existingPayout, setExistingPayout] = useState<
+    DesignerProfile["payout_account"] | null
+  >(null);
+
+  useEffect(() => {
+    if (!existingDesignerUsername) return;
+    let cancelled = false;
+    profilesRepo.get(existingDesignerUsername).then(
+      (fetched) => {
+        if (cancelled || fetched.kind !== "designer") return;
+        setExistingPayout(fetched.designer.payout_account);
+      },
+      () => {
+        // no designer profile yet — nothing to show
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [existingDesignerUsername]);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [enabling, setEnabling] = useState(false);
   const [resolution, setResolution] = useState<ResolutionState>({
@@ -110,6 +132,7 @@ export function useOnboarding() {
     enabling,
     profile,
     profileError,
+    existingPayout,
     resolve,
     resolution,
     resetResolution,
