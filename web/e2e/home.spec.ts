@@ -381,6 +381,49 @@ test.describe("nav/footer parity canon", () => {
     await expect(footer.getByText("Good first issues")).toHaveCount(0);
   });
 
+  test("below md the canon links live in a hamburger disclosure (390)", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    const nav = page.getByRole("navigation", { name: "Home" });
+
+    // the four text links are collapsed…
+    await expect(nav.getByRole("link", { name: "Features" })).toBeHidden();
+    const trigger = page.getByTestId("nav-menu-button");
+    await expect(trigger).toBeVisible();
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+
+    // …and the disclosure panel carries all four canonical hrefs
+    await trigger.click();
+    await expect(trigger).toHaveAttribute("aria-expanded", "true");
+    const panel = page.getByTestId("nav-menu-panel");
+    await expect(panel).toBeVisible();
+    const canon: [string, string][] = [
+      ["Features", "#product"],
+      ["For designers", "#designers"],
+      ["Docs", "https://cuesoft.gitbook.io/apparule"],
+      ["GitHub", "https://github.com/cuesoftinc/apparule"],
+      ["Sign in", "/signin"],
+    ];
+    for (const [name, href] of canon) {
+      await expect(
+        panel.getByRole("link", { name, exact: true }),
+        `menu link ${name}`,
+      ).toHaveAttribute("href", href);
+    }
+
+    // the theme toggle works from inside the panel
+    await panel.getByRole("button", { name: /switch to dark theme/i }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await panel.getByRole("button", { name: /switch to light theme/i }).click();
+
+    // a link click closes the disclosure
+    await panel.getByRole("link", { name: "Features" }).click();
+    await expect(page.getByTestId("nav-menu-panel")).toBeHidden();
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  });
+
   test("theme toggle flips and persists on home and dashboard", async ({
     page,
   }) => {

@@ -160,8 +160,11 @@ links) + the verbatim legal bar ("© Cuesoft Inc. 2026. Apparule. CueLABS™
 Division. MIT License.") with the security-policy affordance and language
 selector. All external URLs are the verified-200 canon targets
 (`cuesoft.gitbook.io/apparule/*`, `discord.gg/CDfZxxrxbb`,
-`cuelabs.cuesoft.io`, `privacy/terms/status.cuesoft.io`). Playwright
-asserts the exact hrefs on nav + footer and theme flip+persist on both
+`cuelabs.cuesoft.io`, `privacy/terms/status.cuesoft.io`). Below md the
+nav is a hamburger menu-button disclosure (aria-expanded trigger) whose
+panel carries the same four links + the theme toggle + the Sign in CTA.
+Playwright asserts the exact hrefs on nav + footer, walks every canonical
+href through the 390 disclosure, and covers theme flip+persist on both
 surfaces.
 
 **W3 as-built notes (2026-07-19, PR #91):**
