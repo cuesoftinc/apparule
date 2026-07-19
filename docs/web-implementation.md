@@ -193,10 +193,9 @@ pointer cursor on controls.
   and decline-with-reason + itemized earnings payout.
 - The legacy-quarantine boundary is gated two ways: an eslint
   `no-restricted-imports` rule scoped to `src/legacy/**` (lint-time), and
-  `scripts/check-boundaries.sh` — a grep-based check wired into `npm test`
-  via `check:boundaries` (not lint). Naming parity nit: apparule's script is
-  `check-boundaries.sh`; the sibling repos (expendit, upstat) both carry
-  `check-boundaries.mjs` — recorded here, not yet standardized.
+  `scripts/check-boundaries.mjs` — the org-shared boundary gate (byte-identical
+  across apparule/expendit/upstat, per-repo rule lists inside), wired into
+  `npm run lint` via `check:boundaries`.
 - `src/legacy/` is currently empty; no live path imports from it (the
   boundary gates above keep it that way).
 - Semantic-HTML landmarks (one `<main>`, one `nav[aria-label="Primary"]`)
@@ -428,7 +427,7 @@ asserted at unit/integration level (screen-state parity, §2).
 
 Live paths carry zero dead code. `web/src/legacy/` plus the boundary gates
 (the eslint `no-restricted-imports` rule scoped to `src/legacy/**` and
-`scripts/check-boundaries.sh`, wired into `npm test`) are the standing
+`scripts/check-boundaries.mjs`, wired into `npm run lint`) are the standing
 mechanism for future replacements per the §1 policy (quarantine → replace →
 QA → dedicated retirement PR) — the directory is currently empty. The
 **mobile Flutter app is a later phase**: `mobile/` (existing auth + capture

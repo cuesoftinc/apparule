@@ -1,28 +1,32 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// E2E runs in TEST_MODE against the in-app mock server (web standard):
-// no Firebase, no backend — the dev server is the whole system under test.
-const PORT = 3311;
+/**
+ * E2E harness — runs in TEST_MODE against the in-app mock server (org web
+ * standard: Playwright journeys mirror design.md §8.4, TEST_MODE only).
+ *
+ * PW_PORT overrides the server port; each repo reserves its own default
+ * lane so parallel local runs across sibling repos never collide. CI builds
+ * first and runs against `next start`; local runs use the dev server.
+ */
+const PORT = Number(process.env.PW_PORT ?? 3311);
 
 export default defineConfig({
   testDir: "./e2e",
+  timeout: 60_000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",
   use: {
-    baseURL: `http://localhost:${PORT}`,
+    baseURL: `http://127.0.0.1:${PORT}`,
     trace: "on-first-retry",
   },
-  projects: [
-    {
-      name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
-    },
-  ],
+  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: `npm run dev -- --port ${PORT}`,
-    url: `http://localhost:${PORT}/signin`,
+    command: process.env.CI
+      ? `npm run start -- -p ${PORT} --hostname 127.0.0.1`
+      : `npm run dev -- -p ${PORT} --hostname 127.0.0.1`,
+    url: `http://127.0.0.1:${PORT}/signin`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {
