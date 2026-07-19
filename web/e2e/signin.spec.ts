@@ -14,10 +14,12 @@ test.describe("TEST_MODE auth smoke", () => {
     await cta.click();
     await page.waitForURL("**/dashboard");
 
-    // Signed in as the seeded TEST_MODE account.
-    await expect(page.getByTestId("signed-in-as")).toContainText(
-      "kiki.adeyemi",
-    );
+    // Signed in as the seeded TEST_MODE account — W3 lands on the B1 feed
+    // (the W0 stub's "signed-in-as" line retired with the stub).
+    await expect(page.getByTestId("feed-list")).toBeVisible();
+    await expect(
+      page.locator('nav[aria-label="Primary"]:visible'),
+    ).toHaveCount(1);
   });
 
   test("mock server serves the seeded feed", async ({ request }) => {
