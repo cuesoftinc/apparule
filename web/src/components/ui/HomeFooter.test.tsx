@@ -20,7 +20,7 @@ describe("HomeFooter (§8.2b marketing, parity canon 2026-07-19)", () => {
       ["GitHub", "https://github.com/cuesoftinc/apparule"],
       ["Discord", "https://discord.gg/CDfZxxrxbb"],
       ["Roadmap", "https://cuesoft.gitbook.io/apparule/product/roadmap"],
-      ["CueLABS", "https://cuelabs.cuesoft.io"],
+      ["CueLABS™", "https://cuelabs.cuesoft.io"],
     ];
     for (const [name, href] of canon) {
       expect(screen.getByRole("link", { name })).toHaveAttribute("href", href);
@@ -66,5 +66,19 @@ describe("HomeFooter (§8.2b marketing, parity canon 2026-07-19)", () => {
   it("renders the language selector", () => {
     render(<HomeFooter />);
     expect(screen.getByLabelText("Language")).toBeInTheDocument();
+  });
+
+  it("groups Security policy with the language selector in the legal bar's right cluster (Figma 98:1248)", () => {
+    render(<HomeFooter />);
+    // Canon layout: © line left · [Security policy · English ▾] right —
+    // the security affordance must NOT trail the copyright sentence inline.
+    const cluster = screen.getByTestId("legal-bar-utilities");
+    expect(cluster).toContainElement(
+      screen.getByRole("link", { name: /Security policy/ }),
+    );
+    expect(cluster).toContainElement(screen.getByLabelText("Language"));
+    expect(cluster).not.toContainElement(
+      screen.getByRole("link", { name: "MIT License" }),
+    );
   });
 });

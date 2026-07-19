@@ -1,6 +1,6 @@
 // A8 Community (canvas 186:171–186:183) — Discord card (live member count
 // stays neutral until a real count exists — accuracy standard), roadmap
-// link, CueLABS note.
+// link, CueLABS™ note.
 import { CommunityCard } from "@/components/ui/CommunityCard";
 
 export function CommunitySection() {
@@ -25,7 +25,7 @@ export function CommunitySection() {
             Roadmap →
           </a>
           <p className="mt-3 text-caption text-text-2">
-            An open-source product by Cuesoft CueLABS
+            An open-source product by Cuesoft CueLABS™
           </p>
         </div>
       </div>
