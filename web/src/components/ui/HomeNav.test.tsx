@@ -35,7 +35,9 @@ describe("HomeNav (§8.2b marketing)", () => {
       "/signin",
     );
     expect(
-      screen.getByRole("button", { name: "Try Cloud" }),
+      // two bar instances: desktop cluster + the <md bar CTA beside the
+      // hamburger [Revised 2026-07-19 canon] — jsdom renders both.
+      screen.getAllByRole("button", { name: "Try Cloud" })[0],
     ).toBeInTheDocument();
   });
 
@@ -107,7 +109,9 @@ describe("HomeNav (§8.2b marketing)", () => {
     );
     expect(panelBadge).toHaveTextContent("Star");
     expect(within(panel).getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/signin");
-    expect(within(panel).getByRole("button", { name: "Try Cloud" })).toBeInTheDocument();
+    // [Revised 2026-07-19 canon] the panel carries no duplicate Try Cloud —
+    // the CTA stays on the bar beside the hamburger.
+    expect(within(panel).queryByRole("button", { name: "Try Cloud" })).toBeNull();
     expect(within(panel).getByRole("button", { name: "Toggle theme" })).toBeInTheDocument();
 
     // link click closes the disclosure

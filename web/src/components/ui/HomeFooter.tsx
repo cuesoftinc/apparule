@@ -66,7 +66,7 @@ export function HomeFooter({ columns = DEFAULT_COLUMNS, className }: HomeFooterP
             Apparule
           </span>
           <p className="mt-2 text-caption text-text-2">
-            AI body measurement and made-to-measure fashion — open source,
+            AI body measurement and made-to-measure fashion — open-source,
             made for Lagos.
           </p>
         </div>

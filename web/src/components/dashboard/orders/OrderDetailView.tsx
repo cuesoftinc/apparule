@@ -352,7 +352,11 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
         {order.dispute ? (
           <p className="text-body text-text-2">
             Dispute open ({order.dispute.reason.replaceAll("_", " ")})
-            {order.dispute.detail ? ` — ${order.dispute.detail}` : ""}. Support
+            {/* strip any trailing period — the template adds its own */}
+            {order.dispute.detail
+              ? ` — ${order.dispute.detail.replace(/\.$/, "")}`
+              : ""}
+            . Support
             resolves disputes; the payout stays frozen meanwhile.
           </p>
         ) : null}

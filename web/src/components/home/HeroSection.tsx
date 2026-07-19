@@ -51,7 +51,7 @@ export function HeroSection() {
             </Button>
           </div>
           <p className="mt-4 text-caption text-text-2">
-            Open source · Self-host in one line
+            Open-source · Self-host in one line
           </p>
         </div>
         <div className="mx-auto shrink-0 md:mx-0 md:ml-auto">

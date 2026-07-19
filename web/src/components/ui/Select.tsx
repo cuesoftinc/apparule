@@ -37,8 +37,11 @@ export function Select({
 }: SelectProps) {
   return (
     <div className={clsx("flex flex-col gap-1", className)}>
+      {/* value ?? "" keeps Radix controlled from first render — passing
+          undefined then a string flips uncontrolled→controlled (React
+          warning); the empty string still renders the placeholder. */}
       <RadixSelect.Root
-        value={value}
+        value={value ?? ""}
         onValueChange={onValueChange}
         disabled={disabled}
       >

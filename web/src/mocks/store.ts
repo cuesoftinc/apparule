@@ -40,6 +40,8 @@ import {
   seedReports,
   seedSessions,
   seedThreadMessages,
+  seedLikes,
+  seedSaves,
 } from "./seed";
 
 const USERNAME_RE = /^[a-z0-9._]{3,30}$/;
@@ -96,8 +98,8 @@ export class MockStore {
   notifications: Notification[] = deepClone(seedNotifications);
   reports: Report[] = deepClone(seedReports);
   /** viewer engagement: `${accountId}:${postId}` */
-  likes = new Set<string>();
-  saves = new Set<string>();
+  likes = new Set<string>(seedLikes.map(([acc, post]) => `${acc}:${post}`));
+  saves = new Set<string>(seedSaves.map(([acc, post]) => `${acc}:${post}`));
   /** `${followerAccountId}:${designerUsername}` */
   follows = new Set<string>(seedFollows.map(([a, d]) => `${a}:${d}`));
   blocks = new Set<string>();
@@ -551,8 +553,15 @@ export class MockStore {
       throw new MockApiError("not_found", "Designer not found", 404);
     }
     const key = `${viewer.id}:${designerUsername}`;
+    const had = this.follows.has(key);
     if (on) this.follows.add(key);
     else this.follows.delete(key);
+    // followers_count mirrors the follow list exactly (P1 realism pass —
+    // the profile header and the followers sheet must never disagree).
+    if (had !== on) {
+      const designer = this.designerByUsername(designerUsername)!;
+      designer.followers_count += on ? 1 : -1;
+    }
   }
 
   // -- vault ----------------------------------------------------------------

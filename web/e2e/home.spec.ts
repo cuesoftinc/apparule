@@ -87,7 +87,7 @@ test.describe("Marketing site — home page", () => {
       }),
     ).toBeVisible();
     await expect(
-      page.getByText("Open source · MIT licensed · Self-host in one line"),
+      page.getByText("Open-source · MIT licensed · Self-host in one line"),
     ).toBeVisible();
 
     // A10 footer
@@ -434,10 +434,10 @@ test.describe("nav/footer parity canon", () => {
     );
     await expect(panelBadge).toContainText("Star");
 
-    // Try Cloud rides along in the panel and hands off to /signin
-    await expect(
-      panel.getByRole("button", { name: "Try Cloud" }),
-    ).toBeVisible();
+    // [Revised 2026-07-19 canon] Try Cloud stays visible on the BAR
+    // beside the hamburger; the panel carries no duplicate row.
+    await expect(nav.getByRole("button", { name: "Try Cloud" })).toBeVisible();
+    await expect(panel.getByRole("button", { name: "Try Cloud" })).toHaveCount(0);
 
     // the theme toggle works from inside the panel
     await panel.getByRole("button", { name: /switch to dark theme/i }).click();
@@ -448,6 +448,49 @@ test.describe("nav/footer parity canon", () => {
     await panel.getByRole("link", { name: "Features" }).click();
     await expect(page.getByTestId("nav-menu-panel")).toBeHidden();
     await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  });
+
+  test("below md the footer stacks per the canon: full-width brand, 2-col grid, grouped legal cluster (390)", async ({
+    page,
+  }) => {
+    // Footer mobile structure canon (SKILL.md, pinned 2026-07-19): brand
+    // block full-width first · 4 link columns in a 2-col grid · divider ·
+    // legal bar with © first + one grouped wrapping utilities cluster.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    const footer = page.locator("footer");
+    await footer.scrollIntoViewIfNeeded();
+    const heading = (name: string) =>
+      footer.getByRole("heading", { name, exact: true });
+    const boxOf = async (locator: ReturnType<typeof heading>) => {
+      const box = await locator.boundingBox();
+      expect(box).not.toBeNull();
+      return box!;
+    };
+    // 2-col grid: Product+Docs share a row, Community+Legal the next
+    const product = await boxOf(heading("Product"));
+    const docs = await boxOf(heading("Docs"));
+    const community = await boxOf(heading("Community"));
+    const legal = await boxOf(heading("Legal"));
+    expect(Math.abs(product.y - docs.y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(community.y - legal.y)).toBeLessThanOrEqual(1);
+    expect(product.y).toBeLessThan(community.y);
+    // brand block sits first and spans the full container (col-span-2)
+    const brand = await boxOf(
+      footer.getByText(/AI body measurement and made-to-measure fashion/),
+    );
+    expect(brand.y).toBeLessThan(product.y);
+    expect(brand.width).toBeGreaterThan(300);
+    // legal bar: © line first; Security policy + language selector sit in
+    // one grouped wrapping cluster after it
+    const copyright = await boxOf(footer.getByText(/©/).first());
+    const utilities = await boxOf(page.getByTestId("legal-bar-utilities"));
+    expect(copyright.y).toBeLessThan(utilities.y + utilities.height);
+    const security = await boxOf(
+      footer.getByRole("link", { name: "Security policy" }),
+    );
+    const language = await boxOf(footer.getByLabel("Language"));
+    expect(Math.abs(security.y + security.height / 2 - (language.y + language.height / 2))).toBeLessThanOrEqual(4);
   });
 
   test("theme toggle flips and persists on home and dashboard", async ({

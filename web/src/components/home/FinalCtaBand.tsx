@@ -52,7 +52,7 @@ export function FinalCtaBand() {
           </button>
         </div>
         <p className="text-caption text-on-accent">
-          Open source · MIT licensed · Self-host in one line
+          Open-source · MIT licensed · Self-host in one line
         </p>
       </div>
     </section>

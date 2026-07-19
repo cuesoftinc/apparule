@@ -39,7 +39,7 @@ const FAQS = [
     id: "faq-5",
     question: "What license is Apparule under?",
     answer:
-      "MIT. The whole product — mobile app, web, API, and the measurement pipeline — is open source under the MIT license: fork it, self-host it, build on it.",
+      "MIT. The whole product — mobile app, web, API, and the measurement pipeline — is open-source under the MIT license: fork it, self-host it, build on it.",
   },
 ] as const;
 

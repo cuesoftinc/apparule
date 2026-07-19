@@ -132,7 +132,7 @@ describe("CommunitySection (A8)", () => {
     expect(screen.getByTestId("member-badge")).not.toHaveTextContent("members");
     expect(screen.getByRole("link", { name: "Roadmap →" })).toBeInTheDocument();
     expect(
-      screen.getByText("An open-source product by Cuesoft CueLABS™"),
+      screen.getByText("An open-source product by CueLABS™"),
     ).toBeInTheDocument();
   });
 });

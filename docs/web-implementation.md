@@ -164,9 +164,9 @@ are inline links) with the security-policy affordance and language
 selector. All external URLs are the verified-200 canon targets
 (`cuesoft.gitbook.io/apparule/*`, `discord.gg/CDfZxxrxbb`,
 `cuelabs.cuesoft.io`, `privacy/terms/status.cuesoft.io`); Discord channel
-copy is `#apparule-lab`. Below md the nav is a hamburger menu-button
-disclosure (aria-expanded trigger) whose panel carries the same four
-links + the theme toggle + Sign in + Try Cloud. Enabled interactive
+copy is `#apparule-lab`. Below md the bar keeps the Try
+Cloud CTA beside the hamburger (aria-expanded trigger); the panel
+carries the 4 links + ThemeToggle + Sign in. [Revised 2026-07-19] Enabled interactive
 controls show `cursor: pointer` via one base-layer rule in `globals.css`
 (design.md §2 cursor-affordance foundation); removable Chips are a pill
 of two real buttons (label + keyboard-reachable ✕). Playwright asserts
@@ -223,6 +223,31 @@ side-scrolls, and wide elements scroll within their own containers:
 - Interactive overlays are part of the audited surface: stepper steps
   1–3, quote sheet + due-date picker, decline/dispute/confirm-delivery,
   capture and history sheets, explore post modal, followers sheet.
+
+**UX & demo-realism as-built notes (2026-07-19, PR #102):** the P1 UX +
+realism pass **[Directive]** — the seed simulates actual user interaction:
+
+- Six community accounts widen the cast; comments, follower sheets and
+  notification actors come from multiple users at a plausible cadence
+  (35m/6h/20h/2.8d spread, no synthetic same-day clusters).
+- Cross-entity invariants are unit-gated: comment counts equal comment
+  lists; designer follower counts mirror the follow graph (and update
+  live on follow/unfollow); order snapshots are measured before their
+  order exists; the explore premium band (> ₦100k) returns the seeded
+  bridal gown.
+- Captions describe their actual CC photos (the aso-oke/agbada/orange
+  narratives were recaptioned to little senator / ceremonial robe set /
+  resort one-piece to match the licensed pool); verified escrow figures
+  (₦45,000 / ₦62,000) are unchanged.
+- Feed comments open the in-app post modal — the public /p permalink is
+  reserved for share targets (MI-9), never in-app navigation.
+- `Select` passes `value ?? ""` to stay Radix-controlled for its whole
+  life; overlays opened from other flows inherit the same rule.
+- Marketing nav below md **[Revised 2026-07-19]**: the bar keeps the Try
+  Cloud CTA beside the hamburger; the panel carries the 4 links +
+  ThemeToggle + Sign in.
+- Brand copy: "open-source" is hyphenated in prose; the community
+  attribution reads "An open-source product by CueLABS™".
 
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the

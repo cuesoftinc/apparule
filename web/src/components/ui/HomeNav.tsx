@@ -8,8 +8,9 @@
 // never a hardcoded count) — + theme-toggle slot + the "Sign in" text link
 // + the "Try Cloud" gradient primary CTA (→ /signin) · state top /
 // stuck-blurred (blurs on scroll). Below md the links collapse into a
-// hamburger disclosure whose panel carries the same links + the theme
-// toggle + Sign in + Try Cloud.
+// hamburger disclosure; the bar keeps the Try Cloud CTA beside the
+// hamburger and the panel carries the links + ThemeToggle + Sign in
+// [Revised 2026-07-19 canon].
 import { useEffect, useState, type ReactNode } from "react";
 import clsx from "clsx";
 import Link from "next/link";
@@ -163,18 +164,25 @@ export function HomeNav({
             Try Cloud
           </Button>
         </div>
-        {/* <md: the canon links collapse into a hamburger disclosure */}
-        <button
-          type="button"
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-          aria-expanded={menuOpen}
-          aria-controls="home-nav-menu"
-          data-testid="nav-menu-button"
-          onClick={() => setMenuOpen((open) => !open)}
-          className="ml-auto grid size-11 place-items-center rounded-card text-text md:hidden"
-        >
-          {menuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        {/* <md [Revised 2026-07-19 canon]: the bar keeps the Try Cloud CTA
+            beside the hamburger; the text links collapse into the
+            disclosure panel. */}
+        <div className="ml-auto flex items-center gap-2 md:hidden">
+          <Button kind="gradient-primary" size="sm" onClick={onTryCloud}>
+            Try Cloud
+          </Button>
+          <button
+            type="button"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            aria-controls="home-nav-menu"
+            data-testid="nav-menu-button"
+            onClick={() => setMenuOpen((open) => !open)}
+            className="grid size-11 place-items-center rounded-card text-text"
+          >
+            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
       {menuOpen ? (
         <div
@@ -211,27 +219,17 @@ export function HomeNav({
           >
             <StarBadgeLabel starCount={starCount} />
           </a>
+          {/* Try Cloud already sits on the bar (canon) — the panel carries
+              only the links + ThemeToggle + Sign in, no duplicate CTA. */}
           <div className="mt-2 flex items-center justify-between gap-3 border-t border-border pt-3">
             {trailing}
-            <div className="flex items-center gap-3">
-              <Link
-                href="/signin"
-                onClick={() => setMenuOpen(false)}
-                className="whitespace-nowrap text-body font-semibold text-text hover:text-text-2"
-              >
-                Sign in
-              </Link>
-              <Button
-                kind="gradient-primary"
-                size="sm"
-                onClick={() => {
-                  setMenuOpen(false);
-                  onTryCloud?.();
-                }}
-              >
-                Try Cloud
-              </Button>
-            </div>
+            <Link
+              href="/signin"
+              onClick={() => setMenuOpen(false)}
+              className="whitespace-nowrap text-body font-semibold text-text hover:text-text-2"
+            >
+              Sign in
+            </Link>
           </div>
         </div>
       ) : null}
