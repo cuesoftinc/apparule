@@ -101,7 +101,7 @@ function FollowListSheet({
 
 export function ProfileView({ username }: { username: string }) {
   const { account } = useAuth();
-  const { profile, posts, saved, loading, error, toggleFollow } =
+  const { profile, posts, saved, loading, error, toggleFollow, syncPost } =
     usePublicProfile(username);
   const { showToast } = useToasts();
   const [tab, setTab] = useState<"first" | "second">("first");
@@ -198,7 +198,12 @@ export function ProfileView({ username }: { username: string }) {
         <Sheet
           open={openPostId !== null}
           onOpenChange={(open) => {
-            if (!open) setOpenPostId(null);
+            if (!open) {
+              // Sync the grid tile(s) back on close — modal mutations live in
+              // the modal's own usePost (PR #103 review).
+              if (openPostId) void syncPost(openPostId);
+              setOpenPostId(null);
+            }
           }}
           title="Post"
           size="wide"
@@ -380,7 +385,12 @@ export function ProfileView({ username }: { username: string }) {
       <Sheet
         open={openPostId !== null}
         onOpenChange={(open) => {
-          if (!open) setOpenPostId(null);
+          if (!open) {
+            // Sync the grid tile(s) back on close — modal mutations live in
+            // the modal's own usePost (PR #103 review).
+            if (openPostId) void syncPost(openPostId);
+            setOpenPostId(null);
+          }
         }}
         title="Post"
         size="wide"

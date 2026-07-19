@@ -140,6 +140,11 @@ export class MockStore {
   blocks = new Set<string>();
   /** Idempotency replay cache: key → serialized response (api.md §4). */
   idempotency = new Map<string, { payloadHash: string; response: unknown }>();
+  /**
+   * Ranked-cursor snapshots (api.md §5 [Decided]): rank is computed at
+   * first page and frozen for the cursor's 24h lifetime.
+   */
+  rankedSnapshots = new Map<string, { ids: string[]; created_at: number }>();
   orderCounter = 1059;
   /** Uploaded media (composer) — stands in for object storage. */
   media = new Map<string, { data: string; contentType: string }>();
@@ -241,6 +246,11 @@ export class MockStore {
     if (patch.display_name !== undefined) account.display_name = patch.display_name;
     if (patch.profile_location !== undefined) {
       account.profile_location = patch.profile_location;
+      // The designer profile's cached location mirrors the account's —
+      // settings B7 is the single write path (X-10 tier 1), and near-me
+      // must rank against the CURRENT value (PR #103 review).
+      const designer = this.designerByUsername(account.username);
+      if (designer) designer.location = patch.profile_location;
     }
     if (patch.notification_prefs !== undefined) {
       account.notification_prefs = {
@@ -274,6 +284,72 @@ export class MockStore {
   }
 
   // -- social ---------------------------------------------------------------
+
+  /**
+   * Ranked pagination (api.md §5 [Decided]): the cursor encodes a snapshot
+   * of the ranked order frozen at first-page time for its 24h lifetime, so
+   * pages never duplicate or skip posts within one scroll session — new
+   * posts appear on refresh, not mid-scroll; posts deleted after the
+   * snapshot simply drop out. Engagement state (liked/saved/counts) stays
+   * live — only the RANK is frozen. Expired/garbled cursors start a fresh
+   * scroll session (PR #103 review: the plain offset cursor recomputed the
+   * rank per page and could duplicate or skip).
+   */
+  rankedPage(
+    viewerUsername: string,
+    rank: () => Post[],
+    cursorRaw: string | null,
+    limit: number,
+  ): { items: Post[]; next_cursor: string | null } {
+    const viewer = this.accountByUsername(viewerUsername);
+    const DAY_MS = 24 * 60 * 60 * 1000;
+    let snapshotId: string | null = null;
+    let offset = 0;
+    if (cursorRaw) {
+      const decoded = Buffer.from(cursorRaw, "base64url").toString("utf8");
+      const at = decoded.lastIndexOf(":");
+      const id = decoded.slice(0, at);
+      const parsedOffset = Number(decoded.slice(at + 1));
+      const snapshot = this.rankedSnapshots.get(id);
+      if (
+        snapshot &&
+        Date.now() - snapshot.created_at < DAY_MS &&
+        Number.isFinite(parsedOffset) &&
+        parsedOffset >= 0
+      ) {
+        snapshotId = id;
+        offset = parsedOffset;
+      }
+    }
+    if (snapshotId === null) {
+      snapshotId = id("rank");
+      this.rankedSnapshots.set(snapshotId, {
+        ids: rank().map((p) => p.id),
+        created_at: Date.now(),
+      });
+      // registry hygiene: drop the oldest snapshots past a sane bound
+      while (this.rankedSnapshots.size > 100) {
+        const oldest = this.rankedSnapshots.keys().next().value;
+        if (oldest === undefined) break;
+        this.rankedSnapshots.delete(oldest);
+      }
+    }
+    const snapshot = this.rankedSnapshots.get(snapshotId)!;
+    const live = new Map(this.posts.map((p) => [p.id, p] as const));
+    const items: Post[] = [];
+    let i = offset;
+    for (; i < snapshot.ids.length && items.length < limit; i++) {
+      const post = live.get(snapshot.ids[i]);
+      if (post) items.push(this.viewPost(post, viewer.id));
+    }
+    return {
+      items,
+      next_cursor:
+        i < snapshot.ids.length
+          ? Buffer.from(`${snapshotId}:${i}`, "utf8").toString("base64url")
+          : null,
+    };
+  }
 
   feed(viewerUsername: string): Post[] {
     const viewer = this.accountByUsername(viewerUsername);

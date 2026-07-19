@@ -258,6 +258,25 @@ describe("engagement", () => {
     expect(near[near.length - 1].id).toBe("post-atelier-abuja");
   });
 
+  it("explore near_me ranks against the designer's CURRENT profile location", () => {
+    // PR #103 review: settings B7 writes Account.profile_location — the
+    // cached DesignerProfile.location must follow, or near-me keeps
+    // ranking on stale onboarding data.
+    store.updateMe("eniola.stitches", {
+      profile_location: { city: "Lagos", state: "Lagos", country: "NG" },
+    });
+    const near = store.explore(
+      "kiki.adeyemi",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      true,
+    );
+    // her newest-overall post now leads the same-city tier
+    expect(near[0].id).toBe("post-atelier-abuja");
+  });
+
   it("explore near_me is a no-op for callers without a profile location", () => {
     store.updateMe("kiki.adeyemi", { profile_location: null });
     const near = store.explore(
@@ -421,6 +440,65 @@ describe("capture path (webcam, B4)", () => {
     expect(() => store.saveSession(session.id, "kiki.adeyemi")).toThrowError(
       expect.objectContaining({ code: "invalid_transition" }),
     );
+  });
+});
+
+describe("ranked pagination (api.md §5 — snapshot cursors)", () => {
+  const feedPage = (cursor: string | null, limit: number) =>
+    store.rankedPage(
+      "kiki.adeyemi",
+      () => store.feed("kiki.adeyemi"),
+      cursor,
+      limit,
+    );
+
+  it("freezes the rank per scroll session — no duplicates or skips mid-scroll", () => {
+    const page1 = feedPage(null, 4);
+    expect(page1.items).toHaveLength(4);
+    expect(page1.next_cursor).not.toBeNull();
+    // A followed designer publishes mid-scroll — a fresh rank would lead
+    // with it and shift every offset (PR #103 review).
+    const fresh = store.createPost("amara.designs", {
+      caption: "Mid-scroll drop",
+      style_tags: ["ankara"],
+      base_price_cents: null,
+      turnaround_days: 7,
+      media: [{ url: "/demo/outfit-w14.jpg", alt_text: "Fabric drop" }],
+    });
+    const page2 = feedPage(page1.next_cursor, 4);
+    const ids = [...page1.items, ...page2.items].map((p) => p.id);
+    expect(new Set(ids).size).toBe(ids.length); // never duplicates
+    expect(ids).not.toContain(fresh.id); // new posts land on refresh only
+    expect(page2.next_cursor).toBeNull();
+    // …and a NEW scroll session (no cursor) does lead with it
+    expect(feedPage(null, 4).items[0].id).toBe(fresh.id);
+  });
+
+  it("posts deleted mid-scroll drop out without duplicating", () => {
+    const page1 = feedPage(null, 2);
+    store.deletePost("post-asooke-set", "maisonbisi"); // would be page 2
+    const page2 = feedPage(page1.next_cursor, 2);
+    const ids = [...page1.items, ...page2.items].map((p) => p.id);
+    expect(ids).not.toContain("post-asooke-set");
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("freezes only the RANK — engagement state stays live", () => {
+    const page1 = feedPage(null, 4);
+    store.setEngagement("post-fabric-drop", "kiki.adeyemi", "like", true);
+    const page2 = feedPage(page1.next_cursor, 4);
+    expect(page2.items.find((p) => p.id === "post-fabric-drop")?.liked).toBe(
+      true,
+    );
+  });
+
+  it("expired or garbled cursors start a fresh scroll session", () => {
+    const garbled = feedPage(
+      Buffer.from("rank-nope:4", "utf8").toString("base64url"),
+      4,
+    );
+    expect(garbled.items).toHaveLength(4);
+    expect(garbled.items[0].id).toBe(store.feed("kiki.adeyemi")[0].id);
   });
 });
 
