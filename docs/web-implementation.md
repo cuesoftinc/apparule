@@ -211,8 +211,7 @@ side-scrolls, and wide elements scroll within their own containers:
   dashboard, settings sub-screens and order detail included) asserting
   `document.scrollWidth <= viewport` at 390 AND 768, plus wide-element
   containment: any `table`/`pre`/`code` wider than the viewport must sit
-  inside an `overflow-x: auto` container that itself fits. It supersedes
-  the old 12-route dashboard.spec sweep.
+  inside an `overflow-x: auto` container that itself fits.
 - The A9 comparison table scrolls horizontally within its card below its
   min-content width (the "Self-host it" CTA was clipped at 390).
 - One `@layer base` rule — `fieldset { min-inline-size: 0 }` — normalizes
