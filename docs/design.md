@@ -203,7 +203,7 @@ descriptions and in these docs, never on the screens themselves.
 | 1 Atoms | Button, Input (incl. textarea + currency kinds, §8.2b), Pill/Chip, Avatar, IconButton, Toast · **atom completions (2026-07-16)**: GoogleAuthButton, Switch, Tooltip, Spinner | all molecules |
 | 2 Molecules | StoryRail item, action row, MeasurementCard, StatusPill set, TabBar, Sheet chrome · **form kit**: FormRow, AddressFieldset (request-stepper delivery + profile location, X-10 tier 1) · **capture kit**: CaptureOverlay, CountdownRing, QCHintChip, ProcessingConstellation, CaptureResults chrome, ManualMeasureRow, CaptureOptionCard · **chrome kit (2026-07-16)**: NavRail, AppBar, Tabs · **form kit II (2026-07-16)**: Select/OptionRow, DateInput, MediaDropzone/MediaUploadTile, Banner/InlineAlert, Popover/MenuItem | cards |
 | 3 Cards | PostCard, RequestCard, NotificationRow, CommentRow, ThreadBubble, EmptyState set, Skeletons · **social rows (2026-07-16)**: GridTile, UserRow, CaughtUpDivider · **order kit (2026-07-16)**: OrderTimelineRow, PaymentBox · **vault rows (2026-07-16)**: SessionRow/SnapshotPickerRow · **ops & earnings rows (2026-07-16)**: ModerationQueueRow, EarningsSummary + TransactionRow | screens |
-| 4 Screen templates | feed, post detail, request stepper (3 steps), vault, capture overlays, orders list+detail, profile ×2, moderation queue · **added 2026-07-16 (previously omitted; all v1 per pages.md)**: explore, create/composer, settings, auth/onboarding, notifications · **added 2026-07-18 (iteration 1)**: designer onboarding/KYC, earnings & payouts, dispute flow, decline sheet, followers/following, explore search-results, settings sub-screens ×3, comments full sheet (pages.md B8/B9, C11–C14 + flow lines) | mobile + dashboard designs |
+| 4 Screen templates | feed, post detail, request stepper (3 steps), vault, capture overlays, orders list+detail, profile ×2, moderation queue · **added 2026-07-16 (all v1 per pages.md)**: explore, create/composer, settings, auth/onboarding, notifications · **added 2026-07-18 (iteration 1)**: designer onboarding/KYC, earnings & payouts, dispute flow, decline sheet, followers/following, explore search-results, settings sub-screens ×3, comments full sheet (pages.md B8/B9, C11–C14 + flow lines) | mobile + dashboard designs |
 | 5 Home page | A1–A10 sections (pages.md Part A) + iteration rows A4b · A7b · A7c · A9b · A9c (2026-07-18) · **marketing kit (2026-07-16)**: HomeNav + HomeFooter, Home section kit (§8.2b) | landing design |
 
 **Stage 0 icon note — extended set (2026-07-16).** Beyond the original
@@ -219,8 +219,7 @@ due-date, stepper target date) · `sun` + `moon` (NavRail theme toggle; `moon` a
 media dropzone) · `map-pin` (profile location, "near me" filter) · `wallet`
 (earnings/payout surfaces) · `clock` (deadline chips: quote expiry, due
 dates, auto-refund countdowns) · `flag` (report post/comment, SOC-009) ·
-`log-out` (settings sign-out) · `grid-3x3` (Tabs grid view — added
-2026-07-17, in build; replaces the interim inline vector in the Tabs icon
+`log-out` (settings sign-out) · `grid-3x3` (the Tabs grid-view icon
 variant). Brand glyphs — the Google 'G' for the X-1
 auth CTA, the GitHub mark (home page), and others as needed — are **not
 Lucide**: they enter as approved additions per the shared-foundations
@@ -334,7 +333,7 @@ Stage 5 and non-blocking; everything else feeds Stages 1–4.
 
 | Component | Variants × states |
 | --- | --- |
-| HomeNav / HomeFooter | nav: logo + 4 text links (Features · For designers · Docs · GitHub) + `ThemeToggle` + Sign in CTA (`/signin`) · state: top / stuck-blurred · footer: brand block (wordmark + tagline) + 4 pinned link columns — Product (Features · Try Cloud · Self Host · For designers) · Docs (Docs · Quickstart · API reference · Self-host guide) · Community (GitHub · Discord · Roadmap · CueLABS) · Legal (Privacy · Terms · Status) — + legal bar `© Cuesoft Inc. 2026. Apparule. CueLABS™ Division. MIT License.` with security-policy link (SECURITY.md) + English language selector · theme ×2 · **as built (2026-07-18):** the master's GitHub badge reads "Star" with no count — no invented numbers on canvases (accuracy standard below); the live star count is fetched at runtime (pages.md A1) · **[Directive 2026-07-19]:** retro-fitted to the cross-product "Marketing nav, footer & theme parity canon" (generator SKILL.md) — one link inventory across apparule/expendit/upstat, rendered in apparule's light 4-column design; nav drops the GitHub star badge + Try Cloud button (Sign in becomes the sole CTA) and gains the `ThemeToggle` master; footer renames GitBook→Docs, drops Contributing + Good first issues, adds the Legal column (the legal-bar Privacy/Terms row items moved there, + Status); all hrefs are the canon's canonical URLs |
+| HomeNav / HomeFooter | nav: logo + 4 text links (Features · For designers · Docs · GitHub) + `ThemeToggle` + Sign in CTA (`/signin`) · state: top / stuck-blurred · footer: brand block (wordmark + tagline) + 4 pinned link columns — Product (Features · Try Cloud · Self Host · For designers) · Docs (Docs · Quickstart · API reference · Self-host guide) · Community (GitHub · Discord · Roadmap · CueLABS) · Legal (Privacy · Terms · Status) — + legal bar `© Cuesoft Inc. 2026. Apparule. CueLABS™ Division. MIT License.` with security-policy link (SECURITY.md) + English language selector · theme ×2 · **[Directive 2026-07-19]:** built to the cross-product "Marketing nav, footer & theme parity canon" (generator SKILL.md) — one link inventory across apparule/expendit/upstat, rendered in apparule's light 4-column design; the nav CTA is Sign in alone, with the `ThemeToggle` master; all hrefs are the canon's canonical URLs; the nav GitHub item is a plain text link — the runtime star-count badge lives only in the A7b Developers section, and masters carry no invented numbers (accuracy standard below) |
 | Home section kit | StatCard ×3 (fade-up) · WalkthroughStep (screenshot + 2 lines + step dots) · ComparisonTable (Cloud vs OSS + CTA row) · CodeSnippetBlock (copy → ✓ morph) · CommunityCard (Discord member count) · **status (2026-07-17):** the one remaining unbuilt Stage-5 row (HomeNav/HomeFooter are done) — in build now; contract stays live, not deferred · **as built (2026-07-18):** WalkthroughStep step dots corrected to ×4 (the A4 walkthrough's four steps; the active dot is set per instance) · the CommunityCard master carries a neutral badge — no member count (accuracy standard below) |
 | FAQItem | question + chevron · state: collapsed / expanded · one-open-at-a-time group, rows deep-linkable (pages.md A9b) · theme ×2 · **as built (2026-07-18):** ≈720px accordion row; chevron rotates 180° on expand/collapse (`base` 200ms) — the iteration addition the note below anticipated |
 
@@ -356,24 +355,21 @@ instances); `Input` textarea kind: inner text-area height fixed;
 `RequestCard`: the title truncates to 1 line (ellipsis) so the price is
 always visible.
 
-*As-built (2026-07-19):* the Home frame's sections were normalized to the §2
-marketing container (1080px at 1440, x 180–1260) — the A4 walkthrough,
-A4b deep-dives and A7b topic rows previously sat on a ~1192px breakout, the
-nav/footer on 1200px, and the stat band overhung to 1356px; right-column
-visuals (hero phone, constellation, earnings block, architecture diagram) now
-right-align to the container edge. Full-bleed section backgrounds (e.g. the
-A9c CTA band) stay 1440.
+*As-built (2026-07-19):* the Home frame's sections all sit on the §2
+marketing container (1080px at 1440, x 180–1260) — nav, footer, the A4
+walkthrough, A4b deep-dives, A7b topic rows, and the stat band included;
+right-column visuals (hero phone, constellation, earnings block,
+architecture diagram) right-align to the container edge. Full-bleed section
+backgrounds (e.g. the A9c CTA band) stay 1440.
 
 ### 8.3 Design-prep needed from content
 
-Outfit photography for realistic feed mocks is now **sourced** (2026-07-16):
-CC-licensed stock via Openverse/Wikimedia Commons, attributions kept on the
-Figma Assets page — this replaces the earlier "sample outfit photography
-(≥12 diverse looks)" prep item. One sourced photo was removed (2026-07-17)
-for inappropriate provenance — a conflict-related archive image — and
-replaced from the curated pool; the attribution grid on the Assets page is
-maintained (every image keeps its caption). Still needed: hero H1 copy
-(prd §8.6); the Afrocentric pattern asset (§2) at 3 opacities.
+Outfit photography for realistic feed mocks is **sourced** (2026-07-16):
+CC-licensed stock via Openverse/Wikimedia Commons, curated for provenance
+(no conflict-related archive imagery), attributions kept on the Figma
+Assets page — the attribution grid is maintained (every image keeps its
+caption). Still needed: hero H1 copy (prd §8.6); the Afrocentric pattern
+asset (§2) at 3 opacities.
 
 ### 8.4 Prototype (built 2026-07-18)
 
