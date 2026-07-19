@@ -76,7 +76,9 @@ describe("order lifecycle enforcement", () => {
   });
 
   it("walks a full commission: request → quote → pay → … → delivered", () => {
-    const created = store.createRequest("kiki.adeyemi", "post-agbada", {
+    // post-asooke-set has no seeded OPEN order (its APR-1058 is terminal), so
+    // the duplicate-open-request guard stays out of the way.
+    const created = store.createRequest("kiki.adeyemi", "post-asooke-set", {
       session_id: "sess-recent-scan",
       notes: "For a wedding",
       delivery: {
@@ -94,7 +96,7 @@ describe("order lifecycle enforcement", () => {
       expect.arrayContaining([{ name: "shoulder_width", value_cm: 42.5 }]),
     );
 
-    const quoted = store.quote(created.id, "tunde.o", 5_500_000, "2026-08-10");
+    const quoted = store.quote(created.id, "maisonbisi", 5_500_000, "2026-08-10");
     expect(quoted.status).toBe("quoted");
 
     const paid = store.pay(created.id, "kiki.adeyemi");
@@ -102,8 +104,8 @@ describe("order lifecycle enforcement", () => {
     expect(paid.payment?.state).toBe("held");
     expect(paid.payment?.platform_fee_cents).toBe(550_000); // 10%
 
-    store.setStatus(created.id, "tunde.o", "in_progress");
-    store.setStatus(created.id, "tunde.o", "shipped", "TRK-1");
+    store.setStatus(created.id, "maisonbisi", "in_progress");
+    store.setStatus(created.id, "maisonbisi", "shipped", "TRK-1");
     const delivered = store.confirmDelivery(created.id, "kiki.adeyemi");
     expect(delivered.status).toBe("delivered");
     expect(delivered.payment?.state).toBe("released");
@@ -118,12 +120,12 @@ describe("order lifecycle enforcement", () => {
       state: "Lagos",
       country: "NG",
     };
-    store.createRequest("kiki.adeyemi", "post-agbada", {
+    store.createRequest("kiki.adeyemi", "post-chromat-look", {
       session_id: "sess-recent-scan",
       delivery,
     });
     expect(() =>
-      store.createRequest("kiki.adeyemi", "post-agbada", {
+      store.createRequest("kiki.adeyemi", "post-chromat-look", {
         session_id: "sess-recent-scan",
         delivery,
       }),
