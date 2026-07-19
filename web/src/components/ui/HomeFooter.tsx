@@ -26,9 +26,18 @@ const DEFAULT_COLUMNS: FooterColumn[] = [
     heading: "Docs",
     links: [
       { label: "Docs", href: "https://cuesoft.gitbook.io/apparule" },
-      { label: "Quickstart", href: "https://cuesoft.gitbook.io/apparule/setup" },
-      { label: "API reference", href: "https://cuesoft.gitbook.io/apparule/system/api-surface" },
-      { label: "Self-host guide", href: "https://cuesoft.gitbook.io/apparule/system/deployment" },
+      {
+        label: "Quickstart",
+        href: "https://cuesoft.gitbook.io/apparule/setup",
+      },
+      {
+        label: "API reference",
+        href: "https://cuesoft.gitbook.io/apparule/system/api-surface",
+      },
+      {
+        label: "Self-host guide",
+        href: "https://cuesoft.gitbook.io/apparule/system/deployment",
+      },
     ],
   },
   {
@@ -36,7 +45,10 @@ const DEFAULT_COLUMNS: FooterColumn[] = [
     links: [
       { label: "GitHub", href: "https://github.com/cuesoftinc/apparule" },
       { label: "Discord", href: "https://discord.gg/CDfZxxrxbb" },
-      { label: "Roadmap", href: "https://cuesoft.gitbook.io/apparule/product/roadmap" },
+      {
+        label: "Roadmap",
+        href: "https://cuesoft.gitbook.io/apparule/product/roadmap",
+      },
       { label: "CueLABS™", href: "https://cuelabs.cuesoft.io" },
     ],
   },
@@ -55,7 +67,10 @@ export interface HomeFooterProps {
   className?: string;
 }
 
-export function HomeFooter({ columns = DEFAULT_COLUMNS, className }: HomeFooterProps) {
+export function HomeFooter({
+  columns = DEFAULT_COLUMNS,
+  className,
+}: HomeFooterProps) {
   return (
     <footer className={clsx("border-t border-border px-6 py-12", className)}>
       {/* Canonical 1080 content column (design.md container canon) —
@@ -66,17 +81,22 @@ export function HomeFooter({ columns = DEFAULT_COLUMNS, className }: HomeFooterP
             Apparule
           </span>
           <p className="mt-2 text-caption text-text-2">
-            AI body measurement and made-to-measure fashion — open-source,
-            made for Lagos.
+            AI body measurement and made-to-measure fashion — open-source, made
+            for Lagos.
           </p>
         </div>
         {columns.map((column) => (
           <div key={column.heading}>
-            <h3 className="text-body font-semibold text-text">{column.heading}</h3>
+            <h3 className="text-body font-semibold text-text">
+              {column.heading}
+            </h3>
             <ul className="mt-3 flex flex-col gap-2">
               {column.links.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="text-body text-text-2 hover:text-text">
+                  <a
+                    href={link.href}
+                    className="text-body text-text-2 hover:text-text"
+                  >
                     {link.label}
                   </a>
                 </li>

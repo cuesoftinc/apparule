@@ -2,14 +2,7 @@
 // Fail codes from capture-qc.md §1–2; canonical retake copy from the
 // flows/vault.md QC-failures row (the same strings the 422 envelope carries).
 import clsx from "clsx";
-import {
-  Camera,
-  Ruler,
-  Search,
-  User,
-  X,
-  type LucideIcon,
-} from "lucide-react";
+import { Camera, Ruler, Search, User, X, type LucideIcon } from "lucide-react";
 
 export type QcFailCode =
   | "no_body"

@@ -118,7 +118,13 @@ describe("useFeed", () => {
     await act(() => result.current.loadMore());
     expect(feed).toHaveBeenLastCalledWith("c2", 4);
     expect(result.current.posts.map((p) => p.id)).toEqual([
-      "p1", "p2", "p3", "p4", "p5", "p6", "p7",
+      "p1",
+      "p2",
+      "p3",
+      "p4",
+      "p5",
+      "p6",
+      "p7",
     ]);
     expect(result.current.caughtUp).toBe(true);
 
@@ -151,7 +157,10 @@ describe("useFeed", () => {
     feed.mockResolvedValueOnce({ items: [post("p1")], next_cursor: "c2" });
     let release!: (v: { items: Post[]; next_cursor: null }) => void;
     feed.mockImplementationOnce(
-      () => new Promise((resolve) => { release = resolve; }),
+      () =>
+        new Promise((resolve) => {
+          release = resolve;
+        }),
     );
 
     const { result } = renderHook(() => useFeed("feed"));

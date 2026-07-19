@@ -48,8 +48,13 @@ describe("RequestCard (§8.2)", () => {
 
   it("terminal/no-action states render no action button", () => {
     render(
-      <RequestCard order={{ ...fixtureOrder, status: "declined" }} role="designer" />,
+      <RequestCard
+        order={{ ...fixtureOrder, status: "declined" }}
+        role="designer"
+      />,
     );
-    expect(screen.queryByRole("button", { name: /quote|pay|mark/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /quote|pay|mark/i }),
+    ).not.toBeInTheDocument();
   });
 });

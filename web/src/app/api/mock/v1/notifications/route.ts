@@ -1,10 +1,5 @@
 // Mock: GET /api/v1/notifications — activity list (90d retention).
-import {
-  actorUsername,
-  handle,
-  jsonResponse,
-  paginate,
-} from "@/mocks/http";
+import { actorUsername, handle, jsonResponse, paginate } from "@/mocks/http";
 import { getStore } from "@/mocks/store";
 
 export async function GET(request: Request) {

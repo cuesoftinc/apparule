@@ -58,7 +58,11 @@ export interface TransactionRowProps {
   className?: string;
 }
 
-export function TransactionRow({ entry, label, className }: TransactionRowProps) {
+export function TransactionRow({
+  entry,
+  label,
+  className,
+}: TransactionRowProps) {
   const meta = KIND_META[entry.kind];
   const Icon = meta.icon;
   const negative = entry.amount_cents < 0;

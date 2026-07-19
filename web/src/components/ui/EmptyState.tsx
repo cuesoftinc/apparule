@@ -108,8 +108,18 @@ export function EmptyState({
         className="absolute inset-0 size-full text-text opacity-5"
       >
         <defs>
-          <pattern id={`es-${context}`} width="24" height="24" patternUnits="userSpaceOnUse">
-            <path d="M0 24L24 0M-6 6L6 -6M18 30L30 18" stroke="currentColor" strokeWidth="1" fill="none" />
+          <pattern
+            id={`es-${context}`}
+            width="24"
+            height="24"
+            patternUnits="userSpaceOnUse"
+          >
+            <path
+              d="M0 24L24 0M-6 6L6 -6M18 30L30 18"
+              stroke="currentColor"
+              strokeWidth="1"
+              fill="none"
+            />
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill={`url(#es-${context})`} />

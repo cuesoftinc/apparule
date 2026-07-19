@@ -142,7 +142,9 @@ export function DatePickerPopover({
         >
           <ChevronLeft size={16} />
         </button>
-        <span className="text-body font-semibold">{format(month, "MMMM yyyy")}</span>
+        <span className="text-body font-semibold">
+          {format(month, "MMMM yyyy")}
+        </span>
         <button
           type="button"
           aria-label="Next month"
@@ -175,7 +177,8 @@ export function DatePickerPopover({
                   ? "bg-accent-gradient font-semibold text-on-accent"
                   : "text-text hover:bg-border/40",
                 outside && !selected && "text-text-2/60",
-                disabled && "cursor-not-allowed text-text-2/30 hover:bg-transparent",
+                disabled &&
+                  "cursor-not-allowed text-text-2/30 hover:bg-transparent",
               )}
             >
               {format(day, "d")}

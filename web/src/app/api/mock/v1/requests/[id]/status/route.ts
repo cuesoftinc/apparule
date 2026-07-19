@@ -25,7 +25,12 @@ export async function POST(request: Request, { params }: Params) {
       );
     }
     return jsonResponse(
-      getStore().setStatus(id, actorUsername(request), body.status, body.tracking),
+      getStore().setStatus(
+        id,
+        actorUsername(request),
+        body.status,
+        body.tracking,
+      ),
     );
   });
 }

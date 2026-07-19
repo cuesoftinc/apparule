@@ -116,9 +116,7 @@ test.describe("Marketing site — home page", () => {
     await second.click();
     await expect(second).toHaveAttribute("aria-expanded", "true");
     await expect(first).toHaveAttribute("aria-expanded", "false");
-    await expect(
-      page.getByText(/auto-deleted within 30 days/),
-    ).toBeVisible();
+    await expect(page.getByText(/auto-deleted within 30 days/)).toBeVisible();
 
     // deep link opens the linked row
     await page.goto("/#faq-5");
@@ -289,9 +287,7 @@ test.describe("system QA regressions", () => {
     await expect(
       page.getByRole("link", { name: "Back to Apparule" }),
     ).toBeVisible();
-    await expect(
-      page.getByText("This page could not be found"),
-    ).toHaveCount(0);
+    await expect(page.getByText("This page could not be found")).toHaveCount(0);
   });
 
   test("comparison-table CTAs keep to one line at 390 (no pill wrap)", async ({
@@ -355,8 +351,14 @@ test.describe("nav/footer parity canon", () => {
     const canon: [string, string][] = [
       ["Docs", "https://cuesoft.gitbook.io/apparule"],
       ["Quickstart", "https://cuesoft.gitbook.io/apparule/setup"],
-      ["API reference", "https://cuesoft.gitbook.io/apparule/system/api-surface"],
-      ["Self-host guide", "https://cuesoft.gitbook.io/apparule/system/deployment"],
+      [
+        "API reference",
+        "https://cuesoft.gitbook.io/apparule/system/api-surface",
+      ],
+      [
+        "Self-host guide",
+        "https://cuesoft.gitbook.io/apparule/system/deployment",
+      ],
       ["GitHub", "https://github.com/cuesoftinc/apparule"],
       ["Discord", "https://discord.gg/CDfZxxrxbb"],
       ["Roadmap", "https://cuesoft.gitbook.io/apparule/product/roadmap"],
@@ -365,7 +367,10 @@ test.describe("nav/footer parity canon", () => {
       ["Terms", "https://terms.cuesoft.io"],
       ["Status", "https://status.cuesoft.io"],
       ["Cuesoft Inc.", "https://cuesoft.io"],
-      ["MIT License", "https://github.com/cuesoftinc/apparule/blob/main/LICENSE"],
+      [
+        "MIT License",
+        "https://github.com/cuesoftinc/apparule/blob/main/LICENSE",
+      ],
     ];
     for (const [name, href] of canon) {
       await expect(
@@ -437,7 +442,9 @@ test.describe("nav/footer parity canon", () => {
     // [Revised 2026-07-19 canon] Try Cloud stays visible on the BAR
     // beside the hamburger; the panel carries no duplicate row.
     await expect(nav.getByRole("button", { name: "Try Cloud" })).toBeVisible();
-    await expect(panel.getByRole("button", { name: "Try Cloud" })).toHaveCount(0);
+    await expect(panel.getByRole("button", { name: "Try Cloud" })).toHaveCount(
+      0,
+    );
 
     // the theme toggle works from inside the panel
     await panel.getByRole("button", { name: /switch to dark theme/i }).click();
@@ -490,7 +497,11 @@ test.describe("nav/footer parity canon", () => {
       footer.getByRole("link", { name: "Security policy" }),
     );
     const language = await boxOf(footer.getByLabel("Language"));
-    expect(Math.abs(security.y + security.height / 2 - (language.y + language.height / 2))).toBeLessThanOrEqual(4);
+    expect(
+      Math.abs(
+        security.y + security.height / 2 - (language.y + language.height / 2),
+      ),
+    ).toBeLessThanOrEqual(4);
   });
 
   test("theme toggle flips and persists on home and dashboard", async ({
@@ -509,9 +520,15 @@ test.describe("nav/footer parity canon", () => {
     await page.waitForURL("**/dashboard");
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
     await page.getByRole("button", { name: /switch to light theme/i }).click();
-    await expect(page.locator("html")).not.toHaveAttribute("data-theme", "dark");
+    await expect(page.locator("html")).not.toHaveAttribute(
+      "data-theme",
+      "dark",
+    );
     await page.reload();
-    await expect(page.locator("html")).not.toHaveAttribute("data-theme", "dark");
+    await expect(page.locator("html")).not.toHaveAttribute(
+      "data-theme",
+      "dark",
+    );
   });
 });
 

@@ -52,7 +52,11 @@ export function CodeSnippetBlock({
         )}
       >
         {copied ? (
-          <Check size={14} data-testid="copied-check" className="text-success" />
+          <Check
+            size={14}
+            data-testid="copied-check"
+            className="text-success"
+          />
         ) : (
           <Copy size={14} />
         )}

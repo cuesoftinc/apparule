@@ -6,8 +6,7 @@
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import clsx from "clsx";
 
-export interface IconButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: "md" | "sm";
   /** Accessible name — icon-only buttons must label themselves. */
   "aria-label": string;

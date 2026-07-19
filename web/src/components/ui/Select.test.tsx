@@ -33,7 +33,10 @@ describe("Select / OptionRow (§8.2b)", () => {
       />,
     );
     expect(screen.getByText("Pick a state")).toBeInTheDocument();
-    expect(screen.getByRole("combobox")).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByRole("combobox")).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
   });
 
   it("disabled state blocks opening", () => {

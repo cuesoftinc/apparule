@@ -10,16 +10,22 @@ describe("UserRow (§8.2b, MI-7)", () => {
       const { container } = render(
         <UserRow username="tunde.o" trailing={trailing} />,
       );
-      expect(container.querySelector(`[data-trailing="${trailing}"]`)).not.toBeNull();
+      expect(
+        container.querySelector(`[data-trailing="${trailing}"]`),
+      ).not.toBeNull();
       if (trailing === "none") {
-        expect(screen.queryByRole("button", { name: /follow/i })).not.toBeInTheDocument();
+        expect(
+          screen.queryByRole("button", { name: /follow/i }),
+        ).not.toBeInTheDocument();
       }
     },
   );
 
   it("Follow fires onFollow (gradient CTA)", async () => {
     const onFollow = vi.fn();
-    render(<UserRow username="tunde.o" trailing="follow" onFollow={onFollow} />);
+    render(
+      <UserRow username="tunde.o" trailing="follow" onFollow={onFollow} />,
+    );
     await userEvent.click(screen.getByRole("button", { name: "Follow" }));
     expect(onFollow).toHaveBeenCalledOnce();
   });

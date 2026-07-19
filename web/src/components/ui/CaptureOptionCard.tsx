@@ -15,21 +15,23 @@ export interface CaptureOptionCardProps {
 }
 
 // Figma masters (66:721) carry the canonical copy.
-const OPTION_COPY: Record<
-  CaptureOptionMode,
-  { title: string; body: string }
-> = {
-  "webcam-upload": {
-    title: "Use your camera",
-    body: "Full-body photo, we measure automatically",
-  },
-  "manual-entry": {
-    title: "Enter manually",
-    body: "Tape-measure your key metrics",
-  },
-};
+const OPTION_COPY: Record<CaptureOptionMode, { title: string; body: string }> =
+  {
+    "webcam-upload": {
+      title: "Use your camera",
+      body: "Full-body photo, we measure automatically",
+    },
+    "manual-entry": {
+      title: "Enter manually",
+      body: "Tape-measure your key metrics",
+    },
+  };
 
-export function CaptureOptionCard({ mode, onClick, className }: CaptureOptionCardProps) {
+export function CaptureOptionCard({
+  mode,
+  onClick,
+  className,
+}: CaptureOptionCardProps) {
   const copy = OPTION_COPY[mode];
   const Icon = mode === "webcam-upload" ? Camera : PencilRuler;
   return (

@@ -10,7 +10,9 @@ describe("CommentRow (§8.2b)", () => {
     expect(screen.getByText("kiki.adeyemi")).toBeInTheDocument();
     expect(screen.getByText(/Obsessed with the shoulders/)).toBeInTheDocument();
     expect(screen.getByText("12 likes")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Like comment" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Like comment" }),
+    ).toBeInTheDocument();
   });
 
   it("liked state fills the heart + flips the label", () => {
@@ -18,7 +20,9 @@ describe("CommentRow (§8.2b)", () => {
       <CommentRow comment={{ ...fixtureComment, liked: true }} />,
     );
     expect(container.querySelector("[data-liked]")).not.toBeNull();
-    expect(screen.getByRole("button", { name: "Unlike comment" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Unlike comment" }),
+    ).toBeInTheDocument();
   });
 
   it("posting-optimistic dims + locks the row (MI-18)", () => {

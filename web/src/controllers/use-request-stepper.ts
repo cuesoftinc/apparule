@@ -42,7 +42,10 @@ const REQUIRED_DELIVERY: (keyof DeliveryAddress)[] = [
 
 /** Soft warning: target date earlier than the designer's turnaround —
  * module fn keeps the clock read out of render scope. */
-function isTurnaroundTight(post: Post | null, targetDate: string | null): boolean {
+function isTurnaroundTight(
+  post: Post | null,
+  targetDate: string | null,
+): boolean {
   if (!post || !targetDate) return false;
   const minimum = Date.now() + post.turnaround_days * 86_400_000;
   return new Date(targetDate).getTime() < minimum;
@@ -141,7 +144,11 @@ export function useRequestStepper(post: Post | null) {
   );
 
   const canContinue =
-    step === 0 ? selectedSession !== null : step === 1 ? deliveryComplete : true;
+    step === 0
+      ? selectedSession !== null
+      : step === 1
+        ? deliveryComplete
+        : true;
 
   const next = useCallback(() => {
     setFailure(null);

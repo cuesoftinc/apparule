@@ -15,7 +15,9 @@ describe("MediaDropzone (§8.2b)", () => {
   );
 
   it("uploading shows tabular progress", () => {
-    render(<MediaDropzone state="uploading" progress={0.6} onFiles={() => {}} />);
+    render(
+      <MediaDropzone state="uploading" progress={0.6} onFiles={() => {}} />,
+    );
     expect(screen.getByText(/60%/)).toBeInTheDocument();
   });
 
@@ -48,10 +50,10 @@ describe("MediaDropzone (§8.2b)", () => {
 describe("MediaUploadTile (§8.2b)", () => {
   it("renders remove + alt-text indicator", async () => {
     const onRemove = vi.fn();
-    render(
-      <MediaUploadTile src="/demo/outfit-w00.jpg" onRemove={onRemove} />,
-    );
-    expect(screen.getByRole("button", { name: "Add alt text" })).toBeInTheDocument();
+    render(<MediaUploadTile src="/demo/outfit-w00.jpg" onRemove={onRemove} />);
+    expect(
+      screen.getByRole("button", { name: "Add alt text" }),
+    ).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Remove image" }));
     expect(onRemove).toHaveBeenCalledOnce();
   });
@@ -64,6 +66,8 @@ describe("MediaUploadTile (§8.2b)", () => {
         onRemove={() => {}}
       />,
     );
-    expect(screen.getByRole("button", { name: "Edit alt text" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Edit alt text" }),
+    ).toBeInTheDocument();
   });
 });

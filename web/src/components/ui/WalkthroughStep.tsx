@@ -42,7 +42,13 @@ export function WalkthroughStep({
       <span className="relative block h-45 w-full overflow-hidden rounded-card border border-border bg-bg-elev">
         {thumb ??
           (imageSrc ? (
-            <Image src={imageSrc} alt={imageAlt} fill sizes="252px" className="object-cover" />
+            <Image
+              src={imageSrc}
+              alt={imageAlt}
+              fill
+              sizes="252px"
+              className="object-cover"
+            />
           ) : null)}
       </span>
       <figcaption className="flex flex-col gap-1">

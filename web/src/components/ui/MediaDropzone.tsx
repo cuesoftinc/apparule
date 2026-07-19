@@ -49,7 +49,9 @@ export function MediaDropzone({
         className={clsx(
           "flex w-full flex-col items-center justify-center gap-2 rounded-card border-2 border-dashed p-8",
           "transition-colors duration-120 ease-standard motion-reduce:transition-none",
-          state === "error" ? "border-error" : "border-border hover:border-text-2",
+          state === "error"
+            ? "border-error"
+            : "border-border hover:border-text-2",
           "disabled:opacity-60",
         )}
       >
@@ -84,7 +86,8 @@ export function MediaDropzone({
           <>
             <ImagePlus size={24} className="text-text-2" />
             <span className="text-body text-text">
-              Drag photos here or <span className="font-semibold text-link">browse</span>
+              Drag photos here or{" "}
+              <span className="font-semibold text-link">browse</span>
             </span>
             <span className="text-micro text-text-2">
               Up to 10 photos · JPEG/PNG/WebP · 10 MB each

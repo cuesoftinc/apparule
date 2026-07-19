@@ -62,7 +62,11 @@ function FeedScene() {
           (the whole mock is pointer-inert) */}
       <PostCard post={heroPosts[0]} onRequest={() => {}} className="shrink-0" />
       <PostCard post={heroPosts[1]} onRequest={() => {}} className="shrink-0" />
-      <TabBar activeKey="home" ordersBadge={3} className="absolute inset-x-0 bottom-0" />
+      <TabBar
+        activeKey="home"
+        ordersBadge={3}
+        className="absolute inset-x-0 bottom-0"
+      />
     </div>
   );
 }
@@ -72,7 +76,11 @@ function CaptureScene() {
     <div className="flex h-full flex-col justify-center bg-black">
       <CaptureOverlay guide="searching">
         {/* eslint-disable-next-line @next/next/no-img-element -- demo asset in the scaled mock */}
-        <img src="/demo/outfit-w05.jpg" alt="" className="size-full object-cover" />
+        <img
+          src="/demo/outfit-w05.jpg"
+          alt=""
+          className="size-full object-cover"
+        />
       </CaptureOverlay>
     </div>
   );
@@ -87,10 +95,22 @@ function RequestScene() {
         <RequestCard order={heroOrder} role="customer" />
         <div>
           <OrderTimelineRow dot="done" connector="drawn" label="Requested" />
-          <OrderTimelineRow dot="done" connector="drawn" label="Paid — held in escrow" />
-          <OrderTimelineRow dot="current" connector="none" label="In progress" />
+          <OrderTimelineRow
+            dot="done"
+            connector="drawn"
+            label="Paid — held in escrow"
+          />
+          <OrderTimelineRow
+            dot="current"
+            connector="none"
+            label="In progress"
+          />
         </div>
-        <PaymentBox state="escrow-held" role="customer" quoteCents={4_500_000} />
+        <PaymentBox
+          state="escrow-held"
+          role="customer"
+          quoteCents={4_500_000}
+        />
       </div>
       <TabBar activeKey="orders" className="absolute inset-x-0 bottom-0" />
     </div>

@@ -53,9 +53,9 @@ export function useOnboarding(existingDesignerUsername: string | null = null) {
   });
   const [failCount, setFailCount] = useState(0);
   const [attaching, setAttaching] = useState(false);
-  const [payout, setPayout] = useState<DesignerProfile["payout_account"] | null>(
-    null,
-  );
+  const [payout, setPayout] = useState<
+    DesignerProfile["payout_account"] | null
+  >(null);
 
   const begin = useCallback(() => setStep("profile"), []);
 
@@ -101,23 +101,29 @@ export function useOnboarding(existingDesignerUsername: string | null = null) {
   );
 
   /** Paystack resolution — resolving spinner → resolved name / mismatch. */
-  const resolve = useCallback(async (bankCode: string, accountNumber: string) => {
-    setResolution({ phase: "resolving" });
-    try {
-      const resolved = await designerRepo.resolveBank(bankCode, accountNumber);
-      setResolution({ phase: "resolved", resolution: resolved });
-      setFailCount(0);
-    } catch (e) {
-      setFailCount((n) => n + 1);
-      setResolution({
-        phase: "failed",
-        message:
-          e instanceof ApiError
-            ? e.message
-            : "Could not resolve that account number",
-      });
-    }
-  }, []);
+  const resolve = useCallback(
+    async (bankCode: string, accountNumber: string) => {
+      setResolution({ phase: "resolving" });
+      try {
+        const resolved = await designerRepo.resolveBank(
+          bankCode,
+          accountNumber,
+        );
+        setResolution({ phase: "resolved", resolution: resolved });
+        setFailCount(0);
+      } catch (e) {
+        setFailCount((n) => n + 1);
+        setResolution({
+          phase: "failed",
+          message:
+            e instanceof ApiError
+              ? e.message
+              : "Could not resolve that account number",
+        });
+      }
+    },
+    [],
+  );
 
   const resetResolution = useCallback(
     () => setResolution({ phase: "idle" }),

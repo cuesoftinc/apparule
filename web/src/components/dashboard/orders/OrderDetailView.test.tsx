@@ -6,7 +6,10 @@ import type { CommissionRequest, OrderStatus } from "@/models";
 import { ToastProvider } from "../toast-context";
 
 const useOrderMock = vi.fn();
-const account = { username: "kiki.adeyemi", designer: { enabled: false, kyc_complete: false } };
+const account = {
+  username: "kiki.adeyemi",
+  designer: { enabled: false, kyc_complete: false },
+};
 vi.mock("@/controllers/auth/AuthContext", () => ({
   useAuth: () => ({ status: "signed_in", account }),
 }));
@@ -35,7 +38,11 @@ function order(
   return {
     id: "req-1",
     order_number: "APR-1100",
-    post: { id: "post-1", caption: "Ankara gown", thumb_url: "/demo/outfit-w00.jpg" },
+    post: {
+      id: "post-1",
+      caption: "Ankara gown",
+      thumb_url: "/demo/outfit-w00.jpg",
+    },
     customer: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
     designer: { id: "des-amara", username: "amara.designs", avatar_url: null },
     status,
@@ -49,28 +56,63 @@ function order(
     decline_reason: null,
     dispute: null,
     delivery: {
-      recipient_name: "Kiki", phone: "+234", line1: "14 St",
-      city: "Lagos", state: "Lagos", country: "NG",
+      recipient_name: "Kiki",
+      phone: "+234",
+      line1: "14 St",
+      city: "Lagos",
+      state: "Lagos",
+      country: "NG",
     },
     snapshot: {
-      id: "snap", request_id: "req-1",
+      id: "snap",
+      request_id: "req-1",
       values: {
-        method: "manual", measured_at: "2026-07-01",
+        method: "manual",
+        measured_at: "2026-07-01",
         measurements: [{ name: "shoulder_width", value_cm: 42.5 }],
       },
       created_at: "2026-07-01",
     },
     events: [
-      { id: "e1", request_id: "req-1", kind: "requested", actor: "customer", created_at: "2026-07-01" },
+      {
+        id: "e1",
+        request_id: "req-1",
+        kind: "requested",
+        actor: "customer",
+        created_at: "2026-07-01",
+      },
     ],
-    payment:
-      ["paid", "in_progress", "shipped", "disputed"].includes(status)
-        ? { id: "pay", request_id: "req-1", provider: "paystack", state: "held", currency: "NGN", amount_cents: 4_500_000, platform_fee_cents: 450_000 }
-        : status === "delivered"
-          ? { id: "pay", request_id: "req-1", provider: "paystack", state: "released", currency: "NGN", amount_cents: 4_500_000, platform_fee_cents: 450_000 }
-          : status === "refunded"
-            ? { id: "pay", request_id: "req-1", provider: "paystack", state: "refunded", currency: "NGN", amount_cents: 4_500_000, platform_fee_cents: 450_000 }
-            : null,
+    payment: ["paid", "in_progress", "shipped", "disputed"].includes(status)
+      ? {
+          id: "pay",
+          request_id: "req-1",
+          provider: "paystack",
+          state: "held",
+          currency: "NGN",
+          amount_cents: 4_500_000,
+          platform_fee_cents: 450_000,
+        }
+      : status === "delivered"
+        ? {
+            id: "pay",
+            request_id: "req-1",
+            provider: "paystack",
+            state: "released",
+            currency: "NGN",
+            amount_cents: 4_500_000,
+            platform_fee_cents: 450_000,
+          }
+        : status === "refunded"
+          ? {
+              id: "pay",
+              request_id: "req-1",
+              provider: "paystack",
+              state: "refunded",
+              currency: "NGN",
+              amount_cents: 4_500_000,
+              platform_fee_cents: 450_000,
+            }
+          : null,
     created_at: "2026-07-01",
     ...overrides,
   };
@@ -105,25 +147,33 @@ beforeEach(() => {
 describe("OrderDetailView — customer action matrix", () => {
   it("requested → Cancel request", () => {
     renderDetail(order("requested", { quote_cents: null }), "customer");
-    expect(screen.getByRole("button", { name: "Cancel request" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Cancel request" }),
+    ).toBeInTheDocument();
   });
 
   it("quoted → Pay CTA (PaymentBox) + Reject quote", () => {
     renderDetail(order("quoted"), "customer");
     expect(screen.getByRole("button", { name: /^Pay/ })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Reject quote" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Reject quote" }),
+    ).toBeInTheDocument();
   });
 
   it("shipped → Confirm delivery + dispute entry", () => {
     renderDetail(order("shipped"), "customer");
     expect(screen.getByTestId("confirm-delivery")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Something wrong?" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Something wrong?" }),
+    ).toBeInTheDocument();
   });
 
   it("delivered → released payment, no actions", () => {
     renderDetail(order("delivered"), "customer");
     expect(screen.queryByTestId("confirm-delivery")).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Something wrong?" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Something wrong?" }),
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -136,9 +186,13 @@ describe("OrderDetailView — designer action matrix", () => {
 
   it("paid → Start work; in_progress → Mark shipped", () => {
     renderDetail(order("paid"), "designer");
-    expect(screen.getByRole("button", { name: "Start work" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Start work" }),
+    ).toBeInTheDocument();
     renderDetail(order("in_progress"), "designer");
-    expect(screen.getByRole("button", { name: "Mark shipped" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Mark shipped" }),
+    ).toBeInTheDocument();
   });
 
   it("disputed → payout frozen, no designer transitions", () => {
@@ -146,8 +200,12 @@ describe("OrderDetailView — designer action matrix", () => {
       order("disputed", { dispute: { reason: "size_wrong", detail: null } }),
       "designer",
     );
-    expect(screen.queryByRole("button", { name: "Mark shipped" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Start work" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Mark shipped" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Start work" }),
+    ).not.toBeInTheDocument();
     // dispute-frozen PaymentBox state renders
     expect(screen.getAllByText(/frozen/i).length).toBeGreaterThan(0);
   });

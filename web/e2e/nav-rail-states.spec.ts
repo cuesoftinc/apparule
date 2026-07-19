@@ -120,12 +120,14 @@ test("mobile 390: only the collapsed 72px rail exists — an expanded rail canno
     ).toBeHidden();
     // main takes the rest of the viewport — content is never squeezed
     const mainBox = (await page.locator("main").boundingBox())!;
-    expect(mainBox.width, `${route}: content column width`).toBeGreaterThanOrEqual(
-      390 - 72 - 2,
-    );
-    expect(await docOverflow(page), `${route}: no side-scroll`).toBeLessThanOrEqual(
-      2,
-    );
+    expect(
+      mainBox.width,
+      `${route}: content column width`,
+    ).toBeGreaterThanOrEqual(390 - 72 - 2);
+    expect(
+      await docOverflow(page),
+      `${route}: no side-scroll`,
+    ).toBeLessThanOrEqual(2);
   }
 });
 
@@ -169,10 +171,10 @@ test("worst offenders screenshot in both rail states (1263 collapsed / 1264 expa
         "data-expanded",
         String(width >= 1264),
       );
-      await testInfo.attach(
-        `${route.replaceAll("/", "_")}@${width}-${state}`,
-        { body: await page.screenshot({ fullPage: true }), contentType: "image/png" },
-      );
+      await testInfo.attach(`${route.replaceAll("/", "_")}@${width}-${state}`, {
+        body: await page.screenshot({ fullPage: true }),
+        contentType: "image/png",
+      });
     }
   }
 });

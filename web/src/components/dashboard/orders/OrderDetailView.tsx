@@ -213,294 +213,304 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
       {/* Figma 179:536: two-column desktop — order content left, the thread
           as a right-rail card. Single column below lg. */}
       <div className="grid grid-cols-[minmax(0,1fr)] gap-8 pt-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-      <div className="flex flex-col gap-6">
-        <header
-          aria-label="Order summary"
-          className="flex items-center gap-3 rounded-card border border-border p-3"
-        >
-          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-card">
-            <Image
-              src={order.post.thumb_url}
-              alt=""
-              fill
-              sizes="64px"
-              className="object-cover"
-            />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate text-body font-semibold text-text">
-              {order.post.caption}
-            </h1>
-            <p className="text-caption text-text-2">
-              {viewerIsCustomer ? "Designer" : "Customer"}:{" "}
-              <Link href={`/dashboard/${counterparty}`} className="text-link">
-                {counterparty}
-              </Link>
-            </p>
-            {order.due_at ? (
-              <p className="flex items-center gap-1 text-caption text-text-2">
-                <Clock size={12} aria-hidden /> Due{" "}
-                {new Date(order.due_at).toLocaleDateString("en-NG", {
-                  month: "short",
-                  day: "numeric",
-                })}
+        <div className="flex flex-col gap-6">
+          <header
+            aria-label="Order summary"
+            className="flex items-center gap-3 rounded-card border border-border p-3"
+          >
+            <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-card">
+              <Image
+                src={order.post.thumb_url}
+                alt=""
+                fill
+                sizes="64px"
+                className="object-cover"
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h1 className="truncate text-body font-semibold text-text">
+                {order.post.caption}
+              </h1>
+              <p className="text-caption text-text-2">
+                {viewerIsCustomer ? "Designer" : "Customer"}:{" "}
+                <Link href={`/dashboard/${counterparty}`} className="text-link">
+                  {counterparty}
+                </Link>
               </p>
-            ) : null}
-          </div>
-          <StatusPill status={order.status} />
-        </header>
+              {order.due_at ? (
+                <p className="flex items-center gap-1 text-caption text-text-2">
+                  <Clock size={12} aria-hidden /> Due{" "}
+                  {new Date(order.due_at).toLocaleDateString("en-NG", {
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </p>
+              ) : null}
+            </div>
+            <StatusPill status={order.status} />
+          </header>
 
-        {/* Figma 179:536: compact snapshot chip row directly under the
+          {/* Figma 179:536: compact snapshot chip row directly under the
             summary — "locked to this order · sent {date}". */}
-        <section aria-labelledby="order-snapshot-h">
-          <h2
-            id="order-snapshot-h"
-            className="pb-2 text-caption text-text-2"
-          >
-            Measurement snapshot — locked to this order · sent{" "}
-            {new Date(order.snapshot.created_at).toLocaleDateString("en-NG", {
-              month: "short",
-              day: "numeric",
-            })}
-          </h2>
-          <ul className="flex flex-wrap items-center gap-1 rounded-card border border-border px-3 py-2">
-            {(snapshotOpen
-              ? order.snapshot.values.measurements
-              : order.snapshot.values.measurements.slice(0, 4)
-            ).map((m) => (
-              <li key={m.name} className="text-caption text-text">
-                {humanizeMeasureName(m.name)}{" "}
-                <span className="tnum font-semibold">{formatCm(m.value_cm)}</span>
-                <span aria-hidden className="px-1 text-text-2 last:hidden">
-                  ·
-                </span>
-              </li>
-            ))}
-            {order.snapshot.values.measurements.length > 4 ? (
-              <li>
-                <button
-                  type="button"
-                  className="text-caption text-link"
-                  aria-expanded={snapshotOpen}
-                  onClick={() => setSnapshotOpen((v) => !v)}
-                >
-                  {snapshotOpen
-                    ? "Show less"
-                    : `+${order.snapshot.values.measurements.length - 4} more`}
-                </button>
-              </li>
-            ) : null}
-          </ul>
-          <p className="pt-1 text-micro text-text-2">
-            Frozen at request — vault changes never alter this order.
-          </p>
-        </section>
-
-        <section aria-labelledby="order-timeline-h">
-          <h2
-            id="order-timeline-h"
-            className="pb-2 text-body font-semibold text-text-2"
-          >
-            Timeline
-          </h2>
-          <ol>
-            {timeline.map((row, i) => (
-              <li key={row.key}>
-                <OrderTimelineRow
-                  dot={row.dot}
-                  connector={i < timeline.length - 1 ? "drawn" : "none"}
-                  label={row.label}
-                  timestamp={row.timestamp}
-                />
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        {payState && order.quote_cents !== null ? (
-          <section aria-label="Payment">
-            <PaymentBox
-              state={payState}
-              role={role}
-              quoteCents={order.quote_cents}
-              currency={order.currency}
-              showEscrowExplainer={justPaid && payState === "escrow-held"}
-              onPay={viewerIsCustomer ? () => void pay() : undefined}
-            />
-          </section>
-        ) : null}
-
-        {order.notes ? (
-          <section aria-labelledby="order-notes-h">
-            <h2
-              id="order-notes-h"
-              className="pb-1 text-body font-semibold text-text-2"
-            >
-              Notes
+          <section aria-labelledby="order-snapshot-h">
+            <h2 id="order-snapshot-h" className="pb-2 text-caption text-text-2">
+              Measurement snapshot — locked to this order · sent{" "}
+              {new Date(order.snapshot.created_at).toLocaleDateString("en-NG", {
+                month: "short",
+                day: "numeric",
+              })}
             </h2>
-            <p className="text-body text-text">{order.notes}</p>
-          </section>
-        ) : null}
-
-        {order.decline_reason ? (
-          <p className="text-body text-text-2">
-            Declined:{" "}
-            {DECLINE_REASONS.find((r) => r.value === order.decline_reason)
-              ?.label ?? order.decline_reason}
-          </p>
-        ) : null}
-        {order.dispute ? (
-          <p className="text-body text-text-2">
-            Dispute open ({order.dispute.reason.replaceAll("_", " ")})
-            {/* strip any trailing period — the template adds its own */}
-            {order.dispute.detail
-              ? ` — ${order.dispute.detail.replace(/\.$/, "")}`
-              : ""}
-            . Support
-            resolves disputes; the payout stays frozen meanwhile.
-          </p>
-        ) : null}
-        {order.tracking ? (
-          <p className="text-body text-text-2">
-            Tracking: <span className="tnum text-text">{order.tracking}</span>
-          </p>
-        ) : null}
-
-        <section aria-label="Order actions" className="flex flex-wrap gap-2">
-          {viewerIsCustomer ? (
-            <>
-              {order.status === "requested" ? (
-                <Button kind="quiet" onClick={() => setSheet("cancel")}>
-                  Cancel request
-                </Button>
-              ) : null}
-              {order.status === "quoted" ? (
-                <Button kind="quiet" onClick={() => setSheet("cancel")}>
-                  Reject quote
-                </Button>
-              ) : null}
-              {order.status === "shipped" ? (
-                <Button
-                  kind="gradient-primary"
-                  onClick={() => setSheet("confirm-delivery")}
-                  data-testid="confirm-delivery"
-                >
-                  Confirm delivery
-                </Button>
-              ) : null}
-              {["paid", "in_progress", "shipped"].includes(order.status) ? (
-                <Button kind="link" onClick={() => setSheet("dispute")}>
-                  Something wrong?
-                </Button>
-              ) : null}
-            </>
-          ) : (
-            <>
-              {order.status === "requested" ? (
-                <>
-                  <Button
-                    kind="gradient-primary"
-                    onClick={() => setSheet("quote")}
-                    data-testid="send-quote"
-                  >
-                    Send quote
-                  </Button>
-                  <Button kind="quiet" onClick={() => setSheet("decline")}>
-                    Decline
-                  </Button>
-                </>
-              ) : null}
-              {order.status === "quoted" ? (
-                <Button kind="quiet" onClick={() => setSheet("quote")}>
-                  Edit quote
-                </Button>
-              ) : null}
-              {order.status === "paid" ? (
-                <Button
-                  kind="gradient-primary"
-                  onClick={() =>
-                    void run("start work", () => detail.setStatus("in_progress"))
-                  }
-                >
-                  Start work
-                </Button>
-              ) : null}
-              {order.status === "in_progress" ? (
-                <Button
-                  kind="gradient-primary"
-                  onClick={() => setSheet("ship")}
-                >
-                  Mark shipped
-                </Button>
-              ) : null}
-              {["paid", "in_progress", "shipped"].includes(order.status) ? (
-                <Button kind="quiet" onClick={() => setSheet("dispute")}>
-                  Open dispute
-                </Button>
-              ) : null}
-            </>
-          )}
-        </section>
-
-      </div>
-
-      {/* Right rail (Figma 179:536): the order thread as a bordered card. */}
-      <aside aria-labelledby="order-thread-h" className="lg:pt-0">
-        <section
-          className="flex max-h-[70vh] flex-col rounded-card border border-border p-4"
-        >
-          <h2
-            id="order-thread-h"
-            className="pb-3 text-body font-semibold text-text"
-          >
-            Thread — {counterparty}
-          </h2>
-          <div className="min-h-0 flex-1 overflow-y-auto">
-          {thread.loading ? (
-            <Skeleton kind="line" />
-          ) : (
-            <ul className="flex flex-col gap-2" data-testid="order-thread">
-              {thread.messages.map((message) => (
-                <li key={message.id}>
-                  <ThreadBubble
-                    side={message.author_id === viewerPartyId ? "sent" : "received"}
-                    text={message.body}
-                    content={message.image_url ? "image" : "text"}
-                    imageUrl={message.image_url ?? undefined}
-                    state={message.state === "sent" ? undefined : message.state}
-                    onRetry={
-                      message.state === "failed"
-                        ? () => void thread.retry(message)
-                        : undefined
-                    }
-                  />
+            <ul className="flex flex-wrap items-center gap-1 rounded-card border border-border px-3 py-2">
+              {(snapshotOpen
+                ? order.snapshot.values.measurements
+                : order.snapshot.values.measurements.slice(0, 4)
+              ).map((m) => (
+                <li key={m.name} className="text-caption text-text">
+                  {humanizeMeasureName(m.name)}{" "}
+                  <span className="tnum font-semibold">
+                    {formatCm(m.value_cm)}
+                  </span>
+                  <span aria-hidden className="px-1 text-text-2 last:hidden">
+                    ·
+                  </span>
                 </li>
               ))}
-              {thread.typing ? (
-                <li data-testid="thread-typing">
-                  <ThreadBubble side="received" content="typing" />
+              {order.snapshot.values.measurements.length > 4 ? (
+                <li>
+                  <button
+                    type="button"
+                    className="text-caption text-link"
+                    aria-expanded={snapshotOpen}
+                    onClick={() => setSnapshotOpen((v) => !v)}
+                  >
+                    {snapshotOpen
+                      ? "Show less"
+                      : `+${order.snapshot.values.measurements.length - 4} more`}
+                  </button>
                 </li>
               ) : null}
             </ul>
-          )}
-          </div>
-          <form className="flex items-center gap-2 pt-3" onSubmit={sendMessage}>
-            <label htmlFor="thread-draft" className="sr-only">
-              Message {counterparty}
-            </label>
-            <Input
-              id="thread-draft"
-              placeholder={`Message ${counterparty}…`}
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              maxLength={1000}
-            />
-            <Button kind="link" type="submit" disabled={draft.trim().length === 0}>
-              Send
-            </Button>
-          </form>
-        </section>
-      </aside>
+            <p className="pt-1 text-micro text-text-2">
+              Frozen at request — vault changes never alter this order.
+            </p>
+          </section>
+
+          <section aria-labelledby="order-timeline-h">
+            <h2
+              id="order-timeline-h"
+              className="pb-2 text-body font-semibold text-text-2"
+            >
+              Timeline
+            </h2>
+            <ol>
+              {timeline.map((row, i) => (
+                <li key={row.key}>
+                  <OrderTimelineRow
+                    dot={row.dot}
+                    connector={i < timeline.length - 1 ? "drawn" : "none"}
+                    label={row.label}
+                    timestamp={row.timestamp}
+                  />
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          {payState && order.quote_cents !== null ? (
+            <section aria-label="Payment">
+              <PaymentBox
+                state={payState}
+                role={role}
+                quoteCents={order.quote_cents}
+                currency={order.currency}
+                showEscrowExplainer={justPaid && payState === "escrow-held"}
+                onPay={viewerIsCustomer ? () => void pay() : undefined}
+              />
+            </section>
+          ) : null}
+
+          {order.notes ? (
+            <section aria-labelledby="order-notes-h">
+              <h2
+                id="order-notes-h"
+                className="pb-1 text-body font-semibold text-text-2"
+              >
+                Notes
+              </h2>
+              <p className="text-body text-text">{order.notes}</p>
+            </section>
+          ) : null}
+
+          {order.decline_reason ? (
+            <p className="text-body text-text-2">
+              Declined:{" "}
+              {DECLINE_REASONS.find((r) => r.value === order.decline_reason)
+                ?.label ?? order.decline_reason}
+            </p>
+          ) : null}
+          {order.dispute ? (
+            <p className="text-body text-text-2">
+              Dispute open ({order.dispute.reason.replaceAll("_", " ")})
+              {/* strip any trailing period — the template adds its own */}
+              {order.dispute.detail
+                ? ` — ${order.dispute.detail.replace(/\.$/, "")}`
+                : ""}
+              . Support resolves disputes; the payout stays frozen meanwhile.
+            </p>
+          ) : null}
+          {order.tracking ? (
+            <p className="text-body text-text-2">
+              Tracking: <span className="tnum text-text">{order.tracking}</span>
+            </p>
+          ) : null}
+
+          <section aria-label="Order actions" className="flex flex-wrap gap-2">
+            {viewerIsCustomer ? (
+              <>
+                {order.status === "requested" ? (
+                  <Button kind="quiet" onClick={() => setSheet("cancel")}>
+                    Cancel request
+                  </Button>
+                ) : null}
+                {order.status === "quoted" ? (
+                  <Button kind="quiet" onClick={() => setSheet("cancel")}>
+                    Reject quote
+                  </Button>
+                ) : null}
+                {order.status === "shipped" ? (
+                  <Button
+                    kind="gradient-primary"
+                    onClick={() => setSheet("confirm-delivery")}
+                    data-testid="confirm-delivery"
+                  >
+                    Confirm delivery
+                  </Button>
+                ) : null}
+                {["paid", "in_progress", "shipped"].includes(order.status) ? (
+                  <Button kind="link" onClick={() => setSheet("dispute")}>
+                    Something wrong?
+                  </Button>
+                ) : null}
+              </>
+            ) : (
+              <>
+                {order.status === "requested" ? (
+                  <>
+                    <Button
+                      kind="gradient-primary"
+                      onClick={() => setSheet("quote")}
+                      data-testid="send-quote"
+                    >
+                      Send quote
+                    </Button>
+                    <Button kind="quiet" onClick={() => setSheet("decline")}>
+                      Decline
+                    </Button>
+                  </>
+                ) : null}
+                {order.status === "quoted" ? (
+                  <Button kind="quiet" onClick={() => setSheet("quote")}>
+                    Edit quote
+                  </Button>
+                ) : null}
+                {order.status === "paid" ? (
+                  <Button
+                    kind="gradient-primary"
+                    onClick={() =>
+                      void run("start work", () =>
+                        detail.setStatus("in_progress"),
+                      )
+                    }
+                  >
+                    Start work
+                  </Button>
+                ) : null}
+                {order.status === "in_progress" ? (
+                  <Button
+                    kind="gradient-primary"
+                    onClick={() => setSheet("ship")}
+                  >
+                    Mark shipped
+                  </Button>
+                ) : null}
+                {["paid", "in_progress", "shipped"].includes(order.status) ? (
+                  <Button kind="quiet" onClick={() => setSheet("dispute")}>
+                    Open dispute
+                  </Button>
+                ) : null}
+              </>
+            )}
+          </section>
+        </div>
+
+        {/* Right rail (Figma 179:536): the order thread as a bordered card. */}
+        <aside aria-labelledby="order-thread-h" className="lg:pt-0">
+          <section className="flex max-h-[70vh] flex-col rounded-card border border-border p-4">
+            <h2
+              id="order-thread-h"
+              className="pb-3 text-body font-semibold text-text"
+            >
+              Thread — {counterparty}
+            </h2>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              {thread.loading ? (
+                <Skeleton kind="line" />
+              ) : (
+                <ul className="flex flex-col gap-2" data-testid="order-thread">
+                  {thread.messages.map((message) => (
+                    <li key={message.id}>
+                      <ThreadBubble
+                        side={
+                          message.author_id === viewerPartyId
+                            ? "sent"
+                            : "received"
+                        }
+                        text={message.body}
+                        content={message.image_url ? "image" : "text"}
+                        imageUrl={message.image_url ?? undefined}
+                        state={
+                          message.state === "sent" ? undefined : message.state
+                        }
+                        onRetry={
+                          message.state === "failed"
+                            ? () => void thread.retry(message)
+                            : undefined
+                        }
+                      />
+                    </li>
+                  ))}
+                  {thread.typing ? (
+                    <li data-testid="thread-typing">
+                      <ThreadBubble side="received" content="typing" />
+                    </li>
+                  ) : null}
+                </ul>
+              )}
+            </div>
+            <form
+              className="flex items-center gap-2 pt-3"
+              onSubmit={sendMessage}
+            >
+              <label htmlFor="thread-draft" className="sr-only">
+                Message {counterparty}
+              </label>
+              <Input
+                id="thread-draft"
+                placeholder={`Message ${counterparty}…`}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                maxLength={1000}
+              />
+              <Button
+                kind="link"
+                type="submit"
+                disabled={draft.trim().length === 0}
+              >
+                Send
+              </Button>
+            </form>
+          </section>
+        </aside>
       </div>
 
       <QuoteSheet
@@ -545,7 +555,9 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
             ? "The order will be cancelled and the designer notified."
             : "The designer will be notified and your snapshot deleted after 30 days."
         }
-        confirmLabel={order.status === "quoted" ? "Reject quote" : "Cancel request"}
+        confirmLabel={
+          order.status === "quoted" ? "Reject quote" : "Cancel request"
+        }
         destructive
         onConfirm={() => run("cancel", () => detail.cancel())}
       />
@@ -555,7 +567,9 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
         title="Confirm delivery?"
         body={`This releases the payout to ${order.designer.username}. Only confirm once you have the order in hand.`}
         confirmLabel="Confirm delivery"
-        onConfirm={() => run("confirm delivery", () => detail.confirmDelivery())}
+        onConfirm={() =>
+          run("confirm delivery", () => detail.confirmDelivery())
+        }
       />
     </div>
   );

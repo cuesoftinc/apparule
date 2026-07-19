@@ -16,7 +16,11 @@ import { Input, type MeasureUnit } from "@/components/ui/Input";
 import { ManualMeasureRow } from "@/components/ui/ManualMeasureRow";
 import { MeasurementCard } from "@/components/ui/MeasurementCard";
 import { ProcessingConstellation } from "@/components/ui/ProcessingConstellation";
-import { QCHintChip, type QcFailCode, QC_GUIDANCE } from "@/components/ui/QCHintChip";
+import {
+  QCHintChip,
+  type QcFailCode,
+  QC_GUIDANCE,
+} from "@/components/ui/QCHintChip";
 import { Sheet } from "@/components/ui/Sheet";
 
 export function CaptureOptionsSheet({
@@ -31,8 +35,14 @@ export function CaptureOptionsSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange} title="Update measurements">
       <div className="grid gap-3 md:grid-cols-2">
-        <CaptureOptionCard mode="webcam-upload" onClick={() => onPick("webcam-upload")} />
-        <CaptureOptionCard mode="manual-entry" onClick={() => onPick("manual-entry")} />
+        <CaptureOptionCard
+          mode="webcam-upload"
+          onClick={() => onPick("webcam-upload")}
+        />
+        <CaptureOptionCard
+          mode="manual-entry"
+          onClick={() => onPick("manual-entry")}
+        />
       </div>
     </Sheet>
   );
@@ -129,7 +139,12 @@ export function ManualEntrySheet({
           ))}
         </fieldset>
         <footer className="flex justify-end">
-          <Button kind="gradient-primary" type="submit" disabled={!valid} loading={busy}>
+          <Button
+            kind="gradient-primary"
+            type="submit"
+            disabled={!valid}
+            loading={busy}
+          >
             Save to vault
           </Button>
         </footer>
@@ -171,8 +186,8 @@ export function WebcamCaptureSheet({
           onSubmit={(e) => e.preventDefault()}
         >
           <p className="text-body text-text-2">
-            Stand in good light, full body head to ankles, arms slightly away
-            — then upload the photo.
+            Stand in good light, full body head to ankles, arms slightly away —
+            then upload the photo.
           </p>
           <FormRow label="Your height (cm)" helper="100–230 cm" required>
             <Input

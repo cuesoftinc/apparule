@@ -46,7 +46,11 @@ interface PaymentShape {
   body: string;
   /** body carries the itemized fee copy (design.md §8.2b fee line). */
   bodyIsFeeLine?: boolean;
-  cta?: { label: string; kind: "gradient-primary" | "quiet"; loading?: boolean };
+  cta?: {
+    label: string;
+    kind: "gradient-primary" | "quiet";
+    loading?: boolean;
+  };
 }
 
 // Figma masters (90:1103) — copy and anatomy per state × role.
@@ -210,8 +214,8 @@ export function PaymentBox({
           <Info size={16} className="mt-0.5 shrink-0" />
           <span>
             Your money stays with Apparule — not the designer — until you
-            confirm delivery. If anything goes wrong, you can open a dispute
-            and get refunded.
+            confirm delivery. If anything goes wrong, you can open a dispute and
+            get refunded.
           </span>
         </div>
       ) : null}

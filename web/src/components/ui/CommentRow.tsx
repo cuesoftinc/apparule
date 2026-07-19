@@ -38,7 +38,11 @@ export function CommentRow({
         className,
       )}
     >
-      <Avatar size={32} name={comment.author.username} src={comment.author.avatar_url} />
+      <Avatar
+        size={32}
+        name={comment.author.username}
+        src={comment.author.avatar_url}
+      />
       <div className="min-w-0 flex-1">
         {/* Figma master (92:1077): the comment text stays visible while
             posting; the meta line reads "Posting…" */}
@@ -58,7 +62,11 @@ export function CommentRow({
                 <span className="tnum">{comment.like_count} likes</span>
               ) : null}
               {onReply ? (
-                <button type="button" onClick={onReply} className="font-semibold">
+                <button
+                  type="button"
+                  onClick={onReply}
+                  className="font-semibold"
+                >
                   Reply
                 </button>
               ) : null}

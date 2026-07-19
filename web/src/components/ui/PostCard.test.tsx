@@ -28,16 +28,22 @@ describe("PostCard (§3 anatomy + §8.2)", () => {
     const { rerender } = render(<PostCard post={fixturePost} />);
     expect(screen.getByTestId("carousel-dots")).toBeInTheDocument();
     rerender(
-      <PostCard post={{ ...fixturePost, media: fixturePost.media.slice(0, 1) }} />,
+      <PostCard
+        post={{ ...fixturePost, media: fixturePost.media.slice(0, 1) }}
+      />,
     );
     expect(screen.queryByTestId("carousel-dots")).not.toBeInTheDocument();
   });
 
   it("carousel advances via the chevrons (MI-4)", async () => {
     render(<PostCard post={fixturePost} />);
-    expect(screen.queryByRole("button", { name: "Previous image" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Previous image" }),
+    ).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Next image" }));
-    expect(screen.getByRole("button", { name: "Previous image" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Previous image" }),
+    ).toBeInTheDocument();
   });
 
   it("skeleton state renders the placeholder card (MI-19)", () => {
@@ -59,7 +65,10 @@ describe("PostCard (§3 anatomy + §8.2)", () => {
   it("double-tap never unlikes (MI-1 optimistic like only)", () => {
     const onToggleLike = vi.fn();
     render(
-      <PostCard post={{ ...fixturePost, liked: true }} onToggleLike={onToggleLike} />,
+      <PostCard
+        post={{ ...fixturePost, liked: true }}
+        onToggleLike={onToggleLike}
+      />,
     );
     const media = screen.getByTestId("post-media");
     fireEvent.click(media);

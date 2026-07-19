@@ -1,10 +1,7 @@
 // MEASUREMENT_SESSION / MEASUREMENT entities — data-model.md §2, flows/vault.md.
 
 export type MeasurementMethod =
-  | "mediapipe_2d"
-  | "mediapipe_2d_v2"
-  | "smpl_v1"
-  | "manual";
+  "mediapipe_2d" | "mediapipe_2d_v2" | "smpl_v1" | "manual";
 
 export type SessionStatus = "pending_save" | "complete" | "failed";
 

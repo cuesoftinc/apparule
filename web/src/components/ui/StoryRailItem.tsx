@@ -44,7 +44,13 @@ export function StoryRailItem({
             className="absolute inset-0 size-full animate-[spin_1.5s_linear_infinite] motion-reduce:animate-none"
           >
             <defs>
-              <linearGradient id={ringGradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+              <linearGradient
+                id={ringGradientId}
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
                 <stop offset="0%" stopColor="var(--ap-accent-start)" />
                 <stop offset="100%" stopColor="var(--ap-accent-end)" />
               </linearGradient>

@@ -13,7 +13,9 @@ describe("SessionRow (§8.2b)", () => {
     expect(container.querySelector('[data-context="history"]')).not.toBeNull();
     expect(screen.getByText("Scan")).toBeInTheDocument();
     expect(screen.getByText(/Shoulder Width 42.5 cm/)).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Delete session" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "Delete session" }),
+    );
     expect(onDelete).toHaveBeenCalledOnce();
   });
 
@@ -38,9 +40,7 @@ describe("SessionRow (§8.2b)", () => {
   });
 
   it("picker context: radio + freshness pill, selected state", () => {
-    render(
-      <SessionRow session={fixtureSession} context="picker" selected />,
-    );
+    render(<SessionRow session={fixtureSession} context="picker" selected />);
     const radio = screen.getByRole("radio");
     expect(radio).toHaveAttribute("aria-checked", "true");
     expect(screen.getByTestId("picker-radio")).toBeInTheDocument();
@@ -61,7 +61,11 @@ describe("SessionRow (§8.2b)", () => {
   it("picker select fires onSelect", async () => {
     const onSelect = vi.fn();
     render(
-      <SessionRow session={fixtureSession} context="picker" onSelect={onSelect} />,
+      <SessionRow
+        session={fixtureSession}
+        context="picker"
+        onSelect={onSelect}
+      />,
     );
     await userEvent.click(screen.getByRole("radio"));
     expect(onSelect).toHaveBeenCalledOnce();

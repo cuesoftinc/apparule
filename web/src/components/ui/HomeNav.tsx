@@ -125,7 +125,10 @@ export function HomeNav({
           column (design.md container canon — x 180–1260 at 1440) so the
           logo and CTAs line up with every section edge (W2.1 live-QA). */}
       <div className="mx-auto flex h-full w-full max-w-[1080px] items-center gap-6">
-        <Link href="/" className="bg-accent-gradient bg-clip-text text-title font-bold text-transparent">
+        <Link
+          href="/"
+          className="bg-accent-gradient bg-clip-text text-title font-bold text-transparent"
+        >
           Apparule
         </Link>
         <div className="hidden items-center gap-5 md:flex">

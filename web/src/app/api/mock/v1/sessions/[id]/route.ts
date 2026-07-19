@@ -1,11 +1,6 @@
 // Mock: GET /api/v1/sessions/{id} + DELETE (history-sheet delete, pages.md
 // B4 — DELETE is ahead of openapi.yaml; noted as a stage deviation).
-import {
-  actorUsername,
-  handle,
-  jsonResponse,
-  noContent,
-} from "@/mocks/http";
+import { actorUsername, handle, jsonResponse, noContent } from "@/mocks/http";
 import { getStore } from "@/mocks/store";
 
 type Params = { params: Promise<{ id: string }> };

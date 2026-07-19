@@ -10,7 +10,9 @@ describe("StatCard (§8.2b marketing, pages.md A3)", () => {
   });
 
   it("fades up once in view (jsdom has no IO → immediately visible)", () => {
-    const { container } = render(<StatCard stat="2" label="photos per capture" />);
+    const { container } = render(
+      <StatCard stat="2" label="photos per capture" />,
+    );
     expect(container.querySelector('[data-visible="true"]')).not.toBeNull();
   });
 });

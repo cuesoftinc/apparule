@@ -13,7 +13,10 @@ export function HeroSection() {
   const router = useRouter();
 
   return (
-    <section aria-labelledby="hero-heading" className="mx-auto w-full max-w-[1128px] px-6">
+    <section
+      aria-labelledby="hero-heading"
+      className="mx-auto w-full max-w-[1128px] px-6"
+    >
       <div className="flex flex-col items-start gap-12 pb-16 pt-10 md:flex-row md:items-center md:gap-16 md:pb-20 md:pt-16">
         <div className="max-w-[520px]">
           <h1
@@ -24,8 +27,8 @@ export function HeroSection() {
           </h1>
           <p className="mt-6 max-w-[480px] text-body-lg text-text-2">
             Apparule turns two phone photos into a complete, private
-            body-measurement profile. Commission Lagos designers who sew to
-            your measurements — no size charts, no guesswork.
+            body-measurement profile. Commission Lagos designers who sew to your
+            measurements — no size charts, no guesswork.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
             <Button

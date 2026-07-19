@@ -31,7 +31,10 @@ import { CommentRow } from "@/components/ui/CommentRow";
 import { CommunityCard } from "@/components/ui/CommunityCard";
 import { ComparisonTable } from "@/components/ui/ComparisonTable";
 import { DateInput, minDueDate } from "@/components/ui/DateInput";
-import { EarningsSummary, TransactionRow } from "@/components/ui/EarningsSummary";
+import {
+  EarningsSummary,
+  TransactionRow,
+} from "@/components/ui/EarningsSummary";
 import { EmptyState, type EmptyStateContext } from "@/components/ui/EmptyState";
 import { FAQGroup, FAQItem } from "@/components/ui/FAQItem";
 import { FormRow } from "@/components/ui/FormRow";
@@ -52,7 +55,11 @@ import { PaymentBox, type PaymentBoxState } from "@/components/ui/PaymentBox";
 import { Popover, MenuItem } from "@/components/ui/Popover";
 import { PostCard } from "@/components/ui/PostCard";
 import { ProcessingConstellation } from "@/components/ui/ProcessingConstellation";
-import { QCHintChip, QC_GUIDANCE, type QcFailCode } from "@/components/ui/QCHintChip";
+import {
+  QCHintChip,
+  QC_GUIDANCE,
+  type QcFailCode,
+} from "@/components/ui/QCHintChip";
 import { RequestCard } from "@/components/ui/RequestCard";
 import { Select } from "@/components/ui/Select";
 import { SessionRow } from "@/components/ui/SessionRow";
@@ -148,7 +155,11 @@ const sampleOrder: CommissionRequest = {
   snapshot: {
     id: "snap",
     request_id: "req-apr-1042",
-    values: { method: "mediapipe_2d_v2", measured_at: daysAgo(12), measurements: [] },
+    values: {
+      method: "mediapipe_2d_v2",
+      measured_at: daysAgo(12),
+      measurements: [],
+    },
     created_at: daysAgo(8),
   },
   events: [],
@@ -174,8 +185,22 @@ const sampleSession: MeasurementSession = {
   input_height_cm: 168,
   status: "complete",
   measurements: [
-    { id: "m1", session_id: "sess-1", name: "shoulder_width", value_cm: 42.5, source: "pipeline", confidence: 0.92 },
-    { id: "m2", session_id: "sess-1", name: "hip_width", value_cm: 36.8, source: "pipeline", confidence: 0.88 },
+    {
+      id: "m1",
+      session_id: "sess-1",
+      name: "shoulder_width",
+      value_cm: 42.5,
+      source: "pipeline",
+      confidence: 0.92,
+    },
+    {
+      id: "m2",
+      session_id: "sess-1",
+      name: "hip_width",
+      value_cm: 36.8,
+      source: "pipeline",
+      confidence: 0.88,
+    },
   ],
   pipeline_meta: {},
   created_at: daysAgo(12),
@@ -205,7 +230,10 @@ const sampleReport: Report = {
   reporter: { id: "acc-tunde", username: "tunde.o" },
   subject_kind: "comment",
   subject_id: "cmt-spam-1",
-  subject_preview: { text: "🔥🔥 Buy followers cheap — link in bio", thumb_url: null },
+  subject_preview: {
+    text: "🔥🔥 Buy followers cheap — link in bio",
+    thumb_url: null,
+  },
   reason: "spam",
   detail: null,
   status: "open",
@@ -218,20 +246,55 @@ const sampleEarnings: Earnings = {
   pending_cents: 4_050_000,
   currency: "NGN",
   transactions: [
-    { id: "t1", kind: "payout", amount_cents: 5_580_000, currency: "NGN", order_number: "#APR-1058", provider_ref: "PSTK-TRF-1058", created_at: daysAgo(7) },
-    { id: "t2", kind: "fee_line", amount_cents: -620_000, currency: "NGN", order_number: "#APR-1058", provider_ref: null, created_at: daysAgo(7) },
-    { id: "t3", kind: "escrow_held", amount_cents: 4_050_000, currency: "NGN", order_number: "#APR-1042", provider_ref: null, created_at: daysAgo(6) },
+    {
+      id: "t1",
+      kind: "payout",
+      amount_cents: 5_580_000,
+      currency: "NGN",
+      order_number: "#APR-1058",
+      provider_ref: "PSTK-TRF-1058",
+      created_at: daysAgo(7),
+    },
+    {
+      id: "t2",
+      kind: "fee_line",
+      amount_cents: -620_000,
+      currency: "NGN",
+      order_number: "#APR-1058",
+      provider_ref: null,
+      created_at: daysAgo(7),
+    },
+    {
+      id: "t3",
+      kind: "escrow_held",
+      amount_cents: 4_050_000,
+      currency: "NGN",
+      order_number: "#APR-1042",
+      provider_ref: null,
+      created_at: daysAgo(6),
+    },
   ],
 };
 
 const ORDER_STATUSES: OrderStatus[] = [
-  "requested", "quoted", "paid", "in_progress", "shipped",
-  "delivered", "refunded", "declined", "disputed", "cancelled",
+  "requested",
+  "quoted",
+  "paid",
+  "in_progress",
+  "shipped",
+  "delivered",
+  "refunded",
+  "declined",
+  "disputed",
+  "cancelled",
 ];
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section id={title.toLowerCase().replace(/[^a-z0-9]+/g, "-")} className="flex flex-col gap-4 border-b border-border py-8">
+    <section
+      id={title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}
+      className="flex flex-col gap-4 border-b border-border py-8"
+    >
       <h2 className="text-title font-bold text-text">{title}</h2>
       {children}
     </section>
@@ -281,9 +344,15 @@ export function ComponentGallery() {
           <Button kind="link">View order</Button>
         </Row>
         <Row label="size sm · loading · disabled">
-          <Button kind="gradient-primary" size="sm">Follow</Button>
-          <Button kind="gradient-primary" loading>Paying…</Button>
-          <Button kind="quiet" disabled>Unavailable</Button>
+          <Button kind="gradient-primary" size="sm">
+            Follow
+          </Button>
+          <Button kind="gradient-primary" loading>
+            Paying…
+          </Button>
+          <Button kind="quiet" disabled>
+            Unavailable
+          </Button>
         </Row>
       </Section>
 
@@ -296,7 +365,11 @@ export function ComponentGallery() {
       <Section title="Input">
         <div className="grid max-w-xl grid-cols-2 gap-4">
           <Input placeholder="Display name" aria-label="Text input" />
-          <Input kind="search" placeholder="Search designers, styles…" aria-label="Search" />
+          <Input
+            kind="search"
+            placeholder="Search designers, styles…"
+            aria-label="Search"
+          />
           <Input
             kind="numeric"
             placeholder="42.5"
@@ -305,11 +378,20 @@ export function ComponentGallery() {
             onUnitChange={setUnit}
           />
           <Input kind="currency" placeholder="45,000" aria-label="Budget" />
-          <Input placeholder="Username" error="That username is taken" aria-label="Errored input" />
+          <Input
+            placeholder="Username"
+            error="That username is taken"
+            aria-label="Errored input"
+          />
           <Input placeholder="Disabled" disabled aria-label="Disabled input" />
         </div>
         <div className="max-w-xl">
-          <Input kind="textarea" placeholder="Notes for the designer…" aria-label="Notes" maxLength={500} />
+          <Input
+            kind="textarea"
+            placeholder="Notes for the designer…"
+            aria-label="Notes"
+            maxLength={500}
+          />
         </div>
       </Section>
 
@@ -323,16 +405,31 @@ export function ComponentGallery() {
 
       <Section title="IconButton">
         <Row>
-          <IconButton aria-label="More options"><MoreHorizontal size={24} /></IconButton>
-          <IconButton aria-label="More options" size="sm"><MoreHorizontal size={24} /></IconButton>
-          <IconButton aria-label="Disabled" disabled><MoreHorizontal size={24} /></IconButton>
+          <IconButton aria-label="More options">
+            <MoreHorizontal size={24} />
+          </IconButton>
+          <IconButton aria-label="More options" size="sm">
+            <MoreHorizontal size={24} />
+          </IconButton>
+          <IconButton aria-label="Disabled" disabled>
+            <MoreHorizontal size={24} />
+          </IconButton>
         </Row>
       </Section>
 
       <Section title="Toast">
         <div className="flex max-w-sm flex-col gap-3">
-          <Toast kind="success" message="Saved to your looks" autoDismissMs={0} />
-          <Toast kind="error" message="Couldn't like the post" onRetry={() => {}} autoDismissMs={0} />
+          <Toast
+            kind="success"
+            message="Saved to your looks"
+            autoDismissMs={0}
+          />
+          <Toast
+            kind="error"
+            message="Couldn't like the post"
+            onRetry={() => {}}
+            autoDismissMs={0}
+          />
           <Toast kind="neutral" message="Link copied" autoDismissMs={0} />
         </div>
       </Section>
@@ -412,7 +509,10 @@ export function ComponentGallery() {
           open={sheetOpen}
           onOpenChange={setSheetOpen}
           title="Request this outfit"
-          stepper={{ steps: ["Measurements", "Notes & budget", "Review"], current: 1 }}
+          stepper={{
+            steps: ["Measurements", "Notes & budget", "Review"],
+            current: 1,
+          }}
         >
           <p className="text-body text-text-2">
             Sheet body — bottom sheet on mobile, centered modal on desktop.
@@ -436,14 +536,29 @@ export function ComponentGallery() {
       <Section title="RequestCard">
         <div className="flex max-w-xl flex-col gap-3">
           <RequestCard order={sampleOrder} role="customer" />
-          <RequestCard order={{ ...sampleOrder, status: "quoted" }} role="customer" />
-          <RequestCard order={{ ...sampleOrder, status: "requested", quote_cents: null }} role="designer" />
+          <RequestCard
+            order={{ ...sampleOrder, status: "quoted" }}
+            role="customer"
+          />
+          <RequestCard
+            order={{ ...sampleOrder, status: "requested", quote_cents: null }}
+            role="designer"
+          />
         </div>
       </Section>
 
       <Section title="EmptyState">
         <div className="grid gap-4 md:grid-cols-2">
-          {(["feed", "vault", "orders", "explore", "notifications", "camera-permission"] as EmptyStateContext[]).map((ctx) => (
+          {(
+            [
+              "feed",
+              "vault",
+              "orders",
+              "explore",
+              "notifications",
+              "camera-permission",
+            ] as EmptyStateContext[]
+          ).map((ctx) => (
             <EmptyState key={ctx} context={ctx} />
           ))}
         </div>
@@ -483,10 +598,26 @@ export function ComponentGallery() {
       <Section title="AppBar">
         <div className="flex max-w-xl flex-col gap-3">
           <div className="overflow-hidden rounded-card border border-border">
-            <AppBar title="Apparule" trailing={<IconButton aria-label="More"><MoreHorizontal size={24} /></IconButton>} />
+            <AppBar
+              title="Apparule"
+              trailing={
+                <IconButton aria-label="More">
+                  <MoreHorizontal size={24} />
+                </IconButton>
+              }
+            />
           </div>
           <div className="overflow-hidden rounded-card border border-border">
-            <AppBar kind="sub" title="Order #APR-1042" onBack={() => {}} trailing={<IconButton aria-label="More"><MoreHorizontal size={24} /></IconButton>} />
+            <AppBar
+              kind="sub"
+              title="Order #APR-1042"
+              onBack={() => {}}
+              trailing={
+                <IconButton aria-label="More">
+                  <MoreHorizontal size={24} />
+                </IconButton>
+              }
+            />
           </div>
           <div className="overflow-hidden rounded-card bg-black">
             <AppBar kind="over-media" title="Capture" onBack={() => {}} />
@@ -499,11 +630,18 @@ export function ComponentGallery() {
           <TabBar activeKey={tabBarKey} ordersBadge={2} />
         </div>
         <Row label="active tab ×5 — click to move; Orders badge: count">
-          {(["home", "explore", "create", "orders", "profile"] as const).map((k) => (
-            <Button key={k} kind="quiet" size="sm" onClick={() => setTabBarKey(k)}>
-              {k}
-            </Button>
-          ))}
+          {(["home", "explore", "create", "orders", "profile"] as const).map(
+            (k) => (
+              <Button
+                key={k}
+                kind="quiet"
+                size="sm"
+                onClick={() => setTabBarKey(k)}
+              >
+                {k}
+              </Button>
+            ),
+          )}
         </Row>
       </Section>
 
@@ -518,8 +656,19 @@ export function ComponentGallery() {
 
       <Section title="GridTile">
         <div className="grid max-w-xl grid-cols-3 gap-1">
-          <GridTile src="/demo/outfit-w03.jpg" alt="Outfit" likeCount={519} commentCount={6} />
-          <GridTile src="/demo/outfit-w05.jpg" alt="Outfit" likeCount={128} commentCount={2} carousel />
+          <GridTile
+            src="/demo/outfit-w03.jpg"
+            alt="Outfit"
+            likeCount={519}
+            commentCount={6}
+          />
+          <GridTile
+            src="/demo/outfit-w05.jpg"
+            alt="Outfit"
+            likeCount={128}
+            commentCount={2}
+            carousel
+          />
           <GridTile skeleton />
         </div>
       </Section>
@@ -555,13 +704,33 @@ export function ComponentGallery() {
 
       <Section title="OrderTimelineRow">
         <div className="max-w-sm">
-          <OrderTimelineRow dot="done" connector="drawn" label="Requested" timestamp={daysAgo(8)} />
-          <OrderTimelineRow dot="done" connector="drawn" label="Quoted" timestamp={daysAgo(7)} />
-          <OrderTimelineRow dot="current" connector="undrawn" label="In progress" timestamp={daysAgo(5)} />
+          <OrderTimelineRow
+            dot="done"
+            connector="drawn"
+            label="Requested"
+            timestamp={daysAgo(8)}
+          />
+          <OrderTimelineRow
+            dot="done"
+            connector="drawn"
+            label="Quoted"
+            timestamp={daysAgo(7)}
+          />
+          <OrderTimelineRow
+            dot="current"
+            connector="undrawn"
+            label="In progress"
+            timestamp={daysAgo(5)}
+          />
           <OrderTimelineRow dot="pending" connector="none" label="Shipped" />
         </div>
         <div className="max-w-sm">
-          <OrderTimelineRow dot="terminal-error" connector="none" label="Disputed" timestamp={daysAgo(1)} />
+          <OrderTimelineRow
+            dot="terminal-error"
+            connector="none"
+            label="Disputed"
+            timestamp={daysAgo(1)}
+          />
         </div>
       </Section>
 
@@ -580,18 +749,34 @@ export function ComponentGallery() {
           <PaymentBox state="released" role="designer" quoteCents={6_200_000} />
         </div>
         <div className="grid max-w-2xl gap-4 md:grid-cols-2">
-          <PaymentBox state="dispute-frozen" role="designer" quoteCents={4_500_000} />
+          <PaymentBox
+            state="dispute-frozen"
+            role="designer"
+            quoteCents={4_500_000}
+          />
           <PaymentBox state="refunded" role="customer" quoteCents={4_500_000} />
         </div>
       </Section>
 
       <Section title="ThreadBubble">
         <div className="flex max-w-md flex-col gap-2">
-          <ThreadBubble side="received" text="Love it. Quote sent — ready two weeks after payment." />
+          <ThreadBubble
+            side="received"
+            text="Love it. Quote sent — ready two weeks after payment."
+          />
           <ThreadBubble side="sent" text="Hi Amara! Excited about this one." />
-          <ThreadBubble side="sent" content="image" imageUrl="/demo/outfit-w14.jpg" />
+          <ThreadBubble
+            side="sent"
+            content="image"
+            imageUrl="/demo/outfit-w14.jpg"
+          />
           <ThreadBubble side="sent" text="Sending…" state="sending" />
-          <ThreadBubble side="sent" text="This failed" state="failed" onRetry={() => {}} />
+          <ThreadBubble
+            side="sent"
+            text="This failed"
+            state="failed"
+            onRetry={() => {}}
+          />
           <ThreadBubble side="received" content="typing" />
         </div>
       </Section>
@@ -599,9 +784,22 @@ export function ComponentGallery() {
       <Section title="CommentRow">
         <div className="max-w-md">
           <CommentRow comment={sampleComment} onReply={() => {}} />
-          <CommentRow comment={{ ...sampleComment, id: "c2", liked: true, like_count: 13 }} />
-          <CommentRow comment={{ ...sampleComment, id: "c3", body: "Posting…" }} posting />
-          <CommentRow comment={{ ...sampleComment, id: "c4", body: "Reply row" }} replyIndent />
+          <CommentRow
+            comment={{
+              ...sampleComment,
+              id: "c2",
+              liked: true,
+              like_count: 13,
+            }}
+          />
+          <CommentRow
+            comment={{ ...sampleComment, id: "c3", body: "Posting…" }}
+            posting
+          />
+          <CommentRow
+            comment={{ ...sampleComment, id: "c4", body: "Reply row" }}
+            replyIndent
+          />
         </div>
       </Section>
 
@@ -636,7 +834,12 @@ export function ComponentGallery() {
         <div className="flex max-w-xl flex-col gap-3">
           <ModerationQueueRow report={sampleReport} />
           <ModerationQueueRow
-            report={{ ...sampleReport, id: "rep-2", status: "actioned", actioned_by: "staff.ops" }}
+            report={{
+              ...sampleReport,
+              id: "rep-2",
+              status: "actioned",
+              actioned_by: "staff.ops",
+            }}
           />
         </div>
       </Section>
@@ -647,7 +850,11 @@ export function ComponentGallery() {
           <MediaDropzone state="uploading" progress={0.6} onFiles={() => {}} />
           <MediaDropzone state="error" onFiles={() => {}} />
           <div className="flex gap-2">
-            <MediaUploadTile src="/demo/outfit-w00.jpg" altText="Ankara gown" onRemove={() => {}} />
+            <MediaUploadTile
+              src="/demo/outfit-w00.jpg"
+              altText="Ankara gown"
+              onRemove={() => {}}
+            />
             <MediaUploadTile src="/demo/outfit-w01.jpg" onRemove={() => {}} />
           </div>
         </div>
@@ -688,7 +895,12 @@ export function ComponentGallery() {
         </div>
         <Row label="countdown tick">
           {([3, 2, 1] as const).map((v) => (
-            <Button key={v} kind="quiet" size="sm" onClick={() => setCountdown(v)}>
+            <Button
+              key={v}
+              kind="quiet"
+              size="sm"
+              onClick={() => setCountdown(v)}
+            >
               {v}
             </Button>
           ))}
@@ -715,15 +927,24 @@ export function ComponentGallery() {
         <div className="grid max-w-2xl grid-cols-3 gap-4">
           <div className="flex flex-col gap-2">
             <span className="text-caption text-text-2">processing</span>
-            <ProcessingConstellation state="processing" imageSrc="/demo/outfit-w00.jpg" />
+            <ProcessingConstellation
+              state="processing"
+              imageSrc="/demo/outfit-w00.jpg"
+            />
           </div>
           <div className="flex flex-col gap-2">
             <span className="text-caption text-text-2">success</span>
-            <ProcessingConstellation state="success" imageSrc="/demo/outfit-w00.jpg" />
+            <ProcessingConstellation
+              state="success"
+              imageSrc="/demo/outfit-w00.jpg"
+            />
           </div>
           <div className="flex flex-col gap-2">
             <span className="text-caption text-text-2">failed</span>
-            <ProcessingConstellation state="failed" imageSrc="/demo/outfit-w00.jpg" />
+            <ProcessingConstellation
+              state="failed"
+              imageSrc="/demo/outfit-w00.jpg"
+            />
           </div>
         </div>
       </Section>
@@ -735,8 +956,18 @@ export function ComponentGallery() {
             onSave={() => {}}
             onRetake={() => {}}
           >
-            <MeasurementCard name="shoulder_width" valueCm={42.5} source="scan" confidence={0.92} />
-            <MeasurementCard name="hip_width" valueCm={36.8} source="scan" confidence={0.62} />
+            <MeasurementCard
+              name="shoulder_width"
+              valueCm={42.5}
+              source="scan"
+              confidence={0.92}
+            />
+            <MeasurementCard
+              name="hip_width"
+              valueCm={36.8}
+              source="scan"
+              confidence={0.62}
+            />
           </CaptureResults>
         </div>
       </Section>
@@ -751,10 +982,12 @@ export function ComponentGallery() {
       <Section title="Banner">
         <div className="flex max-w-xl flex-col gap-3">
           <Banner tone="info" actionLabel="Learn more">
-            Your measurements are private — snapshots are shared only inside a request.
+            Your measurements are private — snapshots are shared only inside a
+            request.
           </Banner>
           <Banner tone="warn" actionLabel="Re-verify">
-            Your payout verification lapsed — posts can&apos;t accept new requests.
+            Your payout verification lapsed — posts can&apos;t accept new
+            requests.
           </Banner>
           <Banner tone="error" dismissable actionLabel="Retry">
             Upload failed — check your connection.
@@ -767,9 +1000,18 @@ export function ComponentGallery() {
 
       <Section title="Switch">
         <Row>
-          <Switch checked={switchOn} onCheckedChange={setSwitchOn} aria-label="Order updates" />
+          <Switch
+            checked={switchOn}
+            onCheckedChange={setSwitchOn}
+            aria-label="Order updates"
+          />
           <Switch checked={false} onCheckedChange={() => {}} aria-label="Off" />
-          <Switch checked disabled onCheckedChange={() => {}} aria-label="Disabled on" />
+          <Switch
+            checked
+            disabled
+            onCheckedChange={() => {}}
+            aria-label="Disabled on"
+          />
         </Row>
       </Section>
 
@@ -781,7 +1023,9 @@ export function ComponentGallery() {
             </span>
           </Tooltip>
           <Tooltip label="Below" placement="bottom">
-            <Button kind="quiet" size="sm">hover me</Button>
+            <Button kind="quiet" size="sm">
+              hover me
+            </Button>
           </Tooltip>
         </Row>
       </Section>
@@ -810,8 +1054,18 @@ export function ComponentGallery() {
 
       <Section title="UserRow">
         <div className="max-w-md">
-          <UserRow username="tunde.o" meta="Agbada · Lagos" trailing="follow" verified />
-          <UserRow username="amara.designs" meta="Ankara & contemporary" trailing="following" verified />
+          <UserRow
+            username="tunde.o"
+            meta="Agbada · Lagos"
+            trailing="follow"
+            verified
+          />
+          <UserRow
+            username="amara.designs"
+            meta="Ankara & contemporary"
+            trailing="following"
+            verified
+          />
           <UserRow username="kiki.adeyemi" trailing="none" avatarSize={32} />
         </div>
       </Section>
@@ -849,8 +1103,20 @@ export function ComponentGallery() {
           <StatCard stat="30 days" label="photo auto-delete" />
         </div>
         <div className="flex gap-6 overflow-x-auto">
-          <WalkthroughStep imageSrc="/demo/outfit-w10.jpg" imageAlt="Capture step" title="Capture" body="Two photos and your height — the AI does the rest." step={0} />
-          <WalkthroughStep imageSrc="/demo/outfit-w14.jpg" imageAlt="Vault step" title="Vault" body="Your measurements, versioned and private." step={1} />
+          <WalkthroughStep
+            imageSrc="/demo/outfit-w10.jpg"
+            imageAlt="Capture step"
+            title="Capture"
+            body="Two photos and your height — the AI does the rest."
+            step={0}
+          />
+          <WalkthroughStep
+            imageSrc="/demo/outfit-w14.jpg"
+            imageAlt="Vault step"
+            title="Vault"
+            body="Your measurements, versioned and private."
+            step={1}
+          />
         </div>
       </Section>
 

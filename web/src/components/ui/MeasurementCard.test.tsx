@@ -62,7 +62,12 @@ describe("MeasurementCard (§8.2)", () => {
 
   it("renders inches when the unit toggle flips", () => {
     render(
-      <MeasurementCard name="shoulder_width" valueCm={50.8} unit="in" source="manual" />,
+      <MeasurementCard
+        name="shoulder_width"
+        valueCm={50.8}
+        unit="in"
+        source="manual"
+      />,
     );
     expect(screen.getByText("20.0 in")).toBeInTheDocument();
   });

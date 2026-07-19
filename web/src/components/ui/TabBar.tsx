@@ -27,7 +27,12 @@ export interface TabBarItemSpec {
 // 40px gradient FAB.
 export const DEFAULT_TAB_ITEMS: TabBarItemSpec[] = [
   { key: "home", label: "Home", href: "/dashboard", icon: Home },
-  { key: "explore", label: "Explore", href: "/dashboard/explore", icon: Search },
+  {
+    key: "explore",
+    label: "Explore",
+    href: "/dashboard/explore",
+    icon: Search,
+  },
   { key: "create", label: "Create", href: "/dashboard/create", icon: Plus },
   { key: "orders", label: "Orders", href: "/dashboard/orders", icon: Package },
   { key: "profile", label: "Profile", href: "/dashboard/profile", icon: User },

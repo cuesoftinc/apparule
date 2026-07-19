@@ -78,12 +78,15 @@ export function useModeration() {
     return load();
   }, [load]);
 
-  const act = useCallback(async (reportId: string, action: ModerationAction) => {
-    const actioned = await moderationRepo.act(reportId, action);
-    // Open queue only shows open reports — actioned rows drop out.
-    setReports((prev) => prev.filter((r) => r.id !== reportId));
-    return actioned;
-  }, []);
+  const act = useCallback(
+    async (reportId: string, action: ModerationAction) => {
+      const actioned = await moderationRepo.act(reportId, action);
+      // Open queue only shows open reports — actioned rows drop out.
+      setReports((prev) => prev.filter((r) => r.id !== reportId));
+      return actioned;
+    },
+    [],
+  );
 
   return { reports, loading, error, forbidden, reload, act };
 }

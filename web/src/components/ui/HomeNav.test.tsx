@@ -92,8 +92,12 @@ describe("HomeNav (§8.2b marketing)", () => {
     expect(trigger).toHaveAttribute("aria-expanded", "true");
     const panel = screen.getByTestId("nav-menu-panel");
     // the same four canonical links + theme toggle + Sign in (canon ext.)
-    expect(within(panel).getByRole("link", { name: "Features" })).toHaveAttribute("href", "#product");
-    expect(within(panel).getByRole("link", { name: "For designers" })).toHaveAttribute("href", "#designers");
+    expect(
+      within(panel).getByRole("link", { name: "Features" }),
+    ).toHaveAttribute("href", "#product");
+    expect(
+      within(panel).getByRole("link", { name: "For designers" }),
+    ).toHaveAttribute("href", "#designers");
     expect(within(panel).getByRole("link", { name: "Docs" })).toHaveAttribute(
       "href",
       "https://cuesoft.gitbook.io/apparule",
@@ -108,11 +112,17 @@ describe("HomeNav (§8.2b marketing)", () => {
       "https://github.com/cuesoftinc/apparule",
     );
     expect(panelBadge).toHaveTextContent("Star");
-    expect(within(panel).getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/signin");
+    expect(
+      within(panel).getByRole("link", { name: "Sign in" }),
+    ).toHaveAttribute("href", "/signin");
     // [Revised 2026-07-19 canon] the panel carries no duplicate Try Cloud —
     // the CTA stays on the bar beside the hamburger.
-    expect(within(panel).queryByRole("button", { name: "Try Cloud" })).toBeNull();
-    expect(within(panel).getByRole("button", { name: "Toggle theme" })).toBeInTheDocument();
+    expect(
+      within(panel).queryByRole("button", { name: "Try Cloud" }),
+    ).toBeNull();
+    expect(
+      within(panel).getByRole("button", { name: "Toggle theme" }),
+    ).toBeInTheDocument();
 
     // link click closes the disclosure
     await user.click(within(panel).getByRole("link", { name: "Features" }));

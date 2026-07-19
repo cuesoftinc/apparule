@@ -14,7 +14,9 @@ const CONTEXTS: EmptyStateContext[] = [
 describe("EmptyState (§8.2 — 5 contexts)", () => {
   it.each(CONTEXTS)("renders context=%s with line + one CTA", (context) => {
     const { container } = render(<EmptyState context={context} />);
-    expect(container.querySelector(`[data-context="${context}"]`)).not.toBeNull();
+    expect(
+      container.querySelector(`[data-context="${context}"]`),
+    ).not.toBeNull();
     expect(screen.getAllByRole("button")).toHaveLength(1);
   });
 
@@ -28,7 +30,12 @@ describe("EmptyState (§8.2 — 5 contexts)", () => {
   it("CTA fires + copy overrides apply", async () => {
     const onCta = vi.fn();
     render(
-      <EmptyState context="vault" line="Custom line" ctaLabel="Go" onCta={onCta} />,
+      <EmptyState
+        context="vault"
+        line="Custom line"
+        ctaLabel="Go"
+        onCta={onCta}
+      />,
     );
     expect(screen.getByText("Custom line")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Go" }));

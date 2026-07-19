@@ -2,11 +2,7 @@
 
 export type ReportSubjectKind = "post" | "comment" | "account";
 export type ReportReason =
-  | "spam"
-  | "inappropriate"
-  | "counterfeit"
-  | "harassment"
-  | "other";
+  "spam" | "inappropriate" | "counterfeit" | "harassment" | "other";
 export type ModerationAction = "hide_post" | "suspend_account" | "dismiss";
 
 export interface Report {

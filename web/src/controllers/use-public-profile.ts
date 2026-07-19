@@ -61,9 +61,7 @@ export function usePublicProfile(username: string) {
       },
     });
     try {
-      await (on
-        ? postsRepo.follow(username)
-        : postsRepo.unfollow(username));
+      await (on ? postsRepo.follow(username) : postsRepo.unfollow(username));
     } catch {
       setProfile(was);
       throw new Error("follow_failed");

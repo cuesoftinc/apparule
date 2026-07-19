@@ -191,7 +191,11 @@ export const demoOrders: CommissionRequest[] = [
       caption: "Aso-oke wrap set",
       thumb_url: "/demo/outfit-w13.jpg",
     },
-    designer: { id: "des-kiki", username: "kikithreads", avatar_url: "/demo/outfit-w16.jpg" },
+    designer: {
+      id: "des-kiki",
+      username: "kikithreads",
+      avatar_url: "/demo/outfit-w16.jpg",
+    },
     quote_cents: 6_200_000,
   }),
   makeDemoOrder("in_progress", {
@@ -202,7 +206,11 @@ export const demoOrders: CommissionRequest[] = [
       caption: "Agbada jacket — ceremony cut",
       thumb_url: "/demo/outfit-w15.jpg",
     },
-    designer: { id: "des-tunde", username: "tunde.o", avatar_url: "/demo/outfit-w15.jpg" },
+    designer: {
+      id: "des-tunde",
+      username: "tunde.o",
+      avatar_url: "/demo/outfit-w15.jpg",
+    },
     quote_cents: 8_800_000,
   }),
   makeDemoOrder("shipped", {
@@ -227,7 +235,11 @@ export const demoOrders: CommissionRequest[] = [
       caption: "Statement eveningwear",
       thumb_url: "/demo/outfit-w03.jpg",
     },
-    designer: { id: "des-bisi", username: "maisonbisi", avatar_url: "/demo/outfit-w03.jpg" },
+    designer: {
+      id: "des-bisi",
+      username: "maisonbisi",
+      avatar_url: "/demo/outfit-w03.jpg",
+    },
     quote_cents: 8_000_000,
   }),
 ];
@@ -246,12 +258,38 @@ export interface DemoMeasurement {
 // The canvas vault set (264:14–264:19): shoulder/hip/sleeve · waist/inseam/
 // chest, chest carrying the low-confidence 0.62 chip.
 export const demoMeasurements: DemoMeasurement[] = [
-  { name: "Shoulder width", valueCm: 42.5, source: "scan", history: [41.8, 42.1, 42.5] },
-  { name: "Hip circumference", valueCm: 96.2, source: "scan", history: [95.4, 95.9, 96.2] },
-  { name: "Sleeve length", valueCm: 58.0, source: "manual", history: [57.6, 57.8, 58.0] },
+  {
+    name: "Shoulder width",
+    valueCm: 42.5,
+    source: "scan",
+    history: [41.8, 42.1, 42.5],
+  },
+  {
+    name: "Hip circumference",
+    valueCm: 96.2,
+    source: "scan",
+    history: [95.4, 95.9, 96.2],
+  },
+  {
+    name: "Sleeve length",
+    valueCm: 58.0,
+    source: "manual",
+    history: [57.6, 57.8, 58.0],
+  },
   { name: "Waist", valueCm: 78.4, source: "scan", history: [79.1, 78.8, 78.4] },
-  { name: "Inseam", valueCm: 81.0, source: "manual", history: [80.4, 80.7, 81.0] },
-  { name: "Chest circumference", valueCm: 101.5, source: "scan", history: [100.8, 101.2, 101.5], confidence: 0.62 },
+  {
+    name: "Inseam",
+    valueCm: 81.0,
+    source: "manual",
+    history: [80.4, 80.7, 81.0],
+  },
+  {
+    name: "Chest circumference",
+    valueCm: 101.5,
+    source: "scan",
+    history: [100.8, 101.2, 101.5],
+    confidence: 0.62,
+  },
 ];
 
 export const demoGridImages: { src: string; alt: string }[] = [

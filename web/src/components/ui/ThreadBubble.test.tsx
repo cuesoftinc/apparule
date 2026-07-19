@@ -15,7 +15,11 @@ describe("ThreadBubble (§8.2b as built)", () => {
     );
     expect(container.querySelector('[data-content="text"]')).not.toBeNull();
     rerender(
-      <ThreadBubble side="sent" content="image" imageUrl="/demo/outfit-w14.jpg" />,
+      <ThreadBubble
+        side="sent"
+        content="image"
+        imageUrl="/demo/outfit-w14.jpg"
+      />,
     );
     expect(container.querySelector('[data-content="image"]')).not.toBeNull();
     rerender(<ThreadBubble side="received" content="typing" />);

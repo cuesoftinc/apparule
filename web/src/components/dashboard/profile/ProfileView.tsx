@@ -106,9 +106,9 @@ export function ProfileView({ username }: { username: string }) {
     usePublicProfile(username);
   const { showToast } = useToasts();
   const [tab, setTab] = useState<"first" | "second">("first");
-  const [listSheet, setListSheet] = useState<
-    null | "followers" | "following"
-  >(null);
+  const [listSheet, setListSheet] = useState<null | "followers" | "following">(
+    null,
+  );
   const [openPostId, setOpenPostId] = useState<string | null>(null);
   const [requestPost, setRequestPost] = useState<Post | null>(null);
   const [unfollowTarget, setUnfollowTarget] = useState<UnfollowTarget | null>(
@@ -178,7 +178,10 @@ export function ProfileView({ username }: { username: string }) {
                 onCta={() => router.push("/dashboard/explore")}
               />
             ) : (
-              <ul className="grid grid-cols-2 gap-1 md:grid-cols-3" data-testid="saved-grid">
+              <ul
+                className="grid grid-cols-2 gap-1 md:grid-cols-3"
+                data-testid="saved-grid"
+              >
                 {saved.map((post) => (
                   <li key={post.id}>
                     <GridTile
@@ -292,7 +295,10 @@ export function ProfileView({ username }: { username: string }) {
           </div>
           <ul className="flex flex-wrap gap-x-6 gap-y-1 text-body text-text">
             <li>
-              <span className="tnum font-semibold">{formatCount(d.posts_count)}</span> posts
+              <span className="tnum font-semibold">
+                {formatCount(d.posts_count)}
+              </span>{" "}
+              posts
             </li>
             <li>
               <button
@@ -301,7 +307,9 @@ export function ProfileView({ username }: { username: string }) {
                 onClick={() => setListSheet("followers")}
                 data-testid="followers-count"
               >
-                <span className="tnum font-semibold">{formatCount(d.followers_count)}</span>{" "}
+                <span className="tnum font-semibold">
+                  {formatCount(d.followers_count)}
+                </span>{" "}
                 followers
               </button>
             </li>
@@ -311,7 +319,9 @@ export function ProfileView({ username }: { username: string }) {
                 className="hover:underline"
                 onClick={() => setListSheet("following")}
               >
-                <span className="tnum font-semibold">{formatCount(d.following_count)}</span>{" "}
+                <span className="tnum font-semibold">
+                  {formatCount(d.following_count)}
+                </span>{" "}
                 following
               </button>
             </li>
@@ -326,11 +336,7 @@ export function ProfileView({ username }: { username: string }) {
       </header>
 
       {isOwnAccount ? (
-        <Tabs
-          kind="icon"
-          active={tab}
-          onChange={setTab}
-        />
+        <Tabs kind="icon" active={tab} onChange={setTab} />
       ) : null}
 
       <section aria-label={tab === "first" ? "Posts" : "Saved looks"}>
@@ -352,7 +358,10 @@ export function ProfileView({ username }: { username: string }) {
             }
           />
         ) : (
-          <ul className="grid grid-cols-2 gap-1 md:grid-cols-3" data-testid="profile-grid">
+          <ul
+            className="grid grid-cols-2 gap-1 md:grid-cols-3"
+            data-testid="profile-grid"
+          >
             {gridPosts.map((post) => (
               <li key={post.id}>
                 <GridTile

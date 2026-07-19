@@ -23,7 +23,8 @@ interface BaseProps {
 }
 
 export interface InputProps
-  extends BaseProps,
+  extends
+    BaseProps,
     Omit<InputHTMLAttributes<HTMLInputElement>, "className" | "kind"> {
   /** numeric kind: controlled unit + toggle callback (MI-13). */
   unit?: MeasureUnit;
@@ -33,7 +34,8 @@ export interface InputProps
 }
 
 export interface TextareaProps
-  extends BaseProps,
+  extends
+    BaseProps,
     Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "className"> {
   kind: "textarea";
   maxLength?: number;
@@ -56,11 +58,21 @@ export function Input(props: InputProps | TextareaProps) {
 
   if (props.kind === "textarea") {
     // omit the wrapper-level props from what reaches the <textarea>
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { kind: _kind, error: _error, className: _cn, maxLength = 500, ...rest } = props;
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    const {
+      kind: _kind,
+      error: _error,
+      className: _cn,
+      maxLength = 500,
+      ...rest
+    } = props;
+    /* eslint-enable @typescript-eslint/no-unused-vars */
     const length = String(rest.value ?? "").length;
     return (
-      <div className={clsx("flex flex-col gap-1", className)} data-kind="textarea">
+      <div
+        className={clsx("flex flex-col gap-1", className)}
+        data-kind="textarea"
+      >
         <div className={frame(!!error, !!rest.disabled, true)}>
           <textarea
             rows={3}
@@ -89,8 +101,17 @@ export function Input(props: InputProps | TextareaProps) {
   }
 
   // omit the wrapper-level props from what reaches the <input>
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { kind: _kind, error: _error, className: _cn, unit, onUnitChange, disabled, ...rest } = props;
+  /* eslint-disable @typescript-eslint/no-unused-vars */
+  const {
+    kind: _kind,
+    error: _error,
+    className: _cn,
+    unit,
+    onUnitChange,
+    disabled,
+    ...rest
+  } = props;
+  /* eslint-enable @typescript-eslint/no-unused-vars */
 
   return (
     <div className={clsx("flex flex-col gap-1", className)} data-kind={kind}>
@@ -104,8 +125,16 @@ export function Input(props: InputProps | TextareaProps) {
           </span>
         ) : null}
         <input
-          type={kind === "numeric" || kind === "currency" ? "text" : kind === "search" ? "search" : "text"}
-          inputMode={kind === "numeric" || kind === "currency" ? "decimal" : undefined}
+          type={
+            kind === "numeric" || kind === "currency"
+              ? "text"
+              : kind === "search"
+                ? "search"
+                : "text"
+          }
+          inputMode={
+            kind === "numeric" || kind === "currency" ? "decimal" : undefined
+          }
           disabled={disabled}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
@@ -121,7 +150,11 @@ export function Input(props: InputProps | TextareaProps) {
           </span>
         ) : null}
         {kind === "numeric" && unit && onUnitChange ? (
-          <UnitToggle unit={unit} onUnitChange={onUnitChange} disabled={disabled} />
+          <UnitToggle
+            unit={unit}
+            onUnitChange={onUnitChange}
+            disabled={disabled}
+          />
         ) : null}
       </div>
       {error ? (

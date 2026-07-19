@@ -19,7 +19,9 @@ function readRecent(): string[] {
   try {
     const raw = window.localStorage.getItem(RECENT_KEY);
     const parsed = raw ? (JSON.parse(raw) as unknown) : [];
-    return Array.isArray(parsed) ? parsed.filter((v) => typeof v === "string") : [];
+    return Array.isArray(parsed)
+      ? parsed.filter((v) => typeof v === "string")
+      : [];
   } catch {
     return [];
   }

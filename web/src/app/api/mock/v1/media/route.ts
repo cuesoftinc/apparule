@@ -18,7 +18,11 @@ export async function POST(request: Request) {
     });
     const file = form.get("image");
     if (!(file instanceof File)) {
-      throw new MockApiError("validation_failed", "image file is required", 422);
+      throw new MockApiError(
+        "validation_failed",
+        "image file is required",
+        422,
+      );
     }
     if (!ALLOWED.includes(file.type)) {
       throw new MockApiError(

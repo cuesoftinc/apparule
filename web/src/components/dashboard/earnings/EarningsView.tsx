@@ -43,9 +43,7 @@ export function EarningsView() {
           context="orders"
           line="Earnings are for designer profiles — become a designer to start earning."
           ctaLabel="Become a designer"
-          onCta={() =>
-            router.push("/dashboard/designer/onboarding")
-          }
+          onCta={() => router.push("/dashboard/designer/onboarding")}
         />
       ) : error || !earnings ? (
         <EmptyState

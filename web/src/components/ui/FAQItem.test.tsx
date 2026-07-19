@@ -20,7 +20,9 @@ describe("FAQItem (§8.2b as built)", () => {
   it("renders collapsed/expanded states with aria-expanded", () => {
     renderGroup();
     expect(
-      screen.getByRole("button", { name: "How accurate are the measurements?" }),
+      screen.getByRole("button", {
+        name: "How accurate are the measurements?",
+      }),
     ).toHaveAttribute("aria-expanded", "true");
     expect(
       screen.getByRole("button", { name: "Who can see my measurements?" }),

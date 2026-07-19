@@ -11,9 +11,7 @@ describe("Avatar (§8.2)", () => {
   it.each(["none", "gradient", "amber", "gray"] as const)(
     "renders ring=%s (MI-8/MI-11)",
     (ring) => {
-      const { container } = render(
-        <Avatar ring={ring} name="Kiki Adeyemi" />,
-      );
+      const { container } = render(<Avatar ring={ring} name="Kiki Adeyemi" />);
       expect(container.querySelector(`[data-ring="${ring}"]`)).not.toBeNull();
     },
   );

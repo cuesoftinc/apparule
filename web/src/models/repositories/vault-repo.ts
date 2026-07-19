@@ -29,8 +29,7 @@ export const vaultRepo = {
     }),
 
   /** GET /api/v1/sessions/{id} */
-  session: (id: string) =>
-    apiFetch<MeasurementSession>(`/v1/sessions/${id}`),
+  session: (id: string) => apiFetch<MeasurementSession>(`/v1/sessions/${id}`),
 
   /** PATCH /api/v1/sessions/{id}/measurements — append-only corrections. */
   appendCorrections: (

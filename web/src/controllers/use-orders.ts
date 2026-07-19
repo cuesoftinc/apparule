@@ -75,14 +75,11 @@ export function useOrder(id: string) {
     return load();
   }, [load]);
 
-  const run = useCallback(
-    async (action: () => Promise<CommissionRequest>) => {
-      const updated = await action();
-      setOrder(updated);
-      return updated;
-    },
-    [],
-  );
+  const run = useCallback(async (action: () => Promise<CommissionRequest>) => {
+    const updated = await action();
+    setOrder(updated);
+    return updated;
+  }, []);
 
   return {
     order,
@@ -95,7 +92,8 @@ export function useOrder(id: string) {
       run(() => ordersRepo.decline(id, reason, note)),
     setStatus: (status: "in_progress" | "shipped", tracking?: string) =>
       run(() => ordersRepo.setStatus(id, status, tracking)),
-    pay: (idempotencyKey: string) => run(() => ordersRepo.pay(id, idempotencyKey)),
+    pay: (idempotencyKey: string) =>
+      run(() => ordersRepo.pay(id, idempotencyKey)),
     cancel: () => run(() => ordersRepo.cancel(id)),
     confirmDelivery: () => run(() => ordersRepo.confirmDelivery(id)),
     dispute: (reason: DisputeReason, detail?: string) =>

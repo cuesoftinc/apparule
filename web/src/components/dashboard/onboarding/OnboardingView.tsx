@@ -9,10 +9,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BadgeCheck, Banknote, Shirt } from "lucide-react";
 import { useAuth } from "@/controllers/auth/AuthContext";
-import {
-  SUPPORT_URL,
-  useOnboarding,
-} from "@/controllers/use-onboarding";
+import { SUPPORT_URL, useOnboarding } from "@/controllers/use-onboarding";
 import { Banner } from "@/components/ui/Banner";
 import { Button } from "@/components/ui/Button";
 import { FormRow } from "@/components/ui/FormRow";
@@ -66,7 +63,11 @@ export function OnboardingView() {
       <header>
         {/* Figma 269:10178: the profile screen's headline leads visually —
             the page landmark title stays for assistive tech. */}
-        <h1 className={step === "profile" ? "sr-only" : "text-title-lg font-bold text-text"}>
+        <h1
+          className={
+            step === "profile" ? "sr-only" : "text-title-lg font-bold text-text"
+          }
+        >
           Designer onboarding
         </h1>
       </header>
@@ -97,7 +98,11 @@ export function OnboardingView() {
               Receive commission requests with exact measurements attached.
             </li>
             <li className="flex items-start gap-3">
-              <Banknote size={24} className="shrink-0 text-text-2" aria-hidden />
+              <Banknote
+                size={24}
+                className="shrink-0 text-text-2"
+                aria-hidden
+              />
               Get paid through escrow — released on delivery, 10% platform fee.
             </li>
           </ul>
@@ -287,7 +292,9 @@ export function OnboardingView() {
               >
                 <p className="text-body text-text">
                   Account name:{" "}
-                  <strong>{onboarding.resolution.resolution.account_name}</strong>
+                  <strong>
+                    {onboarding.resolution.resolution.account_name}
+                  </strong>
                 </p>
                 <p className="text-caption text-text-2">
                   Confirm this is you — payouts are irreversible.

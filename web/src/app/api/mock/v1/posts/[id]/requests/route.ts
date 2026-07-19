@@ -1,11 +1,6 @@
 // Mock: POST /api/v1/posts/{id}/requests — commission request, snapshot
 // frozen server-side; Idempotency-Key honored (api.md §4).
-import {
-  actorUsername,
-  handle,
-  jsonResponse,
-  readJson,
-} from "@/mocks/http";
+import { actorUsername, handle, jsonResponse, readJson } from "@/mocks/http";
 import { getStore } from "@/mocks/store";
 import type { DeliveryAddress } from "@/models";
 

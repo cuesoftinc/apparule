@@ -36,7 +36,10 @@ beforeEach(() => {
   deleteSession.mockReset();
   // jsdom lacks createObjectURL
   URL.createObjectURL ??= () => "blob:mock";
-  vi.stubGlobal("URL", Object.assign(URL, { createObjectURL: () => "blob:mock" }));
+  vi.stubGlobal(
+    "URL",
+    Object.assign(URL, { createObjectURL: () => "blob:mock" }),
+  );
 });
 
 describe("useCapture", () => {

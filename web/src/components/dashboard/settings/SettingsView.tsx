@@ -202,7 +202,10 @@ export function SettingsView() {
         ) : null}
       </section>
 
-      <nav aria-label="Settings sections" className="divide-y divide-border border-y border-border">
+      <nav
+        aria-label="Settings sections"
+        className="divide-y divide-border border-y border-border"
+      >
         <SettingsRow
           title="Notifications"
           meta="Quotes, order status, social, payouts"
@@ -223,7 +226,10 @@ export function SettingsView() {
         />
       </nav>
 
-      <section aria-labelledby="settings-appearance-h" className="flex flex-col gap-3">
+      <section
+        aria-labelledby="settings-appearance-h"
+        className="flex flex-col gap-3"
+      >
         <h2
           id="settings-appearance-h"
           className="pb-1 text-body font-semibold text-text-2"

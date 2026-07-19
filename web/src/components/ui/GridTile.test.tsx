@@ -5,7 +5,12 @@ import { GridTile } from "./GridTile";
 describe("GridTile (§8.2b)", () => {
   it("renders the 1:1 tile with hover-stats overlay", () => {
     render(
-      <GridTile src="/demo/outfit-w03.jpg" alt="Outfit" likeCount={519} commentCount={6} />,
+      <GridTile
+        src="/demo/outfit-w03.jpg"
+        alt="Outfit"
+        likeCount={519}
+        commentCount={6}
+      />,
     );
     const stats = screen.getByTestId("hover-stats");
     expect(stats).toHaveTextContent("519");

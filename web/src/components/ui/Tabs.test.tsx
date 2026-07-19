@@ -6,8 +6,12 @@ import { Tabs } from "./Tabs";
 describe("Tabs (§8.2b as built)", () => {
   it("text kind renders the two role labels", () => {
     render(<Tabs active="first" onChange={() => {}} />);
-    expect(screen.getByRole("tab", { name: "As customer" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "As designer" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("tab", { name: "As customer" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("tab", { name: "As designer" }),
+    ).toBeInTheDocument();
   });
 
   it("icon kind renders grid + saved tabs", () => {

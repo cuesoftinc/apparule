@@ -3,11 +3,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import {
-  THEME_STORAGE_KEY,
-  ThemeProvider,
-  useTheme,
-} from "./ThemeProvider";
+import { THEME_STORAGE_KEY, ThemeProvider, useTheme } from "./ThemeProvider";
 
 function Probe() {
   const { preference, setPreference } = useTheme();

@@ -190,7 +190,9 @@ export function VaultView() {
       <CaptureOptionsSheet
         open={sheet === "options"}
         onOpenChange={(open) => setSheet(open ? "options" : null)}
-        onPick={(mode) => setSheet(mode === "webcam-upload" ? "webcam" : "manual")}
+        onPick={(mode) =>
+          setSheet(mode === "webcam-upload" ? "webcam" : "manual")
+        }
       />
       <WebcamCaptureSheet
         open={sheet === "webcam"}
@@ -225,7 +227,10 @@ export function VaultView() {
                   onDelete={() =>
                     vault.deleteSession(session.id).then(
                       () =>
-                        showToast({ kind: "neutral", message: "Session deleted" }),
+                        showToast({
+                          kind: "neutral",
+                          message: "Session deleted",
+                        }),
                       () =>
                         showToast({
                           kind: "error",

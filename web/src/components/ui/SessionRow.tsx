@@ -79,9 +79,14 @@ export function SessionRow({
           </span>
           {context === "picker" ? <StatusPill status={freshness} /> : null}
         </div>
-        <p className="tnum mt-0.5 truncate text-caption text-text-2">{values}</p>
+        <p className="tnum mt-0.5 truncate text-caption text-text-2">
+          {values}
+        </p>
         {context === "picker" && freshness !== "fresh" ? (
-          <p data-testid="freshness-warning" className="mt-1 text-micro text-warn">
+          <p
+            data-testid="freshness-warning"
+            className="mt-1 text-micro text-warn"
+          >
             {freshness === "aging"
               ? "Measured over a month ago — consider retaking"
               : "Over 90 days old — retake recommended before ordering"}

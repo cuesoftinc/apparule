@@ -30,7 +30,9 @@ export function GridTile({
   className,
 }: GridTileProps) {
   if (skeleton) {
-    return <Skeleton kind="media" className={clsx("rounded-none", className)} />;
+    return (
+      <Skeleton kind="media" className={clsx("rounded-none", className)} />
+    );
   }
   return (
     <button
@@ -43,7 +45,13 @@ export function GridTile({
       )}
     >
       {src ? (
-        <Image src={src} alt={alt} fill sizes="(max-width: 768px) 33vw, 300px" className="object-cover" />
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          sizes="(max-width: 768px) 33vw, 300px"
+          className="object-cover"
+        />
       ) : (
         // Figma master (86:984): media-less default shows a camera glyph
         <span className="absolute inset-0 grid place-items-center text-text-2">
@@ -68,10 +76,12 @@ export function GridTile({
         )}
       >
         <span className="tnum flex items-center gap-1.5 font-semibold">
-          <Heart size={18} className="fill-white" /> {likeCount.toLocaleString("en-NG")}
+          <Heart size={18} className="fill-white" />{" "}
+          {likeCount.toLocaleString("en-NG")}
         </span>
         <span className="tnum flex items-center gap-1.5 font-semibold">
-          <MessageCircle size={18} className="fill-white" /> {commentCount.toLocaleString("en-NG")}
+          <MessageCircle size={18} className="fill-white" />{" "}
+          {commentCount.toLocaleString("en-NG")}
         </span>
       </span>
     </button>

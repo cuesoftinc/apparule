@@ -41,14 +41,25 @@ export function UserRow({
       data-trailing={trailing}
       className={clsx("flex w-full items-center gap-3 py-2", className)}
     >
-      <button type="button" onClick={onOpen} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-        <Avatar size={avatarSize} name={username} src={avatarUrl} verified={verified} />
+      <button
+        type="button"
+        onClick={onOpen}
+        className="flex min-w-0 flex-1 items-center gap-3 text-left"
+      >
+        <Avatar
+          size={avatarSize}
+          name={username}
+          src={avatarUrl}
+          verified={verified}
+        />
         <span className="min-w-0">
           <span className="block truncate text-body font-semibold text-text">
             {username}
           </span>
           {meta ? (
-            <span className="block truncate text-caption text-text-2">{meta}</span>
+            <span className="block truncate text-caption text-text-2">
+              {meta}
+            </span>
           ) : null}
         </span>
       </button>

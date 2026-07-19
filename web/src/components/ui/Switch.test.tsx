@@ -12,7 +12,10 @@ describe("Switch (§8.2b)", () => {
     rerender(
       <Switch checked={false} onCheckedChange={() => {}} aria-label="Quotes" />,
     );
-    expect(screen.getByRole("switch")).toHaveAttribute("data-state", "unchecked");
+    expect(screen.getByRole("switch")).toHaveAttribute(
+      "data-state",
+      "unchecked",
+    );
   });
 
   it("toggles via click", async () => {
@@ -27,7 +30,12 @@ describe("Switch (§8.2b)", () => {
   it("disabled blocks toggling", async () => {
     const onChange = vi.fn();
     render(
-      <Switch checked={false} disabled onCheckedChange={onChange} aria-label="Quotes" />,
+      <Switch
+        checked={false}
+        disabled
+        onCheckedChange={onChange}
+        aria-label="Quotes"
+      />,
     );
     await userEvent.click(screen.getByRole("switch"));
     expect(onChange).not.toHaveBeenCalled();

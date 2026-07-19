@@ -50,7 +50,9 @@ test("semantic landmarks: every dashboard screen renders one <main> and the prim
   ];
   for (const route of routes) {
     await page.goto(route);
-    await expect(page.locator("main"), `${route} has one <main>`).toHaveCount(1);
+    await expect(page.locator("main"), `${route} has one <main>`).toHaveCount(
+      1,
+    );
     await expect(
       page.locator('nav[aria-label="Primary"]:visible'),
       `${route} shows the primary nav`,
@@ -151,13 +153,18 @@ test("B1 journey: like/save/follow → request stepper → order → quote → p
   await page.getByRole("link", { name: "View order" }).click();
   await page.waitForURL("**/dashboard/orders/*");
   const orderId = page.url().split("/").pop()!;
-  await expect(page.getByText("Requested", { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByText("Requested", { exact: true }).first(),
+  ).toBeVisible();
 
   // Designer quotes via the mock actor seam (x-mock-actor honored in TEST_MODE).
-  const quoteRes = await request.post(`/api/mock/v1/requests/${orderId}/quote`, {
-    headers: { "x-mock-actor": "maisonbisi" },
-    data: { quote_cents: 7_000_000, currency: "NGN", due_at: "2026-08-30" },
-  });
+  const quoteRes = await request.post(
+    `/api/mock/v1/requests/${orderId}/quote`,
+    {
+      headers: { "x-mock-actor": "maisonbisi" },
+      data: { quote_cents: 7_000_000, currency: "NGN", due_at: "2026-08-30" },
+    },
+  );
   expect(quoteRes.status()).toBe(200);
 
   // Customer pays → escrow-held (MI-15).
@@ -175,7 +182,9 @@ test("B1 journey: like/save/follow → request stepper → order → quote → p
   });
 });
 
-test("B3: the seeded list covers all ten lifecycle states", async ({ page }) => {
+test("B3: the seeded list covers all ten lifecycle states", async ({
+  page,
+}) => {
   await signIn(page);
   await page.goto("/dashboard/orders");
   const list = page.getByTestId("orders-list");
@@ -239,20 +248,26 @@ test("B4 vault: webcam QC failure → retake → capture → save; history delet
   await page.getByRole("button", { name: /Use your camera/ }).click();
 
   // Designated QC fixture: a file name containing a capture-qc code.
-  await page
-    .getByTestId("capture-file")
-    .setInputFiles({ name: "fixture-blurry.jpg", mimeType: "image/jpeg", buffer: TINY_JPEG });
+  await page.getByTestId("capture-file").setInputFiles({
+    name: "fixture-blurry.jpg",
+    mimeType: "image/jpeg",
+    buffer: TINY_JPEG,
+  });
   await expect(page.getByRole("alert")).toContainText("Hold steady and retake");
   await page.getByRole("button", { name: "Retake" }).click();
 
   // Happy path: processing constellation → results → save to vault.
-  await page
-    .getByTestId("capture-file")
-    .setInputFiles({ name: "photo.jpg", mimeType: "image/jpeg", buffer: TINY_JPEG });
-  await expect(page.getByTestId("capture-processing")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Save to vault" })).toBeVisible({
-    timeout: 5_000,
+  await page.getByTestId("capture-file").setInputFiles({
+    name: "photo.jpg",
+    mimeType: "image/jpeg",
+    buffer: TINY_JPEG,
   });
+  await expect(page.getByTestId("capture-processing")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save to vault" })).toBeVisible(
+    {
+      timeout: 5_000,
+    },
+  );
   await page.getByRole("button", { name: "Save to vault" }).click();
   await expect(page.getByText("Saved to your vault")).toBeVisible();
   await expect(page.getByTestId("vault-grid")).toContainText("Chest Girth");
@@ -316,9 +331,11 @@ test("B5/B8: creator upsell → onboarding with Paystack resolution states → p
   // Composer unlocks (auth context refreshed) → publish to the feed store.
   await page.getByRole("link", { name: "Post your first outfit" }).click();
   await page.waitForURL("**/dashboard/create");
-  await page
-    .getByTestId("media-input")
-    .setInputFiles({ name: "look.jpg", mimeType: "image/jpeg", buffer: TINY_JPEG });
+  await page.getByTestId("media-input").setInputFiles({
+    name: "look.jpg",
+    mimeType: "image/jpeg",
+    buffer: TINY_JPEG,
+  });
   await expect(page.getByTestId("composer-tiles")).toBeVisible();
   await page.getByLabel("Caption").fill("First drop — ankara wrap dress.");
   await expect(page.getByTestId("composer-publish")).toBeEnabled();
@@ -373,8 +390,13 @@ test("B3 matrix: customer dispute freezes payout; confirm-delivery releases it",
   await page.getByRole("button", { name: "Something wrong?" }).click();
   await page.getByRole("combobox", { name: "Dispute reason" }).click();
   await page.getByRole("option", { name: "Size is wrong" }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "Open dispute" }).click();
-  await expect(page.getByText("Disputed", { exact: true }).first()).toBeVisible();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Open dispute" })
+    .click();
+  await expect(
+    page.getByText("Disputed", { exact: true }).first(),
+  ).toBeVisible();
   await expect(page.getByText(/frozen/i).first()).toBeVisible();
 
   // Confirm delivery from shipped → payout released.
@@ -384,7 +406,9 @@ test("B3 matrix: customer dispute freezes payout; confirm-delivery releases it",
     .getByRole("dialog")
     .getByRole("button", { name: "Confirm delivery" })
     .click();
-  await expect(page.getByText("Delivered", { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByText("Delivered", { exact: true }).first(),
+  ).toBeVisible();
 });
 
 test("designer side (actor seam): decline with reason; earnings itemize the released payout", async ({
@@ -406,8 +430,13 @@ test("designer side (actor seam): decline with reason; earnings itemize the rele
   await page.getByRole("button", { name: "Decline" }).click();
   await page.getByRole("combobox", { name: "Decline reason" }).click();
   await page.getByRole("option", { name: "Fully booked right now" }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "Decline" }).click();
-  await expect(page.getByText("Declined", { exact: true }).first()).toBeVisible();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Decline" })
+    .click();
+  await expect(
+    page.getByText("Declined", { exact: true }).first(),
+  ).toBeVisible();
 
   // B9: the payout released by the previous test itemizes for tunde.
   await page.goto("/dashboard/earnings");
@@ -425,25 +454,31 @@ test("designer quote via the UI: the due-date calendar works inside the quote sh
   // could never be sent from the UI. Close the seeded open order on this
   // post first (no-op 409 when an earlier test already delivered it), then
   // file a fresh request as kiki via the API.
-  const close = await request.post("/api/mock/v1/requests/req-apr-1044/confirm-delivery", {
-    headers: { "x-mock-actor": "kiki.adeyemi" },
-  });
+  const close = await request.post(
+    "/api/mock/v1/requests/req-apr-1044/confirm-delivery",
+    {
+      headers: { "x-mock-actor": "kiki.adeyemi" },
+    },
+  );
   expect([200, 409]).toContain(close.status());
-  const res = await request.post("/api/mock/v1/posts/post-print-brothers/requests", {
-    headers: { "x-mock-actor": "kiki.adeyemi" },
-    data: {
-      session_id: "sess-recent-scan",
-      notes: "Quote regression fixture",
-      delivery: {
-        recipient_name: "Kiki Adeyemi",
-        phone: "+2348012345678",
-        line1: "14 Adeola Odeku St",
-        city: "Lagos",
-        state: "Lagos",
-        country: "NG",
+  const res = await request.post(
+    "/api/mock/v1/posts/post-print-brothers/requests",
+    {
+      headers: { "x-mock-actor": "kiki.adeyemi" },
+      data: {
+        session_id: "sess-recent-scan",
+        notes: "Quote regression fixture",
+        delivery: {
+          recipient_name: "Kiki Adeyemi",
+          phone: "+2348012345678",
+          line1: "14 Adeola Odeku St",
+          city: "Lagos",
+          state: "Lagos",
+          country: "NG",
+        },
       },
     },
-  });
+  );
   expect(res.status()).toBe(201);
   const order = await res.json();
 
@@ -461,10 +496,7 @@ test("designer quote via the UI: the due-date calendar works inside the quote sh
   await expect(picker).toBeVisible();
   // the calendar must actually receive the click (the z-layer regression)
   await picker.getByRole("button", { name: "Next month" }).click();
-  await picker
-    .getByRole("button", { name: "15", exact: true })
-    .first()
-    .click();
+  await picker.getByRole("button", { name: "15", exact: true }).first().click();
   await sheet.getByRole("button", { name: "Send quote" }).click();
 
   await expect(page.getByText("Quoted", { exact: true }).first()).toBeVisible();
