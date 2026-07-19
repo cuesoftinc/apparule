@@ -87,7 +87,7 @@ test.describe("Marketing site — home page", () => {
       }),
     ).toBeVisible();
     await expect(
-      page.getByText("Open source · MIT licensed · Self-host in one line"),
+      page.getByText("Open-source · MIT licensed · Self-host in one line"),
     ).toBeVisible();
 
     // A10 footer
@@ -434,10 +434,10 @@ test.describe("nav/footer parity canon", () => {
     );
     await expect(panelBadge).toContainText("Star");
 
-    // Try Cloud rides along in the panel and hands off to /signin
-    await expect(
-      panel.getByRole("button", { name: "Try Cloud" }),
-    ).toBeVisible();
+    // [Revised 2026-07-19 canon] Try Cloud stays visible on the BAR
+    // beside the hamburger; the panel carries no duplicate row.
+    await expect(nav.getByRole("button", { name: "Try Cloud" })).toBeVisible();
+    await expect(panel.getByRole("button", { name: "Try Cloud" })).toHaveCount(0);
 
     // the theme toggle works from inside the panel
     await panel.getByRole("button", { name: /switch to dark theme/i }).click();

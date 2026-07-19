@@ -56,6 +56,30 @@ describe("seed narrative", () => {
     }
   });
 
+  it("seeded comment counts equal the seeded comment lists (P1 realism)", () => {
+    for (const post of store.explore("kiki.adeyemi")) {
+      expect(store.commentsFor(post.id).length, post.id).toBe(
+        post.comment_count,
+      );
+    }
+  });
+
+  it("designer follower counts mirror the follow graph (P1 realism)", () => {
+    for (const designer of store.designers) {
+      expect(designer.followers_count, designer.username).toBe(
+        store.followersOf(designer.username, "kiki.adeyemi").length,
+      );
+    }
+  });
+
+  it("order snapshots are measured before the order exists (P1 realism)", () => {
+    for (const order of store.orders) {
+      const measured = new Date(order.snapshot.values.measured_at).getTime();
+      const created = new Date(order.created_at).getTime();
+      expect(measured, order.id).toBeLessThanOrEqual(created);
+    }
+  });
+
   it("feed contains only followed designers (amara + bisi, not tunde)", () => {
     const feed = store.feed("kiki.adeyemi");
     expect(feed.length).toBeGreaterThan(0);
@@ -170,6 +194,9 @@ describe("engagement", () => {
     const budget = store.explore("kiki.adeyemi", undefined, undefined, "budget");
     // ₦22,000 shirt is the only sub-25k priced post
     expect(budget.map((p) => p.id)).toEqual(["post-print-brothers"]);
+    // the ₦150,000 bridal gown demos the premium band (P1 realism)
+    const premium = store.explore("kiki.adeyemi", undefined, undefined, "premium");
+    expect(premium.map((p) => p.id)).toEqual(["post-bridal-gown"]);
   });
 });
 

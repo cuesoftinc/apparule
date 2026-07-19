@@ -2,7 +2,7 @@
 // photography; the mock narratives the designs boot with):
 //   kiki.adeyemi (customer) · amara.designs / tunde.o / maisonbisi
 //   (designers, Lagos) · orders #APR-1042 (ankara, ₦45,000, in_progress) and
-//   #APR-1058 (aso-oke, ₦62,000, delivered/paid-out) · measurements
+//   #APR-1058 (little senator, ₦62,000, delivered/paid-out) · measurements
 //   (shoulder 42.5 cm etc. with freshness) · feed posts referencing the
 //   CC-licensed photos in web/public/demo (see ATTRIBUTIONS.md there).
 import type {
@@ -114,6 +114,46 @@ export const seedAccounts: Account[] = [
   },
 ];
 
+// Community members — the wider Lagos-scene audience around the four core
+// personas: comment authors, follower rows, and fresh activity actors, so
+// engagement reads as multiple real users at a plausible cadence.
+function makeCommunityAccount(input: {
+  id: string;
+  username: string;
+  displayName: string;
+  city: string;
+  state: string;
+  joinedDaysAgo: number;
+}): Account {
+  return {
+    id: input.id,
+    firebase_uid: `test-uid-${input.id.replace("acc-", "")}`,
+    email: `${input.username.replace(/\./g, "_")}@example.com`,
+    username: input.username,
+    display_name: input.displayName,
+    avatar_url: null,
+    profile_location: { city: input.city, state: input.state, country: "NG" },
+    deletion_state: "active",
+    designer: { enabled: false, kyc_complete: false },
+    is_staff: false,
+    notification_prefs: defaultPrefs(),
+    consent: [
+      { document: "tos", version: "1.0", accepted_at: daysAgo(input.joinedDaysAgo) },
+      { document: "privacy", version: "1.0", accepted_at: daysAgo(input.joinedDaysAgo) },
+    ],
+    created_at: daysAgo(input.joinedDaysAgo),
+  };
+}
+
+seedAccounts.push(
+  makeCommunityAccount({ id: "acc-ada", username: "ada.eze", displayName: "Ada Eze", city: "Lagos", state: "Lagos", joinedDaysAgo: 90 }),
+  makeCommunityAccount({ id: "acc-funmi", username: "funmi.b", displayName: "Funmi Balogun", city: "Lagos", state: "Lagos", joinedDaysAgo: 130 }),
+  makeCommunityAccount({ id: "acc-chidi", username: "chidi.n", displayName: "Chidi Nwosu", city: "Enugu", state: "Enugu", joinedDaysAgo: 75 }),
+  makeCommunityAccount({ id: "acc-zainab", username: "zainab.k", displayName: "Zainab Kassim", city: "Abuja", state: "FCT", joinedDaysAgo: 150 }),
+  makeCommunityAccount({ id: "acc-emeka", username: "emeka.u", displayName: "Emeka Udo", city: "Lagos", state: "Lagos", joinedDaysAgo: 210 }),
+  makeCommunityAccount({ id: "acc-tola", username: "tola.mak", displayName: "Tola Makinde", city: "Ibadan", state: "Oyo", joinedDaysAgo: 60 }),
+);
+
 export const seedDesigners: DesignerProfile[] = [
   {
     id: "des-amara",
@@ -130,10 +170,11 @@ export const seedDesigners: DesignerProfile[] = [
     },
     verified: true,
     location: { city: "Lagos", state: "Lagos", country: "NG" },
-    followers_count: 1284,
-    following_count: 87,
-    // posts_count mirrors the actual seeded posts (system QA: the profile
-    // header said "4 posts" over a 3-tile grid).
+    // Counts mirror the seeded graph exactly (P1 realism pass: the
+    // followers sheet lists every follower, so count == list; posts_count
+    // == the seeded grid).
+    followers_count: 7,
+    following_count: 2,
     posts_count: 3,
   },
   {
@@ -151,8 +192,8 @@ export const seedDesigners: DesignerProfile[] = [
     },
     verified: true,
     location: { city: "Lagos", state: "Lagos", country: "NG" },
-    followers_count: 642,
-    following_count: 120,
+    followers_count: 4,
+    following_count: 1,
     posts_count: 3,
   },
   {
@@ -170,9 +211,9 @@ export const seedDesigners: DesignerProfile[] = [
     },
     verified: true,
     location: { city: "Lagos", state: "Lagos", country: "NG" },
-    followers_count: 2310,
-    following_count: 45,
-    posts_count: 3,
+    followers_count: 6,
+    following_count: 1,
+    posts_count: 4,
   },
 ];
 
@@ -233,15 +274,14 @@ export const seedPosts: Post[] = [
     id: "post-ankara-gown",
     designerId: "des-amara",
     caption:
-      "Ankara midi gown with structured shoulders — made to your exact measurements. DM slots open for June.",
-    tags: ["ankara", "gown", "occasion"],
+      "Ankara maxi skirt with structured waistband — made to your exact measurements. DM slots open for June.",
+    tags: ["ankara", "skirt", "occasion"],
     priceCents: 4_500_000,
     turnaround: 14,
     media: [
-      { file: "outfit-w00.jpg", alt: "Model in a vibrant ankara gown on the runway" },
-      { file: "outfit-w01.jpg", alt: "Ankara look, full-length runway shot" },
+      { file: "outfit-w01.jpg", alt: "Model in an ankara maxi skirt on the runway" },
     ],
-    likes: 214,
+    likes: 34,
     comments: 3,
     createdDaysAgo: 2,
   }),
@@ -249,14 +289,27 @@ export const seedPosts: Post[] = [
     id: "post-asooke-set",
     designerId: "des-bisi",
     caption:
-      "Hand-woven aso-oke two-piece — ceremonial weight, modern cut. Quote on request.",
-    tags: ["aso-oke", "traditional", "wedding"],
+      "Little senator — ceremonial set for the youngest guest. Aso-oke trim, custom-sized, hand-finished.",
+    tags: ["senator", "kids", "traditional"],
     priceCents: 6_200_000,
     turnaround: 21,
-    media: [{ file: "outfit-w13.jpg", alt: "Traditional aso-oke outfit worn at a ceremony" }],
-    likes: 452,
+    media: [{ file: "outfit-w13.jpg", alt: "Boy in a royal blue senator outfit with white piping" }],
+    likes: 41,
     comments: 5,
     createdDaysAgo: 4,
+  }),
+  makePost({
+    id: "post-bridal-gown",
+    designerId: "des-bisi",
+    caption:
+      "Bridal second-look gown — blush, structured train, hand-finished. Booked per season, two fittings included.",
+    tags: ["bridal", "gown", "wedding"],
+    priceCents: 15_000_000,
+    turnaround: 30,
+    media: [{ file: "outfit-w00.jpg", alt: "Model in a blush bridal gown with a structured train" }],
+    likes: 38,
+    comments: 4,
+    createdDaysAgo: 9,
   }),
   makePost({
     id: "post-print-couple",
@@ -266,19 +319,19 @@ export const seedPosts: Post[] = [
     priceCents: 3_800_000,
     turnaround: 10,
     media: [{ file: "outfit-w16.jpg", alt: "Couple wearing matching African print outfits" }],
-    likes: 128,
+    likes: 18,
     comments: 2,
     createdDaysAgo: 1,
   }),
   makePost({
     id: "post-agbada",
     designerId: "des-tunde",
-    caption: "Classic agbada, updated proportions. Ceremony-ready in three weeks.",
-    tags: ["agbada", "menswear", "traditional"],
+    caption: "Ceremonial robe set — traditional cut, made for movement. Ceremony-ready in three weeks.",
+    tags: ["ceremonial", "menswear", "traditional"],
     priceCents: 5_500_000,
     turnaround: 21,
     media: [{ file: "outfit-w06.jpg", alt: "Men in traditional ceremonial dress" }],
-    likes: 301,
+    likes: 27,
     comments: 4,
     createdDaysAgo: 6,
   }),
@@ -290,19 +343,19 @@ export const seedPosts: Post[] = [
     priceCents: 2_200_000,
     turnaround: 7,
     media: [{ file: "outfit-w15.jpg", alt: "Two men in matching African print shirts" }],
-    likes: 96,
+    likes: 12,
     comments: 1,
     createdDaysAgo: 8,
   }),
   makePost({
     id: "post-runway-orange",
     designerId: "des-bisi",
-    caption: "Orange is the colour of the season — runway sample now available made-to-measure.",
-    tags: ["runway", "gown", "occasion"],
+    caption: "Resort one-piece from the new capsule — palm print, runway sample available made-to-measure.",
+    tags: ["resort", "runway", "swim"],
     priceCents: null,
     turnaround: 18,
-    media: [{ file: "outfit-w05.jpg", alt: "Runway model in an orange statement outfit" }],
-    likes: 519,
+    media: [{ file: "outfit-w05.jpg", alt: "Runway model in a palm-print one-piece swimsuit" }],
+    likes: 46,
     comments: 6,
     createdDaysAgo: 11,
   }),
@@ -317,7 +370,7 @@ export const seedPosts: Post[] = [
       { file: "outfit-w14.jpg", alt: "African print fabrics on display" },
       { file: "outfit-w10.jpg", alt: "Designer cutting cloth at a work table" },
     ],
-    likes: 87,
+    likes: 14,
     comments: 2,
     createdDaysAgo: 15,
   }),
@@ -329,7 +382,7 @@ export const seedPosts: Post[] = [
     priceCents: 8_000_000,
     turnaround: 28,
     media: [{ file: "outfit-w03.jpg", alt: "Model in a statement evening look" }],
-    likes: 233,
+    likes: 22,
     comments: 3,
     createdDaysAgo: 20,
   }),
@@ -343,7 +396,7 @@ export const seedPosts: Post[] = [
     media: [
       { file: "outfit-w06.jpg", alt: "Dancers performing in traditional dress" },
     ],
-    likes: 164,
+    likes: 19,
     comments: 2,
     createdDaysAgo: 26,
   }),
@@ -354,8 +407,8 @@ export const seedComments: Comment[] = [
     id: "cmt-1",
     post_id: "post-ankara-gown",
     author: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
-    body: "Obsessed with the shoulders 😍",
-    like_count: 12,
+    body: 'Obsessed with this print 😍',
+    like_count: 4,
     liked: false,
     hidden_by_moderation: false,
     created_at: daysAgo(1.5),
@@ -364,21 +417,311 @@ export const seedComments: Comment[] = [
     id: "cmt-2",
     post_id: "post-ankara-gown",
     author: { id: "acc-bisi", username: "maisonbisi", avatar_url: null },
-    body: "Beautiful work as always, Amara.",
-    like_count: 8,
+    body: 'Beautiful work as always, Amara.',
+    like_count: 2,
     liked: false,
     hidden_by_moderation: false,
     created_at: daysAgo(1.2),
   },
   {
     id: "cmt-3",
+    post_id: "post-ankara-gown",
+    author: { id: "acc-funmi", username: "funmi.b", avatar_url: null },
+    body: 'Do you have this in a longer length? Asking for a wedding guest look.',
+    like_count: 0,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(0.8),
+  },
+  {
+    id: "cmt-4",
     post_id: "post-asooke-set",
     author: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
-    body: "Commissioned one of these — the weave is even better in person.",
-    like_count: 21,
+    body: 'Commissioned one of these — the finish is even better in person.',
+    like_count: 6,
     liked: false,
     hidden_by_moderation: false,
     created_at: daysAgo(3),
+  },
+  {
+    id: "cmt-5",
+    post_id: "post-asooke-set",
+    author: { id: "acc-bisi", username: "maisonbisi", avatar_url: null },
+    body: '@kiki.adeyemi thank you! Your little senator came out so well — one of my favourites this year.',
+    like_count: 3,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(2.8),
+  },
+  {
+    id: "cmt-6",
+    post_id: "post-asooke-set",
+    author: { id: "acc-ada", username: "ada.eze", avatar_url: null },
+    body: 'The texture on this is unreal.',
+    like_count: 1,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(2.5),
+  },
+  {
+    id: "cmt-7",
+    post_id: "post-asooke-set",
+    author: { id: "acc-tunde", username: "tunde.o", avatar_url: null },
+    body: 'Clean finishing as usual, Bisi. 🔥',
+    like_count: 2,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(2),
+  },
+  {
+    id: "cmt-8",
+    post_id: "post-asooke-set",
+    author: { id: "acc-zainab", username: "zainab.k", avatar_url: null },
+    body: 'Could you do a lighter fabric version for Abuja heat?',
+    like_count: 0,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(1),
+  },
+  {
+    id: "cmt-9",
+    post_id: "post-bridal-gown",
+    author: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
+    body: 'Sending this to my cousin immediately.',
+    like_count: 3,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(2.5),
+  },
+  {
+    id: "cmt-10",
+    post_id: "post-bridal-gown",
+    author: { id: "acc-funmi", username: "funmi.b", avatar_url: null },
+    body: 'That train 😭😭',
+    like_count: 2,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(2),
+  },
+  {
+    id: "cmt-11",
+    post_id: "post-bridal-gown",
+    author: { id: "acc-ada", username: "ada.eze", avatar_url: null },
+    body: 'How far in advance should a bride book?',
+    like_count: 1,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(1.5),
+  },
+  {
+    id: "cmt-12",
+    post_id: "post-bridal-gown",
+    author: { id: "acc-tunde", username: "tunde.o", avatar_url: null },
+    body: "Season's best, easily.",
+    like_count: 2,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(1),
+  },
+  {
+    id: "cmt-13",
+    post_id: "post-print-couple",
+    author: { id: "acc-chidi", username: "chidi.n", avatar_url: null },
+    body: 'My fiancée just tagged me. I know what that means.',
+    like_count: 2,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(0.7),
+  },
+  {
+    id: "cmt-14",
+    post_id: "post-print-couple",
+    author: { id: "acc-funmi", username: "funmi.b", avatar_url: null },
+    body: 'Coordination without the costume feel — exactly right.',
+    like_count: 0,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(0.4),
+  },
+  {
+    id: "cmt-15",
+    post_id: "post-agbada",
+    author: { id: "acc-emeka", username: "emeka.u", avatar_url: null },
+    body: 'That drape — exactly what ceremony wear needed.',
+    like_count: 3,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(5),
+  },
+  {
+    id: "cmt-16",
+    post_id: "post-agbada",
+    author: { id: "acc-ada", username: "ada.eze", avatar_url: null },
+    body: 'My dad would love this.',
+    like_count: 0,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(3),
+  },
+  {
+    id: "cmt-17",
+    post_id: "post-agbada",
+    author: { id: "acc-tola", username: "tola.mak", avatar_url: null },
+    body: 'Ceremony-ready indeed. Sharp.',
+    like_count: 1,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(2),
+  },
+  {
+    id: "cmt-18",
+    post_id: "post-agbada",
+    author: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
+    body: "Just sent a request for my brother's wedding — fingers crossed! 🤞",
+    like_count: 2,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(1),
+  },
+  {
+    id: "cmt-19",
+    post_id: "post-print-brothers",
+    author: { id: "acc-chidi", username: "chidi.n", avatar_url: null },
+    body: 'Need this for my brother and me. Those collars!',
+    like_count: 1,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(6),
+  },
+  {
+    id: "cmt-20",
+    post_id: "post-runway-orange",
+    author: { id: "acc-funmi", username: "funmi.b", avatar_url: null },
+    body: 'Resort season starts here.',
+    like_count: 4,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(10),
+  },
+  {
+    id: "cmt-21",
+    post_id: "post-runway-orange",
+    author: { id: "acc-ada", username: "ada.eze", avatar_url: null },
+    body: "Saw this on the runway — stunned it's available made-to-measure.",
+    like_count: 2,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(9.5),
+  },
+  {
+    id: "cmt-22",
+    post_id: "post-runway-orange",
+    author: { id: "acc-zainab", username: "zainab.k", avatar_url: null },
+    body: 'This silhouette would be perfect for a December event.',
+    like_count: 0,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(9),
+  },
+  {
+    id: "cmt-23",
+    post_id: "post-runway-orange",
+    author: { id: "acc-emeka", username: "emeka.u", avatar_url: null },
+    body: 'Vacation booked just for this.',
+    like_count: 1,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(8),
+  },
+  {
+    id: "cmt-24",
+    post_id: "post-runway-orange",
+    author: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
+    body: 'This print 😍',
+    like_count: 2,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(7),
+  },
+  {
+    id: "cmt-25",
+    post_id: "post-runway-orange",
+    author: { id: "acc-tola", username: "tola.mak", avatar_url: null },
+    body: 'Bisi never misses.',
+    like_count: 1,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(5),
+  },
+  {
+    id: "cmt-26",
+    post_id: "post-fabric-drop",
+    author: { id: "acc-funmi", username: "funmi.b", avatar_url: null },
+    body: 'That second print — reserving a silhouette this week.',
+    like_count: 1,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(14),
+  },
+  {
+    id: "cmt-27",
+    post_id: "post-fabric-drop",
+    author: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
+    body: 'Coming through with my vault numbers!',
+    like_count: 1,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(13),
+  },
+  {
+    id: "cmt-28",
+    post_id: "post-chromat-look",
+    author: { id: "acc-ada", username: "ada.eze", avatar_url: null },
+    body: 'Statement is an understatement.',
+    like_count: 2,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(19),
+  },
+  {
+    id: "cmt-29",
+    post_id: "post-chromat-look",
+    author: { id: "acc-zainab", username: "zainab.k", avatar_url: null },
+    body: 'The drape on this — beautiful.',
+    like_count: 0,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(18),
+  },
+  {
+    id: "cmt-30",
+    post_id: "post-chromat-look",
+    author: { id: "acc-chidi", username: "chidi.n", avatar_url: null },
+    body: 'Saving this for my sister.',
+    like_count: 1,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(17),
+  },
+  {
+    id: "cmt-31",
+    post_id: "post-dance-troupe",
+    author: { id: "acc-emeka", username: "emeka.u", avatar_url: null },
+    body: '12 pieces in a week is wild. Respect.',
+    like_count: 3,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(25),
+  },
+  {
+    id: "cmt-32",
+    post_id: "post-dance-troupe",
+    author: { id: "acc-tola", username: "tola.mak", avatar_url: null },
+    body: 'The showcase was amazing — costumes made it.',
+    like_count: 1,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(24),
   },
 ];
 
@@ -496,17 +839,40 @@ function makeOrder(input: SeedOrderInput): CommissionRequest {
     decline_reason: input.decline ?? null,
     dispute: input.dispute ?? null,
     delivery: KIKI_DELIVERY,
+    // The snapshot freezes whichever vault session existed when the order
+    // was placed — measured_at always precedes the order (P1 realism pass).
     snapshot: {
       id: `snap-${input.num}`,
       request_id: id,
-      values: {
-        method: "mediapipe_2d_v2",
-        measured_at: daysAgo(12),
-        measurements: [
-          { name: "shoulder_width", value_cm: 42.5 },
-          { name: "hip_width", value_cm: 36.8 },
-        ],
-      },
+      values:
+        input.createdDaysAgo <= 12
+          ? {
+              method: "mediapipe_2d_v2",
+              measured_at: daysAgo(12),
+              measurements: [
+                { name: "shoulder_width", value_cm: 42.5 },
+                { name: "hip_width", value_cm: 36.8 },
+              ],
+            }
+          : input.createdDaysAgo <= 58
+            ? {
+                method: "manual",
+                measured_at: daysAgo(58),
+                measurements: [
+                  { name: "shoulder_width", value_cm: 42.0 },
+                  { name: "hip_width", value_cm: 37.2 },
+                  { name: "chest_girth", value_cm: 92.0 },
+                  { name: "waist_girth", value_cm: 78.5 },
+                ],
+              }
+            : {
+                method: "mediapipe_2d",
+                measured_at: daysAgo(140),
+                measurements: [
+                  { name: "shoulder_width", value_cm: 41.8 },
+                  { name: "hip_width", value_cm: 37.0 },
+                ],
+              },
       created_at: daysAgo(input.createdDaysAgo),
     },
     events: input.events.map((e, i) => ({
@@ -538,8 +904,8 @@ export const seedOrders: CommissionRequest[] = [
     order_number: "APR-1042",
     post: {
       id: "post-ankara-gown",
-      caption: "Ankara midi gown with structured shoulders",
-      thumb_url: "/demo/outfit-w00.jpg",
+      caption: "Ankara maxi skirt with structured waistband",
+      thumb_url: "/demo/outfit-w01.jpg",
     },
     customer: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
     designer: { id: "des-amara", username: "amara.designs", avatar_url: null },
@@ -596,7 +962,7 @@ export const seedOrders: CommissionRequest[] = [
     order_number: "APR-1058",
     post: {
       id: "post-asooke-set",
-      caption: "Hand-woven aso-oke two-piece",
+      caption: "Little senator",
       thumb_url: "/demo/outfit-w13.jpg",
     },
     customer: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
@@ -673,7 +1039,8 @@ export const seedOrders: CommissionRequest[] = [
     notes: "Two-piece for an engagement shoot.",
     events: [
       { kind: "requested", actor: "customer", at: 3 },
-      { kind: "quoted", actor: "designer", at: 1.5 },
+      // 0.25d = 6h — matches the unread "quoted ₦40,000" notification.
+      { kind: "quoted", actor: "designer", at: 0.25 },
     ],
   }),
   makeOrder({
@@ -681,7 +1048,7 @@ export const seedOrders: CommissionRequest[] = [
     postId: "post-runway-orange",
     status: "paid",
     createdDaysAgo: 6,
-    quote: 8_500_000,
+    quote: 3_500_000,
     dueInDays: 21,
     payment: "held",
     events: [
@@ -792,7 +1159,7 @@ export const seedThreadMessages = [
     id: "msg-1058-1",
     request_id: "req-apr-1058",
     author_id: "acc-kiki",
-    body: "Colour scheme: burgundy and gold, please.",
+    body: "Colour scheme: royal blue and white, please — same as the post.",
     image_url: null,
     created_at: daysAgo(39),
   },
@@ -803,6 +1170,72 @@ export const seedThreadMessages = [
     body: "Delivered via GIG — enjoy the wedding!",
     image_url: null,
     created_at: daysAgo(10),
+  },
+  // The helper-built orders carry short, state-appropriate exchanges so
+  // every thread reads like a real buyer–designer conversation.
+  {
+    id: "msg-1031-1",
+    request_id: "req-apr-1031",
+    author_id: "acc-kiki",
+    body: "Sent the request — it's for my brother's wedding on Aug 22. Can you match the fabric in your post?",
+    image_url: null,
+    created_at: daysAgo(1),
+  },
+  {
+    id: "msg-1033-1",
+    request_id: "req-apr-1033",
+    author_id: "acc-kiki",
+    body: "The engagement shoot is in three weeks — is that doable?",
+    image_url: null,
+    created_at: daysAgo(2.5),
+  },
+  {
+    id: "msg-1033-2",
+    request_id: "req-apr-1033",
+    author_id: "des-amara",
+    body: "Just quoted ₦40,000 — three weeks is fine if payment lands this week.",
+    image_url: null,
+    created_at: daysAgo(0.25),
+  },
+  {
+    id: "msg-1036-1",
+    request_id: "req-apr-1036",
+    author_id: "des-bisi",
+    body: "Payment received — sourcing the print lycra this week. Will share swatches here.",
+    image_url: null,
+    created_at: daysAgo(3.5),
+  },
+  {
+    id: "msg-1044-1",
+    request_id: "req-apr-1044",
+    author_id: "des-tunde",
+    body: "Shipped via GIG — tracking GIG-5567-LAG. Apologies for the two-day slip, the collars took longer than planned.",
+    image_url: null,
+    created_at: daysAgo(3),
+  },
+  {
+    id: "msg-1018-1",
+    request_id: "req-apr-1018",
+    author_id: "acc-kiki",
+    body: "The colours are quite different from the reference photos — can we talk about this?",
+    image_url: null,
+    created_at: daysAgo(2.5),
+  },
+  {
+    id: "msg-1018-2",
+    request_id: "req-apr-1018",
+    author_id: "des-tunde",
+    body: "I see it — the dye lot shifted between samples. Happy to redo the top piece once support weighs in.",
+    image_url: null,
+    created_at: daysAgo(1.8),
+  },
+  {
+    id: "msg-1012-1",
+    request_id: "req-apr-1012",
+    author_id: "des-tunde",
+    body: "Fully booked until September, so I have to decline — sorry! maisonbisi does beautiful work in this style.",
+    image_url: null,
+    created_at: daysAgo(29),
   },
 ];
 
@@ -827,11 +1260,12 @@ export const seedNotifications: Notification[] = [
     account_id: "acc-kiki",
     kind: "comment",
     payload_ref: "post-asooke-set",
-    text: "maisonbisi replied to your comment on Hand-woven aso-oke two-piece",
+    // Matches cmt-5 (bisi's reply, 2.8d) — read when kiki next opened the app.
+    text: "maisonbisi replied to your comment on Little senator",
     actor: { username: "maisonbisi", avatar_url: null },
     thumb_url: "/demo/outfit-w13.jpg",
-    read_at: null,
-    created_at: hoursAgo(28),
+    read_at: daysAgo(2),
+    created_at: daysAgo(2.8),
   },
   {
     id: "ntf-payout-bisi",
@@ -849,7 +1283,7 @@ export const seedNotifications: Notification[] = [
     account_id: "des-tunde",
     kind: "status_change",
     payload_ref: "req-apr-1031",
-    text: "kiki.adeyemi requested Classic agbada (#APR-1031)",
+    text: "kiki.adeyemi requested Ceremonial robe set (#APR-1031)",
     actor: { username: "kiki.adeyemi", avatar_url: null },
     thumb_url: "/demo/outfit-w06.jpg",
     read_at: null,
@@ -862,8 +1296,8 @@ export const seedNotifications: Notification[] = [
     payload_ref: "req-apr-1042",
     text: "amara.designs started work on your order #APR-1042",
     actor: { username: "amara.designs", avatar_url: null },
-    thumb_url: "/demo/outfit-w00.jpg",
-    read_at: null,
+    thumb_url: "/demo/outfit-w01.jpg",
+    read_at: daysAgo(4),
     created_at: daysAgo(5),
   },
   {
@@ -873,7 +1307,7 @@ export const seedNotifications: Notification[] = [
     payload_ref: "post-ankara-gown",
     text: "maisonbisi liked your comment",
     actor: { username: "maisonbisi", avatar_url: null },
-    thumb_url: "/demo/outfit-w00.jpg",
+    thumb_url: "/demo/outfit-w01.jpg",
     read_at: null,
     created_at: hoursAgo(20),
   },
@@ -891,13 +1325,25 @@ export const seedNotifications: Notification[] = [
   {
     id: "ntf-4",
     account_id: "acc-kiki",
+    kind: "like",
+    payload_ref: "post-runway-orange",
+    // Fresh activity — someone browsing an older post minutes ago.
+    text: "ada.eze liked your comment on Resort one-piece",
+    actor: { username: "ada.eze", avatar_url: null },
+    thumb_url: "/demo/outfit-w05.jpg",
+    read_at: null,
+    created_at: hoursAgo(0.6),
+  },
+  {
+    id: "ntf-follow-tunde",
+    account_id: "des-tunde",
     kind: "follow",
     payload_ref: "des-tunde",
-    text: "tunde.o started following you",
-    actor: { username: "tunde.o", avatar_url: null },
+    text: "funmi.b started following you",
+    actor: { username: "funmi.b", avatar_url: null },
     thumb_url: null,
-    read_at: daysAgo(12),
-    created_at: daysAgo(14),
+    read_at: daysAgo(2),
+    created_at: daysAgo(3),
   },
 ];
 
@@ -920,8 +1366,24 @@ export const seedReports: Report[] = [
 ];
 
 /**
- * kiki follows amara + bisi (tunde is the "suggested designer"); the
- * designer-to-designer edges fill the B6 followers/following sheets.
+ * kiki's own engagement — the posts she commissioned or commented on carry
+ * her like/save so her profile and action rows reflect real history
+ * (a signed-in demo user who has never liked anything reads as synthetic).
+ */
+export const seedLikes: [string, string][] = [
+  ["acc-kiki", "post-asooke-set"],
+  ["acc-kiki", "post-runway-orange"],
+  ["acc-kiki", "post-bridal-gown"],
+];
+
+export const seedSaves: [string, string][] = [
+  ["acc-kiki", "post-bridal-gown"],
+  ["acc-kiki", "post-chromat-look"],
+];
+
+/**
+ * kiki follows amara + bisi (tunde is the "suggested designer"); designer-
+ * to-designer and community edges fill the B6 followers/following sheets.
  */
 export const seedFollows: [string, string][] = [
   ["acc-kiki", "amara.designs"],
@@ -930,4 +1392,17 @@ export const seedFollows: [string, string][] = [
   ["acc-amara", "maisonbisi"],
   ["acc-tunde", "amara.designs"],
   ["acc-bisi", "amara.designs"],
+  // Community edges — the designers' followers_count mirrors this graph
+  // exactly (amara 7 · tunde 4 · bisi 6).
+  ["acc-ada", "amara.designs"],
+  ["acc-ada", "maisonbisi"],
+  ["acc-funmi", "amara.designs"],
+  ["acc-funmi", "maisonbisi"],
+  ["acc-funmi", "tunde.o"],
+  ["acc-chidi", "tunde.o"],
+  ["acc-zainab", "amara.designs"],
+  ["acc-zainab", "maisonbisi"],
+  ["acc-emeka", "amara.designs"],
+  ["acc-emeka", "tunde.o"],
+  ["acc-tola", "maisonbisi"],
 ];

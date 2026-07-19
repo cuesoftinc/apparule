@@ -65,13 +65,13 @@ describe("HeroSection (A2)", () => {
       screen.getByText(/two phone photos into a complete, private/i),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Open source · Self-host in one line"),
+      screen.getByText("Open-source · Self-host in one line"),
     ).toBeInTheDocument();
   });
 
   it("Try Cloud tracks and hands off to /signin", async () => {
     render(<HeroSection />);
-    await userEvent.click(screen.getByRole("button", { name: "Try Cloud" }));
+    await userEvent.click(screen.getAllByRole("button", { name: "Try Cloud" })[0]);
     expect(names()).toContain("try_cloud_click");
     expect(push).toHaveBeenCalledWith("/signin");
   });
@@ -213,10 +213,10 @@ describe("FinalCtaBand (A9c)", () => {
       ),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Open source · MIT licensed · Self-host in one line"),
+      screen.getByText("Open-source · MIT licensed · Self-host in one line"),
     ).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: "Try Cloud" }));
+    await userEvent.click(screen.getAllByRole("button", { name: "Try Cloud" })[0]);
     expect(names()).toContain("try_cloud_click");
     expect(push).toHaveBeenCalledWith("/signin");
 
@@ -274,7 +274,7 @@ describe("HomeNavBar (A1)", () => {
       "href",
       "/signin",
     );
-    await userEvent.click(screen.getByRole("button", { name: "Try Cloud" }));
+    await userEvent.click(screen.getAllByRole("button", { name: "Try Cloud" })[0]);
     expect(names()).toContain("try_cloud_click");
     expect(push).toHaveBeenCalledWith("/signin");
   });

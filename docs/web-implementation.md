@@ -164,9 +164,9 @@ are inline links) with the security-policy affordance and language
 selector. All external URLs are the verified-200 canon targets
 (`cuesoft.gitbook.io/apparule/*`, `discord.gg/CDfZxxrxbb`,
 `cuelabs.cuesoft.io`, `privacy/terms/status.cuesoft.io`); Discord channel
-copy is `#apparule-lab`. Below md the nav is a hamburger menu-button
-disclosure (aria-expanded trigger) whose panel carries the same four
-links + the theme toggle + Sign in + Try Cloud. Enabled interactive
+copy is `#apparule-lab`. Below md the bar keeps the Try
+Cloud CTA beside the hamburger (aria-expanded trigger); the panel
+carries the 4 links + ThemeToggle + Sign in. [Revised 2026-07-19] Enabled interactive
 controls show `cursor: pointer` via one base-layer rule in `globals.css`
 (design.md §2 cursor-affordance foundation); removable Chips are a pill
 of two real buttons (label + keyboard-reachable ✕). Playwright asserts

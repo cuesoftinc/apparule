@@ -12,8 +12,10 @@ import { useFeed } from "@/controllers/use-feed";
 import { CaughtUpDivider } from "@/components/ui/CaughtUpDivider";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PostCard } from "@/components/ui/PostCard";
+import { Sheet } from "@/components/ui/Sheet";
 import { StoryRailItem } from "@/components/ui/StoryRailItem";
 import { UnfollowConfirmSheet, type UnfollowTarget } from "../UnfollowConfirmSheet";
+import { PostDetailView } from "../post/PostDetailView";
 import { FeedSidebar } from "./FeedSidebar";
 import { PostOptionsSheet } from "./PostOptionsSheet";
 import { RequestStepperSheet } from "./RequestStepperSheet";
@@ -48,6 +50,9 @@ export function FeedView() {
     null,
   );
   const [flashPostId, setFlashPostId] = useState<string | null>(null);
+  // Comments open the in-app post modal (B2's IG desktop pattern) — never a
+  // full navigation out to the public /p permalink (P1 UX pass).
+  const [openPostId, setOpenPostId] = useState<string | null>(null);
 
   // Story rail: followed designers, ring lit while they have <48h posts.
   const storyDesigners = useMemo(
@@ -158,7 +163,7 @@ export function FeedView() {
                       post={post}
                       onToggleLike={() => void like(post)}
                       onToggleSave={() => void save(post)}
-                      onComment={() => window.location.assign(`/p/${post.id}`)}
+                      onComment={() => setOpenPostId(post.id)}
                       onShare={() => void copyShareLink(post)}
                       onOverflow={() => setOptionsPost(post)}
                       onRequest={() => setRequestPost(post)}
@@ -179,6 +184,24 @@ export function FeedView() {
           }
         />
       </div>
+
+      <Sheet
+        open={openPostId !== null}
+        onOpenChange={(open) => {
+          if (!open) setOpenPostId(null);
+        }}
+        title="Post"
+        className="max-w-4xl"
+      >
+        {openPostId ? (
+          <PostDetailView
+            key={openPostId}
+            postId={openPostId}
+            onRequest={(post) => setRequestPost(post)}
+            onOverflow={(post) => setOptionsPost(post)}
+          />
+        ) : null}
+      </Sheet>
 
       <RequestStepperSheet
         post={requestPost}

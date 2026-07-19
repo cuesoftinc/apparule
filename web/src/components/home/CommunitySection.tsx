@@ -25,7 +25,7 @@ export function CommunitySection() {
             Roadmap →
           </a>
           <p className="mt-3 text-caption text-text-2">
-            An open-source product by Cuesoft CueLABS™
+            An open-source product by CueLABS™
           </p>
         </div>
       </div>
