@@ -249,6 +249,46 @@ realism pass **[Directive]** — the seed simulates actual user interaction:
 - Brand copy: "open-source" is hyphenated in prose; the community
   attribution reads "An open-source product by CueLABS™".
 
+**Demo-completeness as-built notes (2026-07-19):** the P1 completeness
+pass **[Directive]** — the review-fix set from the realism pass plus the
+approved gap implementations:
+
+- The post-detail modal (feed, explore, profile grids) opens on the
+  Sheet's `wide` size axis — a real desktop width (896px,
+  viewport-clamped), not a max-width fighting the base `md:w-*` utility —
+  and the owning list re-syncs that post from the server on modal close
+  (`useFeed.syncPost`), so cards never show stale like/save/comment state
+  after in-modal interactions.
+- Explore carries the full pages.md B2 chip set: style tags, price bands,
+  turnaround time (≤ 1 week / ≤ 2 weeks / ≤ 1 month →
+  `max_turnaround_days`), and "Near me" — proximity RANKING by designer
+  `profile_location` vs the caller's (api.md §5 param extension; city >
+  state > country, recency within tiers, locationless designers sort
+  last, no hard gate). The seed carries one non-Lagos designer
+  (`eniola.stitches`, Abuja, newest post) so the ranking is visible from
+  boot; unit + e2e gate both chips.
+- MI-6 feed infinite scroll is live: `/feed` pages through the api.md §4
+  cursor contract at page size 4, prefetches when the viewer is 3 cards
+  from the end (an IntersectionObserver over the last three cards),
+  renders skeleton ×2 while the page is in flight, and lands the
+  caught-up divider on cursor exhaustion.
+- F2-9 session exports: the vault history sheet exports any session as
+  CSV or PDF per row through `POST /sessions/{id}/exports` (the mock
+  returns inline data URLs — a real minimal PDF for `pdf` — where the
+  backend will return signed URLs); e2e asserts real browser downloads.
+- Seed coherence: #APR-1058 ("Little senator") is a gift order freezing
+  child-scale manual measurements entered at request time; #APR-1042's
+  note asks for a skirt-appropriate alteration.
+- The dashboard rail's two states are e2e-pinned
+  (`e2e/nav-rail-states.spec.ts`): expansion is viewport-driven
+  (collapsed 72px below 1264, expanded 244px at ≥1264; no user toggle,
+  no persisted state), so an expanded rail can never squeeze the mobile
+  content column; every dashboard route reflows cleanly at 1264/1440
+  with content contained in the column.
+- F0-8 Scalar embed at `/docs/api`: **[Proposed — deferred pending
+  ratification vs the GitBook links canon]** — the docs surface stays
+  the GitBook links inventory (§ nav/footer canon) until adjudicated.
+
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the
@@ -340,7 +380,7 @@ with full CRUD; contract types shared with `src/models/`.
 | --- | --- |
 | Auth & consent | `GET/PATCH /me` · `GET/POST /consent` |
 | Vault (self-customer alias, data-model.md §6.1) | `GET/POST /me/sessions` · `GET /sessions/{id}` · `PATCH /sessions/{id}/measurements` · `POST /sessions/{id}/exports` |
-| Posts | `POST /posts` · `GET /posts/{id}` · `GET /feed` · `GET /explore?q&tags&price_band` · `DELETE /posts/{id}` |
+| Posts | `POST /posts` · `GET /posts/{id}` · `GET /feed` · `GET /explore?q&tags&price_band&max_turnaround_days&near_me` · `DELETE /posts/{id}` |
 | Social graph | `POST/DELETE /follows/{designer}` · `POST/DELETE /posts/{id}/like` · `/save` · `GET/POST /posts/{id}/comments` |
 | Trust & safety | `POST /reports` · `POST/DELETE /blocks/{account}` · `GET /moderation/queue` · `POST /moderation/reports/{id}/action` |
 | Requests | `POST /posts/{id}/requests` · `GET /requests?role=` · `GET /requests/{id}` · `/quote` · `/decline` · `/status` · `/messages` |
