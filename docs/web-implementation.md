@@ -129,6 +129,44 @@ screenshot compares had missed:
   clean and is now locked in with e2e assertions rather than re-checked
   manually.
 
+**System-QA as-built notes (2026-07-19, PR #93):** the full-system QA pass
+(final web-phase gate) walked every §8.4 journey on the TEST_MODE prod
+build at 1440/390, light/dark/reduced-motion, and fixed what it found:
+
+- The quote sheet's due-date calendar was unusable — `DateInput`'s popover
+  sat on the z-20 dropdown layer under the z-40 Sheet. It now uses the
+  sheet layer, the same in-sheet fix `Select` received in W3; treat
+  "overlay opened from inside a Sheet" as z-40 by default.
+- Branded `not-found.tsx` / `error.tsx` (EmptyState anatomy) replace the
+  Next.js defaults.
+- `Button` and `Chip` carry `whitespace-nowrap` — pill labels never wrap
+  (the 390px comparison CTAs were the live repro).
+- `formatAgoPhrase` ("2d ago" / "just now" / "on 22 May") replaces
+  hand-appended " ago" templates (which produced "Updated 22 May ago").
+- MI-3's first-save "Saved to your looks" toast now exists (once per
+  browser, Toast gained an optional trailing link).
+- Seed coherence: designer `posts_count` is test-locked to the actually
+  seeded posts; payout-SLA copy aligned across PaymentBox/EarningsView.
+- 390px overflow fixes (order-detail grid, moderation actions, profile
+  stats) are e2e-gated across all dashboard routes.
+
+**Link-parity as-built notes (2026-07-19, PR #93):** the org "Marketing
+nav, footer & theme parity canon" (SKILL.md) applied — nav is Features ·
+For designers · Docs · GitHub (the star badge remains the GitHub
+affordance) + theme toggle + a single **Sign in** gradient CTA (the nav
+Try Cloud moved out; hero/A9c/comparison keep firing `try_cloud_click`).
+Footer is brand block + Product/Docs/Community/**Legal** columns (4/4/4/3
+links) + the verbatim legal bar ("© Cuesoft Inc. 2026. Apparule. CueLABS™
+Division. MIT License.") with the security-policy affordance and language
+selector. All external URLs are the verified-200 canon targets
+(`cuesoft.gitbook.io/apparule/*`, `discord.gg/CDfZxxrxbb`,
+`cuelabs.cuesoft.io`, `privacy/terms/status.cuesoft.io`); the old
+`docs.apparule.cuesoft.io` placeholders across A4b/A5/A7c/A9 were
+repointed to verified GitBook pages. Playwright asserts the exact hrefs
+on nav + footer and theme flip+persist on both surfaces. pages.md A1/A10
+still describe the pre-canon layout — deviation recorded here (design.md
+is owned by the design agent).
+
 **W3 as-built notes (2026-07-19, PR #91):**
 
 - Every Part B route (§4) is a fully working screen assembled from the W1

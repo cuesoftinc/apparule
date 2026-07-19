@@ -1,14 +1,17 @@
-// HomeFooter — design.md §8.2b: 3 link columns + legal + language
-// (pages.md A10: product/docs/community columns · privacy (APP-005) ·
-// terms · privacy.cuesoft.io clause link · language).
+// HomeFooter — design.md §8.2b marketing kit, laid out to the org
+// "Marketing nav, footer & theme parity canon" (SKILL.md, ratified
+// 2026-07-19): brand block + 4 link columns (Product · Docs · Community ·
+// Legal) + legal bar (verbatim © line · security policy · language).
+// pages.md A10's privacy/terms/clause links live in the Legal column now.
 import clsx from "clsx";
+import { ShieldCheck } from "lucide-react";
 
 export interface FooterColumn {
   heading: string;
   links: { label: string; href: string }[];
 }
 
-// Canvas footer content (Home instance 186:272, enriched landing).
+// Canonical link set — URLs are the ratified, verified-200 targets.
 const DEFAULT_COLUMNS: FooterColumn[] = [
   {
     heading: "Product",
@@ -22,21 +25,27 @@ const DEFAULT_COLUMNS: FooterColumn[] = [
   {
     heading: "Docs",
     links: [
-      { label: "Quickstart", href: "https://docs.apparule.cuesoft.io" },
-      { label: "API reference", href: "/docs/api" },
-      { label: "GitBook", href: "https://docs.apparule.cuesoft.io" },
-      { label: "Self-host guide", href: "https://docs.apparule.cuesoft.io/self-host" },
-      { label: "Contributing", href: "https://github.com/cuesoftinc/apparule/blob/main/CONTRIBUTING.md" },
+      { label: "Docs", href: "https://cuesoft.gitbook.io/apparule" },
+      { label: "Quickstart", href: "https://cuesoft.gitbook.io/apparule/setup" },
+      { label: "API reference", href: "https://cuesoft.gitbook.io/apparule/system/api-surface" },
+      { label: "Self-host guide", href: "https://cuesoft.gitbook.io/apparule/system/deployment" },
     ],
   },
   {
     heading: "Community",
     links: [
       { label: "GitHub", href: "https://github.com/cuesoftinc/apparule" },
-      { label: "Discord", href: "https://discord.gg/cuesoft" },
-      { label: "Roadmap", href: "https://github.com/cuesoftinc/apparule#roadmap" },
-      { label: "Good first issues", href: "https://github.com/cuesoftinc/apparule/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22" },
-      { label: "CueLABS", href: "https://cuesoft.io" },
+      { label: "Discord", href: "https://discord.gg/CDfZxxrxbb" },
+      { label: "Roadmap", href: "https://cuesoft.gitbook.io/apparule/product/roadmap" },
+      { label: "CueLABS", href: "https://cuelabs.cuesoft.io" },
+    ],
+  },
+  {
+    heading: "Legal",
+    links: [
+      { label: "Privacy", href: "https://privacy.cuesoft.io" },
+      { label: "Terms", href: "https://terms.cuesoft.io" },
+      { label: "Status", href: "https://status.cuesoft.io" },
     ],
   },
 ];
@@ -51,8 +60,8 @@ export function HomeFooter({ columns = DEFAULT_COLUMNS, className }: HomeFooterP
     <footer className={clsx("border-t border-border px-6 py-12", className)}>
       {/* Canonical 1080 content column (design.md container canon) —
           max-w-5xl (1024) drifted off the section grid (W2.1 live-QA). */}
-      <div className="mx-auto grid max-w-[1080px] grid-cols-2 gap-8 md:grid-cols-4">
-        <div>
+      <div className="mx-auto grid max-w-[1080px] grid-cols-2 gap-8 md:grid-cols-5">
+        <div className="col-span-2 md:col-span-1">
           <span className="bg-accent-gradient bg-clip-text text-title font-bold text-transparent">
             Apparule
           </span>
@@ -77,20 +86,37 @@ export function HomeFooter({ columns = DEFAULT_COLUMNS, className }: HomeFooterP
         ))}
       </div>
       <div className="mx-auto mt-10 flex max-w-[1080px] flex-wrap items-center gap-x-6 gap-y-2 border-t border-border pt-6 text-caption text-text-2">
-        <span>© {new Date().getFullYear()} Cuesoft · CueLABS</span>
-        <a href="/privacy" className="hover:text-text">
-          Privacy
-        </a>
-        <a href="/terms" className="hover:text-text">
-          Terms
-        </a>
+        {/* Verbatim legal line (parity canon): © Cuesoft Inc. 2026.
+            Apparule. CueLABS™ Division. MIT License. */}
+        <span>
+          ©{" "}
+          <a
+            href="https://cuesoft.io"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-text"
+          >
+            Cuesoft Inc.
+          </a>{" "}
+          2026. Apparule. CueLABS™ Division.{" "}
+          <a
+            href="https://github.com/cuesoftinc/apparule/blob/main/LICENSE"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-text"
+          >
+            MIT License
+          </a>
+          .
+        </span>
         <a
-          href="https://privacy.cuesoft.io"
+          href="https://github.com/cuesoftinc/apparule/blob/main/SECURITY.md"
           target="_blank"
           rel="noopener noreferrer"
-          className="hover:text-text"
+          className="flex items-center gap-1 hover:text-text"
         >
-          privacy.cuesoft.io
+          <ShieldCheck size={14} aria-hidden />
+          Security policy
         </a>
         <label className="ml-auto flex items-center gap-2">
           <span className="sr-only">Language</span>

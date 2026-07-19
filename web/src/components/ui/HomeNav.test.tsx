@@ -3,12 +3,32 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { HomeNav } from "./HomeNav";
 
 describe("HomeNav (§8.2b marketing)", () => {
-  it("renders logo, links, star badge, Sign in, Try Cloud", () => {
+  it("renders logo, canon links, star badge and the Sign in CTA", () => {
     render(<HomeNav />);
     expect(screen.getByText("Apparule")).toBeInTheDocument();
-    expect(screen.getByTestId("star-badge")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Sign in" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Try Cloud" })).toBeInTheDocument();
+    // Parity canon (SKILL.md 2026-07-19): Features · For designers · Docs ·
+    // GitHub (star badge) + the single Sign in CTA — no nav Try Cloud.
+    expect(screen.getByRole("link", { name: "Features" })).toHaveAttribute(
+      "href",
+      "#product",
+    );
+    expect(screen.getByRole("link", { name: "For designers" })).toHaveAttribute(
+      "href",
+      "#designers",
+    );
+    expect(screen.getByRole("link", { name: "Docs" })).toHaveAttribute(
+      "href",
+      "https://cuesoft.gitbook.io/apparule",
+    );
+    expect(screen.getByTestId("star-badge")).toHaveAttribute(
+      "href",
+      "https://github.com/cuesoftinc/apparule",
+    );
+    expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute(
+      "href",
+      "/signin",
+    );
+    expect(screen.queryByText("Try Cloud")).not.toBeInTheDocument();
   });
 
   it("star badge is neutral (no invented number) until the live count arrives", () => {

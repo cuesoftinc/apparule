@@ -127,10 +127,9 @@ test.describe("Marketing site — home page", () => {
 
   test("Try Cloud CTA hands off to /signin", async ({ page }) => {
     await page.goto("/");
-    await page
-      .locator("nav")
-      .getByRole("button", { name: "Try Cloud" })
-      .click();
+    // Parity canon: the nav CTA is Sign in — Try Cloud hands off from the
+    // hero (and A9c/comparison) instead.
+    await page.getByRole("button", { name: "Try Cloud" }).first().click();
     await page.waitForURL("**/signin");
     await expect(
       page.getByRole("button", { name: /continue with google/i }),
@@ -306,5 +305,97 @@ test.describe("system QA regressions", () => {
       // sm buttons are h-9 (36px) — a wrapped label pushes past the pill
       expect(box!.height, `${name} single-line height`).toBeLessThanOrEqual(38);
     }
+  });
+});
+
+// Marketing nav/footer link-parity canon (SKILL.md, ratified 2026-07-19):
+// the exact link sets and verified URLs, asserted on the live DOM.
+test.describe("nav/footer parity canon", () => {
+  test("nav carries the four canon links + the Sign in CTA", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const nav = page.getByRole("navigation", { name: "Home" });
+    await expect(nav.getByRole("link", { name: "Features" })).toHaveAttribute(
+      "href",
+      "#product",
+    );
+    await expect(
+      nav.getByRole("link", { name: "For designers" }),
+    ).toHaveAttribute("href", "#designers");
+    await expect(nav.getByRole("link", { name: "Docs" })).toHaveAttribute(
+      "href",
+      "https://cuesoft.gitbook.io/apparule",
+    );
+    await expect(nav.getByTestId("star-badge")).toHaveAttribute(
+      "href",
+      "https://github.com/cuesoftinc/apparule",
+    );
+    await expect(nav.getByRole("link", { name: "Sign in" })).toHaveAttribute(
+      "href",
+      "/signin",
+    );
+    await expect(nav.getByText("Try Cloud")).toHaveCount(0);
+  });
+
+  test("footer carries the canon columns, URLs and legal bar", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const footer = page.locator("footer");
+    const canon: [string, string][] = [
+      ["Docs", "https://cuesoft.gitbook.io/apparule"],
+      ["Quickstart", "https://cuesoft.gitbook.io/apparule/setup"],
+      ["API reference", "https://cuesoft.gitbook.io/apparule/system/api-surface"],
+      ["Self-host guide", "https://cuesoft.gitbook.io/apparule/system/deployment"],
+      ["GitHub", "https://github.com/cuesoftinc/apparule"],
+      ["Discord", "https://discord.gg/CDfZxxrxbb"],
+      ["Roadmap", "https://cuesoft.gitbook.io/apparule/product/roadmap"],
+      ["CueLABS", "https://cuelabs.cuesoft.io"],
+      ["Privacy", "https://privacy.cuesoft.io"],
+      ["Terms", "https://terms.cuesoft.io"],
+      ["Status", "https://status.cuesoft.io"],
+      ["Cuesoft Inc.", "https://cuesoft.io"],
+      ["MIT License", "https://github.com/cuesoftinc/apparule/blob/main/LICENSE"],
+    ];
+    for (const [name, href] of canon) {
+      await expect(
+        footer.getByRole("link", { name, exact: true }),
+        `footer link ${name}`,
+      ).toHaveAttribute("href", href);
+    }
+    await expect(
+      footer.getByRole("link", { name: /Security policy/ }),
+    ).toHaveAttribute(
+      "href",
+      "https://github.com/cuesoftinc/apparule/blob/main/SECURITY.md",
+    );
+    await expect(
+      footer.getByText(/© Cuesoft Inc\. 2026\. Apparule\. CueLABS™ Division\./),
+    ).toBeVisible();
+    await expect(footer.getByLabel("Language")).toBeVisible();
+    await expect(footer.getByText("Contributing")).toHaveCount(0);
+    await expect(footer.getByText("Good first issues")).toHaveCount(0);
+  });
+
+  test("theme toggle flips and persists on home and dashboard", async ({
+    page,
+  }) => {
+    // marketing surface
+    await page.goto("/");
+    await page.getByRole("button", { name: /switch to dark theme/i }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await page.reload();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+
+    // dashboard surface (same apparule.theme key via NavRail toggle)
+    await page.goto("/signin");
+    await page.getByRole("button", { name: /continue with google/i }).click();
+    await page.waitForURL("**/dashboard");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await page.getByRole("button", { name: /switch to light theme/i }).click();
+    await expect(page.locator("html")).not.toHaveAttribute("data-theme", "dark");
+    await page.reload();
+    await expect(page.locator("html")).not.toHaveAttribute("data-theme", "dark");
   });
 });

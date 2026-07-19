@@ -1,14 +1,15 @@
 "use client";
 
-// HomeNav — design.md §8.2b marketing kit: logo + links + GitHub star badge
-// + Sign in + Try Cloud (gradient) · state top / stuck-blurred (blurs on
-// scroll). Accuracy standard: the badge renders "Star" with no number until
-// the live count arrives at runtime (fetched client-side by the page, A1).
+// HomeNav — design.md §8.2b marketing kit, links per the org "Marketing
+// nav, footer & theme parity canon" (SKILL.md, 2026-07-19): Features ·
+// For designers · Docs · GitHub (the star badge is the GitHub affordance)
+// + theme-toggle slot + the "Sign in" gradient CTA · state top /
+// stuck-blurred (blurs on scroll). Accuracy standard: the badge renders
+// "Star" with no number until the live count arrives at runtime (A1).
 import { useEffect, useState, type ReactNode } from "react";
 import clsx from "clsx";
 import Link from "next/link";
 import { Star } from "lucide-react";
-import { Button } from "./Button";
 import { GitHubMark } from "@/components/icons/GitHubMark";
 
 export interface HomeNavLink {
@@ -21,7 +22,6 @@ export interface HomeNavProps {
   /** Live star count (fetched at runtime); null renders the neutral badge. */
   starCount?: number | null;
   githubHref?: string;
-  onTryCloud?: () => void;
   /** Analytics seam: `github_click` fires here (pages.md A1). */
   onGithubClick?: () => void;
   /**
@@ -34,16 +34,15 @@ export interface HomeNavProps {
 }
 
 const DEFAULT_LINKS: HomeNavLink[] = [
-  { label: "Product", href: "#product" },
-  { label: "Docs", href: "https://docs.apparule.cuesoft.io" },
-  { label: "Community", href: "#community" },
+  { label: "Features", href: "#product" },
+  { label: "For designers", href: "#designers" },
+  { label: "Docs", href: "https://cuesoft.gitbook.io/apparule" },
 ];
 
 export function HomeNav({
   links = DEFAULT_LINKS,
   starCount = null,
   githubHref = "https://github.com/cuesoftinc/apparule",
-  onTryCloud,
   onGithubClick,
   trailing,
   className,
@@ -105,15 +104,13 @@ export function HomeNav({
             </span>
           </a>
           {trailing}
+          {/* Parity canon: one nav CTA — Sign in, on apparule's gradient */}
           <Link
             href="/signin"
-            className="whitespace-nowrap text-body font-semibold text-text hover:text-text-2"
+            className="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-card bg-accent-gradient px-3 text-caption font-semibold text-on-accent"
           >
             Sign in
           </Link>
-          <Button kind="gradient-primary" size="sm" onClick={onTryCloud}>
-            Try Cloud
-          </Button>
         </div>
       </div>
     </nav>

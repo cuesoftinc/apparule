@@ -39,7 +39,7 @@ export function SelfHostSection() {
             <code className="font-mono">web</code>
           </p>
           <a
-            href="https://docs.apparule.cuesoft.io/self-host"
+            href="https://cuesoft.gitbook.io/apparule/system/deployment"
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => track("self_host_click", { section: "self-host" })}

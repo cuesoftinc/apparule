@@ -27,7 +27,7 @@ export function ComparisonSection() {
           onSelfHost={() => {
             track("self_host_click", { section: "comparison" });
             window.open(
-              "https://docs.apparule.cuesoft.io/self-host",
+              "https://cuesoft.gitbook.io/apparule/system/deployment",
               "_blank",
               "noopener",
             );

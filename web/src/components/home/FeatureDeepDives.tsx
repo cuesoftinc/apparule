@@ -13,34 +13,36 @@ import {
   DashVaultThumb,
 } from "./dash-thumbs";
 
-const DOCS_BASE = "https://docs.apparule.cuesoft.io";
+// Verified GitBook target — per-feature sub-pages do not exist (404);
+// every A4b quiet link deep-dives into the features page.
+const DOCS_BASE = "https://cuesoft.gitbook.io/apparule/product/features";
 
 const PANELS = [
   {
     headline: "Capture once, keep it fresh",
     body: "Two photos become a full set of body measurements in a private vault only you can see. Freshness tracking nudges you when it's time to retake — no stale numbers on new orders.",
-    href: `${DOCS_BASE}/vault`,
+    href: `${DOCS_BASE}`,
     thumb: <DashVaultThumb />,
     mediaFirst: false,
   },
   {
     headline: "Find designers near you",
     body: "Follow Lagos designers and browse real commissioned work, filtered by style, budget and turnaround. Proximity ranking surfaces ateliers close to you, so fittings and delivery stay easy.",
-    href: `${DOCS_BASE}/discover`,
+    href: `${DOCS_BASE}`,
     thumb: <DashExploreThumb />,
     mediaFirst: true,
   },
   {
     headline: "Escrow-protected commissions",
     body: "Pay when you accept a quote — funds are held in escrow, not sent ahead. Money releases when the outfit is delivered, and a dispute freezes payout until it's resolved.",
-    href: `${DOCS_BASE}/orders`,
+    href: `${DOCS_BASE}`,
     thumb: <DashOrdersThumb />,
     mediaFirst: false,
   },
   {
     headline: "Your measurements ride with every order",
     body: "Each request carries a locked snapshot of exactly the values you chose to share. Your designer sews to those numbers — no more guessing sizes over chat.",
-    href: `${DOCS_BASE}/measurements`,
+    href: `${DOCS_BASE}`,
     thumb: <DashOrderDetailThumb />,
     mediaFirst: true,
   },

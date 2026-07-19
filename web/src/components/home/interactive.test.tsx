@@ -196,7 +196,7 @@ describe("ComparisonSection (A9)", () => {
     await userEvent.click(screen.getByRole("button", { name: "Self-host it" }));
     expect(names()).toContain("self_host_click");
     expect(open).toHaveBeenCalledWith(
-      "https://docs.apparule.cuesoft.io/self-host",
+      "https://cuesoft.gitbook.io/apparule/system/deployment",
       "_blank",
       "noopener",
     );
@@ -264,15 +264,17 @@ describe("HomeNavBar (A1)", () => {
     expect(document.documentElement).toHaveAttribute("data-theme", "light");
   });
 
-  it("Try Cloud in the nav tracks and routes to /signin", async () => {
+  it("the nav Sign in CTA links to /signin (parity canon)", () => {
     render(
       <ThemeProvider>
         <HomeNavBar />
       </ThemeProvider>,
     );
-    await userEvent.click(screen.getByRole("button", { name: "Try Cloud" }));
-    expect(names()).toContain("try_cloud_click");
-    expect(push).toHaveBeenCalledWith("/signin");
+    expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute(
+      "href",
+      "/signin",
+    );
+    expect(screen.queryByText("Try Cloud")).not.toBeInTheDocument();
   });
 
   it("renders the neutral Star badge while no live count exists", () => {
