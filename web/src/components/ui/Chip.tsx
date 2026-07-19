@@ -16,6 +16,15 @@ export interface ChipProps
   onRemove?: () => void;
 }
 
+// Figma master (41:19): 13px semibold label; selected = solid text-token
+// fill (reads as active filter, not an action). whitespace-nowrap: a chip
+// is a fixed-height pill — wrapped labels clip out of it in constrained
+// rows (walkthrough mini-screens).
+const PILL_CLASSES = [
+  "inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-pill border px-3 text-caption font-semibold",
+  "transition-colors duration-120 ease-standard motion-reduce:transition-none",
+];
+
 export function Chip({
   kind = "default",
   label,
@@ -23,18 +32,45 @@ export function Chip({
   className,
   ...rest
 }: ChipProps) {
+  if (kind === "removable") {
+    // Removable = two REAL buttons in a pill container — a button may not
+    // own interactive descendants, and the ✕ must be keyboard-reachable
+    // (semantic canon; formerly a tabIndex=-1 span[role=button] inside the
+    // chip button).
+    return (
+      <span
+        data-kind="removable"
+        className={clsx(PILL_CLASSES, "border-border bg-bg-elev text-text", className)}
+      >
+        <button
+          type="button"
+          data-kind={kind}
+          className="inline-flex items-center whitespace-nowrap"
+          {...rest}
+        >
+          {label}
+        </button>
+        <button
+          type="button"
+          aria-label={`Remove ${label}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove?.();
+          }}
+          className="-mr-1 grid size-4 place-items-center rounded-pill text-text-2 hover:text-text"
+        >
+          <X size={14} strokeWidth={2.5} />
+        </button>
+      </span>
+    );
+  }
   return (
     <button
       type="button"
       data-kind={kind}
       aria-pressed={kind === "selected" || undefined}
       className={clsx(
-        // Figma master (41:19): 13px semibold label; selected = solid
-        // text-token fill (reads as active filter, not an action).
-        // whitespace-nowrap: a chip is a fixed-height pill — wrapped labels
-        // clip out of it in constrained rows (walkthrough mini-screens).
-        "inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-pill border px-3 text-caption font-semibold",
-        "transition-colors duration-120 ease-standard motion-reduce:transition-none",
+        PILL_CLASSES,
         kind === "selected"
           ? "border-transparent bg-text text-bg"
           : "border-border bg-bg-elev text-text",
@@ -43,20 +79,6 @@ export function Chip({
       {...rest}
     >
       <span>{label}</span>
-      {kind === "removable" ? (
-        <span
-          role="button"
-          aria-label={`Remove ${label}`}
-          tabIndex={-1}
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemove?.();
-          }}
-          className="-mr-1 grid size-4 place-items-center rounded-pill text-text-2 hover:text-text"
-        >
-          <X size={14} strokeWidth={2.5} />
-        </span>
-      ) : null}
     </button>
   );
 }

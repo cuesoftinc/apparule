@@ -84,6 +84,8 @@
 | Radii (product) | 8px cards/sheets, full-round avatars/pills |
 | Product note | haptics per MI-20 |
 
+- **Cursor affordance**: enabled interactive controls show `cursor: pointer` — one base-layer rule on `button:not(:disabled)`, `[role="button"]:not([aria-disabled="true"])`, `select:not(:disabled)`, `summary`, `label[for]`; links use the native pointer; disabled controls keep the default cursor. [Directive 2026-07-19]
+
 These rows are standardized in the org SKILL.md — a change here is an
 ecosystem change, PR'd to all three design.md files together.
 

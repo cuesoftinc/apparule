@@ -77,6 +77,17 @@
     outline: 2px solid var(--ap-accent-start);
     outline-offset: 2px;
   }
+
+  /* Cursor affordance [Directive 2026-07-19] — Tailwind v4 defaults buttons
+     to cursor:default; enabled interactive controls show the pointer.
+     Links keep the native pointer; disabled controls keep default. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  select:not(:disabled),
+  summary,
+  label[for] {
+    cursor: pointer;
+  }
 }
 
 /* Tabular numerals for measurements and money (design.md §2 Type) */

@@ -1,18 +1,21 @@
 "use client";
 
-// HomeNav — design.md §8.2b marketing kit, links per the org "Marketing
-// nav, footer & theme parity canon" (SKILL.md, 2026-07-19, star-badge
-// adjudication): four PLAIN text links — Features · For designers · Docs ·
-// GitHub — + theme-toggle slot + the "Sign in" gradient CTA · state top /
-// stuck-blurred (blurs on scroll). The live star badge lives on A7b only
-// (DevelopersSection); a nav badge on one product is cross-repo drift.
-// Below md the four links collapse into a hamburger disclosure whose panel
-// carries the same links + the theme toggle + Sign in (canon extension,
-// 2026-07-19 — previously the links simply vanished on mobile).
+// HomeNav — design.md §8.2b marketing kit, per the org "Marketing nav,
+// footer & theme parity canon" (SKILL.md, revised 2026-07-19): four links
+// — Features · For designers · Docs · GitHub, with GitHub rendered as the
+// compact star badge (star glyph + "Star" + the live count from the shared
+// cached fetch seam; TEST_MODE/failure keep the neutral "Star" label,
+// never a hardcoded count) — + theme-toggle slot + the "Sign in" text link
+// + the "Try Cloud" gradient primary CTA (→ /signin) · state top /
+// stuck-blurred (blurs on scroll). Below md the links collapse into a
+// hamburger disclosure whose panel carries the same links + the theme
+// toggle + Sign in + Try Cloud.
 import { useEffect, useState, type ReactNode } from "react";
 import clsx from "clsx";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { Menu, Star, X } from "lucide-react";
+import { Button } from "./Button";
+import { GitHubMark } from "@/components/icons/GitHubMark";
 
 export interface HomeNavLink {
   label: string;
@@ -22,8 +25,12 @@ export interface HomeNavLink {
 export interface HomeNavProps {
   links?: HomeNavLink[];
   githubHref?: string;
+  /** Live star count (shared cached fetch); null keeps the neutral badge. */
+  starCount?: number | null;
   /** Analytics seam: `github_click` fires here (pages.md A1). */
   onGithubClick?: () => void;
+  /** Try Cloud handoff (→ /signin) — `try_cloud_click` fires here. */
+  onTryCloud?: () => void;
   /**
    * Trailing slot before Sign in — the page mounts the theme toggle here
    * (W2 adaptation: light/dark QA + the §8.4 marketing journey need a
@@ -43,7 +50,9 @@ const DEFAULT_LINKS: HomeNavLink[] = [
 export function HomeNav({
   links = DEFAULT_LINKS,
   githubHref = "https://github.com/cuesoftinc/apparule",
+  starCount = null,
   onGithubClick,
+  onTryCloud,
   trailing,
   className,
 }: HomeNavProps) {
@@ -97,27 +106,35 @@ export function HomeNav({
               {link.label}
             </a>
           ))}
-          {/* canon link 4/4 — plain text like the rest (adjudicated) */}
+          {/* link 4/4 — GitHub as the compact star badge (canon revision) */}
           <a
             href={githubHref}
             target="_blank"
             rel="noopener noreferrer"
-            data-testid="nav-github"
+            data-testid="star-badge"
+            aria-label="Star cuesoftinc/apparule on GitHub"
             onClick={onGithubClick}
-            className="text-body text-text-2 hover:text-text"
+            className="flex h-9 items-center gap-2 rounded-pill border border-border px-3 text-caption font-semibold text-text hover:bg-border/30"
           >
-            GitHub
+            <GitHubMark size={14} />
+            <Star size={12} className="text-warn" />
+            <span className="tnum">
+              {starCount === null ? "Star" : starCount.toLocaleString("en-NG")}
+            </span>
           </a>
         </div>
         <div className="ml-auto hidden items-center gap-3 md:flex">
           {trailing}
-          {/* Parity canon: one nav CTA — Sign in, on apparule's gradient */}
           <Link
             href="/signin"
-            className="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-card bg-accent-gradient px-3 text-caption font-semibold text-on-accent"
+            className="whitespace-nowrap text-body font-semibold text-text hover:text-text-2"
           >
             Sign in
           </Link>
+          {/* the one primary CTA — Try Cloud on apparule's gradient */}
+          <Button kind="gradient-primary" size="sm" onClick={onTryCloud}>
+            Try Cloud
+          </Button>
         </div>
         {/* <md: the canon links collapse into a hamburger disclosure */}
         <button
@@ -163,15 +180,27 @@ export function HomeNav({
           >
             GitHub
           </a>
-          <div className="mt-2 flex items-center justify-between border-t border-border pt-3">
+          <div className="mt-2 flex items-center justify-between gap-3 border-t border-border pt-3">
             {trailing}
-            <Link
-              href="/signin"
-              onClick={() => setMenuOpen(false)}
-              className="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-card bg-accent-gradient px-3 text-caption font-semibold text-on-accent"
-            >
-              Sign in
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/signin"
+                onClick={() => setMenuOpen(false)}
+                className="whitespace-nowrap text-body font-semibold text-text hover:text-text-2"
+              >
+                Sign in
+              </Link>
+              <Button
+                kind="gradient-primary"
+                size="sm"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onTryCloud?.();
+                }}
+              >
+                Try Cloud
+              </Button>
+            </div>
           </div>
         </div>
       ) : null}

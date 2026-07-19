@@ -15,9 +15,9 @@ test.describe("Marketing site — home page", () => {
     ).toBeVisible();
     await expect(page.getByTestId("hero-phone")).toBeVisible();
 
-    // A1 nav — plain GitHub text link (parity canon adjudication); the
-    // neutral star badge lives on A7b only (accuracy standard)
-    await expect(page.getByTestId("nav-github")).toHaveText("GitHub");
+    // A1 nav — GitHub renders as the compact star badge, neutral in
+    // TEST_MODE (accuracy standard); A7b carries its own badge
+    await expect(page.getByTestId("star-badge")).toContainText("Star");
     await expect(page.getByTestId("dev-star-badge")).toContainText("Star");
 
     // A3 stat band — the honest product claims
@@ -329,16 +329,22 @@ test.describe("nav/footer parity canon", () => {
       "href",
       "https://cuesoft.gitbook.io/apparule",
     );
-    await expect(nav.getByTestId("nav-github")).toHaveAttribute(
+    // GitHub = compact star badge (canon revision)
+    const badge = nav.getByRole("link", {
+      name: "Star cuesoftinc/apparule on GitHub",
+    });
+    await expect(badge).toHaveAttribute(
       "href",
       "https://github.com/cuesoftinc/apparule",
     );
-    await expect(nav.getByTestId("star-badge")).toHaveCount(0);
+    await expect(badge).toContainText("Star");
     await expect(nav.getByRole("link", { name: "Sign in" })).toHaveAttribute(
       "href",
       "/signin",
     );
-    await expect(nav.getByText("Try Cloud")).toHaveCount(0);
+    // Try Cloud is the one primary CTA and hands off to /signin
+    await nav.getByRole("button", { name: "Try Cloud" }).click();
+    await page.waitForURL("**/signin");
   });
 
   test("footer carries the canon columns, URLs and legal bar", async ({
@@ -376,6 +382,9 @@ test.describe("nav/footer parity canon", () => {
     await expect(
       footer.getByText(/© Cuesoft Inc\. 2026\. Apparule\. CueLABS™ Division\./),
     ).toBeVisible();
+    await expect(
+      footer.getByRole("link", { name: "CueLABS™ Division" }),
+    ).toHaveAttribute("href", "https://cuelabs.cuesoft.io");
     await expect(footer.getByLabel("Language")).toBeVisible();
     await expect(footer.getByText("Contributing")).toHaveCount(0);
     await expect(footer.getByText("Good first issues")).toHaveCount(0);
@@ -413,6 +422,11 @@ test.describe("nav/footer parity canon", () => {
       ).toHaveAttribute("href", href);
     }
 
+    // Try Cloud rides along in the panel and hands off to /signin
+    await expect(
+      panel.getByRole("button", { name: "Try Cloud" }),
+    ).toBeVisible();
+
     // the theme toggle works from inside the panel
     await panel.getByRole("button", { name: /switch to dark theme/i }).click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
@@ -443,5 +457,23 @@ test.describe("nav/footer parity canon", () => {
     await expect(page.locator("html")).not.toHaveAttribute("data-theme", "dark");
     await page.reload();
     await expect(page.locator("html")).not.toHaveAttribute("data-theme", "dark");
+  });
+});
+
+// Cursor affordance [Directive 2026-07-19]: enabled interactive controls
+// show the pointer (Tailwind v4 defaults buttons to cursor:default).
+test.describe("cursor affordance", () => {
+  test("buttons and nav links show cursor: pointer", async ({ page }) => {
+    await page.goto("/");
+    const buttonCursor = await page
+      .getByRole("button", { name: "Try Cloud" })
+      .first()
+      .evaluate((el) => getComputedStyle(el).cursor);
+    expect(buttonCursor).toBe("pointer");
+    const linkCursor = await page
+      .getByRole("navigation", { name: "Home" })
+      .getByRole("link", { name: "Features" })
+      .evaluate((el) => getComputedStyle(el).cursor);
+    expect(linkCursor).toBe("pointer");
   });
 });

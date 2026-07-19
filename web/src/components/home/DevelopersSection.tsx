@@ -98,7 +98,7 @@ export function DevelopersSection() {
           className={LINK_CLASSES}
         >
           <DiscordMark size={18} />
-          #apparule-dev on Discord →
+          #apparule-lab on Discord →
         </a>
         <a
           href={GITHUB_REPO_URL}

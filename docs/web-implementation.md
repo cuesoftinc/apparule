@@ -150,22 +150,29 @@ build at 1440/390, light/dark/reduced-motion, and fixed what it found:
 - 390px overflow fixes (order-detail grid, moderation actions, profile
   stats) are e2e-gated across all dashboard routes.
 
-**Link-parity as-built notes (2026-07-19, PR #93):** the org "Marketing
-nav, footer & theme parity canon" (SKILL.md) applied — nav is four plain
-text links, Features · For designers · Docs · GitHub, + theme toggle + a
-single **Sign in** gradient CTA; the runtime star-count badge is A7b's
-alone; hero/A9c/comparison CTAs fire `try_cloud_click`.
+**Link-parity as-built notes (2026-07-19):** the org "Marketing nav,
+footer & theme parity canon" (SKILL.md) applied — nav is four links,
+Features · For designers · Docs · GitHub, with GitHub rendered as the
+compact star badge (live count from the cached fetch seam shared with
+A7b; TEST_MODE and failures keep the neutral "Star" label), + theme
+toggle + a **Sign in** text link + the **Try Cloud** gradient primary CTA
+(→ /signin); nav and hero/A9c/comparison CTAs fire `try_cloud_click`.
 Footer is brand block + Product/Docs/Community/**Legal** columns (4/4/4/3
 links) + the verbatim legal bar ("© Cuesoft Inc. 2026. Apparule. CueLABS™
-Division. MIT License.") with the security-policy affordance and language
+Division. MIT License." — Cuesoft Inc., CueLABS™ Division and MIT License
+are inline links) with the security-policy affordance and language
 selector. All external URLs are the verified-200 canon targets
 (`cuesoft.gitbook.io/apparule/*`, `discord.gg/CDfZxxrxbb`,
-`cuelabs.cuesoft.io`, `privacy/terms/status.cuesoft.io`). Below md the
-nav is a hamburger menu-button disclosure (aria-expanded trigger) whose
-panel carries the same four links + the theme toggle + the Sign in CTA.
-Playwright asserts the exact hrefs on nav + footer, walks every canonical
-href through the 390 disclosure, and covers theme flip+persist on both
-surfaces.
+`cuelabs.cuesoft.io`, `privacy/terms/status.cuesoft.io`); Discord channel
+copy is `#apparule-lab`. Below md the nav is a hamburger menu-button
+disclosure (aria-expanded trigger) whose panel carries the same four
+links + the theme toggle + Sign in + Try Cloud. Enabled interactive
+controls show `cursor: pointer` via one base-layer rule in `globals.css`
+(design.md §2 cursor-affordance foundation); removable Chips are a pill
+of two real buttons (label + keyboard-reachable ✕). Playwright asserts
+the exact hrefs on nav + footer, walks every canonical href through the
+390 disclosure, covers theme flip+persist on both surfaces, and pins the
+pointer cursor on controls.
 
 **W3 as-built notes (2026-07-19, PR #91):**
 

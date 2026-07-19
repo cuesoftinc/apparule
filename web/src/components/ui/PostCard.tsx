@@ -94,7 +94,13 @@ export function PostCard({
         </IconButton>
       </header>
 
-      {/* media (full-bleed, 1:1 default / 4:5 max) */}
+      {/* media (full-bleed, 1:1 default / 4:5 max). The onClick here is the
+          MI-1 double-tap GESTURE zone, not a control: single click does
+          nothing, the accessible like path is the ActionRow heart, and a
+          role="button" would announce a control that ignores activation —
+          while a real <button> can't own the nested carousel buttons. It
+          stays a plain div (exempt from the cursor-affordance base rule by
+          design). */}
       <div
         className="relative aspect-square w-full select-none overflow-hidden bg-border/30"
         onClick={handleMediaTap}
