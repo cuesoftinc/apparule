@@ -94,7 +94,7 @@ design-phase QA loops, design.md §8).
 - Hero phone mock is a live composed component loop (pauses on hover and on
   `prefers-reduced-motion`), not a static image or video asset.
 - Walkthrough and feature-deep-dive thumbnails are composed mini-previews
-  standing in for the real screens; the W3 raster swap replaces them.
+  (`MiniScreen`) rendered from real components, not raster screen exports.
 - FAQ answers 2–5 are authored to the pages.md contract.
 - The theme toggle lives in `HomeNav`, not a standalone control.
 - Analytics events land on a TEST_MODE queue behind an `AnalyticsTransport`
@@ -141,8 +141,8 @@ build at 1440/390, light/dark/reduced-motion, and fixed what it found:
   Next.js defaults.
 - `Button` and `Chip` carry `whitespace-nowrap` — pill labels never wrap
   (the 390px comparison CTAs were the live repro).
-- `formatAgoPhrase` ("2d ago" / "just now" / "on 22 May") replaces
-  hand-appended " ago" templates (which produced "Updated 22 May ago").
+- `formatAgoPhrase` ("2d ago" / "just now" / "on 22 May") is the single
+  relative-timestamp formatter — no hand-appended " ago" templates.
 - MI-3's first-save "Saved to your looks" toast now exists (once per
   browser, Toast gained an optional trailing link).
 - Seed coherence: designer `posts_count` is test-locked to the actually
@@ -152,27 +152,20 @@ build at 1440/390, light/dark/reduced-motion, and fixed what it found:
 
 **Link-parity as-built notes (2026-07-19, PR #93):** the org "Marketing
 nav, footer & theme parity canon" (SKILL.md) applied — nav is four plain
-text links, Features · For designers · Docs · GitHub (adjudicated
-2026-07-19: the nav star badge was dropped for cross-product parity —
-the live-count badge is A7b's alone) + theme toggle + a single **Sign
-in** gradient CTA (the nav Try Cloud moved out; hero/A9c/comparison keep
-firing `try_cloud_click`).
+text links, Features · For designers · Docs · GitHub, + theme toggle + a
+single **Sign in** gradient CTA; the runtime star-count badge is A7b's
+alone; hero/A9c/comparison CTAs fire `try_cloud_click`.
 Footer is brand block + Product/Docs/Community/**Legal** columns (4/4/4/3
 links) + the verbatim legal bar ("© Cuesoft Inc. 2026. Apparule. CueLABS™
 Division. MIT License.") with the security-policy affordance and language
 selector. All external URLs are the verified-200 canon targets
 (`cuesoft.gitbook.io/apparule/*`, `discord.gg/CDfZxxrxbb`,
-`cuelabs.cuesoft.io`, `privacy/terms/status.cuesoft.io`); the old
-`docs.apparule.cuesoft.io` placeholders across A4b/A5/A7c/A9 were
-repointed to verified GitBook pages. Playwright asserts the exact hrefs
-on nav + footer and theme flip+persist on both surfaces. pages.md A1/A10
-still describe the pre-canon layout — deviation recorded here (design.md
-is owned by the design agent). **Canon extension (2026-07-19, mobile
-nav):** below md the four canonical links collapse into a hamburger
-disclosure (aria-expanded trigger) whose panel carries the same four
-links + the theme toggle + the Sign in CTA — previously the links simply
-vanished on mobile (all three products shared the gap); e2e walks every
-canonical href through the menu at 390.
+`cuelabs.cuesoft.io`, `privacy/terms/status.cuesoft.io`). Below md the
+nav is a hamburger menu-button disclosure (aria-expanded trigger) whose
+panel carries the same four links + the theme toggle + the Sign in CTA.
+Playwright asserts the exact hrefs on nav + footer, walks every canonical
+href through the 390 disclosure, and covers theme flip+persist on both
+surfaces.
 
 **W3 as-built notes (2026-07-19, PR #91):**
 
@@ -197,10 +190,8 @@ canonical href through the menu at 390.
   via `check:boundaries` (not lint). Naming parity nit: apparule's script is
   `check-boundaries.sh`; the sibling repos (expendit, upstat) both carry
   `check-boundaries.mjs` — recorded here, not yet standardized.
-- Legacy quarantine state is unchanged since W0: only
-  `web/src/legacy/lib/api.ts` (the pre-W0 template stub's API helper)
-  remains under quarantine; W3 added no new legacy, and no live path
-  imports it.
+- `src/legacy/` is currently empty; no live path imports from it (the
+  boundary gates above keep it that way).
 - Semantic-HTML landmarks (one `<main>`, one `nav[aria-label="Primary"]`)
   are enforced by e2e across all 15 dashboard screens, not spot-checked.
 
@@ -340,17 +331,16 @@ The §8.4 rule that empty/loading/QA frames stay out of the prototype maps
 here too: Playwright walks real user paths; empty/loading states are
 asserted at unit/integration level (screen-state parity, §2).
 
-## 8. Legacy quarantine plan
+## 8. Legacy quarantine
 
-`web/` is **greenfield** — the current tree is the template stub (a
-placeholder home page + a thin API helper), not a legacy system; W0
-replaces it in place and no `src/legacy/` quarantine is needed at the
-start. The §1 policy still governs any future replacement inside `web/`
-(quarantine → replace → QA → dedicated retirement PR). The **mobile Flutter
-app is a later phase**: `mobile/` (existing auth + capture screens,
-design.md §6) is untouched by W0–W3 and gets its own implementation
-standard — including its own application of the quarantine policy — when
-that phase opens.
+Live paths carry zero dead code. `web/src/legacy/` plus the boundary gates
+(the eslint `no-restricted-imports` rule scoped to `src/legacy/**` and
+`scripts/check-boundaries.sh`, wired into `npm test`) are the standing
+mechanism for future replacements per the §1 policy (quarantine → replace →
+QA → dedicated retirement PR) — the directory is currently empty. The
+**mobile Flutter app is a later phase**: `mobile/` (existing auth + capture
+screens, design.md §6) gets its own implementation standard — including its
+own application of the quarantine policy — when that phase opens.
 
 ## 9. Acceptance
 
