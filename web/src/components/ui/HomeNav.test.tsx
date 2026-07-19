@@ -46,6 +46,39 @@ describe("HomeNav (§8.2b marketing)", () => {
     expect(screen.getByTestId("star-badge")).toHaveTextContent("1,234");
   });
 
+  it("the mobile panel's GitHub item mirrors the same live starCount (Codex P2)", async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<HomeNav starCount={null} />);
+    await user.click(screen.getByTestId("nav-menu-button"));
+    const panel = screen.getByTestId("nav-menu-panel");
+    const panelBadge = within(panel).getByRole("link", {
+      name: "Star cuesoftinc/apparule on GitHub",
+    });
+    expect(panelBadge).toHaveTextContent("Star");
+
+    rerender(<HomeNav starCount={1234} />);
+    expect(
+      within(screen.getByTestId("nav-menu-panel")).getByRole("link", {
+        name: "Star cuesoftinc/apparule on GitHub",
+      }),
+    ).toHaveTextContent("1,234");
+  });
+
+  it("badge aria-label is derived from a custom githubHref, not hardcoded (PR review fix)", async () => {
+    const user = userEvent.setup();
+    render(<HomeNav githubHref="https://github.com/acme/widgets" />);
+    // desktop badge
+    expect(
+      screen.getByRole("link", { name: "Star acme/widgets on GitHub" }),
+    ).toHaveAttribute("href", "https://github.com/acme/widgets");
+    // mobile panel badge mirrors the same derived label
+    await user.click(screen.getByTestId("nav-menu-button"));
+    const panel = screen.getByTestId("nav-menu-panel");
+    expect(
+      within(panel).getByRole("link", { name: "Star acme/widgets on GitHub" }),
+    ).toHaveAttribute("href", "https://github.com/acme/widgets");
+  });
+
   it("collapses the links into a hamburger disclosure below md", async () => {
     const user = userEvent.setup();
     render(<HomeNav trailing={<button type="button">Toggle theme</button>} />);
@@ -63,10 +96,16 @@ describe("HomeNav (§8.2b marketing)", () => {
       "href",
       "https://cuesoft.gitbook.io/apparule",
     );
-    expect(within(panel).getByRole("link", { name: "GitHub" })).toHaveAttribute(
+    // canon revision: the panel GitHub item is the same star badge as
+    // desktop (aria-label + neutral "Star" label), not a plain text link.
+    const panelBadge = within(panel).getByRole("link", {
+      name: "Star cuesoftinc/apparule on GitHub",
+    });
+    expect(panelBadge).toHaveAttribute(
       "href",
       "https://github.com/cuesoftinc/apparule",
     );
+    expect(panelBadge).toHaveTextContent("Star");
     expect(within(panel).getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/signin");
     expect(within(panel).getByRole("button", { name: "Try Cloud" })).toBeInTheDocument();
     expect(within(panel).getByRole("button", { name: "Toggle theme" })).toBeInTheDocument();

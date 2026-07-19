@@ -47,6 +47,36 @@ const DEFAULT_LINKS: HomeNavLink[] = [
   { label: "Docs", href: "https://cuesoft.gitbook.io/apparule" },
 ];
 
+// Shared badge contents (icon + star glyph + live count) — desktop wraps
+// this in the compact pill, the mobile panel wraps it in a plain 44px row;
+// both read starCount off the same useGithubStars seam, neutral "Star" in
+// TEST_MODE/failure (accuracy standard: no invented counts).
+function StarBadgeLabel({ starCount }: { starCount: number | null }) {
+  return (
+    <>
+      <GitHubMark size={14} />
+      <Star size={12} className="text-warn" />
+      <span className="tnum">
+        {starCount === null ? "Star" : starCount.toLocaleString("en-NG")}
+      </span>
+    </>
+  );
+}
+
+// Derived from githubHref (review fix, PR #99): a caller-supplied override
+// must not leave the badge's accessible name announcing "cuesoftinc/apparule"
+// for a different repository — falls back to the generic "GitHub" if the
+// href doesn't parse as `github.com/<owner>/<repo>`.
+function githubRepoSlug(href: string): string {
+  try {
+    const { hostname, pathname } = new URL(href);
+    const slug = pathname.replace(/^\/+|\/+$/g, "");
+    return hostname === "github.com" && slug ? slug : "GitHub";
+  } catch {
+    return "GitHub";
+  }
+}
+
 export function HomeNav({
   links = DEFAULT_LINKS,
   githubHref = "https://github.com/cuesoftinc/apparule",
@@ -58,6 +88,7 @@ export function HomeNav({
 }: HomeNavProps) {
   const [stuck, setStuck] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const githubAriaLabel = `Star ${githubRepoSlug(githubHref)} on GitHub`;
 
   useEffect(() => {
     const onScroll = () => setStuck(window.scrollY > 8);
@@ -112,15 +143,11 @@ export function HomeNav({
             target="_blank"
             rel="noopener noreferrer"
             data-testid="star-badge"
-            aria-label="Star cuesoftinc/apparule on GitHub"
+            aria-label={githubAriaLabel}
             onClick={onGithubClick}
             className="flex h-9 items-center gap-2 rounded-pill border border-border px-3 text-caption font-semibold text-text hover:bg-border/30"
           >
-            <GitHubMark size={14} />
-            <Star size={12} className="text-warn" />
-            <span className="tnum">
-              {starCount === null ? "Star" : starCount.toLocaleString("en-NG")}
-            </span>
+            <StarBadgeLabel starCount={starCount} />
           </a>
         </div>
         <div className="ml-auto hidden items-center gap-3 md:flex">
@@ -168,17 +195,21 @@ export function HomeNav({
               {link.label}
             </a>
           ))}
+          {/* panel GitHub item — the same compact star badge as desktop
+              (Codex P2: this used to render a plain "GitHub" text link and
+              never read starCount). */}
           <a
             href={githubHref}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label={githubAriaLabel}
             onClick={() => {
               onGithubClick?.();
               setMenuOpen(false);
             }}
-            className="flex h-11 items-center text-body text-text-2 hover:text-text"
+            className="flex h-11 items-center gap-2 text-body text-text-2 hover:text-text"
           >
-            GitHub
+            <StarBadgeLabel starCount={starCount} />
           </a>
           <div className="mt-2 flex items-center justify-between gap-3 border-t border-border pt-3">
             {trailing}

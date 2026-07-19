@@ -412,7 +412,6 @@ test.describe("nav/footer parity canon", () => {
       ["Features", "#product"],
       ["For designers", "#designers"],
       ["Docs", "https://cuesoft.gitbook.io/apparule"],
-      ["GitHub", "https://github.com/cuesoftinc/apparule"],
       ["Sign in", "/signin"],
     ];
     for (const [name, href] of canon) {
@@ -421,6 +420,19 @@ test.describe("nav/footer parity canon", () => {
         `menu link ${name}`,
       ).toHaveAttribute("href", href);
     }
+
+    // GitHub renders as the same compact star badge as desktop (Codex P2:
+    // the panel used to fall back to a plain "GitHub" text link and never
+    // read the live count) — neutral "Star" in TEST_MODE (no third-party
+    // fetch in CI, accuracy standard).
+    const panelBadge = panel.getByRole("link", {
+      name: "Star cuesoftinc/apparule on GitHub",
+    });
+    await expect(panelBadge).toHaveAttribute(
+      "href",
+      "https://github.com/cuesoftinc/apparule",
+    );
+    await expect(panelBadge).toContainText("Star");
 
     // Try Cloud rides along in the panel and hands off to /signin
     await expect(
