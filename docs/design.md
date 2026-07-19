@@ -54,6 +54,9 @@
 - Desktop dashboard: IG-desktop pattern — slim left icon rail (72px, expands
   to 244px on ≥1264px) + centered content column (max 630px feed / 935px
   profile) + right meta column where useful.
+- Marketing (public home): a single centered content container — 1080px wide
+  at 1440, 24px minimum gutters, full-bleed backgrounds only; every section's
+  inner content aligns to it. **[Decided 2026-07-19]**
 - Media ratios: 1:1 default, 4:5 portrait max in feed (IG rules); carousels up
   to 10 images.
 - Radii: 8px cards/sheets, full-round avatars/pills. Hairline borders over
@@ -352,6 +355,14 @@ pass — `Sheet`: the master's slot strokes are removed (slots render clean in
 instances); `Input` textarea kind: inner text-area height fixed;
 `RequestCard`: the title truncates to 1 line (ellipsis) so the price is
 always visible.
+
+*As-built (2026-07-19):* the Home frame's sections were normalized to the §2
+marketing container (1080px at 1440, x 180–1260) — the A4 walkthrough,
+A4b deep-dives and A7b topic rows previously sat on a ~1192px breakout, the
+nav/footer on 1200px, and the stat band overhung to 1356px; right-column
+visuals (hero phone, constellation, earnings block, architecture diagram) now
+right-align to the container edge. Full-bleed section backgrounds (e.g. the
+A9c CTA band) stay 1440.
 
 ### 8.3 Design-prep needed from content
 
