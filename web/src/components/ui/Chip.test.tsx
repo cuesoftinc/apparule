@@ -48,4 +48,32 @@ describe("Chip (§8.2)", () => {
     expect(onRemove).toHaveBeenCalledOnce();
     expect(onClick).not.toHaveBeenCalled();
   });
+
+  it("disabled removable chip also disables the ✕ — no onRemove from a mouse click", async () => {
+    const onRemove = vi.fn();
+    render(
+      <Chip kind="removable" label="near me" onRemove={onRemove} disabled />,
+    );
+    const remove = screen.getByRole("button", { name: "Remove near me" });
+    expect(remove).toBeDisabled();
+    await userEvent.click(remove);
+    expect(onRemove).not.toHaveBeenCalled();
+  });
+
+  it("disabled removable chip's ✕ ignores keyboard activation too", async () => {
+    const onRemove = vi.fn();
+    render(
+      <Chip kind="removable" label="near me" onRemove={onRemove} disabled />,
+    );
+    const remove = screen.getByRole("button", { name: "Remove near me" });
+    remove.focus();
+    await userEvent.keyboard("{Enter}");
+    await userEvent.keyboard(" ");
+    expect(onRemove).not.toHaveBeenCalled();
+  });
+
+  it("disabled removable chip disables the label button too", () => {
+    render(<Chip kind="removable" label="near me" onRemove={() => {}} disabled />);
+    expect(screen.getByRole("button", { name: "near me" })).toBeDisabled();
+  });
 });

@@ -30,13 +30,15 @@ export function Chip({
   label,
   onRemove,
   className,
+  disabled,
   ...rest
 }: ChipProps) {
   if (kind === "removable") {
     // Removable = two REAL buttons in a pill container — a button may not
     // own interactive descendants, and the ✕ must be keyboard-reachable
     // (semantic canon; formerly a tabIndex=-1 span[role=button] inside the
-    // chip button).
+    // chip button). `disabled` gates BOTH buttons — the ✕ must not stay
+    // clickable (mouse or keyboard) when the chip itself is disabled.
     return (
       <span
         data-kind="removable"
@@ -45,7 +47,8 @@ export function Chip({
         <button
           type="button"
           data-kind={kind}
-          className="inline-flex items-center whitespace-nowrap"
+          disabled={disabled}
+          className="inline-flex items-center whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-40"
           {...rest}
         >
           {label}
@@ -53,11 +56,13 @@ export function Chip({
         <button
           type="button"
           aria-label={`Remove ${label}`}
+          disabled={disabled}
           onClick={(e) => {
             e.stopPropagation();
+            if (disabled) return;
             onRemove?.();
           }}
-          className="-mr-1 grid size-4 place-items-center rounded-pill text-text-2 hover:text-text"
+          className="-mr-1 grid size-4 place-items-center rounded-pill text-text-2 hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
         >
           <X size={14} strokeWidth={2.5} />
         </button>
@@ -69,11 +74,13 @@ export function Chip({
       type="button"
       data-kind={kind}
       aria-pressed={kind === "selected" || undefined}
+      disabled={disabled}
       className={clsx(
         PILL_CLASSES,
         kind === "selected"
           ? "border-transparent bg-text text-bg"
           : "border-border bg-bg-elev text-text",
+        "disabled:cursor-not-allowed disabled:opacity-40",
         className,
       )}
       {...rest}
