@@ -277,12 +277,19 @@ describe("HomeNavBar (A1)", () => {
     expect(screen.queryByText("Try Cloud")).not.toBeInTheDocument();
   });
 
-  it("renders the neutral Star badge while no live count exists", () => {
+  it("nav GitHub is a plain text link that fires github_click", async () => {
     render(
       <ThemeProvider>
         <HomeNavBar />
       </ThemeProvider>,
     );
-    expect(screen.getByTestId("star-badge")).toHaveTextContent("Star");
+    const github = screen.getByTestId("nav-github");
+    expect(github).toHaveAttribute(
+      "href",
+      "https://github.com/cuesoftinc/apparule",
+    );
+    expect(screen.queryByTestId("star-badge")).not.toBeInTheDocument();
+    await userEvent.click(github);
+    expect(names()).toContain("github_click");
   });
 });

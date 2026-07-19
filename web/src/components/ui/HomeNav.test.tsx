@@ -20,22 +20,17 @@ describe("HomeNav (§8.2b marketing)", () => {
       "href",
       "https://cuesoft.gitbook.io/apparule",
     );
-    expect(screen.getByTestId("star-badge")).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "GitHub" })).toHaveAttribute(
       "href",
       "https://github.com/cuesoftinc/apparule",
     );
+    // adjudicated: plain text link — no star badge in the nav
+    expect(screen.queryByTestId("star-badge")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute(
       "href",
       "/signin",
     );
     expect(screen.queryByText("Try Cloud")).not.toBeInTheDocument();
-  });
-
-  it("star badge is neutral (no invented number) until the live count arrives", () => {
-    const { rerender } = render(<HomeNav starCount={null} />);
-    expect(screen.getByTestId("star-badge")).toHaveTextContent("Star");
-    rerender(<HomeNav starCount={1234} />);
-    expect(screen.getByTestId("star-badge")).toHaveTextContent("1,234");
   });
 
   it("blurs when stuck (scroll state)", () => {

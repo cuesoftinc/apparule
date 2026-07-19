@@ -151,10 +151,12 @@ build at 1440/390, light/dark/reduced-motion, and fixed what it found:
   stats) are e2e-gated across all dashboard routes.
 
 **Link-parity as-built notes (2026-07-19, PR #93):** the org "Marketing
-nav, footer & theme parity canon" (SKILL.md) applied — nav is Features ·
-For designers · Docs · GitHub (the star badge remains the GitHub
-affordance) + theme toggle + a single **Sign in** gradient CTA (the nav
-Try Cloud moved out; hero/A9c/comparison keep firing `try_cloud_click`).
+nav, footer & theme parity canon" (SKILL.md) applied — nav is four plain
+text links, Features · For designers · Docs · GitHub (adjudicated
+2026-07-19: the nav star badge was dropped for cross-product parity —
+the live-count badge is A7b's alone) + theme toggle + a single **Sign
+in** gradient CTA (the nav Try Cloud moved out; hero/A9c/comparison keep
+firing `try_cloud_click`).
 Footer is brand block + Product/Docs/Community/**Legal** columns (4/4/4/3
 links) + the verbatim legal bar ("© Cuesoft Inc. 2026. Apparule. CueLABS™
 Division. MIT License.") with the security-policy affordance and language

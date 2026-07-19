@@ -1,8 +1,8 @@
 // "Marketing site" journey (design.md §8.4, web-implementation.md §7):
 // Part A scroll — every section renders — plus the FAQ accordion, the
 // Try Cloud / Sign in CTA handoff into /signin, and the theme toggle.
-// Runs in TEST_MODE: the star badge deterministically keeps its neutral
-// "Star" label (no third-party fetch in CI).
+// Runs in TEST_MODE: the A7b star badge deterministically keeps its
+// neutral "Star" label (no third-party fetch in CI).
 import { expect, test } from "@playwright/test";
 
 test.describe("Marketing site — home page", () => {
@@ -15,8 +15,10 @@ test.describe("Marketing site — home page", () => {
     ).toBeVisible();
     await expect(page.getByTestId("hero-phone")).toBeVisible();
 
-    // A1 nav — neutral star badge in TEST_MODE (accuracy standard)
-    await expect(page.getByTestId("star-badge")).toContainText("Star");
+    // A1 nav — plain GitHub text link (parity canon adjudication); the
+    // neutral star badge lives on A7b only (accuracy standard)
+    await expect(page.getByTestId("nav-github")).toHaveText("GitHub");
+    await expect(page.getByTestId("dev-star-badge")).toContainText("Star");
 
     // A3 stat band — the honest product claims
     await expect(page.getByText("±2 cm", { exact: true })).toBeVisible();
@@ -327,10 +329,11 @@ test.describe("nav/footer parity canon", () => {
       "href",
       "https://cuesoft.gitbook.io/apparule",
     );
-    await expect(nav.getByTestId("star-badge")).toHaveAttribute(
+    await expect(nav.getByTestId("nav-github")).toHaveAttribute(
       "href",
       "https://github.com/cuesoftinc/apparule",
     );
+    await expect(nav.getByTestId("star-badge")).toHaveCount(0);
     await expect(nav.getByRole("link", { name: "Sign in" })).toHaveAttribute(
       "href",
       "/signin",

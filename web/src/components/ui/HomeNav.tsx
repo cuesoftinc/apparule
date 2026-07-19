@@ -1,16 +1,14 @@
 "use client";
 
 // HomeNav — design.md §8.2b marketing kit, links per the org "Marketing
-// nav, footer & theme parity canon" (SKILL.md, 2026-07-19): Features ·
-// For designers · Docs · GitHub (the star badge is the GitHub affordance)
-// + theme-toggle slot + the "Sign in" gradient CTA · state top /
-// stuck-blurred (blurs on scroll). Accuracy standard: the badge renders
-// "Star" with no number until the live count arrives at runtime (A1).
+// nav, footer & theme parity canon" (SKILL.md, 2026-07-19, star-badge
+// adjudication): four PLAIN text links — Features · For designers · Docs ·
+// GitHub — + theme-toggle slot + the "Sign in" gradient CTA · state top /
+// stuck-blurred (blurs on scroll). The live star badge lives on A7b only
+// (DevelopersSection); a nav badge on one product is cross-repo drift.
 import { useEffect, useState, type ReactNode } from "react";
 import clsx from "clsx";
 import Link from "next/link";
-import { Star } from "lucide-react";
-import { GitHubMark } from "@/components/icons/GitHubMark";
 
 export interface HomeNavLink {
   label: string;
@@ -19,8 +17,6 @@ export interface HomeNavLink {
 
 export interface HomeNavProps {
   links?: HomeNavLink[];
-  /** Live star count (fetched at runtime); null renders the neutral badge. */
-  starCount?: number | null;
   githubHref?: string;
   /** Analytics seam: `github_click` fires here (pages.md A1). */
   onGithubClick?: () => void;
@@ -41,7 +37,6 @@ const DEFAULT_LINKS: HomeNavLink[] = [
 
 export function HomeNav({
   links = DEFAULT_LINKS,
-  starCount = null,
   githubHref = "https://github.com/cuesoftinc/apparule",
   onGithubClick,
   trailing,
@@ -86,23 +81,19 @@ export function HomeNav({
               {link.label}
             </a>
           ))}
-        </div>
-        <div className="ml-auto flex items-center gap-3">
+          {/* canon link 4/4 — plain text like the rest (adjudicated) */}
           <a
             href={githubHref}
             target="_blank"
             rel="noopener noreferrer"
-            data-testid="star-badge"
+            data-testid="nav-github"
             onClick={onGithubClick}
-            // hidden <sm: 375-width adaptation (Figma nav is 1440-only)
-            className="hidden h-9 items-center gap-2 rounded-pill border border-border px-3 text-body font-semibold text-text hover:bg-border/30 sm:flex"
+            className="text-body text-text-2 hover:text-text"
           >
-            <GitHubMark size={16} />
-            <Star size={14} className="text-warn" />
-            <span className="tnum">
-              {starCount === null ? "Star" : starCount.toLocaleString("en-NG")}
-            </span>
+            GitHub
           </a>
+        </div>
+        <div className="ml-auto flex items-center gap-3">
           {trailing}
           {/* Parity canon: one nav CTA — Sign in, on apparule's gradient */}
           <Link
