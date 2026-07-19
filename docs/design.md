@@ -211,7 +211,7 @@ import, the parity audit requires these Lucide glyphs: `shield-check` (MI-15
 pay morph, PaymentBox escrow-held) · `more-horizontal` (PostCard ⋯ overflow,
 moderation/action menus) · `chevron-down` (Select trigger, expandable
 snapshot values in stepper review, caption "more") · `calendar` (quote
-due-date, stepper target date) · `sun` + `moon` (NavRail theme toggle) ·
+due-date, stepper target date) · `sun` + `moon` (NavRail theme toggle; `moon` also seeds the marketing-nav `ThemeToggle` master, [Directive 2026-07-19]) ·
 `copy` (MI-9 desktop copy-link popover; A7 snippet copy) · `alert-triangle`
 (freshness/turnaround soft warnings, KYC-lapse banner, dispute states) ·
 `info` (escrow explainer, consent/retention notice, "near me" explainer) ·
@@ -334,7 +334,7 @@ Stage 5 and non-blocking; everything else feeds Stages 1–4.
 
 | Component | Variants × states |
 | --- | --- |
-| HomeNav / HomeFooter | nav: logo + links + GitHub star-count badge + Sign in + Try Cloud · state: top / stuck-blurred · footer: 3 link columns + legal + language · theme ×2 · **as built (2026-07-18):** the master's GitHub badge reads "Star" with no count — no invented numbers on canvases (accuracy standard below); the live star count is fetched at runtime (pages.md A1) |
+| HomeNav / HomeFooter | nav: logo + 4 text links (Features · For designers · Docs · GitHub) + `ThemeToggle` + Sign in CTA (`/signin`) · state: top / stuck-blurred · footer: brand block (wordmark + tagline) + 4 pinned link columns — Product (Features · Try Cloud · Self Host · For designers) · Docs (Docs · Quickstart · API reference · Self-host guide) · Community (GitHub · Discord · Roadmap · CueLABS) · Legal (Privacy · Terms · Status) — + legal bar `© Cuesoft Inc. 2026. Apparule. CueLABS™ Division. MIT License.` with security-policy link (SECURITY.md) + English language selector · theme ×2 · **as built (2026-07-18):** the master's GitHub badge reads "Star" with no count — no invented numbers on canvases (accuracy standard below); the live star count is fetched at runtime (pages.md A1) · **[Directive 2026-07-19]:** retro-fitted to the cross-product "Marketing nav, footer & theme parity canon" (generator SKILL.md) — one link inventory across apparule/expendit/upstat, rendered in apparule's light 4-column design; nav drops the GitHub star badge + Try Cloud button (Sign in becomes the sole CTA) and gains the `ThemeToggle` master; footer renames GitBook→Docs, drops Contributing + Good first issues, adds the Legal column (the legal-bar Privacy/Terms row items moved there, + Status); all hrefs are the canon's canonical URLs |
 | Home section kit | StatCard ×3 (fade-up) · WalkthroughStep (screenshot + 2 lines + step dots) · ComparisonTable (Cloud vs OSS + CTA row) · CodeSnippetBlock (copy → ✓ morph) · CommunityCard (Discord member count) · **status (2026-07-17):** the one remaining unbuilt Stage-5 row (HomeNav/HomeFooter are done) — in build now; contract stays live, not deferred · **as built (2026-07-18):** WalkthroughStep step dots corrected to ×4 (the A4 walkthrough's four steps; the active dot is set per instance) · the CommunityCard master carries a neutral badge — no member count (accuracy standard below) |
 | FAQItem | question + chevron · state: collapsed / expanded · one-open-at-a-time group, rows deep-linkable (pages.md A9b) · theme ×2 · **as built (2026-07-18):** ≈720px accordion row; chevron rotates 180° on expand/collapse (`base` 200ms) — the iteration addition the note below anticipated |
 
