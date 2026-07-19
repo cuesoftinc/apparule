@@ -2,6 +2,8 @@
 
 // StoryRailItem — design.md §8.2: state unseen (gradient) / seen (gray) /
 // loading (rotating, MI-8: subtle 1.5s ring rotation while content loads).
+// Geometry (Figma master, design.md [Decided 2026-07-19]): 64px ring frame
+// wrapping a 56px photo — 2px stroke + 2px clear gap.
 import { useId } from "react";
 import clsx from "clsx";
 import { Avatar } from "./Avatar";
@@ -33,10 +35,11 @@ export function StoryRailItem({
     >
       {state === "loading" ? (
         // Figma master (46:88): dashed gradient ring, rotating while the
-        // story preloads (MI-8).
-        <span className="relative inline-grid place-items-center p-[2px]">
+        // story preloads (MI-8) — same 64px frame / 56px photo geometry as
+        // the solid rings.
+        <span className="relative grid size-16 place-items-center">
           <svg
-            viewBox="0 0 60 60"
+            viewBox="0 0 64 64"
             aria-hidden
             className="absolute inset-0 size-full animate-[spin_1.5s_linear_infinite] motion-reduce:animate-none"
           >
@@ -47,9 +50,9 @@ export function StoryRailItem({
               </linearGradient>
             </defs>
             <circle
-              cx="30"
-              cy="30"
-              r="29"
+              cx="32"
+              cy="32"
+              r="31"
               fill="none"
               stroke={`url(#${ringGradientId})`}
               strokeWidth="2"
@@ -61,7 +64,7 @@ export function StoryRailItem({
         </span>
       ) : (
         <Avatar
-          size={56}
+          size={64}
           name={username}
           src={avatarUrl}
           ring={state === "seen" ? "gray" : "gradient"}

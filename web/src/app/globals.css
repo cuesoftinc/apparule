@@ -58,19 +58,25 @@
   background-image: var(--ap-accent-gradient);
 }
 
-body {
-  background: var(--ap-bg);
-  color: var(--ap-text);
-  font-family: var(--ap-font-sans);
-  font-size: 14px; /* design.md §2 — 14 is base */
-}
+/* Element-level globals live in the base layer so utilities and component
+   classes can still override them — unlayered element selectors beat every
+   @layer rule and have caused production breakage before (W2.1 live-QA,
+   CSS-hygiene rule). */
+@layer base {
+  body {
+    background: var(--ap-bg);
+    color: var(--ap-text);
+    font-family: var(--ap-font-sans);
+    font-size: 14px; /* design.md §2 — 14 is base */
+  }
 
-/* Focus states — 2px accent ring, 2px offset, :focus-visible only (shared
-   foundations rule, design.md §2). Gradient rings aren't expressible via
-   outline-color; accent-start is the ring hue. */
-:focus-visible {
-  outline: 2px solid var(--ap-accent-start);
-  outline-offset: 2px;
+  /* Focus states — 2px accent ring, 2px offset, :focus-visible only (shared
+     foundations rule, design.md §2). Gradient rings aren't expressible via
+     outline-color; accent-start is the ring hue. */
+  :focus-visible {
+    outline: 2px solid var(--ap-accent-start);
+    outline-offset: 2px;
+  }
 }
 
 /* Tabular numerals for measurements and money (design.md §2 Type) */

@@ -50,7 +50,7 @@ export function FeatureDeepDives() {
   return (
     <section
       aria-labelledby="deep-dives-heading"
-      className="mx-auto w-full max-w-[1080px] px-6 py-12"
+      className="mx-auto w-full max-w-[1128px] px-6 py-12"
     >
       <h2 id="deep-dives-heading" className="text-title-lg font-bold text-text">
         Built around your measurements
@@ -61,11 +61,12 @@ export function FeatureDeepDives() {
             <div
               data-testid="deep-dive-panel"
               className={clsx(
-                "flex flex-col items-start gap-8 md:items-center md:gap-12",
+                // canon deep-dive split: 528 + 24 gutter + 528 = 1080
+                "flex flex-col items-start gap-8 md:items-center md:gap-6",
                 panel.mediaFirst ? "md:flex-row-reverse" : "md:flex-row",
               )}
             >
-              <div className="max-w-[536px] flex-1">
+              <div className="max-w-[528px] flex-1">
                 <h3 className="text-title font-semibold text-text">
                   {panel.headline}
                 </h3>
@@ -79,7 +80,7 @@ export function FeatureDeepDives() {
                   Read more →
                 </a>
               </div>
-              <div className="w-full max-w-[560px] shrink-0 md:w-[52%]">
+              <div className="w-full max-w-[560px] shrink-0 md:w-[528px] md:max-w-none">
                 {panel.thumb}
               </div>
             </div>

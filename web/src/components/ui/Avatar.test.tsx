@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { Avatar } from "./Avatar";
 
 describe("Avatar (§8.2)", () => {
-  it.each([32, 44, 56, 96] as const)("renders size=%s", (size) => {
+  it.each([32, 44, 56, 64, 96] as const)("renders size=%s", (size) => {
     const { container } = render(<Avatar size={size} name="Kiki Adeyemi" />);
     expect(container.querySelector(`[data-size="${size}"]`)).not.toBeNull();
   });

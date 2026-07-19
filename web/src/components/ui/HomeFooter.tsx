@@ -49,7 +49,9 @@ export interface HomeFooterProps {
 export function HomeFooter({ columns = DEFAULT_COLUMNS, className }: HomeFooterProps) {
   return (
     <footer className={clsx("border-t border-border px-6 py-12", className)}>
-      <div className="mx-auto grid max-w-5xl grid-cols-2 gap-8 md:grid-cols-4">
+      {/* Canonical 1080 content column (design.md container canon) —
+          max-w-5xl (1024) drifted off the section grid (W2.1 live-QA). */}
+      <div className="mx-auto grid max-w-[1080px] grid-cols-2 gap-8 md:grid-cols-4">
         <div>
           <span className="bg-accent-gradient bg-clip-text text-title font-bold text-transparent">
             Apparule
@@ -74,7 +76,7 @@ export function HomeFooter({ columns = DEFAULT_COLUMNS, className }: HomeFooterP
           </div>
         ))}
       </div>
-      <div className="mx-auto mt-10 flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 border-t border-border pt-6 text-caption text-text-2">
+      <div className="mx-auto mt-10 flex max-w-[1080px] flex-wrap items-center gap-x-6 gap-y-2 border-t border-border pt-6 text-caption text-text-2">
         <span>© {new Date().getFullYear()} Cuesoft · CueLABS</span>
         <a href="/privacy" className="hover:text-text">
           Privacy

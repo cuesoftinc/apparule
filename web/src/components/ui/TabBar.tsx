@@ -63,6 +63,9 @@ export function TabBar({
           <Link
             key={item.key}
             href={item.href}
+            // Same rationale as NavRail: decorative home-page thumbs must
+            // not viewport-prefetch /dashboard/* (W2.1 live-QA).
+            prefetch={false}
             aria-label={item.label}
             aria-current={active ? "page" : undefined}
             data-state={active ? "active" : "default"}

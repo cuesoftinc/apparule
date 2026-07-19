@@ -1,14 +1,20 @@
 "use client";
 
-// Avatar — design.md §8.2: size 32 / 44 / 56 / 96 · ring: none / gradient
-// (fresh) / amber / gray · badge: none / designer-verified. Ring semantics:
-// story ring (MI-8) and measurement-freshness ring (MI-11) share this atom.
-// Initials render when no image URL is provided.
+// Avatar — design.md §8.2: size 32 / 44 / 56 / 64 / 96 · ring: none /
+// gradient (fresh) / amber / gray · badge: none / designer-verified. Ring
+// semantics: story ring (MI-8) and measurement-freshness ring (MI-11) share
+// this atom. Initials render when no image URL is provided.
+//
+// Ring geometry (Figma master, design.md [Decided 2026-07-19]): the photo
+// is a square 1:1 box, radius 50%, object-fit cover — never stretched. The
+// ring is a SEPARATE circle stroke (2px; 3px at size 96) with a consistent
+// 2px clear gap between ring and photo: 32 → 24 photo · 56 → 48 · 64 → 56
+// (story rail) · 96 → 86.
 import clsx from "clsx";
 import Image from "next/image";
 import { Check } from "lucide-react";
 
-export type AvatarSize = 32 | 44 | 56 | 96;
+export type AvatarSize = 32 | 44 | 56 | 64 | 96;
 export type AvatarRing = "none" | "gradient" | "amber" | "gray";
 
 export interface AvatarProps {
@@ -38,7 +44,14 @@ export function Avatar({
   name,
   className,
 }: AvatarProps) {
-  const dimension = { width: size, height: size };
+  // Ring stroke: 2px (3px at 96). The photo box sits inside the stroke and
+  // wears a 2px bg border — the clear gap. border-box: photo = box − 4.
+  const stroke = size >= 96 ? 3 : 2;
+  const box = ring === "none" ? size : size - 2 * stroke;
+  // Explicit CSS dimensions — Tailwind preflight (`img { height: auto }`)
+  // otherwise overrides the height attribute and the avatar renders at the
+  // photo's natural aspect ratio: a lozenge, not a circle (W2.1 live-QA).
+  const dimension = { width: box, height: box };
   return (
     <span
       data-ring={ring}
@@ -46,20 +59,20 @@ export function Avatar({
       className={clsx("relative inline-block", className)}
     >
       <span
+        style={{ width: size, height: size }}
         className={clsx(
           "grid place-items-center rounded-pill",
-          ring !== "none" && "p-[2px]", // 2px ring (MI-8)
           ring === "gradient" && "bg-accent-gradient",
           ring === "amber" && "bg-warn",
           ring === "gray" && "bg-border",
         )}
-        style={ring === "none" ? undefined : undefined}
       >
         {src ? (
           <Image
             src={src}
             alt={name}
             {...dimension}
+            style={dimension}
             className={clsx(
               "rounded-pill object-cover",
               ring !== "none" && "border-2 border-bg",

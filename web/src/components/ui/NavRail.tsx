@@ -139,6 +139,10 @@ export function NavRailItem({
   return (
     <Link
       href={item.href}
+      // Rails also render inside decorative home-page thumbs, where
+      // viewport prefetch 404s against unshipped /dashboard/* routes on
+      // the live landing (W2.1 live-QA).
+      prefetch={false}
       aria-current={active ? "page" : undefined}
       data-state={active ? "active" : "default"}
       className={itemClasses(active, expanded)}

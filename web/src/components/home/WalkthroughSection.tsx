@@ -65,7 +65,7 @@ export function WalkthroughSection() {
   return (
     <section
       aria-labelledby="walkthrough-heading"
-      className="mx-auto w-full max-w-[1080px] px-6 py-12"
+      className="mx-auto w-full max-w-[1128px] px-6 py-12"
     >
       <h2 id="walkthrough-heading" className="text-title-lg font-bold text-text">
         How it works
@@ -78,9 +78,11 @@ export function WalkthroughSection() {
         onKeyDown={onKeyDown}
         onScroll={engage}
         data-testid="walkthrough-rail"
-        // xl:-mr-40 — the Figma walkthrough row runs 1192 wide, extending
-        // right past the 1080 heading grid; below xl the rail snap-scrolls
-        className="mt-6 flex snap-x snap-mandatory flex-col gap-8 overflow-x-auto pb-2 md:flex-row md:gap-6 xl:-mr-40"
+        // Canon walkthrough row = 4×252 + 3×24 = 1080: fits the content
+        // column exactly (the old 4×280 Figma row broke out of the grid via
+        // -mr-40 — W2.1 live-QA; frames 186:49/186:50 are now normalized).
+        // Below the full column width the rail snap-scrolls.
+        className="mt-6 flex snap-x snap-mandatory flex-col gap-8 overflow-x-auto pb-2 md:flex-row md:gap-6"
       >
         {STEPS.map((step, i) => (
           <WalkthroughStep

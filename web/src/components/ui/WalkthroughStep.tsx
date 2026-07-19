@@ -36,12 +36,13 @@ export function WalkthroughStep({
   return (
     <figure
       data-step={step}
-      className={clsx("flex w-70 shrink-0 flex-col gap-4", className)}
+      // w-63 = 252px — canon walkthrough grid unit (4×252 + 3×24 = 1080).
+      className={clsx("flex w-63 shrink-0 flex-col gap-4", className)}
     >
       <span className="relative block h-45 w-full overflow-hidden rounded-card border border-border bg-bg-elev">
         {thumb ??
           (imageSrc ? (
-            <Image src={imageSrc} alt={imageAlt} fill sizes="280px" className="object-cover" />
+            <Image src={imageSrc} alt={imageAlt} fill sizes="252px" className="object-cover" />
           ) : null)}
       </span>
       <figcaption className="flex flex-col gap-1">

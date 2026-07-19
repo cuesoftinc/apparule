@@ -173,3 +173,105 @@ test.describe("Marketing site — home page", () => {
     await expect(page.getByTestId("copied-check")).toBeVisible();
   });
 });
+
+// W2.1 live-QA regressions (live-site sweep, design.md container canon
+// [Decided 2026-07-19]): one 1080 content column (x 180–1260 at 1440),
+// no horizontal overflow, single-landmark semantics, circular avatars.
+test.describe("W2.1 live-QA — containers, landmarks, avatars", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("one main / banner nav / footer / h1 per page", async ({ page }) => {
+    await page.goto("/");
+    expect(await page.locator("main").count()).toBe(1);
+    expect(await page.locator("body > div > nav").count()).toBe(1);
+    expect(await page.getByRole("contentinfo").count()).toBe(1);
+    expect(await page.locator("h1").count()).toBe(1);
+  });
+
+  test("every section, the nav and the footer share the 1080 content column", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const edges = await page.evaluate(() => {
+      const vw = document.documentElement.clientWidth;
+      const measured: { label: string; left: number; right: number }[] = [];
+      for (const section of document.querySelectorAll("main > section")) {
+        const rect = section.getBoundingClientRect();
+        const label = section.getAttribute("aria-labelledby") ?? "section";
+        if (rect.width >= vw - 1) {
+          // full-bleed band — its inner div carries the column
+          const inner = section.firstElementChild!.getBoundingClientRect();
+          measured.push({ label, left: inner.x, right: inner.right });
+        } else {
+          // px-6 sections: content column = box minus the 24px gutters
+          measured.push({ label, left: rect.x + 24, right: rect.right - 24 });
+        }
+      }
+      const navInner = document
+        .querySelector("body > div > nav > div")!
+        .getBoundingClientRect();
+      measured.push({ label: "nav", left: navInner.x, right: navInner.right });
+      const footInner = document
+        .querySelector("footer > div")!
+        .getBoundingClientRect();
+      measured.push({
+        label: "footer",
+        left: footInner.x,
+        right: footInner.right,
+      });
+      return measured;
+    });
+    for (const { label, left, right } of edges) {
+      expect(left, `${label} left edge`).toBeGreaterThan(179);
+      expect(left, `${label} left edge`).toBeLessThan(181);
+      expect(right, `${label} right edge`).toBeGreaterThan(1259);
+      expect(right, `${label} right edge`).toBeLessThan(1261);
+    }
+  });
+
+  test("no horizontal overflow at 1440 and 390", async ({ page }) => {
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/");
+      const overflow = await page.evaluate(() => ({
+        doc: document.documentElement.scrollWidth,
+        client: document.documentElement.clientWidth,
+      }));
+      expect(overflow.doc, `scrollWidth at ${width}`).toBe(overflow.client);
+      // the walkthrough rail must scroll inside its box, never overflow it
+      const rail = page.getByTestId("walkthrough-rail");
+      const fits = await rail.evaluate(
+        (el) => el.getBoundingClientRect().right <= window.innerWidth,
+      );
+      expect(fits, `walkthrough rail inside viewport at ${width}`).toBe(true);
+    }
+  });
+
+  test("avatar photos render as true circles (no lozenges)", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    // let the hero demo loop + reveal-on-scroll content mount
+    await page.getByTestId("hero-phone").waitFor();
+    const ratios = await page.evaluate(() => {
+      const out: { src: string; ratio: number }[] = [];
+      for (const img of document.querySelectorAll<HTMLImageElement>(
+        "[data-ring] img",
+      )) {
+        const rect = img.getBoundingClientRect();
+        if (rect.width === 0) continue;
+        out.push({
+          src: (img.currentSrc || img.src).split("/").pop() ?? "",
+          ratio: rect.width / rect.height,
+        });
+      }
+      return out;
+    });
+    expect(ratios.length).toBeGreaterThan(0);
+    for (const { src, ratio } of ratios) {
+      expect(Math.abs(ratio - 1), `avatar ${src} aspect ratio`).toBeLessThan(
+        0.05,
+      );
+    }
+  });
+});

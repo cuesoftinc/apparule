@@ -18,6 +18,8 @@ export function FinalCtaBand() {
       aria-labelledby="final-cta-heading"
       className="bg-accent-gradient px-6 py-9"
     >
+      {/* Canonical 1080 content column (design.md container canon) keeps
+          the band's content box flush with sibling sections (W2.1 live-QA). */}
       <div className="mx-auto flex max-w-[1080px] flex-col items-center gap-5 text-center">
         <h2
           id="final-cta-heading"
