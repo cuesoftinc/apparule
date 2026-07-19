@@ -86,8 +86,24 @@ design-phase QA loops, design.md §8).
 | --- | --- | --- |
 | **W0 Foundations** | `tokens.css` (§3) + Tailwind mapping · MVC skeleton (`models/`, `controllers/`, `components/ui/`) · `AuthProvider` interface + `TestModeAuthProvider` · mock server + seed dataset (§5–6) · Vitest + Playwright harnesses wired into CI build+test | tokens render both themes correctly vs the Style Guide page; TEST_MODE boots to a stubbed dashboard against the mock server; CI green |
 | **W1 Components** | `components/ui/*` per the design.md §8.1 build order (atoms → molecules → cards) and §8.2/§8.2b contract rows, web-applicable MI specs (MI-1…MI-19; MI-20 haptics is mobile-only) · unit tests per component | every built component passes QA vs its Figma component set (variants, states, both themes, motion specs) |
-| **W2 Home** | Part A screens (§4): A1–A10 + iteration rows A4b/A7b/A7c/A9b/A9c · analytics events to Upstat (D2: `page_view`, `demo_start`, `github_click`, `try_cloud_click`, `self_host_click`) · live GitHub star fetch (A1/A7b) | QA vs the Stage-5 Figma page; Playwright covers the "Marketing site" §8.4 flow incl. the CTA handoff |
+| **W2 Home** **[Done 2026-07-19, PR #87]** | Part A screens (§4): A1–A10 + iteration rows A4b/A7b/A7c/A9b/A9c · analytics events to Upstat (D2: `page_view`, `demo_start`, `github_click`, `try_cloud_click`, `self_host_click`) · live GitHub star fetch (A1/A7b) | QA vs the Stage-5 Figma page; Playwright covers the "Marketing site" §8.4 flow incl. the CTA handoff |
 | **W3 Dashboards** | Part B routes (§4): B1–B9 + B7a · feature controllers · request stepper, payments UI, vault, moderation | QA vs the Stage-4 Figma frames + prototype flows; Playwright covers the §8.4 dashboard journeys (§7) |
+
+**W2 as-built notes (2026-07-19, PR #87):**
+
+- Hero phone mock is a live composed component loop (pauses on hover and on
+  `prefers-reduced-motion`), not a static image or video asset.
+- Walkthrough and feature-deep-dive thumbnails are composed mini-previews
+  standing in for the real screens; the W3 raster swap replaces them.
+- FAQ answers 2–5 are authored to the pages.md contract.
+- The theme toggle lives in `HomeNav`, not a standalone control.
+- Analytics events land on a TEST_MODE queue behind an `AnalyticsTransport`
+  seam — the Upstat transport wires in at D2.
+- The GitHub star badge renders neutral first, then resolves via a runtime
+  fetch (no build-time count).
+- Registry `ComparisonTable`, `CommunityCard`, and `WalkthroughStep` were
+  rebuilt to the enriched Figma masters during the W2 QA loop.
+- Section components live in `web/src/components/home/` (canon).
 
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
