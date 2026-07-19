@@ -48,7 +48,9 @@ describe("HomeFooter (§8.2b marketing, parity canon 2026-07-19)", () => {
       "href",
       "https://cuesoft.io",
     );
-    expect(screen.getByText(/2026\. Apparule\. CueLABS™ Division\./)).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "CueLABS™ Division" }),
+    ).toHaveAttribute("href", "https://cuelabs.cuesoft.io");
     expect(screen.getByRole("link", { name: "MIT License" })).toHaveAttribute(
       "href",
       "https://github.com/cuesoftinc/apparule/blob/main/LICENSE",

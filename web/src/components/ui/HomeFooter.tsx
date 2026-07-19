@@ -98,7 +98,16 @@ export function HomeFooter({ columns = DEFAULT_COLUMNS, className }: HomeFooterP
           >
             Cuesoft Inc.
           </a>{" "}
-          2026. Apparule. CueLABS™ Division.{" "}
+          2026. Apparule.{" "}
+          <a
+            href="https://cuelabs.cuesoft.io"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-text"
+          >
+            CueLABS™ Division
+          </a>
+          .{" "}
           <a
             href="https://github.com/cuesoftinc/apparule/blob/main/LICENSE"
             target="_blank"

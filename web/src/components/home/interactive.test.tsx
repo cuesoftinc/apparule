@@ -264,7 +264,7 @@ describe("HomeNavBar (A1)", () => {
     expect(document.documentElement).toHaveAttribute("data-theme", "light");
   });
 
-  it("the nav Sign in CTA links to /signin (parity canon)", () => {
+  it("nav: Sign in text link + Try Cloud CTA hands off with try_cloud_click", async () => {
     render(
       <ThemeProvider>
         <HomeNavBar />
@@ -274,21 +274,31 @@ describe("HomeNavBar (A1)", () => {
       "href",
       "/signin",
     );
-    expect(screen.queryByText("Try Cloud")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Try Cloud" }));
+    expect(names()).toContain("try_cloud_click");
+    expect(push).toHaveBeenCalledWith("/signin");
   });
 
-  it("nav GitHub is a plain text link that fires github_click", async () => {
+  it("nav star badge keeps the neutral label while no live count exists", () => {
     render(
       <ThemeProvider>
         <HomeNavBar />
       </ThemeProvider>,
     );
-    const github = screen.getByTestId("nav-github");
+    expect(screen.getByTestId("star-badge")).toHaveTextContent("Star");
+  });
+
+  it("nav GitHub star badge fires github_click", async () => {
+    render(
+      <ThemeProvider>
+        <HomeNavBar />
+      </ThemeProvider>,
+    );
+    const github = screen.getByTestId("star-badge");
     expect(github).toHaveAttribute(
       "href",
       "https://github.com/cuesoftinc/apparule",
     );
-    expect(screen.queryByTestId("star-badge")).not.toBeInTheDocument();
     await userEvent.click(github);
     expect(names()).toContain("github_click");
   });

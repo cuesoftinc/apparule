@@ -31,6 +31,13 @@ describe("Chip (§8.2)", () => {
     );
   });
 
+  it("the ✕ affordance is a real, keyboard-reachable button (semantic canon)", () => {
+    render(<Chip kind="removable" label="near me" onRemove={() => {}} />);
+    const remove = screen.getByRole("button", { name: "Remove near me" });
+    expect(remove.tagName).toBe("BUTTON");
+    expect(remove).not.toHaveAttribute("tabindex", "-1");
+  });
+
   it("removable chip fires onRemove from the ✕ affordance only", async () => {
     const onRemove = vi.fn();
     const onClick = vi.fn();

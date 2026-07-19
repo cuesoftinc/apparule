@@ -21,17 +21,29 @@ describe("HomeNav (§8.2b marketing)", () => {
       "href",
       "https://cuesoft.gitbook.io/apparule",
     );
-    expect(screen.getByRole("link", { name: "GitHub" })).toHaveAttribute(
+    // canon revision: GitHub renders as the compact star badge
+    const badge = screen.getByRole("link", {
+      name: "Star cuesoftinc/apparule on GitHub",
+    });
+    expect(badge).toHaveAttribute(
       "href",
       "https://github.com/cuesoftinc/apparule",
     );
-    // adjudicated: plain text link — no star badge in the nav
-    expect(screen.queryByTestId("star-badge")).not.toBeInTheDocument();
+    expect(badge).toHaveTextContent("Star");
     expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute(
       "href",
       "/signin",
     );
-    expect(screen.queryByText("Try Cloud")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Try Cloud" }),
+    ).toBeInTheDocument();
+  });
+
+  it("star badge is neutral until the live count arrives (never invented)", () => {
+    const { rerender } = render(<HomeNav starCount={null} />);
+    expect(screen.getByTestId("star-badge")).toHaveTextContent("Star");
+    rerender(<HomeNav starCount={1234} />);
+    expect(screen.getByTestId("star-badge")).toHaveTextContent("1,234");
   });
 
   it("collapses the links into a hamburger disclosure below md", async () => {
@@ -56,6 +68,7 @@ describe("HomeNav (§8.2b marketing)", () => {
       "https://github.com/cuesoftinc/apparule",
     );
     expect(within(panel).getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/signin");
+    expect(within(panel).getByRole("button", { name: "Try Cloud" })).toBeInTheDocument();
     expect(within(panel).getByRole("button", { name: "Toggle theme" })).toBeInTheDocument();
 
     // link click closes the disclosure
