@@ -58,6 +58,39 @@ test("semantic landmarks: every dashboard screen renders one <main> and the prim
   }
 });
 
+// Runs BEFORE the B1 journey (serial file): the journey follows tunde,
+// which grows the feed past the canonical 7-post seed this test paginates.
+test("B1 MI-6: infinite scroll — cursor page prefetched near the end, skeleton ×2, caught-up", async ({
+  page,
+}) => {
+  // Slow the cursor page down so the MI-6 skeletons are observable.
+  await page.route(
+    (url) =>
+      url.pathname.endsWith("/api/mock/v1/feed") &&
+      url.searchParams.has("cursor"),
+    async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 700));
+      await route.continue();
+    },
+  );
+  await signIn(page);
+
+  const cards = page.getByTestId("feed-list").locator("> li");
+  // First ranked page (MI-6 page size 4 over the 7-post seeded feed).
+  await expect(cards).toHaveCount(4);
+
+  // Walking toward the end crosses the 3-from-end observer → prefetch;
+  // skeleton ×2 renders while the cursor page is in flight.
+  await cards.last().scrollIntoViewIfNeeded();
+  await expect(page.getByTestId("feed-loading-more")).toBeVisible();
+  await expect(cards).toHaveCount(7);
+  await expect(page.getByTestId("feed-loading-more")).toHaveCount(0);
+
+  // Cursor exhausted → the MI-6 caught-up divider.
+  await cards.last().scrollIntoViewIfNeeded();
+  await expect(page.getByText(/all caught up/i)).toBeVisible();
+});
+
 test("B1 journey: like/save/follow → request stepper → order → quote → pay → escrow-held → thread MI-17", async ({
   page,
   request,

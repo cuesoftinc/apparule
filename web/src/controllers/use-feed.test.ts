@@ -98,6 +98,56 @@ describe("useFeed", () => {
     expect(result.current.posts[0].like_count).toBe(3);
   });
 
+  it("paginates the feed: MI-6 loadMore appends the cursor page, then caught-up", async () => {
+    feed.mockResolvedValueOnce({
+      items: [post("p1"), post("p2"), post("p3"), post("p4")],
+      next_cursor: "c2",
+    });
+    feed.mockResolvedValueOnce({
+      items: [post("p5"), post("p6"), post("p7")],
+      next_cursor: null,
+    });
+
+    const { result } = renderHook(() => useFeed("feed"));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    // The feed requests the MI-6 page size, not the api.md default 50.
+    expect(feed).toHaveBeenCalledWith(undefined, 4);
+    expect(result.current.posts).toHaveLength(4);
+    expect(result.current.caughtUp).toBe(false);
+
+    await act(() => result.current.loadMore());
+    expect(feed).toHaveBeenLastCalledWith("c2", 4);
+    expect(result.current.posts.map((p) => p.id)).toEqual([
+      "p1", "p2", "p3", "p4", "p5", "p6", "p7",
+    ]);
+    expect(result.current.caughtUp).toBe(true);
+
+    // exhausted cursor → further loadMore calls are no-ops
+    await act(() => result.current.loadMore());
+    expect(feed).toHaveBeenCalledTimes(2);
+  });
+
+  it("gates concurrent loadMore calls to one in-flight page request", async () => {
+    feed.mockResolvedValueOnce({ items: [post("p1")], next_cursor: "c2" });
+    let release!: (v: { items: Post[]; next_cursor: null }) => void;
+    feed.mockImplementationOnce(
+      () => new Promise((resolve) => { release = resolve; }),
+    );
+
+    const { result } = renderHook(() => useFeed("feed"));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      // the MI-6 observer can re-fire while the page is in flight
+      const first = result.current.loadMore();
+      const second = result.current.loadMore();
+      release({ items: [post("p2")], next_cursor: null });
+      await Promise.all([first, second]);
+    });
+    expect(feed).toHaveBeenCalledTimes(2); // initial load + ONE page fetch
+    expect(result.current.posts).toHaveLength(2);
+  });
+
   it("toggleLike is optimistic and rolls back on failure (MI-18)", async () => {
     const p = post("p1");
     feed.mockResolvedValue({ items: [p], next_cursor: null });

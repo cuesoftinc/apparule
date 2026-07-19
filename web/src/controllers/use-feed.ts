@@ -25,6 +25,13 @@ function togglePost(
   return posts.map((p) => (p.id === id ? mutate(p) : p));
 }
 
+/**
+ * MI-6 feed page size: small enough that the seeded 7-post feed exercises
+ * cursor pagination from boot (prefetch at 3 cards from the end, skeleton
+ * ×2 during the fetch). Explore keeps the api.md §4 default (50).
+ */
+export const FEED_PAGE_SIZE = 4;
+
 export function useFeed(mode: "feed" | "explore" = "feed", filters?: ExploreFilters) {
   const [state, setState] = useState<FeedState>({
     posts: [],
@@ -34,6 +41,7 @@ export function useFeed(mode: "feed" | "explore" = "feed", filters?: ExploreFilt
     caughtUp: false,
   });
   const cursorRef = useRef<string | null>(null);
+  const loadingMoreRef = useRef(false);
   const filtersKey = JSON.stringify(filters ?? {});
 
   // Effect-safe fetch (react-hooks/set-state-in-effect): setState only in
@@ -42,7 +50,7 @@ export function useFeed(mode: "feed" | "explore" = "feed", filters?: ExploreFilt
   const load = useCallback(() => {
     const request =
       mode === "feed"
-        ? feedRepo.feed()
+        ? feedRepo.feed(undefined, FEED_PAGE_SIZE)
         : feedRepo.explore(JSON.parse(filtersKey));
     return request.then(
       (page) => {
@@ -77,12 +85,15 @@ export function useFeed(mode: "feed" | "explore" = "feed", filters?: ExploreFilt
 
   const loadMore = useCallback(async () => {
     const cursor = cursorRef.current;
-    if (!cursor) return;
+    // The MI-6 intersection prefetch can re-fire while a page is in
+    // flight — the ref gate keeps one request per cursor.
+    if (!cursor || loadingMoreRef.current) return;
+    loadingMoreRef.current = true;
     setState((s) => ({ ...s, loadingMore: true }));
     try {
       const page =
         mode === "feed"
-          ? await feedRepo.feed(cursor)
+          ? await feedRepo.feed(cursor, FEED_PAGE_SIZE)
           : await feedRepo.explore(JSON.parse(filtersKey), cursor);
       cursorRef.current = page.next_cursor;
       setState((s) => ({
@@ -93,6 +104,8 @@ export function useFeed(mode: "feed" | "explore" = "feed", filters?: ExploreFilt
       }));
     } catch {
       setState((s) => ({ ...s, loadingMore: false }));
+    } finally {
+      loadingMoreRef.current = false;
     }
   }, [mode, filtersKey]);
 

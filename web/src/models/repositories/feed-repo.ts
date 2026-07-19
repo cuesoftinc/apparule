@@ -25,9 +25,11 @@ function query(params: Record<string, string | undefined>): string {
 }
 
 export const feedRepo = {
-  /** GET /api/v1/feed */
-  feed: (cursor?: string) =>
-    apiFetch<Page<Post>>(`/v1/feed${query({ cursor })}`),
+  /** GET /api/v1/feed — cursor pagination per api.md §4 (`?cursor=&limit=`). */
+  feed: (cursor?: string, limit?: number) =>
+    apiFetch<Page<Post>>(
+      `/v1/feed${query({ cursor, limit: limit?.toString() })}`,
+    ),
 
   /** GET /api/v1/explore?q&tags&price_band&max_turnaround_days&near_me */
   explore: (filters: ExploreFilters = {}, cursor?: string) =>
