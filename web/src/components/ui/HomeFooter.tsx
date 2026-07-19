@@ -37,7 +37,7 @@ const DEFAULT_COLUMNS: FooterColumn[] = [
       { label: "GitHub", href: "https://github.com/cuesoftinc/apparule" },
       { label: "Discord", href: "https://discord.gg/CDfZxxrxbb" },
       { label: "Roadmap", href: "https://cuesoft.gitbook.io/apparule/product/roadmap" },
-      { label: "CueLABS", href: "https://cuelabs.cuesoft.io" },
+      { label: "CueLABS™", href: "https://cuelabs.cuesoft.io" },
     ],
   },
   {
@@ -85,7 +85,11 @@ export function HomeFooter({ columns = DEFAULT_COLUMNS, className }: HomeFooterP
           </div>
         ))}
       </div>
-      <div className="mx-auto mt-10 flex max-w-[1080px] flex-wrap items-center gap-x-6 gap-y-2 border-t border-border pt-6 text-caption text-text-2">
+      {/* Legal bar layout (parity canon; Figma master 98:1248): verbatim
+          © line left · [Security policy · English ▾] cluster right
+          (Security affordance 328:8010 sits with the language selector).
+          flex-wrap keeps the cluster flowing under the © line at 390. */}
+      <div className="mx-auto mt-10 flex max-w-[1080px] flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-border pt-6 text-caption text-text-2">
         {/* Verbatim legal line (parity canon): © Cuesoft Inc. 2026.
             Apparule. CueLABS™ Division. MIT License. */}
         <span>
@@ -118,25 +122,30 @@ export function HomeFooter({ columns = DEFAULT_COLUMNS, className }: HomeFooterP
           </a>
           .
         </span>
-        <a
-          href="https://github.com/cuesoftinc/apparule/blob/main/SECURITY.md"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1 hover:text-text"
+        <div
+          data-testid="legal-bar-utilities"
+          className="flex flex-wrap items-center gap-x-6 gap-y-2"
         >
-          <ShieldCheck size={14} aria-hidden />
-          Security policy
-        </a>
-        <label className="ml-auto flex items-center gap-2">
-          <span className="sr-only">Language</span>
-          <select
-            aria-label="Language"
-            defaultValue="en"
-            className="rounded-card border border-border bg-bg-elev px-2 py-1 text-caption text-text"
+          <a
+            href="https://github.com/cuesoftinc/apparule/blob/main/SECURITY.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 hover:text-text"
           >
-            <option value="en">English</option>
-          </select>
-        </label>
+            <ShieldCheck size={14} aria-hidden />
+            Security policy
+          </a>
+          <label className="flex items-center gap-2">
+            <span className="sr-only">Language</span>
+            <select
+              aria-label="Language"
+              defaultValue="en"
+              className="rounded-card border border-border bg-bg-elev px-2 py-1 text-caption text-text"
+            >
+              <option value="en">English</option>
+            </select>
+          </label>
+        </div>
       </div>
     </footer>
   );

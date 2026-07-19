@@ -8,7 +8,7 @@
 
 ## Part A — Public home page (apparule.cuesoft.io)
 
-Standard CueLABS open-source product site (shared pattern across the three
+Standard CueLABS™ open-source product site (shared pattern across the three
 products **[Directive]**): present the product → developers can set it up →
 community links → preview → dual CTA **Try Cloud** / **Self Host**.
 
@@ -24,7 +24,7 @@ community links → preview → dual CTA **Try Cloud** / **Self Host**.
 | A7 | Open source section | `docker compose up` snippet with copy button · architecture mini-diagram · GitHub + CONTRIBUTING links | copy button ✓ morph |
 | A7b | For developers — Contribute **[Directive 2026-07-18]** | stack line (Flutter · Go/Gin `api/common` · Python/FastAPI `api/measure`, architecture.md) · "interesting problems" list (on-device capture QC, escrow ledger, single-image SMPL fitting) · links: good-first-issues filter, CONTRIBUTING.md, Discord · GitHub star badge (the live count is populated at runtime; static designs render the badge with no number per the accuracy standard, design.md §8.2b — the only star-count badge on the page) | link cards lift 2px on hover; `github_click` fires here too; star count animates count-up once |
 | A7c | Self-host **[Directive 2026-07-18]** | data-ownership pitch (your measurements on your own metal — nothing leaves your server) · `docker compose up -d` one-liner (same snippet asset as A7) · "what ships" list (`api-common` · `api-measure` · `web`, per docker-compose.yml) · link → docs quickstart (GitBook) | copy button ✓ morph (shared with A7); `self_host_click` fires here too |
-| A8 | Community | Discord card (member count), roadmap link, CueLABS note | |
+| A8 | Community | Discord card (member count), roadmap link, CueLABS™ note | |
 | A9 | Cloud vs Self-host table (PRD §3) | feature comparison; Cloud column ends in Try Cloud CTA, OSS column in Self Host (→ docs quickstart) | |
 | A9b | FAQ **[Directive 2026-07-18]** | 4–5 product Q&As as accordion rows: "How accurate are the measurements?" · "Who can see my measurements?" (never public; snapshot only inside a request) · "How do designers get paid?" (escrow → payout, order-lifecycle.md) · "Can I self-host?" (→ A7c) · "Is it really open source?" (license) | one panel open at a time; rows deep-linkable (`#faq-n`) |
 | A9c | Final CTA band **[Directive 2026-07-18]** | full-width gradient band: one-line close + dual CTA **Try Cloud** / **Self Host** (repeats the A2 pair — last conversion point before the footer) | CTA hover lifts 2px (as A2); `try_cloud_click` / `self_host_click` |

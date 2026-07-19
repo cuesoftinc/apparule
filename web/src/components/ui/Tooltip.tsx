@@ -28,6 +28,9 @@ export function Tooltip({
           <RadixTooltip.Content
             side={placement}
             sideOffset={6}
+            // Collision-clamp canon (org SKILL.md, 2026-07-19): tooltips
+            // shift to stay inside the viewport — 8px pad off every edge.
+            collisionPadding={8}
             className="z-20 whitespace-nowrap rounded-card bg-text px-2.5 py-1.5 text-caption text-bg shadow-md"
           >
             {label}

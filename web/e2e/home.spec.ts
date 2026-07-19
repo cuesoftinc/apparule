@@ -360,7 +360,7 @@ test.describe("nav/footer parity canon", () => {
       ["GitHub", "https://github.com/cuesoftinc/apparule"],
       ["Discord", "https://discord.gg/CDfZxxrxbb"],
       ["Roadmap", "https://cuesoft.gitbook.io/apparule/product/roadmap"],
-      ["CueLABS", "https://cuelabs.cuesoft.io"],
+      ["CueLABS™", "https://cuelabs.cuesoft.io"],
       ["Privacy", "https://privacy.cuesoft.io"],
       ["Terms", "https://terms.cuesoft.io"],
       ["Status", "https://status.cuesoft.io"],

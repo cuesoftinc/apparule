@@ -39,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Standardized repository structure: `api/common` (Go) and `api/measure`
   (Python), plus `web`, `mobile/{flutter,android,ios}`,
   `deploy/{docker,helm,terraform}`, `docs`, and `scripts`.
-- Shared community-health files from the CueLABS standard (SECURITY,
+- Shared community-health files from the CueLABS™ standard (SECURITY,
   CODE_OF_CONDUCT, CONTRIBUTING, CODEOWNERS, PR/issue templates) and a scoped
   Dependabot config.
 - `docs/overview.md` and `docs/setup.md`.
@@ -58,7 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   purpose-based packages and `snake_case.go` files.
 - Standardized web naming (kebab-case folders + modules, PascalCase components)
   and Flutter to feature-first `lib/src` with `snake_case.dart`.
-- Aligned README + docs (overview, setup) to the shared CueLABS section
+- Aligned README + docs (overview, setup) to the shared CueLABS™ section
   structure; run commands use `make up` / `go run ./cmd/server`.
 
 ### Removed
