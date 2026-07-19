@@ -167,7 +167,12 @@ selector. All external URLs are the verified-200 canon targets
 repointed to verified GitBook pages. Playwright asserts the exact hrefs
 on nav + footer and theme flip+persist on both surfaces. pages.md A1/A10
 still describe the pre-canon layout — deviation recorded here (design.md
-is owned by the design agent).
+is owned by the design agent). **Canon extension (2026-07-19, mobile
+nav):** below md the four canonical links collapse into a hamburger
+disclosure (aria-expanded trigger) whose panel carries the same four
+links + the theme toggle + the Sign in CTA — previously the links simply
+vanished on mobile (all three products shared the gap); e2e walks every
+canonical href through the menu at 390.
 
 **W3 as-built notes (2026-07-19, PR #91):**
 
