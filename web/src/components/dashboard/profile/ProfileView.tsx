@@ -9,6 +9,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Lock } from "lucide-react";
 import type { Post } from "@/models";
+import { formatCount } from "@/lib/format";
 import { useAuth } from "@/controllers/auth/AuthContext";
 import {
   useFollowList,
@@ -263,8 +264,9 @@ export function ProfileView({ username }: { username: string }) {
                   {profile.viewer_follows ? "Following" : "Follow"}
                 </Button>
                 {posts.length > 0 ? (
+                  // Figma 182:969: Follow carries the gradient; Request is quiet.
                   <Button
-                    kind="gradient-primary"
+                    kind="quiet"
                     size="sm"
                     onClick={() => setRequestPost(posts[0])}
                   >
@@ -284,7 +286,7 @@ export function ProfileView({ username }: { username: string }) {
           </div>
           <ul className="flex gap-6 text-body text-text">
             <li>
-              <span className="tnum font-semibold">{d.posts_count}</span> posts
+              <span className="tnum font-semibold">{formatCount(d.posts_count)}</span> posts
             </li>
             <li>
               <button
@@ -293,7 +295,7 @@ export function ProfileView({ username }: { username: string }) {
                 onClick={() => setListSheet("followers")}
                 data-testid="followers-count"
               >
-                <span className="tnum font-semibold">{d.followers_count}</span>{" "}
+                <span className="tnum font-semibold">{formatCount(d.followers_count)}</span>{" "}
                 followers
               </button>
             </li>
@@ -303,7 +305,7 @@ export function ProfileView({ username }: { username: string }) {
                 className="hover:underline"
                 onClick={() => setListSheet("following")}
               >
-                <span className="tnum font-semibold">{d.following_count}</span>{" "}
+                <span className="tnum font-semibold">{formatCount(d.following_count)}</span>{" "}
                 following
               </button>
             </li>

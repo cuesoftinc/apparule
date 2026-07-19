@@ -5,6 +5,7 @@
 // dismiss; audit trail via REPORT.actioned_by. Render-only over
 // useModeration.
 import { useModeration } from "@/controllers/use-moderation";
+import { Banner } from "@/components/ui/Banner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ModerationQueueRow } from "@/components/ui/ModerationQueueRow";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -16,11 +17,12 @@ export function ModerationView() {
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-6">
-      <header>
+      <header className="flex flex-col gap-4">
         <h1 className="text-title-lg font-bold text-text">Moderation queue</h1>
-        <p className="text-body text-text-2">
-          Open reports — actions are audited under your account.
-        </p>
+        {/* Figma 182:1223: audit-log notice as an info Banner. */}
+        <Banner tone="info">
+          Every action here is recorded in the audit log.
+        </Banner>
       </header>
 
       {loading ? (

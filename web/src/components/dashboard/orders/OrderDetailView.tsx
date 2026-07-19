@@ -11,7 +11,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Clock } from "lucide-react";
 import type { CommissionRequest, OrderStatus } from "@/models";
-import { formatCm } from "@/lib/format";
+import { formatCm, formatNaira } from "@/lib/format";
 import { useAuth } from "@/controllers/auth/AuthContext";
 import { useOrder } from "@/controllers/use-orders";
 import { useThread } from "@/controllers/use-thread";
@@ -103,14 +103,26 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
   >(null);
   const [paying, setPaying] = useState(false);
   const [justPaid, setJustPaid] = useState(false);
+  const [snapshotOpen, setSnapshotOpen] = useState(false);
 
   // MI-14 timeline: actual events (done/terminal-error), current pulse on
-  // the latest, then the remaining happy-path steps as pending.
+  // the latest, then the remaining happy-path steps as pending. Figma
+  // 179:536 enriches the money rows ("Quote sent · ₦45,000", "Payment held
+  // in escrow").
   const timeline = useMemo(() => {
     if (!order) return [];
+    const eventLabel = (kind: string): string => {
+      if (kind === "quoted") {
+        return order.quote_cents !== null
+          ? `Quote sent · ${formatNaira(order.quote_cents)}`
+          : "Quote sent";
+      }
+      if (kind === "paid") return "Payment held in escrow";
+      return STATUS_LABEL[kind] ?? kind;
+    };
     const rows = order.events.map((event, i) => ({
       key: event.id,
-      label: STATUS_LABEL[event.kind] ?? event.kind,
+      label: eventLabel(event.kind),
       timestamp: event.created_at,
       dot:
         i === order.events.length - 1
@@ -191,14 +203,17 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
   };
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col px-4 pb-10">
+    <div className="mx-auto flex max-w-5xl flex-col px-4 pb-10">
       <AppBar
         kind="sub"
         title={`Order #${order.order_number}`}
         onBack={() => router.push("/dashboard/orders")}
       />
 
-      <div className="flex flex-col gap-6 pt-4">
+      {/* Figma 179:536: two-column desktop — order content left, the thread
+          as a right-rail card. Single column below lg. */}
+      <div className="grid gap-8 pt-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="flex flex-col gap-6">
         <header
           aria-label="Order summary"
           className="flex items-center gap-3 rounded-card border border-border p-3"
@@ -235,6 +250,52 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
           <StatusPill status={order.status} />
         </header>
 
+        {/* Figma 179:536: compact snapshot chip row directly under the
+            summary — "locked to this order · sent {date}". */}
+        <section aria-labelledby="order-snapshot-h">
+          <h2
+            id="order-snapshot-h"
+            className="pb-2 text-caption text-text-2"
+          >
+            Measurement snapshot — locked to this order · sent{" "}
+            {new Date(order.snapshot.created_at).toLocaleDateString("en-NG", {
+              month: "short",
+              day: "numeric",
+            })}
+          </h2>
+          <ul className="flex flex-wrap items-center gap-1 rounded-card border border-border px-3 py-2">
+            {(snapshotOpen
+              ? order.snapshot.values.measurements
+              : order.snapshot.values.measurements.slice(0, 4)
+            ).map((m) => (
+              <li key={m.name} className="text-caption text-text">
+                {humanizeMeasureName(m.name)}{" "}
+                <span className="tnum font-semibold">{formatCm(m.value_cm)}</span>
+                <span aria-hidden className="px-1 text-text-2 last:hidden">
+                  ·
+                </span>
+              </li>
+            ))}
+            {order.snapshot.values.measurements.length > 4 ? (
+              <li>
+                <button
+                  type="button"
+                  className="text-caption text-link"
+                  aria-expanded={snapshotOpen}
+                  onClick={() => setSnapshotOpen((v) => !v)}
+                >
+                  {snapshotOpen
+                    ? "Show less"
+                    : `+${order.snapshot.values.measurements.length - 4} more`}
+                </button>
+              </li>
+            ) : null}
+          </ul>
+          <p className="pt-1 text-micro text-text-2">
+            Frozen at request — vault changes never alter this order.
+          </p>
+        </section>
+
         <section aria-labelledby="order-timeline-h">
           <h2
             id="order-timeline-h"
@@ -268,31 +329,6 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
             />
           </section>
         ) : null}
-
-        <section aria-labelledby="order-snapshot-h">
-          <h2
-            id="order-snapshot-h"
-            className="pb-2 text-body font-semibold text-text-2"
-          >
-            Measurement snapshot
-          </h2>
-          <div className="rounded-card border border-border px-3 py-2">
-            <dl>
-              {order.snapshot.values.measurements.map((m) => (
-                <div
-                  key={m.name}
-                  className="flex justify-between py-1 text-body"
-                >
-                  <dt className="text-text-2">{humanizeMeasureName(m.name)}</dt>
-                  <dd className="tnum text-text">{formatCm(m.value_cm)}</dd>
-                </div>
-              ))}
-            </dl>
-            <p className="border-t border-border pt-2 text-micro text-text-2">
-              Frozen at request — vault changes never alter this order.
-            </p>
-          </div>
-        </section>
 
         {order.notes ? (
           <section aria-labelledby="order-notes-h">
@@ -349,7 +385,7 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
                 </Button>
               ) : null}
               {["paid", "in_progress", "shipped"].includes(order.status) ? (
-                <Button kind="quiet" onClick={() => setSheet("dispute")}>
+                <Button kind="link" onClick={() => setSheet("dispute")}>
                   Something wrong?
                 </Button>
               ) : null}
@@ -402,13 +438,20 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
           )}
         </section>
 
-        <section aria-labelledby="order-thread-h" className="flex flex-col">
+      </div>
+
+      {/* Right rail (Figma 179:536): the order thread as a bordered card. */}
+      <aside aria-labelledby="order-thread-h" className="lg:pt-0">
+        <section
+          className="flex max-h-[70vh] flex-col rounded-card border border-border p-4"
+        >
           <h2
             id="order-thread-h"
-            className="pb-2 text-body font-semibold text-text-2"
+            className="pb-3 text-body font-semibold text-text"
           >
-            Thread
+            Thread — {counterparty}
           </h2>
+          <div className="min-h-0 flex-1 overflow-y-auto">
           {thread.loading ? (
             <Skeleton kind="line" />
           ) : (
@@ -436,6 +479,7 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
               ) : null}
             </ul>
           )}
+          </div>
           <form className="flex items-center gap-2 pt-3" onSubmit={sendMessage}>
             <label htmlFor="thread-draft" className="sr-only">
               Message {counterparty}
@@ -452,6 +496,7 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
             </Button>
           </form>
         </section>
+      </aside>
       </div>
 
       <QuoteSheet

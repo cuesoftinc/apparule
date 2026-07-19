@@ -23,8 +23,9 @@ export function OrdersView() {
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-6">
+      {/* Figma 179:364 carries no visible page title — tabs/list lead. */}
       <header>
-        <h1 className="text-title-lg font-bold text-text">Orders</h1>
+        <h1 className="sr-only">Orders</h1>
       </header>
 
       {designerEnabled ? (

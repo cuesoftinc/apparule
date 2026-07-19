@@ -116,7 +116,8 @@ test("B1 journey: like/save/follow → request stepper → order → quote → p
   // Customer pays → escrow-held (MI-15).
   await page.reload();
   await page.getByRole("button", { name: /^Pay ₦/ }).click();
-  await expect(page.getByText(/held in escrow/i)).toBeVisible();
+  // Both the PaymentBox headline and the timeline row carry the copy.
+  await expect(page.getByText(/held in escrow/i).first()).toBeVisible();
 
   // MI-17: sending a message raises the typing pulse, then the scripted reply.
   await page.getByLabel(/Message maisonbisi/).fill("Can't wait!");
@@ -196,8 +197,10 @@ test("B5/B8: creator upsell → onboarding with Paystack resolution states → p
   await page.getByTestId("become-designer").click();
   await page.waitForURL("**/dashboard/designer/onboarding");
 
-  // Intro → profile.
+  // Intro (what you get) → profile screen (Figma 269:10178): username claim
+  // pre-filled + display name + bio.
   await page.getByTestId("onboarding-start").click();
+  await expect(page.getByLabel("Username")).toHaveValue("kiki.adeyemi");
   await page.getByLabel("Display name").fill("Kiki Ade Studio");
   await page.getByLabel("Bio").fill("Statement pieces, made to measure.");
   await page.getByTestId("onboarding-create-profile").click();

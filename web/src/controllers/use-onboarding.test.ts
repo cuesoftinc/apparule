@@ -8,6 +8,7 @@ const enable = vi.fn();
 const resolveBank = vi.fn();
 const attachPayoutAccount = vi.fn();
 const getProfile = vi.fn();
+const updateMe = vi.fn();
 vi.mock("@/models/repositories/designer-repo", () => ({
   designerRepo: {
     enable: (...a: unknown[]) => enable(...a),
@@ -17,6 +18,9 @@ vi.mock("@/models/repositories/designer-repo", () => ({
 }));
 vi.mock("@/models/repositories/profiles-repo", () => ({
   profilesRepo: { get: (...a: unknown[]) => getProfile(...a) },
+}));
+vi.mock("@/models/repositories/account-repo", () => ({
+  accountRepo: { updateMe: (...a: unknown[]) => updateMe(...a) },
 }));
 
 import { MAX_RESOLUTION_FAILS, useOnboarding } from "./use-onboarding";
@@ -29,8 +33,9 @@ beforeEach(() => {
 });
 
 describe("useOnboarding", () => {
-  it("walks intro → profile → banking → done", async () => {
-    enable.mockResolvedValue({ id: "des-1", username: "kiki.adeyemi" });
+  it("walks profile (incl. username claim) → banking → done", async () => {
+    enable.mockResolvedValue({ id: "des-1", username: "kiki.studio" });
+    updateMe.mockResolvedValue({ username: "kiki.studio" });
     resolveBank.mockResolvedValue({
       account_name: "KIKI ADEYEMI",
       bank_code: "058",
@@ -40,9 +45,14 @@ describe("useOnboarding", () => {
 
     const { result } = renderHook(() => useOnboarding());
     expect(result.current.step).toBe("intro");
-    act(() => result.current.begin());
-    expect(result.current.step).toBe("profile");
-    await act(() => result.current.enable("Kiki Studio", "Bio"));
+    await act(() =>
+      result.current.enable({
+        username: { current: "kiki.adeyemi", next: "kiki.studio" },
+        displayName: "Kiki Studio",
+        bio: "Bio",
+      }),
+    );
+    expect(updateMe).toHaveBeenCalledWith({ username: "kiki.studio" });
     expect(result.current.step).toBe("banking");
     await act(() => result.current.resolve("058", "0123456789"));
     expect(result.current.resolution.phase).toBe("resolved");

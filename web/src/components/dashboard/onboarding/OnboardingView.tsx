@@ -34,12 +34,16 @@ export function OnboardingView() {
   const onboarding = useOnboarding(
     alreadyDesigner ? (account?.username ?? null) : null,
   );
+  const [username, setUsername] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [bankCode, setBankCode] = useState<string | undefined>();
   const [accountNumber, setAccountNumber] = useState("");
+  /** Username claim pre-fills from the account (flows/designer.md §1). */
+  const editedUsername = username ?? account?.username ?? "";
 
-  // Returning designers land on the banking step (payout status row → B8).
+  // New users walk intro → profile → banking (pages.md B8); returning
+  // designers land straight on the banking step (payout status row → B8).
   const step =
     onboarding.step === "intro" && alreadyDesigner
       ? "banking"
@@ -60,7 +64,9 @@ export function OnboardingView() {
   return (
     <div className="mx-auto flex max-w-xl flex-col gap-6 px-4 py-6">
       <header>
-        <h1 className="text-title-lg font-bold text-text">
+        {/* Figma 269:10178: the profile screen's headline leads visually —
+            the page landmark title stays for assistive tech. */}
+        <h1 className={step === "profile" ? "sr-only" : "text-title-lg font-bold text-text"}>
           Designer onboarding
         </h1>
       </header>
@@ -117,25 +123,67 @@ export function OnboardingView() {
           className="flex flex-col gap-4"
           onSubmit={(e) => {
             e.preventDefault();
-            void onboarding.enable(displayName, bio);
+            void onboarding.enable({
+              username: account
+                ? { current: account.username, next: editedUsername }
+                : undefined,
+              displayName,
+              bio,
+            });
           }}
         >
+          {/* Figma 269:10178 merges the intro pitch into the profile screen:
+              headline + post-now/bank-later note, then username claim. */}
+          <header>
+            <h2 className="text-title font-bold text-text">
+              Post outfits. Get commissioned. Get paid.
+            </h2>
+            <p className="text-body text-text-2">
+              Create your designer profile — post right away, add banking
+              details when you&apos;re ready to accept requests.
+            </p>
+          </header>
           {onboarding.profileError ? (
             <Banner tone="error">{onboarding.profileError}</Banner>
           ) : null}
-          <FormRow label="Display name" required>
+          <FormRow
+            label="Username"
+            htmlFor="onboarding-username"
+            helper={`Your page: apparule.cuesoft.io/${editedUsername || "…"}`}
+            required
+          >
             <Input
+              id="onboarding-username"
+              aria-label="Username"
+              placeholder="kiki.adeyemi"
+              value={editedUsername}
+              onChange={(e) => setUsername(e.target.value.toLowerCase())}
+            />
+          </FormRow>
+          <FormRow
+            label="Display name"
+            htmlFor="onboarding-display-name"
+            helper="Shown on your posts and profile"
+            required
+          >
+            <Input
+              id="onboarding-display-name"
               aria-label="Display name"
               placeholder="Kiki Ade Studio"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
             />
           </FormRow>
-          <FormRow label="Bio" helper="What do you make? Who for?">
+          <FormRow
+            label="Bio"
+            htmlFor="onboarding-bio"
+            helper="A line about what you sew"
+          >
             <Input
               kind="textarea"
+              id="onboarding-bio"
               aria-label="Bio"
-              placeholder="Ankara & contemporary tailoring…"
+              placeholder="Ankara & aso-oke, made to measure"
               maxLength={500}
               value={bio}
               onChange={(e) => setBio(e.target.value)}
@@ -145,11 +193,15 @@ export function OnboardingView() {
             <Button
               kind="gradient-primary"
               type="submit"
+              className="w-full"
               loading={onboarding.enabling}
-              disabled={displayName.trim().length === 0}
+              disabled={
+                displayName.trim().length === 0 ||
+                editedUsername.trim().length === 0
+              }
               data-testid="onboarding-create-profile"
             >
-              Create profile
+              Create designer profile
             </Button>
           </footer>
         </form>

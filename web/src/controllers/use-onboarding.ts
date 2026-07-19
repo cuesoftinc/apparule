@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { BankResolution, DesignerProfile } from "@/models";
 import { ApiError } from "@/lib/api";
+import { accountRepo } from "@/models/repositories/account-repo";
 import { designerRepo } from "@/models/repositories/designer-repo";
 import { profilesRepo } from "@/models/repositories/profiles-repo";
 
@@ -58,25 +59,46 @@ export function useOnboarding(existingDesignerUsername: string | null = null) {
 
   const begin = useCallback(() => setStep("profile"), []);
 
-  const enable = useCallback(async (displayName: string, bio: string) => {
-    if (!displayName.trim()) {
-      setProfileError("Display name is required");
-      return;
-    }
-    setEnabling(true);
-    setProfileError(null);
-    try {
-      const created = await designerRepo.enable(displayName.trim(), bio.trim());
-      setProfile(created);
-      setStep("banking");
-    } catch (e) {
-      setProfileError(
-        e instanceof ApiError ? e.message : "Could not enable the profile",
-      );
-    } finally {
-      setEnabling(false);
-    }
-  }, []);
+  /**
+   * Create the designer profile (Figma 269:10178: one screen — username
+   * claim + display name + bio). A changed username goes through PATCH /me
+   * first (flows/designer.md §1: claim → 409 name_taken retry).
+   */
+  const enable = useCallback(
+    async (input: {
+      username?: { current: string; next: string };
+      displayName: string;
+      bio: string;
+    }) => {
+      if (!input.displayName.trim()) {
+        setProfileError("Display name is required");
+        return;
+      }
+      setEnabling(true);
+      setProfileError(null);
+      try {
+        if (
+          input.username &&
+          input.username.next.trim() !== input.username.current
+        ) {
+          await accountRepo.updateMe({ username: input.username.next.trim() });
+        }
+        const created = await designerRepo.enable(
+          input.displayName.trim(),
+          input.bio.trim(),
+        );
+        setProfile(created);
+        setStep("banking");
+      } catch (e) {
+        setProfileError(
+          e instanceof ApiError ? e.message : "Could not enable the profile",
+        );
+      } finally {
+        setEnabling(false);
+      }
+    },
+    [],
+  );
 
   /** Paystack resolution — resolving spinner → resolved name / mismatch. */
   const resolve = useCallback(async (bankCode: string, accountNumber: string) => {

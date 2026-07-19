@@ -38,9 +38,11 @@ export function FeedSidebar({
       aria-label="Your measurements and suggestions"
       className="flex w-80 flex-col gap-6"
     >
+      {/* Figma 176:72: bordered freshness card — ring avatar + "Measured Nd
+          ago" + "Retake for sharper fit → Vault" link. */}
       <section
         aria-label="Measurement freshness"
-        className="flex items-center gap-3"
+        className="flex items-center gap-3 rounded-card border border-border p-4"
       >
         {vault.loading ? (
           <Skeleton kind="avatar" />
@@ -66,16 +68,15 @@ export function FeedSidebar({
               </Link>
             </Tooltip>
             <div className="min-w-0">
-              <p className="truncate text-body font-semibold text-text">
-                {account?.username}
-              </p>
-              <p className="text-caption text-text-2">
+              <p className="text-body font-semibold text-text">
                 {latestComplete
                   ? `Measured ${formatAgo(latestComplete.created_at)} ago`
-                  : "Add your measurements"}
+                  : "No measurements yet"}
               </p>
               <Link href="/dashboard/vault" className="text-caption text-link">
-                {vault.freshness === "fresh" ? "Open vault" : "Retake now"}
+                {vault.freshness === "fresh" || !latestComplete
+                  ? "Open vault →"
+                  : "Retake for sharper fit → Vault"}
               </Link>
             </div>
           </>
@@ -83,13 +84,10 @@ export function FeedSidebar({
       </section>
 
       <section aria-label="Suggested designers" className="flex flex-col gap-1">
-        <header className="flex items-baseline justify-between">
+        <header>
           <h2 className="text-body font-semibold text-text-2">
-            Suggested for you
+            Suggested designers
           </h2>
-          <Link href="/dashboard/explore" className="text-caption text-link">
-            See all
-          </Link>
         </header>
         {suggestions.loading ? (
           <Skeleton kind="line" />

@@ -12,7 +12,6 @@ import type { MeasurementSession } from "@/models";
 import { useAuth } from "@/controllers/auth/AuthContext";
 import { useVault } from "@/controllers/use-vault";
 import { Avatar } from "@/components/ui/Avatar";
-import { Banner } from "@/components/ui/Banner";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { MeasurementCard } from "@/components/ui/MeasurementCard";
@@ -62,27 +61,35 @@ export function VaultView() {
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6">
-      <header className="flex items-center gap-4">
+      {/* Figma 180:657: ring avatar · "Measured Nd ago" headline · freshness
+          + count + privacy subline · quiet Retake beneath the text. */}
+      <header className="flex items-start gap-4">
         <Avatar
           size={96}
           name={account?.display_name ?? "You"}
           ring={vault.freshness ? RING[vault.freshness] : "gray"}
         />
-        <div className="min-w-0 flex-1">
-          <h1 className="text-title-lg font-bold text-text">Vault</h1>
-          <p className="text-body text-text-2">
+        <div className="flex min-w-0 flex-1 flex-col gap-2 pt-1">
+          <h1 className="text-title-lg font-bold text-text">
             {latestComplete
               ? `Measured ${formatAgo(latestComplete.created_at)} ago`
               : "No measurements yet"}
+          </h1>
+          <p className="text-body text-text-2">
+            {latestComplete && vault.freshness
+              ? `${vault.freshness[0].toUpperCase()}${vault.freshness.slice(1)} — ${vault.latest.length} measurement${vault.latest.length === 1 ? "" : "s"} on file · vault is private to you`
+              : "Capture two photos or enter values by hand — private to you."}
           </p>
+          <div>
+            <Button
+              kind="quiet"
+              onClick={() => setSheet("options")}
+              data-testid="vault-retake"
+            >
+              {latestComplete ? "Retake" : "Get measured"}
+            </Button>
+          </div>
         </div>
-        <Button
-          kind="gradient-primary"
-          onClick={() => setSheet("options")}
-          data-testid="vault-retake"
-        >
-          {latestComplete ? "Retake" : "Get measured"}
-        </Button>
       </header>
 
       {vault.loading ? (
@@ -108,7 +115,10 @@ export function VaultView() {
           <h2 id="vault-metrics-h" className="sr-only">
             Latest measurements
           </h2>
-          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2" data-testid="vault-grid">
+          <ul
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3"
+            data-testid="vault-grid"
+          >
             {vault.latest.map((measurement) => {
               const session = sessionById.get(measurement.session_id);
               return (
@@ -129,22 +139,28 @@ export function VaultView() {
         </section>
       )}
 
-      <Banner tone="info" actionLabel="Manage my data"
-        onAction={() => window.location.assign("/dashboard/settings/account")}
-      >
-        Your measurements are private — a designer only ever sees the frozen
-        snapshot inside an order you place. Capture photos auto-delete after
-        30 days; measurements stay until you delete them.
-      </Banner>
-      <p className="text-caption text-text-2">
-        <Link href="/dashboard/settings/account" className="text-link">
-          Download my data
-        </Link>{" "}
-        ·{" "}
-        <Link href="/dashboard/settings/account" className="text-link">
-          Delete all
-        </Link>
-      </p>
+      {/* Figma 180:657: plain retention/consent line + rights links (the
+          links resolve at Settings › Account & data, pages.md B7). */}
+      <footer className="flex flex-col gap-2">
+        <p className="text-body text-text-2">
+          Sessions are kept until you delete them. A snapshot is shared only
+          when you send a request.
+        </p>
+        <p className="text-body">
+          <Link
+            href="/dashboard/settings/account"
+            className="font-semibold text-link"
+          >
+            Download my data
+          </Link>
+          <Link
+            href="/dashboard/settings/account"
+            className="pl-6 font-semibold text-error"
+          >
+            Delete all measurements
+          </Link>
+        </p>
+      </footer>
 
       <CaptureOptionsSheet
         open={sheet === "options"}
