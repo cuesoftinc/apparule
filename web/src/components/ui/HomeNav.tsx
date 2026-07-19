@@ -62,7 +62,7 @@ export function HomeNav({
       data-state={stuck ? "stuck-blurred" : "top"}
       aria-label="Home"
       className={clsx(
-        "sticky top-0 z-10 flex h-16 items-center gap-6 px-6 transition-colors duration-200 ease-standard",
+        "sticky top-0 z-10 h-16 px-6 transition-colors duration-200 ease-standard",
         stuck
           ? "border-b border-border bg-bg/80 backdrop-blur-md"
           : "bg-transparent",
@@ -70,46 +70,51 @@ export function HomeNav({
         className,
       )}
     >
-      <Link href="/" className="bg-accent-gradient bg-clip-text text-title font-bold text-transparent">
-        Apparule
-      </Link>
-      <div className="hidden items-center gap-5 md:flex">
-        {links.map((link) => (
-          <a
-            key={link.label}
-            href={link.href}
-            className="text-body text-text-2 hover:text-text"
-          >
-            {link.label}
-          </a>
-        ))}
-      </div>
-      <div className="ml-auto flex items-center gap-3">
-        <a
-          href={githubHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          data-testid="star-badge"
-          onClick={onGithubClick}
-          // hidden <sm: 375-width adaptation (Figma nav is 1440-only)
-          className="hidden h-9 items-center gap-2 rounded-pill border border-border px-3 text-body font-semibold text-text hover:bg-border/30 sm:flex"
-        >
-          <GitHubMark size={16} />
-          <Star size={14} className="text-warn" />
-          <span className="tnum">
-            {starCount === null ? "Star" : starCount.toLocaleString("en-NG")}
-          </span>
-        </a>
-        {trailing}
-        <Link
-          href="/signin"
-          className="whitespace-nowrap text-body font-semibold text-text hover:text-text-2"
-        >
-          Sign in
+      {/* Bar spans full-bleed; content sits on the canonical 1080 content
+          column (design.md container canon — x 180–1260 at 1440) so the
+          logo and CTAs line up with every section edge (W2.1 live-QA). */}
+      <div className="mx-auto flex h-full w-full max-w-[1080px] items-center gap-6">
+        <Link href="/" className="bg-accent-gradient bg-clip-text text-title font-bold text-transparent">
+          Apparule
         </Link>
-        <Button kind="gradient-primary" size="sm" onClick={onTryCloud}>
-          Try Cloud
-        </Button>
+        <div className="hidden items-center gap-5 md:flex">
+          {links.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              className="text-body text-text-2 hover:text-text"
+            >
+              {link.label}
+            </a>
+          ))}
+        </div>
+        <div className="ml-auto flex items-center gap-3">
+          <a
+            href={githubHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-testid="star-badge"
+            onClick={onGithubClick}
+            // hidden <sm: 375-width adaptation (Figma nav is 1440-only)
+            className="hidden h-9 items-center gap-2 rounded-pill border border-border px-3 text-body font-semibold text-text hover:bg-border/30 sm:flex"
+          >
+            <GitHubMark size={16} />
+            <Star size={14} className="text-warn" />
+            <span className="tnum">
+              {starCount === null ? "Star" : starCount.toLocaleString("en-NG")}
+            </span>
+          </a>
+          {trailing}
+          <Link
+            href="/signin"
+            className="whitespace-nowrap text-body font-semibold text-text hover:text-text-2"
+          >
+            Sign in
+          </Link>
+          <Button kind="gradient-primary" size="sm" onClick={onTryCloud}>
+            Try Cloud
+          </Button>
+        </div>
       </div>
     </nav>
   );

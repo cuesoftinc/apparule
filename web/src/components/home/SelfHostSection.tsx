@@ -13,7 +13,7 @@ export function SelfHostSection() {
     <section
       id="self-host"
       aria-labelledby="self-host-heading"
-      className="mx-auto w-full max-w-[1080px] scroll-mt-20 px-6 py-12"
+      className="mx-auto w-full max-w-[1128px] scroll-mt-20 px-6 py-12"
     >
       <div className="flex flex-col items-start gap-10 md:flex-row md:gap-16">
         <div className="max-w-[560px] flex-1">

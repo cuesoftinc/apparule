@@ -13,7 +13,7 @@ export function HeroSection() {
   const router = useRouter();
 
   return (
-    <section aria-labelledby="hero-heading" className="mx-auto w-full max-w-[1080px] px-6">
+    <section aria-labelledby="hero-heading" className="mx-auto w-full max-w-[1128px] px-6">
       <div className="flex flex-col items-start gap-12 pb-16 pt-10 md:flex-row md:items-center md:gap-16 md:pb-20 md:pt-16">
         <div className="max-w-[520px]">
           <h1

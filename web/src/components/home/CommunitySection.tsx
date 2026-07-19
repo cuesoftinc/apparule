@@ -8,7 +8,7 @@ export function CommunitySection() {
     <section
       id="community"
       aria-labelledby="community-heading"
-      className="mx-auto w-full max-w-[1080px] scroll-mt-20 px-6 py-12"
+      className="mx-auto w-full max-w-[1128px] scroll-mt-20 px-6 py-12"
     >
       <h2 id="community-heading" className="text-title-lg font-bold text-text">
         Community

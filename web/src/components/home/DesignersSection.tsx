@@ -12,7 +12,7 @@ export function DesignersSection() {
     <section
       id="designers"
       aria-labelledby="designers-heading"
-      className="mx-auto w-full max-w-[1080px] scroll-mt-20 px-6 py-12"
+      className="mx-auto w-full max-w-[1128px] scroll-mt-20 px-6 py-12"
     >
       <div className="flex flex-col items-start gap-10 md:flex-row md:items-center md:gap-16">
         <div className="max-w-[480px] flex-1">

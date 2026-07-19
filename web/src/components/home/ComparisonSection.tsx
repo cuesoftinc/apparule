@@ -13,7 +13,7 @@ export function ComparisonSection() {
     <section
       id="compare"
       aria-labelledby="compare-heading"
-      className="mx-auto flex w-full max-w-[1080px] scroll-mt-20 flex-col items-center px-6 py-12"
+      className="mx-auto flex w-full max-w-[1128px] scroll-mt-20 flex-col items-center px-6 py-12"
     >
       <h2 id="compare-heading" className="self-start text-title-lg font-bold text-text">
         Cloud or self-host — same product
