@@ -7,6 +7,7 @@
 // usePublicProfile.
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Lock } from "lucide-react";
 import type { Post } from "@/models";
 import { formatCount } from "@/lib/format";
@@ -45,6 +46,7 @@ function FollowListSheet({
   onUnfollow: (target: UnfollowTarget) => void;
 }) {
   const list = useFollowList(username, kind, open);
+  const router = useRouter();
   const { showToast } = useToasts();
   return (
     <Sheet
@@ -87,9 +89,7 @@ function FollowListSheet({
                     unfollow: () => list.toggleFollow(row),
                   })
                 }
-                onOpen={() =>
-                  window.location.assign(`/dashboard/${row.username}`)
-                }
+                onOpen={() => router.push(`/dashboard/${row.username}`)}
               />
             </li>
           ))}
@@ -101,6 +101,7 @@ function FollowListSheet({
 
 export function ProfileView({ username }: { username: string }) {
   const { account } = useAuth();
+  const router = useRouter();
   const { profile, posts, saved, loading, error, toggleFollow, syncPost } =
     usePublicProfile(username);
   const { showToast } = useToasts();
@@ -174,7 +175,7 @@ export function ProfileView({ username }: { username: string }) {
                 context="explore"
                 line="Save outfits you love and they'll collect here."
                 ctaLabel="Explore outfits"
-                onCta={() => window.location.assign("/dashboard/explore")}
+                onCta={() => router.push("/dashboard/explore")}
               />
             ) : (
               <ul className="grid grid-cols-2 gap-1 md:grid-cols-3" data-testid="saved-grid">
@@ -346,7 +347,7 @@ export function ProfileView({ username }: { username: string }) {
             ctaLabel={tab === "first" && self ? "Create a post" : undefined}
             onCta={
               tab === "first" && self
-                ? () => window.location.assign("/dashboard/create")
+                ? () => router.push("/dashboard/create")
                 : undefined
             }
           />

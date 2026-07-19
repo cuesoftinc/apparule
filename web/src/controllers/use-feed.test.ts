@@ -127,6 +127,26 @@ describe("useFeed", () => {
     expect(feed).toHaveBeenCalledTimes(2);
   });
 
+  it("records a cursor-page failure and recovers through the explicit retry (PR #103)", async () => {
+    feed.mockResolvedValueOnce({ items: [post("p1")], next_cursor: "c2" });
+    feed.mockRejectedValueOnce(new Error("network"));
+
+    const { result } = renderHook(() => useFeed("feed"));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    await act(() => result.current.loadMore());
+    // failure is surfaced — not silently swallowed as an incomplete feed
+    expect(result.current.loadMoreError).toBe(true);
+    expect(result.current.loadingMore).toBe(false);
+    expect(result.current.caughtUp).toBe(false);
+
+    // the retry control calls loadMore again: error clears, page appends
+    feed.mockResolvedValueOnce({ items: [post("p2")], next_cursor: null });
+    await act(() => result.current.loadMore());
+    expect(result.current.loadMoreError).toBe(false);
+    expect(result.current.posts.map((p) => p.id)).toEqual(["p1", "p2"]);
+    expect(result.current.caughtUp).toBe(true);
+  });
+
   it("gates concurrent loadMore calls to one in-flight page request", async () => {
     feed.mockResolvedValueOnce({ items: [post("p1")], next_cursor: "c2" });
     let release!: (v: { items: Post[]; next_cursor: null }) => void;

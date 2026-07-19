@@ -88,25 +88,43 @@ function deepClone<T>(value: T): T {
 }
 
 /**
- * A real (minimal) one-page PDF for the F2-9 pdf export: Helvetica text
- * lines, uncompressed stream, byte-accurate xref — enough that any viewer
- * opens it. Stands in for the backend's rendered report the way the rest of
- * the mock stands in for api/common.
+ * A real (minimal) PDF for the F2-9 pdf export: Helvetica text lines,
+ * uncompressed streams, byte-accurate xref — enough that any viewer opens
+ * it. Lines flow across as many pages as they need (PR #103 review:
+ * sessions carry unbounded manual measurements + append-only corrections,
+ * so a single page dropped rows below the media box). Stands in for the
+ * backend's rendered report the way the rest of the mock stands in for
+ * api/common.
  */
 function minimalPdf(lines: string[]): Buffer {
   const escape = (s: string) =>
     s.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
-  const text = lines
-    .map((line, i) => `1 0 0 1 72 ${720 - i * 18} Tm (${escape(line)}) Tj`)
-    .join("\n");
-  const stream = `BT\n/F1 12 Tf\n${text}\nET`;
+  // 12pt Helvetica on 18pt leading from y=720 down to a 72pt bottom
+  // margin → 36 lines per US-Letter page.
+  const LINES_PER_PAGE = 36;
+  const chunks: string[][] = [];
+  for (let i = 0; i < Math.max(lines.length, 1); i += LINES_PER_PAGE) {
+    chunks.push(lines.slice(i, i + LINES_PER_PAGE));
+  }
+  // Object layout: 1 catalog · 2 pages · 3 font · then per page i:
+  // page object (4+2i) + its contents stream (5+2i).
   const objects = [
     "<< /Type /Catalog /Pages 2 0 R >>",
-    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>",
-    `<< /Length ${Buffer.byteLength(stream, "utf8")} >>\nstream\n${stream}\nendstream`,
+    `<< /Type /Pages /Kids [${chunks
+      .map((_, i) => `${4 + 2 * i} 0 R`)
+      .join(" ")}] /Count ${chunks.length} >>`,
     "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
   ];
+  for (const [i, chunk] of chunks.entries()) {
+    const text = chunk
+      .map((line, j) => `1 0 0 1 72 ${720 - j * 18} Tm (${escape(line)}) Tj`)
+      .join("\n");
+    const stream = `BT\n/F1 12 Tf\n${text}\nET`;
+    objects.push(
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents ${5 + 2 * i} 0 R >>`,
+      `<< /Length ${Buffer.byteLength(stream, "utf8")} >>\nstream\n${stream}\nendstream`,
+    );
+  }
   let body = "%PDF-1.4\n";
   const offsets: number[] = [];
   objects.forEach((obj, i) => {
@@ -142,9 +160,15 @@ export class MockStore {
   idempotency = new Map<string, { payloadHash: string; response: unknown }>();
   /**
    * Ranked-cursor snapshots (api.md §5 [Decided]): rank is computed at
-   * first page and frozen for the cursor's 24h lifetime.
+   * first page and frozen for the cursor's 24h lifetime. Each snapshot is
+   * bound to its viewer + endpoint/filter fingerprint — a cursor minted
+   * on /feed is not honored on /explore or by another actor (PR #103
+   * review).
    */
-  rankedSnapshots = new Map<string, { ids: string[]; created_at: number }>();
+  rankedSnapshots = new Map<
+    string,
+    { ids: string[]; fingerprint: string; created_at: number }
+  >();
   orderCounter = 1059;
   /** Uploaded media (composer) — stands in for object storage. */
   media = new Map<string, { data: string; contentType: string }>();
@@ -297,12 +321,23 @@ export class MockStore {
    */
   rankedPage(
     viewerUsername: string,
+    queryFingerprint: string,
     rank: () => Post[],
     cursorRaw: string | null,
     limit: number,
   ): { items: Post[]; next_cursor: string | null } {
     const viewer = this.accountByUsername(viewerUsername);
+    const fingerprint = `${viewer.id}|${queryFingerprint}`;
     const DAY_MS = 24 * 60 * 60 * 1000;
+    // Registry hygiene = expiry only: snapshots live for the FULL 24h
+    // cursor lifetime (PR #103 review: size-based FIFO eviction silently
+    // invalidated still-active cursors under multi-user load, producing
+    // duplicate/skipped pages).
+    for (const [key, snapshot] of this.rankedSnapshots) {
+      if (Date.now() - snapshot.created_at >= DAY_MS) {
+        this.rankedSnapshots.delete(key);
+      }
+    }
     let snapshotId: string | null = null;
     let offset = 0;
     if (cursorRaw) {
@@ -313,7 +348,7 @@ export class MockStore {
       const snapshot = this.rankedSnapshots.get(id);
       if (
         snapshot &&
-        Date.now() - snapshot.created_at < DAY_MS &&
+        snapshot.fingerprint === fingerprint &&
         Number.isFinite(parsedOffset) &&
         parsedOffset >= 0
       ) {
@@ -325,14 +360,9 @@ export class MockStore {
       snapshotId = id("rank");
       this.rankedSnapshots.set(snapshotId, {
         ids: rank().map((p) => p.id),
+        fingerprint,
         created_at: Date.now(),
       });
-      // registry hygiene: drop the oldest snapshots past a sane bound
-      while (this.rankedSnapshots.size > 100) {
-        const oldest = this.rankedSnapshots.keys().next().value;
-        if (oldest === undefined) break;
-        this.rankedSnapshots.delete(oldest);
-      }
     }
     const snapshot = this.rankedSnapshots.get(snapshotId)!;
     const live = new Map(this.posts.map((p) => [p.id, p] as const));
@@ -417,10 +447,13 @@ export class MockStore {
         const tierOf = (post: Post): number => {
           const loc = this.designerByUsername(post.designer.username)?.location;
           if (!loc) return 3;
+          // City/state names repeat across countries (locations are
+          // free-text and editable), so the finer tiers require country
+          // equality first (PR #103 review).
+          if (loc.country !== home.country) return 3;
           if (loc.city === home.city && loc.state === home.state) return 0;
           if (loc.state === home.state) return 1;
-          if (loc.country === home.country) return 2;
-          return 3;
+          return 2;
         };
         // Array.prototype.sort is stable — recency survives within tiers.
         posts.sort((a, b) => tierOf(a) - tierOf(b));

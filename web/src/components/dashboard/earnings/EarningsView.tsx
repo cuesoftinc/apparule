@@ -6,6 +6,7 @@
 // change → B8) · Recent activity TransactionRow list (payouts, escrow-held,
 // itemized 10% fee lines, provider refs). Render-only over useEarnings.
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/controllers/auth/AuthContext";
 import { useEarnings } from "@/controllers/use-profile";
 import {
@@ -17,6 +18,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 
 export function EarningsView() {
   const { account } = useAuth();
+  const router = useRouter();
   const { earnings, loading, error, errorCode, payoutAccount, reload } =
     useEarnings(account?.designer.enabled ? account.username : null);
 
@@ -42,7 +44,7 @@ export function EarningsView() {
           line="Earnings are for designer profiles — become a designer to start earning."
           ctaLabel="Become a designer"
           onCta={() =>
-            window.location.assign("/dashboard/designer/onboarding")
+            router.push("/dashboard/designer/onboarding")
           }
         />
       ) : error || !earnings ? (
@@ -129,7 +131,7 @@ export function EarningsView() {
                 context="orders"
                 line="Payouts and escrow holds will itemize here — publish outfits to get commissioned."
                 ctaLabel="Create a post"
-                onCta={() => window.location.assign("/dashboard/create")}
+                onCta={() => router.push("/dashboard/create")}
               />
             ) : (
               <ul data-testid="transactions-list">

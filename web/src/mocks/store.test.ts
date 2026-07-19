@@ -128,7 +128,7 @@ describe("order lifecycle enforcement", () => {
   it("rejects illegal transitions with invalid_transition", () => {
     expect(() =>
       store.setStatus("req-apr-1058", "maisonbisi", "in_progress"),
-    ).toThrowError(
+    ).toThrow(
       expect.objectContaining({ code: "invalid_transition", status: 409 }),
     );
   });
@@ -187,11 +187,11 @@ describe("order lifecycle enforcement", () => {
         session_id: "sess-recent-scan",
         delivery,
       }),
-    ).toThrowError(expect.objectContaining({ code: "duplicate_request" }));
+    ).toThrow(expect.objectContaining({ code: "duplicate_request" }));
   });
 
   it("order detail is party-only (strangers get not_found)", () => {
-    expect(() => store.order("req-apr-1042", "tunde.o")).toThrowError(
+    expect(() => store.order("req-apr-1042", "tunde.o")).toThrow(
       expect.objectContaining({ code: "not_found", status: 404 }),
     );
   });
@@ -212,7 +212,7 @@ describe("engagement", () => {
   it("rejects over-length comments", () => {
     expect(() =>
       store.addComment("post-ankara-gown", "kiki.adeyemi", "x".repeat(501)),
-    ).toThrowError(expect.objectContaining({ code: "validation_failed" }));
+    ).toThrow(expect.objectContaining({ code: "validation_failed" }));
   });
 
   it("explore price bands follow the decided defaults", () => {
@@ -277,6 +277,24 @@ describe("engagement", () => {
     expect(near[0].id).toBe("post-atelier-abuja");
   });
 
+  it("explore near_me requires country equality before city/state tiers (PR #103)", () => {
+    // Same city/state TEXT in a different country must not outrank a
+    // same-country designer — free-text names repeat across borders.
+    store.updateMe("eniola.stitches", {
+      profile_location: { city: "Lagos", state: "Lagos", country: "GH" },
+    });
+    const near = store.explore(
+      "kiki.adeyemi",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      true,
+    );
+    // her newest-overall post still ranks LAST despite the matching text
+    expect(near[near.length - 1].id).toBe("post-atelier-abuja");
+  });
+
   it("explore near_me is a no-op for callers without a profile location", () => {
     store.updateMe("kiki.adeyemi", { profile_location: null });
     const near = store.explore(
@@ -306,7 +324,7 @@ describe("earnings (designer view)", () => {
   });
 
   it("non-designers get a 403", () => {
-    expect(() => store.earnings("kiki.adeyemi")).toThrowError(
+    expect(() => store.earnings("kiki.adeyemi")).toThrow(
       expect.objectContaining({ status: 403 }),
     );
   });
@@ -328,7 +346,7 @@ describe("idempotency (api.md §4)", () => {
 
   it("conflicts on the same key with a different payload", () => {
     store.idempotent("k2", "a", () => 1);
-    expect(() => store.idempotent("k2", "b", () => 2)).toThrowError(
+    expect(() => store.idempotent("k2", "b", () => 2)).toThrow(
       expect.objectContaining({ code: "idempotency_conflict", status: 409 }),
     );
   });
@@ -338,7 +356,7 @@ describe("profile", () => {
   it("rejects taken usernames with name_taken", () => {
     expect(() =>
       store.updateMe("kiki.adeyemi", { username: "maisonbisi" }),
-    ).toThrowError(expect.objectContaining({ code: "name_taken", status: 409 }));
+    ).toThrow(expect.objectContaining({ code: "name_taken", status: 409 }));
   });
 
   it("errors are MockApiError instances (envelope-able)", () => {
@@ -422,7 +440,7 @@ describe("capture path (webcam, B4)", () => {
         input_height_cm: 168,
         filename: "fixture-blurry.jpg",
       }),
-    ).toThrowError(expect.objectContaining({ code: "blurry", status: 422 }));
+    ).toThrow(expect.objectContaining({ code: "blurry", status: 422 }));
   });
 
   it("upload → pending_save → save flips complete; retake deletes", () => {
@@ -437,20 +455,20 @@ describe("capture path (webcam, B4)", () => {
     const saved = store.saveSession(session.id, "kiki.adeyemi");
     expect(saved.status).toBe("complete");
     // double-save is an invalid transition
-    expect(() => store.saveSession(session.id, "kiki.adeyemi")).toThrowError(
+    expect(() => store.saveSession(session.id, "kiki.adeyemi")).toThrow(
       expect.objectContaining({ code: "invalid_transition" }),
     );
   });
 });
 
 describe("ranked pagination (api.md §5 — snapshot cursors)", () => {
-  const feedPage = (cursor: string | null, limit: number) =>
-    store.rankedPage(
-      "kiki.adeyemi",
-      () => store.feed("kiki.adeyemi"),
-      cursor,
-      limit,
-    );
+  const feedPage = (
+    cursor: string | null,
+    limit: number,
+    actor = "kiki.adeyemi",
+    fingerprint = "feed",
+  ) =>
+    store.rankedPage(actor, fingerprint, () => store.feed(actor), cursor, limit);
 
   it("freezes the rank per scroll session — no duplicates or skips mid-scroll", () => {
     const page1 = feedPage(null, 4);
@@ -500,6 +518,40 @@ describe("ranked pagination (api.md §5 — snapshot cursors)", () => {
     expect(garbled.items).toHaveLength(4);
     expect(garbled.items[0].id).toBe(store.feed("kiki.adeyemi")[0].id);
   });
+
+  it("cursors are bound to their actor + query — cross-use starts fresh (PR #103)", () => {
+    const page1 = feedPage(null, 2);
+    const cursor = page1.next_cursor!;
+    // Same cursor presented against another endpoint/filter fingerprint:
+    // not honored — a fresh explore snapshot starts at offset 0.
+    const crossQuery = store.rankedPage(
+      "kiki.adeyemi",
+      "explore|||||",
+      () => store.explore("kiki.adeyemi"),
+      cursor,
+      2,
+    );
+    expect(crossQuery.items[0].id).toBe(store.explore("kiki.adeyemi")[0].id);
+    // Same cursor replayed by ANOTHER actor: not honored either — tunde
+    // gets his own feed's first page, not kiki's snapshot offsets.
+    const crossActor = feedPage(cursor, 2, "tunde.o");
+    expect(crossActor.items[0].id).toBe(store.feed("tunde.o")[0].id);
+    // …while the minting actor's cursor still resolves its snapshot.
+    const page2 = feedPage(cursor, 2);
+    const ids = [...page1.items, ...page2.items].map((p) => p.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("active snapshots survive heavy first-page traffic (no FIFO eviction)", () => {
+    const page1 = feedPage(null, 2);
+    // 150 other scroll sessions begin before this cursor is consumed —
+    // size-based eviction used to invalidate it (PR #103 review).
+    for (let i = 0; i < 150; i++) feedPage(null, 2, "tunde.o");
+    const page2 = feedPage(page1.next_cursor, 2);
+    const ids = [...page1.items, ...page2.items].map((p) => p.id);
+    expect(new Set(ids).size).toBe(ids.length); // continued, not restarted
+    expect(ids).toHaveLength(4);
+  });
 });
 
 describe("session exports (F2-9 / PLAT-004)", () => {
@@ -532,10 +584,30 @@ describe("session exports (F2-9 / PLAT-004)", () => {
     expect(body.trimEnd().endsWith("%%EOF")).toBe(true);
   });
 
+  it("pdf export paginates large sessions — no rows fall off the page (PR #103)", () => {
+    // Grow the session well past one page's 36 lines via append-only
+    // corrections (the API accepts unbounded entries).
+    store.appendCorrections(
+      "sess-recent-scan",
+      "kiki.adeyemi",
+      Array.from({ length: 60 }, (_, i) => ({
+        name: `correction_${i}`,
+        value_cm: 40 + i / 10,
+      })),
+    );
+    const { url } = store.sessionExport("sess-recent-scan", "kiki.adeyemi", "pdf");
+    const body = Buffer.from(url.split(",")[1], "base64").toString("utf8");
+    // 4 header lines + 62 measurements = 66 lines → 2 pages
+    expect(body).toContain("/Count 2");
+    // first and LAST rows are both present in the page streams
+    expect(body).toContain("shoulder_width: 42.5 cm");
+    expect(body).toContain("correction_59:");
+  });
+
   it("exports are tenant-scoped: another user's session reads not_found", () => {
     expect(() =>
       store.sessionExport("sess-recent-scan", "tunde.o", "csv"),
-    ).toThrowError(expect.objectContaining({ code: "not_found", status: 404 }));
+    ).toThrow(expect.objectContaining({ code: "not_found", status: 404 }));
   });
 });
 
@@ -558,7 +630,7 @@ describe("designer KYC gate + payout scripting", () => {
           city: "Lagos", state: "Lagos", country: "NG",
         },
       }),
-    ).toThrowError(expect.objectContaining({ code: "post_unavailable", status: 409 }));
+    ).toThrow(expect.objectContaining({ code: "post_unavailable", status: 409 }));
   });
 
   it("scripts Paystack resolution: resolved name / mismatch / lapse", () => {
@@ -567,7 +639,7 @@ describe("designer KYC gate + payout scripting", () => {
     expect(resolved.account_name).toBe("KIKI ADEYEMI");
     expect(() =>
       store.resolveBank("kiki.adeyemi", "058", "0012345678"),
-    ).toThrowError(expect.objectContaining({ code: "bank_resolution_failed" }));
+    ).toThrow(expect.objectContaining({ code: "bank_resolution_failed" }));
     const lapsed = store.attachPayoutAccount("kiki.adeyemi", "058", "9999999999");
     expect(lapsed.kyc_state).toBe("lapsed");
     const verified = store.attachPayoutAccount("kiki.adeyemi", "058", "0123456789");
@@ -583,7 +655,7 @@ describe("designer KYC gate + payout scripting", () => {
 
   it("customer cancel is legal from requested/quoted only", () => {
     expect(store.cancel("req-apr-1031", "kiki.adeyemi").status).toBe("cancelled");
-    expect(() => store.cancel("req-apr-1042", "kiki.adeyemi")).toThrowError(
+    expect(() => store.cancel("req-apr-1042", "kiki.adeyemi")).toThrow(
       expect.objectContaining({ code: "invalid_transition" }),
     );
   });
@@ -599,7 +671,7 @@ describe("notification prefs + moderation gate + thread auto-reply", () => {
 
   it("moderation queue is staff-only (kiki yes, tunde no)", () => {
     expect(store.moderationQueue("kiki.adeyemi").length).toBeGreaterThan(0);
-    expect(() => store.moderationQueue("tunde.o")).toThrowError(
+    expect(() => store.moderationQueue("tunde.o")).toThrow(
       expect.objectContaining({ code: "forbidden", status: 403 }),
     );
   });

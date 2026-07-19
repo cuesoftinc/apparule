@@ -6,9 +6,11 @@
 // states (MI-19, MI-6). Render-only over useFeed.
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { Post } from "@/models";
 import { useAuth } from "@/controllers/auth/AuthContext";
 import { useFeed } from "@/controllers/use-feed";
+import { Button } from "@/components/ui/Button";
 import { CaughtUpDivider } from "@/components/ui/CaughtUpDivider";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PostCard } from "@/components/ui/PostCard";
@@ -43,6 +45,7 @@ function storyDesignersOf(posts: Post[]): { username: string; fresh: boolean }[]
 export function FeedView() {
   const feed = useFeed("feed");
   const { account } = useAuth();
+  const router = useRouter();
   const { showToast } = useToasts();
   const [requestPost, setRequestPost] = useState<Post | null>(null);
   const [optionsPost, setOptionsPost] = useState<Post | null>(null);
@@ -162,7 +165,7 @@ export function FeedView() {
             context="feed"
             line="Follow designers to fill your feed"
             ctaLabel="Explore designers"
-            onCta={() => window.location.assign("/dashboard/explore")}
+            onCta={() => router.push("/dashboard/explore")}
           />
         ) : (
           <>
@@ -201,6 +204,25 @@ export function FeedView() {
               >
                 <PostCard skeleton />
                 <PostCard skeleton />
+              </div>
+            ) : feed.loadMoreError ? (
+              // A cursor page failed: the observed cards are still
+              // intersecting, so the MI-6 observer won't re-fire on its
+              // own — offer an explicit retry (PR #103 review).
+              <div
+                role="status"
+                className="flex items-center justify-center gap-3 py-6"
+              >
+                <span className="text-body text-text-2">
+                  Couldn&apos;t load more posts.
+                </span>
+                <Button
+                  kind="quiet"
+                  data-testid="feed-load-more-retry"
+                  onClick={() => void feed.loadMore()}
+                >
+                  Retry
+                </Button>
               </div>
             ) : null}
             {feed.caughtUp ? <CaughtUpDivider className="py-6" /> : null}

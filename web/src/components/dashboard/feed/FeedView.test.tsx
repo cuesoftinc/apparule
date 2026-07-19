@@ -29,6 +29,9 @@ vi.mock("@/controllers/auth/AuthContext", () => ({
     account: { username: "kiki.adeyemi", display_name: "Kiki Adeyemi" },
   }),
 }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), back: vi.fn(), replace: vi.fn() }),
+}));
 
 import { FeedView } from "./FeedView";
 import { ToastProvider } from "../toast-context";

@@ -110,7 +110,7 @@ construction (emulator rule tests are part of CI, not optional).
   methods `GET,POST,PUT,PATCH,DELETE,OPTIONS`; headers
   `Authorization, Content-Type, Idempotency-Key, X-Org-Id`; preflight 204
   with `Access-Control-Max-Age: 600`.
-- Implemented today in api/common (`CORS_ORIGINS`, renamed from `ALLOWED_ORIGINS` for ecosystem consistency).
+- Implemented today in api/common (`CORS_ORIGINS` — the ecosystem-standard variable name).
 
 ## Telemetry (OpenTelemetry, X-9)
 
