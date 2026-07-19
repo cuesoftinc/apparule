@@ -450,6 +450,49 @@ test.describe("nav/footer parity canon", () => {
     await expect(trigger).toHaveAttribute("aria-expanded", "false");
   });
 
+  test("below md the footer stacks per the canon: full-width brand, 2-col grid, grouped legal cluster (390)", async ({
+    page,
+  }) => {
+    // Footer mobile structure canon (SKILL.md, pinned 2026-07-19): brand
+    // block full-width first · 4 link columns in a 2-col grid · divider ·
+    // legal bar with © first + one grouped wrapping utilities cluster.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    const footer = page.locator("footer");
+    await footer.scrollIntoViewIfNeeded();
+    const heading = (name: string) =>
+      footer.getByRole("heading", { name, exact: true });
+    const boxOf = async (locator: ReturnType<typeof heading>) => {
+      const box = await locator.boundingBox();
+      expect(box).not.toBeNull();
+      return box!;
+    };
+    // 2-col grid: Product+Docs share a row, Community+Legal the next
+    const product = await boxOf(heading("Product"));
+    const docs = await boxOf(heading("Docs"));
+    const community = await boxOf(heading("Community"));
+    const legal = await boxOf(heading("Legal"));
+    expect(Math.abs(product.y - docs.y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(community.y - legal.y)).toBeLessThanOrEqual(1);
+    expect(product.y).toBeLessThan(community.y);
+    // brand block sits first and spans the full container (col-span-2)
+    const brand = await boxOf(
+      footer.getByText(/AI body measurement and made-to-measure fashion/),
+    );
+    expect(brand.y).toBeLessThan(product.y);
+    expect(brand.width).toBeGreaterThan(300);
+    // legal bar: © line first; Security policy + language selector sit in
+    // one grouped wrapping cluster after it
+    const copyright = await boxOf(footer.getByText(/©/).first());
+    const utilities = await boxOf(page.getByTestId("legal-bar-utilities"));
+    expect(copyright.y).toBeLessThan(utilities.y + utilities.height);
+    const security = await boxOf(
+      footer.getByRole("link", { name: "Security policy" }),
+    );
+    const language = await boxOf(footer.getByLabel("Language"));
+    expect(Math.abs(security.y + security.height / 2 - (language.y + language.height / 2))).toBeLessThanOrEqual(4);
+  });
+
   test("theme toggle flips and persists on home and dashboard", async ({
     page,
   }) => {
