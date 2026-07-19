@@ -87,7 +87,7 @@ design-phase QA loops, design.md §8).
 | **W0 Foundations** | `tokens.css` (§3) + Tailwind mapping · MVC skeleton (`models/`, `controllers/`, `components/ui/`) · `AuthProvider` interface + `TestModeAuthProvider` · mock server + seed dataset (§5–6) · Vitest + Playwright harnesses wired into CI build+test | tokens render both themes correctly vs the Style Guide page; TEST_MODE boots to a stubbed dashboard against the mock server; CI green |
 | **W1 Components** | `components/ui/*` per the design.md §8.1 build order (atoms → molecules → cards) and §8.2/§8.2b contract rows, web-applicable MI specs (MI-1…MI-19; MI-20 haptics is mobile-only) · unit tests per component | every built component passes QA vs its Figma component set (variants, states, both themes, motion specs) |
 | **W2 Home** **[Done 2026-07-19, PR #87]** | Part A screens (§4): A1–A10 + iteration rows A4b/A7b/A7c/A9b/A9c · analytics events to Upstat (D2: `page_view`, `demo_start`, `github_click`, `try_cloud_click`, `self_host_click`) · live GitHub star fetch (A1/A7b) | QA vs the Stage-5 Figma page; Playwright covers the "Marketing site" §8.4 flow incl. the CTA handoff |
-| **W3 Dashboards** | Part B routes (§4): B1–B9 + B7a · feature controllers · request stepper, payments UI, vault, moderation | QA vs the Stage-4 Figma frames + prototype flows; Playwright covers the §8.4 dashboard journeys (§7) |
+| **W3 Dashboards** **[Done 2026-07-19, PR #91]** | Part B routes (§4): B1–B9 + B7a · feature controllers · request stepper, payments UI, vault, moderation | QA vs the Stage-4 Figma frames + prototype flows; Playwright covers the §8.4 dashboard journeys (§7) |
 
 **W2 as-built notes (2026-07-19, PR #87):**
 
@@ -104,6 +104,60 @@ design-phase QA loops, design.md §8).
 - Registry `ComparisonTable`, `CommunityCard`, and `WalkthroughStep` were
   rebuilt to the enriched Figma masters during the W2 QA loop.
 - Section components live in `web/src/components/home/` (canon).
+
+**W2.1 live-QA as-built notes (2026-07-19, PR #90):** a live-site Playwright
+sweep of the deployed home page against the design.md **[Decided
+2026-07-19]** 1080-content-column canon, fixing what the QA loop's local
+screenshot compares had missed:
+
+- Avatar circularity root cause: Tailwind preflight's `img { height: auto }`
+  overrode the Next `<Image>` height attribute, so ringed avatars rendered
+  at the source photo's aspect ratio instead of a circle. `Avatar` now gives
+  the photo an explicit square CSS box (`object-cover`) and draws the ring
+  as a separate stroke with a clear gap, per the Figma master.
+- The 1080 content column is enforced pixel-exact, not eyeballed:
+  `web/e2e/home.spec.ts` asserts every home section, `HomeNav`, and
+  `HomeFooter` share the column within ±1px at 1440/390/2400 widths.
+- Decorative dashboard thumbnails (`MiniScreen`, rendered via real
+  `NavRail`/`TabBar` links for visual fidelity) carry `prefetch={false}` so
+  viewport prefetch on the landing page doesn't fire live 404s against
+  unauthenticated `/dashboard/*` routes.
+- `body` and `:focus-visible` in `globals.css` were bare element-level
+  selectors that could beat `@layer` rules (the class of bug that broke
+  production on a sibling repo); both now sit inside `@layer base`.
+- Semantic audit (landmarks, heading hierarchy, list markup) came back
+  clean and is now locked in with e2e assertions rather than re-checked
+  manually.
+
+**W3 as-built notes (2026-07-19, PR #91):**
+
+- Every Part B route (§4) is a fully working screen assembled from the W1
+  component registry over the mock server, MVC held throughout: feed (B1),
+  explore (B2), orders + detail (B3), measurement vault (B4), create /
+  composer with creator upsell (B5), profiles (B6), settings + the
+  notifications/privacy/account sub-screens (B7), moderation queue (B7a),
+  designer onboarding + KYC (B8), and earnings (B9).
+- TEST_MODE dashboard journeys live in `web/e2e/dashboard.spec.ts`: a
+  semantic-landmarks sweep across all 15 dashboard screens, plus the §8.4
+  journeys — feed like/save/follow → request stepper → quote → pay →
+  escrow-held → thread reply; all ten order-lifecycle states rendering
+  from seed; vault webcam QC-failure → retake → capture → save, with
+  history delete; creator upsell → onboarding (Paystack mismatch + resolve)
+  → publish → profile grid; notification-preference persistence + consent
+  history; moderation dismiss; dispute-freeze and confirm-delivery-release;
+  and decline-with-reason + itemized earnings payout.
+- The legacy-quarantine boundary is gated two ways: an eslint
+  `no-restricted-imports` rule scoped to `src/legacy/**` (lint-time), and
+  `scripts/check-boundaries.sh` — a grep-based check wired into `npm test`
+  via `check:boundaries` (not lint). Naming parity nit: apparule's script is
+  `check-boundaries.sh`; the sibling repos (expendit, upstat) both carry
+  `check-boundaries.mjs` — recorded here, not yet standardized.
+- Legacy quarantine state is unchanged since W0: only
+  `web/src/legacy/lib/api.ts` (the pre-W0 template stub's API helper)
+  remains under quarantine; W3 added no new legacy, and no live path
+  imports it.
+- Semantic-HTML landmarks (one `<main>`, one `nav[aria-label="Primary"]`)
+  are enforced by e2e across all 15 dashboard screens, not spot-checked.
 
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
