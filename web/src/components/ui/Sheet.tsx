@@ -15,21 +15,39 @@ export interface SheetStepper {
   current: number;
 }
 
+export type SheetSize = "default" | "wide";
+
 export interface SheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
   /** Optional MI-10 stepper header (Measurements → Notes/Budget → Review). */
   stepper?: SheetStepper;
+  /**
+   * Desktop width: `default` is the 480px secondary-flow modal; `wide` is
+   * the two-column post-detail modal (B2's IG desktop pattern) — a real
+   * width, not a max-width, because same-property Tailwind utilities
+   * resolve by stylesheet order (layout canon), so callers must never
+   * try to out-class the base `md:w-*`.
+   */
+  size?: SheetSize;
   children: ReactNode;
   className?: string;
 }
+
+// Wide clamps to the viewport (floating-layer canon) below its 896px
+// (max-w-4xl-equivalent) desktop width.
+const SIZE_CLASSES: Record<SheetSize, string> = {
+  default: "md:w-[480px]",
+  wide: "md:w-[min(56rem,calc(100vw-4rem))]",
+};
 
 export function Sheet({
   open,
   onOpenChange,
   title,
   stepper,
+  size = "default",
   children,
   className,
 }: SheetProps) {
@@ -42,7 +60,8 @@ export function Sheet({
             // z-40 sheet/modal layer; bottom sheet <md, centered modal ≥md
             "fixed z-40 flex max-h-[85vh] w-full flex-col overflow-hidden bg-bg-elev",
             "inset-x-0 bottom-0 rounded-t-card shadow-[0_-4px_8px_rgba(0,0,0,0.2)]",
-            "md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:w-[480px] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-card md:shadow-lg",
+            "md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-card md:shadow-lg",
+            SIZE_CLASSES[size],
             className,
           )}
         >

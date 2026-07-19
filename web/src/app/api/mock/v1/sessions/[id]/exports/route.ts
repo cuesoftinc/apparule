@@ -4,6 +4,7 @@ import {
   actorUsername,
   handle,
   jsonResponse,
+  MockApiError,
   readJson,
 } from "@/mocks/http";
 import { getStore } from "@/mocks/store";
@@ -13,9 +14,17 @@ type Params = { params: Promise<{ id: string }> };
 export async function POST(request: Request, { params }: Params) {
   return handle(async () => {
     const { id } = await params;
-    const body = await readJson<{ format?: "csv" | "pdf" }>(request);
+    const body = await readJson<{ format?: string }>(request);
+    const format = body.format ?? "csv";
+    if (format !== "csv" && format !== "pdf") {
+      throw new MockApiError(
+        "validation_failed",
+        "format must be csv or pdf",
+        422,
+      );
+    }
     return jsonResponse(
-      getStore().sessionExport(id, actorUsername(request), body.format ?? "csv"),
+      getStore().sessionExport(id, actorUsername(request), format),
       201,
     );
   });

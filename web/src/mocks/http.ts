@@ -70,16 +70,21 @@ export async function readJson<T>(request: Request): Promise<T> {
   }
 }
 
+/** `?limit=` parsing (api.md §4): default 50, max 100. */
+export function parseLimit(url: URL): number {
+  const limitRaw = Number(url.searchParams.get("limit") ?? "50");
+  return Math.min(
+    Number.isFinite(limitRaw) && limitRaw > 0 ? Math.floor(limitRaw) : 50,
+    100,
+  );
+}
+
 /** Cursor pagination (api.md §4): `?cursor=` + `limit` default 50, max 100. */
 export function paginate<T>(
   items: T[],
   url: URL,
 ): { items: T[]; next_cursor: string | null } {
-  const limitRaw = Number(url.searchParams.get("limit") ?? "50");
-  const limit = Math.min(
-    Number.isFinite(limitRaw) && limitRaw > 0 ? Math.floor(limitRaw) : 50,
-    100,
-  );
+  const limit = parseLimit(url);
   const cursorRaw = url.searchParams.get("cursor");
   let offset = 0;
   if (cursorRaw) {

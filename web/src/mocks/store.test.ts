@@ -72,6 +72,31 @@ describe("seed narrative", () => {
     }
   });
 
+  it("#APR-1058 (child outfit gift) freezes child-scale manual measurements", () => {
+    // PR #102 review: the "Little senator" order must not carry kiki's
+    // adult vault snapshot — it's a gift with tape-measured child values
+    // entered by hand at request time.
+    const order = store.order("req-apr-1058", "kiki.adeyemi");
+    expect(order.snapshot.values.method).toBe("manual");
+    for (const m of order.snapshot.values.measurements) {
+      expect(m.value_cm, m.name).toBeLessThan(70);
+    }
+    expect(order.notes).toMatch(/nephew/i);
+    // kiki's own vault stays adult — the child session was deleted after
+    // the snapshot froze (sessions are deletable; snapshots are immutable).
+    const newest = store.sessionsFor("kiki.adeyemi")[0];
+    expect(
+      newest.measurements.find((m) => m.name === "shoulder_width")?.value_cm,
+    ).toBe(42.5);
+  });
+
+  it("#APR-1042 (ankara maxi skirt) carries a skirt-appropriate note", () => {
+    // PR #102 review: the recaptioned skirt order asked for "longer sleeves".
+    const order = store.order("req-apr-1042", "kiki.adeyemi");
+    expect(order.notes).toMatch(/ankle length/i);
+    expect(order.notes).not.toMatch(/sleeve/i);
+  });
+
   it("order snapshots are measured before the order exists (P1 realism)", () => {
     for (const order of store.orders) {
       const measured = new Date(order.snapshot.values.measured_at).getTime();
@@ -198,6 +223,72 @@ describe("engagement", () => {
     const premium = store.explore("kiki.adeyemi", undefined, undefined, "premium");
     expect(premium.map((p) => p.id)).toEqual(["post-bridal-gown"]);
   });
+
+  it("explore max_turnaround_days keeps only posts deliverable in time", () => {
+    const week = store.explore(
+      "kiki.adeyemi",
+      undefined,
+      undefined,
+      undefined,
+      7,
+    );
+    expect(week.map((p) => p.id)).toEqual([
+      "post-print-brothers",
+      "post-dance-troupe",
+    ]);
+    for (const p of week) expect(p.turnaround_days).toBeLessThanOrEqual(7);
+  });
+
+  it("explore near_me proximity-ranks by designer location — no hard gate", () => {
+    // Default recency order leads with the newest post: the Abuja atelier.
+    const recency = store.explore("kiki.adeyemi");
+    expect(recency[0].id).toBe("post-atelier-abuja");
+    // near_me for Lagos-based kiki: every Lagos designer's post ranks above
+    // the Abuja designer's, which still APPEARS (ranking, not filtering).
+    const near = store.explore(
+      "kiki.adeyemi",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      true,
+    );
+    expect(near).toHaveLength(recency.length);
+    expect(near[0].id).toBe("post-print-couple"); // newest Lagos post
+    expect(near[near.length - 1].id).toBe("post-atelier-abuja");
+  });
+
+  it("explore near_me ranks against the designer's CURRENT profile location", () => {
+    // PR #103 review: settings B7 writes Account.profile_location — the
+    // cached DesignerProfile.location must follow, or near-me keeps
+    // ranking on stale onboarding data.
+    store.updateMe("eniola.stitches", {
+      profile_location: { city: "Lagos", state: "Lagos", country: "NG" },
+    });
+    const near = store.explore(
+      "kiki.adeyemi",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      true,
+    );
+    // her newest-overall post now leads the same-city tier
+    expect(near[0].id).toBe("post-atelier-abuja");
+  });
+
+  it("explore near_me is a no-op for callers without a profile location", () => {
+    store.updateMe("kiki.adeyemi", { profile_location: null });
+    const near = store.explore(
+      "kiki.adeyemi",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      true,
+    );
+    expect(near[0].id).toBe("post-atelier-abuja"); // recency order holds
+  });
 });
 
 describe("earnings (designer view)", () => {
@@ -310,10 +401,10 @@ describe("profiles & social lists", () => {
     expect(following.map((f) => f.username)).toEqual(
       expect.arrayContaining(["tunde.o", "maisonbisi"]),
     );
-    // tunde is the seeded suggestion (not followed by kiki)
+    // tunde + the Abuja atelier are the seeded suggestions (not followed)
     expect(
       store.suggestedDesigners("kiki.adeyemi").map((d) => d.username),
-    ).toEqual(["tunde.o"]);
+    ).toEqual(["tunde.o", "eniola.stitches"]);
   });
 
   it("saved posts round-trip through engagement", () => {
@@ -349,6 +440,102 @@ describe("capture path (webcam, B4)", () => {
     expect(() => store.saveSession(session.id, "kiki.adeyemi")).toThrowError(
       expect.objectContaining({ code: "invalid_transition" }),
     );
+  });
+});
+
+describe("ranked pagination (api.md §5 — snapshot cursors)", () => {
+  const feedPage = (cursor: string | null, limit: number) =>
+    store.rankedPage(
+      "kiki.adeyemi",
+      () => store.feed("kiki.adeyemi"),
+      cursor,
+      limit,
+    );
+
+  it("freezes the rank per scroll session — no duplicates or skips mid-scroll", () => {
+    const page1 = feedPage(null, 4);
+    expect(page1.items).toHaveLength(4);
+    expect(page1.next_cursor).not.toBeNull();
+    // A followed designer publishes mid-scroll — a fresh rank would lead
+    // with it and shift every offset (PR #103 review).
+    const fresh = store.createPost("amara.designs", {
+      caption: "Mid-scroll drop",
+      style_tags: ["ankara"],
+      base_price_cents: null,
+      turnaround_days: 7,
+      media: [{ url: "/demo/outfit-w14.jpg", alt_text: "Fabric drop" }],
+    });
+    const page2 = feedPage(page1.next_cursor, 4);
+    const ids = [...page1.items, ...page2.items].map((p) => p.id);
+    expect(new Set(ids).size).toBe(ids.length); // never duplicates
+    expect(ids).not.toContain(fresh.id); // new posts land on refresh only
+    expect(page2.next_cursor).toBeNull();
+    // …and a NEW scroll session (no cursor) does lead with it
+    expect(feedPage(null, 4).items[0].id).toBe(fresh.id);
+  });
+
+  it("posts deleted mid-scroll drop out without duplicating", () => {
+    const page1 = feedPage(null, 2);
+    store.deletePost("post-asooke-set", "maisonbisi"); // would be page 2
+    const page2 = feedPage(page1.next_cursor, 2);
+    const ids = [...page1.items, ...page2.items].map((p) => p.id);
+    expect(ids).not.toContain("post-asooke-set");
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("freezes only the RANK — engagement state stays live", () => {
+    const page1 = feedPage(null, 4);
+    store.setEngagement("post-fabric-drop", "kiki.adeyemi", "like", true);
+    const page2 = feedPage(page1.next_cursor, 4);
+    expect(page2.items.find((p) => p.id === "post-fabric-drop")?.liked).toBe(
+      true,
+    );
+  });
+
+  it("expired or garbled cursors start a fresh scroll session", () => {
+    const garbled = feedPage(
+      Buffer.from("rank-nope:4", "utf8").toString("base64url"),
+      4,
+    );
+    expect(garbled.items).toHaveLength(4);
+    expect(garbled.items[0].id).toBe(store.feed("kiki.adeyemi")[0].id);
+  });
+});
+
+describe("session exports (F2-9 / PLAT-004)", () => {
+  it("csv export inlines a header + one row per measurement", () => {
+    const { url, format } = store.sessionExport(
+      "sess-manual-tape",
+      "kiki.adeyemi",
+      "csv",
+    );
+    expect(format).toBe("csv");
+    expect(url).toMatch(/^data:text\/csv;base64,/);
+    const body = Buffer.from(url.split(",")[1], "base64").toString("utf8");
+    const lines = body.split("\n");
+    expect(lines[0]).toBe("name,value_cm,source,confidence");
+    expect(lines).toHaveLength(1 + 4); // header + the session's 4 values
+    expect(body).toContain("shoulder_width,42,");
+  });
+
+  it("pdf export is a real PDF carrying the measurement lines", () => {
+    const { url, format } = store.sessionExport(
+      "sess-recent-scan",
+      "kiki.adeyemi",
+      "pdf",
+    );
+    expect(format).toBe("pdf");
+    expect(url).toMatch(/^data:application\/pdf;base64,/);
+    const body = Buffer.from(url.split(",")[1], "base64").toString("utf8");
+    expect(body.startsWith("%PDF-1.4")).toBe(true);
+    expect(body).toContain("shoulder_width: 42.5 cm");
+    expect(body.trimEnd().endsWith("%%EOF")).toBe(true);
+  });
+
+  it("exports are tenant-scoped: another user's session reads not_found", () => {
+    expect(() =>
+      store.sessionExport("sess-recent-scan", "tunde.o", "csv"),
+    ).toThrowError(expect.objectContaining({ code: "not_found", status: 404 }));
   });
 });
 

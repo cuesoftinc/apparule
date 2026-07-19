@@ -17,6 +17,26 @@ describe("SessionRow (§8.2b)", () => {
     expect(onDelete).toHaveBeenCalledOnce();
   });
 
+  it("history context: F2-9 export affordances fire per format", async () => {
+    const onExport = vi.fn();
+    render(<SessionRow session={fixtureSession} onExport={onExport} />);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Export session as CSV" }),
+    );
+    expect(onExport).toHaveBeenCalledWith("csv");
+    await userEvent.click(
+      screen.getByRole("button", { name: "Export session as PDF" }),
+    );
+    expect(onExport).toHaveBeenCalledWith("pdf");
+  });
+
+  it("omits the export affordance when no handler is wired (picker rows)", () => {
+    render(<SessionRow session={fixtureSession} />);
+    expect(
+      screen.queryByRole("button", { name: /Export session/ }),
+    ).not.toBeInTheDocument();
+  });
+
   it("picker context: radio + freshness pill, selected state", () => {
     render(
       <SessionRow session={fixtureSession} context="picker" selected />,

@@ -45,6 +45,31 @@ export function VaultView() {
     return map;
   }, [vault.sessions]);
 
+  /** F2-9: fetch the export URL, then hand it to the browser as a save. */
+  const exportSession = (session: MeasurementSession, format: "csv" | "pdf") =>
+    vault.exportSession(session.id, format).then(
+      ({ url }) => {
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = `apparule-session-${new Date(session.created_at)
+          .toISOString()
+          .slice(0, 10)}.${format}`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        showToast({
+          kind: "success",
+          message: `Exporting session as ${format.toUpperCase()}`,
+        });
+      },
+      () =>
+        showToast({
+          kind: "error",
+          message: "Couldn't export the session",
+          onRetry: () => void exportSession(session, format),
+        }),
+    );
+
   /** Oldest → newest values per metric for the sparkline. */
   const historyFor = (name: string): number[] =>
     [...vault.sessions]
@@ -196,6 +221,7 @@ export function VaultView() {
               <li key={session.id}>
                 <SessionRow
                   session={session}
+                  onExport={(format) => void exportSession(session, format)}
                   onDelete={() =>
                     vault.deleteSession(session.id).then(
                       () =>

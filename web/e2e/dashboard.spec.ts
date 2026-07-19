@@ -58,6 +58,39 @@ test("semantic landmarks: every dashboard screen renders one <main> and the prim
   }
 });
 
+// Runs BEFORE the B1 journey (serial file): the journey follows tunde,
+// which grows the feed past the canonical 7-post seed this test paginates.
+test("B1 MI-6: infinite scroll — cursor page prefetched near the end, skeleton ×2, caught-up", async ({
+  page,
+}) => {
+  // Slow the cursor page down so the MI-6 skeletons are observable.
+  await page.route(
+    (url) =>
+      url.pathname.endsWith("/api/mock/v1/feed") &&
+      url.searchParams.has("cursor"),
+    async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 700));
+      await route.continue();
+    },
+  );
+  await signIn(page);
+
+  const cards = page.getByTestId("feed-list").locator("> li");
+  // First ranked page (MI-6 page size 4 over the 7-post seeded feed).
+  await expect(cards).toHaveCount(4);
+
+  // Walking toward the end crosses the 3-from-end observer → prefetch;
+  // skeleton ×2 renders while the cursor page is in flight.
+  await cards.last().scrollIntoViewIfNeeded();
+  await expect(page.getByTestId("feed-loading-more")).toBeVisible();
+  await expect(cards).toHaveCount(7);
+  await expect(page.getByTestId("feed-loading-more")).toHaveCount(0);
+
+  // Cursor exhausted → the MI-6 caught-up divider.
+  await cards.last().scrollIntoViewIfNeeded();
+  await expect(page.getByText(/all caught up/i)).toBeVisible();
+});
+
 test("B1 journey: like/save/follow → request stepper → order → quote → pay → escrow-held → thread MI-17", async ({
   page,
   request,
@@ -151,6 +184,38 @@ test("B3: the seeded list covers all ten lifecycle states", async ({ page }) => 
   }
 });
 
+test("B2 explore: turnaround chip filters; near-me proximity-ranks without dropping posts", async ({
+  page,
+}) => {
+  await signIn(page);
+  await page.goto("/dashboard/explore");
+  const tiles = page.getByLabel("Posts").locator("li");
+  const tileImgs = page.getByLabel("Posts").locator("li img");
+
+  // Default recency order leads with the newest post — the Abuja atelier.
+  await expect(tileImgs.first()).toHaveAttribute("alt", /atelier/);
+  const total = await tiles.count();
+
+  // "Near me" (kiki is Lagos-based): every Lagos designer's post ranks
+  // above the Abuja designer's; the Abuja post still renders — proximity
+  // is a ranking, never a hard gate (pages.md B2).
+  await page.getByRole("button", { name: "Near me" }).click();
+  await expect(tileImgs.first()).not.toHaveAttribute("alt", /atelier/);
+  await expect(tileImgs.last()).toHaveAttribute("alt", /atelier/);
+  await expect(tiles).toHaveCount(total);
+  await page.getByRole("button", { name: "Near me" }).click();
+
+  // Turnaround "≤ 1 week" keeps only the 7-day posts (both tunde's).
+  await page.getByRole("button", { name: "≤ 1 week" }).click();
+  await expect(tiles).toHaveCount(2);
+  await expect(tileImgs.first()).toHaveAttribute(
+    "alt",
+    "Two men in matching African print shirts",
+  );
+  await page.getByRole("button", { name: "≤ 1 week" }).click();
+  await expect(tiles).toHaveCount(total);
+});
+
 test("B4 vault: webcam QC failure → retake → capture → save; history delete", async ({
   page,
 }) => {
@@ -182,6 +247,23 @@ test("B4 vault: webcam QC failure → retake → capture → save; history delet
   await page.getByTestId("vault-grid").getByRole("button").first().click();
   const history = page.getByTestId("history-list");
   await expect(history).toBeVisible();
+
+  // F2-9: per-session export hands the browser a real download.
+  const csvDownload = page.waitForEvent("download");
+  await history
+    .getByRole("button", { name: "Export session as CSV" })
+    .first()
+    .click();
+  expect((await csvDownload).suggestedFilename()).toMatch(
+    /^apparule-session-\d{4}-\d{2}-\d{2}\.csv$/,
+  );
+  const pdfDownload = page.waitForEvent("download");
+  await history
+    .getByRole("button", { name: "Export session as PDF" })
+    .first()
+    .click();
+  expect((await pdfDownload).suggestedFilename()).toMatch(/\.pdf$/);
+
   const before = await history.locator("li").count();
   await history.getByRole("button", { name: "Delete session" }).first().click();
   await expect(history.locator("li")).toHaveCount(before - 1);

@@ -76,7 +76,37 @@ export function usePublicProfile(username: string) {
     setSaved(page.items);
   }, []);
 
-  return { profile, posts, saved, loading, error, toggleFollow, reloadSaved };
+  /**
+   * Re-sync one grid tile from the server when the post modal closes —
+   * modal like/save/comment mutations live in the modal's own usePost
+   * (PR #103 review; same seam as useFeed.syncPost). Saved membership can
+   * flip in the modal, so the self-only saved grid refreshes wholesale.
+   */
+  const syncPost = useCallback(
+    async (id: string) => {
+      try {
+        const fresh = await postsRepo.get(id);
+        setPosts((prev) => prev.map((p) => (p.id === id ? fresh : p)));
+        if (profile?.viewer_is_self) {
+          await reloadSaved();
+        }
+      } catch {
+        // keep the rendered tiles; the next load converges them
+      }
+    },
+    [profile, reloadSaved],
+  );
+
+  return {
+    profile,
+    posts,
+    saved,
+    loading,
+    error,
+    toggleFollow,
+    reloadSaved,
+    syncPost,
+  };
 }
 
 /** Followers/following sheet lists — fetched when the sheet opens. */

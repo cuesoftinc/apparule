@@ -4,7 +4,7 @@
 // column with MI-1/2/3/4/9 + the request stepper CTA (MI-10) · right column
 // (freshness MI-11 + suggestions MI-7) · skeleton / empty / caught-up
 // states (MI-19, MI-6). Render-only over useFeed.
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { Post } from "@/models";
 import { useAuth } from "@/controllers/auth/AuthContext";
@@ -59,6 +59,25 @@ export function FeedView() {
     () => storyDesignersOf(feed.posts),
     [feed.posts],
   );
+
+  // MI-6 infinite scroll: prefetch the next ranked page when the viewer is
+  // 3 cards from the end — any of the last 3 cards entering the viewport
+  // fires (robust to jump-scrolls, not just smooth ones). The observed set
+  // moves as pages append; loadMore self-gates (cursor + in-flight ref).
+  const listRef = useRef<HTMLUListElement | null>(null);
+  const { loadMore, caughtUp } = feed;
+  const postCount = feed.posts.length;
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list || caughtUp || postCount === 0) return;
+    const cards = [...list.querySelectorAll(":scope > li")].slice(-3);
+    if (cards.length === 0) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) void loadMore();
+    });
+    for (const card of cards) observer.observe(card);
+    return () => observer.disconnect();
+  }, [loadMore, caughtUp, postCount]);
 
   const like = (post: Post) =>
     feed.toggleLike(post).catch(() =>
@@ -147,7 +166,7 @@ export function FeedView() {
           />
         ) : (
           <>
-            <ul className="flex flex-col gap-6" data-testid="feed-list">
+            <ul ref={listRef} className="flex flex-col gap-6" data-testid="feed-list">
               {feed.posts.map((post) => (
                 <li
                   key={post.id}
@@ -172,6 +191,18 @@ export function FeedView() {
                 </li>
               ))}
             </ul>
+            {feed.loadingMore ? (
+              // MI-6: skeleton ×2 while the next page is in flight (MI-19
+              // shimmer comes from the PostCard skeleton anatomy).
+              <div
+                aria-busy="true"
+                className="flex flex-col gap-6 pt-6"
+                data-testid="feed-loading-more"
+              >
+                <PostCard skeleton />
+                <PostCard skeleton />
+              </div>
+            ) : null}
             {feed.caughtUp ? <CaughtUpDivider className="py-6" /> : null}
           </>
         )}
@@ -188,10 +219,15 @@ export function FeedView() {
       <Sheet
         open={openPostId !== null}
         onOpenChange={(open) => {
-          if (!open) setOpenPostId(null);
+          if (!open) {
+            // Modal mutations live in PostDetailView's own usePost — sync
+            // the rendered feed item back on close (PR #102 review).
+            if (openPostId) void feed.syncPost(openPostId);
+            setOpenPostId(null);
+          }
         }}
         title="Post"
-        className="max-w-4xl"
+        size="wide"
       >
         {openPostId ? (
           <PostDetailView
