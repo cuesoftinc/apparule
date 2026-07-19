@@ -72,6 +72,31 @@ describe("seed narrative", () => {
     }
   });
 
+  it("#APR-1058 (child outfit gift) freezes child-scale manual measurements", () => {
+    // PR #102 review: the "Little senator" order must not carry kiki's
+    // adult vault snapshot — it's a gift with tape-measured child values
+    // entered by hand at request time.
+    const order = store.order("req-apr-1058", "kiki.adeyemi");
+    expect(order.snapshot.values.method).toBe("manual");
+    for (const m of order.snapshot.values.measurements) {
+      expect(m.value_cm, m.name).toBeLessThan(70);
+    }
+    expect(order.notes).toMatch(/nephew/i);
+    // kiki's own vault stays adult — the child session was deleted after
+    // the snapshot froze (sessions are deletable; snapshots are immutable).
+    const newest = store.sessionsFor("kiki.adeyemi")[0];
+    expect(
+      newest.measurements.find((m) => m.name === "shoulder_width")?.value_cm,
+    ).toBe(42.5);
+  });
+
+  it("#APR-1042 (ankara maxi skirt) carries a skirt-appropriate note", () => {
+    // PR #102 review: the recaptioned skirt order asked for "longer sleeves".
+    const order = store.order("req-apr-1042", "kiki.adeyemi");
+    expect(order.notes).toMatch(/ankle length/i);
+    expect(order.notes).not.toMatch(/sleeve/i);
+  });
+
   it("order snapshots are measured before the order exists (P1 realism)", () => {
     for (const order of store.orders) {
       const measured = new Date(order.snapshot.values.measured_at).getTime();

@@ -44,6 +44,26 @@ describe("Sheet (§8.2)", () => {
     ).toHaveAttribute("aria-current", "step");
   });
 
+  it("desktop width follows the size axis (default 480px modal, wide post-detail)", () => {
+    const { rerender } = render(
+      <Sheet open onOpenChange={() => {}} title="Post">
+        <p>Body</p>
+      </Sheet>,
+    );
+    // default: the 480px secondary-flow modal
+    expect(screen.getByRole("dialog").className).toContain("md:w-[480px]");
+    rerender(
+      <Sheet open onOpenChange={() => {}} title="Post" size="wide">
+        <p>Body</p>
+      </Sheet>,
+    );
+    // wide: a real md width (not a max-width fighting the base md:w-*),
+    // viewport-clamped — the two-column PostDetailView needs the room
+    const wide = screen.getByRole("dialog").className;
+    expect(wide).not.toContain("md:w-[480px]");
+    expect(wide).toContain("md:w-[min(56rem,calc(100vw-4rem))]");
+  });
+
   it("close affordance fires onOpenChange(false)", async () => {
     const onOpenChange = vi.fn();
     render(

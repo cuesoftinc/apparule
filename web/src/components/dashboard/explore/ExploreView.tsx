@@ -225,10 +225,15 @@ export function ExploreView() {
       <Sheet
         open={openPostId !== null}
         onOpenChange={(open) => {
-          if (!open) setOpenPostId(null);
+          if (!open) {
+            // Sync the grid tile's counts back on close — the modal's
+            // usePost mutations don't touch this list (PR #102 review).
+            if (openPostId) void explore.syncPost(openPostId);
+            setOpenPostId(null);
+          }
         }}
         title="Post"
-        className="max-w-4xl"
+        size="wide"
       >
         {openPostId ? (
           <PostDetailView

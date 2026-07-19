@@ -910,7 +910,8 @@ export const seedOrders: CommissionRequest[] = [
     customer: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
     designer: { id: "des-amara", username: "amara.designs", avatar_url: null },
     status: "in_progress",
-    notes: "Slightly longer sleeves than the sample, please. Event is July 26.",
+    notes:
+      "Ankle length please, with a small side slit — easier to dance in. Event is July 26.",
     budget_cents: 5_000_000,
     quote_cents: 4_500_000, // ₦45,000
     currency: "NGN",
@@ -968,7 +969,8 @@ export const seedOrders: CommissionRequest[] = [
     customer: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
     designer: { id: "des-bisi", username: "maisonbisi", avatar_url: null },
     status: "delivered",
-    notes: "For a family wedding — colour scheme attached in thread.",
+    notes:
+      "Gift for my nephew Tobi (age 6) — family wedding. Colour scheme in thread; his measurements are tape-measured, entered by hand.",
     budget_cents: null,
     quote_cents: 6_200_000, // ₦62,000
     currency: "NGN",
@@ -985,17 +987,23 @@ export const seedOrders: CommissionRequest[] = [
       state: "Lagos",
       country: "NG",
     },
+    // The child outfit is a GIFT: kiki tape-measured her nephew and entered
+    // the values as a manual vault session just before requesting, then
+    // deleted that session after the order was placed — snapshots freeze at
+    // request time, so the order keeps the child's numbers while her own
+    // vault (adult sessions above) is untouched (PR #102 review: an adult
+    // 42 cm-shoulder snapshot can't dress a six-year-old).
     snapshot: {
       id: "snap-1058",
       request_id: "req-apr-1058",
       values: {
         method: "manual",
-        measured_at: daysAgo(58),
+        measured_at: daysAgo(41),
         measurements: [
-          { name: "shoulder_width", value_cm: 42.0 },
-          { name: "hip_width", value_cm: 37.2 },
-          { name: "chest_girth", value_cm: 92.0 },
-          { name: "waist_girth", value_cm: 78.5 },
+          { name: "shoulder_width", value_cm: 28.0 },
+          { name: "hip_width", value_cm: 25.5 },
+          { name: "chest_girth", value_cm: 60.5 },
+          { name: "waist_girth", value_cm: 55.0 },
         ],
       },
       created_at: daysAgo(40),

@@ -188,10 +188,15 @@ export function FeedView() {
       <Sheet
         open={openPostId !== null}
         onOpenChange={(open) => {
-          if (!open) setOpenPostId(null);
+          if (!open) {
+            // Modal mutations live in PostDetailView's own usePost — sync
+            // the rendered feed item back on close (PR #102 review).
+            if (openPostId) void feed.syncPost(openPostId);
+            setOpenPostId(null);
+          }
         }}
         title="Post"
-        className="max-w-4xl"
+        size="wide"
       >
         {openPostId ? (
           <PostDetailView

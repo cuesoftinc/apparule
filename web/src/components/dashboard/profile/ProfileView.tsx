@@ -201,7 +201,7 @@ export function ProfileView({ username }: { username: string }) {
             if (!open) setOpenPostId(null);
           }}
           title="Post"
-          className="max-w-4xl"
+          size="wide"
         >
           {openPostId ? (
             <PostDetailView
@@ -383,7 +383,7 @@ export function ProfileView({ username }: { username: string }) {
           if (!open) setOpenPostId(null);
         }}
         title="Post"
-        className="max-w-4xl"
+        size="wide"
       >
         {openPostId ? (
           <PostDetailView

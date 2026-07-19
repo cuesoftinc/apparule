@@ -96,6 +96,24 @@ export function useFeed(mode: "feed" | "explore" = "feed", filters?: ExploreFilt
     }
   }, [mode, filtersKey]);
 
+  /**
+   * Re-sync one rendered item from the server — the in-app post modal
+   * (PostDetailView over its own usePost) mutates likes/saves/comments
+   * independently, so the owning list refreshes that post when the modal
+   * closes; the feed card never shows stale counts (PR #102 review).
+   */
+  const syncPost = useCallback(async (id: string) => {
+    try {
+      const fresh = await postsRepo.get(id);
+      setState((s) => ({
+        ...s,
+        posts: togglePost(s.posts, id, () => fresh),
+      }));
+    } catch {
+      // keep the rendered item; the next reload converges it
+    }
+  }, []);
+
   /** Optimistic like toggle (MI-1/MI-2 + MI-18 rollback). */
   const toggleLike = useCallback(async (post: Post) => {
     const liked = !post.liked;
@@ -141,5 +159,5 @@ export function useFeed(mode: "feed" | "explore" = "feed", filters?: ExploreFilt
     }
   }, []);
 
-  return { ...state, reload, loadMore, toggleLike, toggleSave };
+  return { ...state, reload, loadMore, syncPost, toggleLike, toggleSave };
 }
