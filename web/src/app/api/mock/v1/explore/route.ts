@@ -27,10 +27,20 @@ export async function GET(request: Request) {
     const actor = actorUsername(request);
     const store = getStore();
     // Ranked endpoint — cursor pages come from a frozen rank snapshot
-    // ([Decided] ranked pagination), same as /feed.
+    // ([Decided] ranked pagination), same as /feed. The fingerprint binds
+    // the cursor to this endpoint + exact filter set.
+    const fingerprint = [
+      "explore",
+      q ?? "",
+      (tags ?? []).join(","),
+      priceBand ?? "",
+      maxTurnaroundDays ?? "",
+      nearMe ? "1" : "",
+    ].join("|");
     return jsonResponse(
       store.rankedPage(
         actor,
+        fingerprint,
         () => store.explore(actor, q, tags, priceBand, maxTurnaroundDays, nearMe),
         url.searchParams.get("cursor"),
         parseLimit(url),

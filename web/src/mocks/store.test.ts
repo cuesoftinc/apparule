@@ -277,6 +277,24 @@ describe("engagement", () => {
     expect(near[0].id).toBe("post-atelier-abuja");
   });
 
+  it("explore near_me requires country equality before city/state tiers (PR #103)", () => {
+    // Same city/state TEXT in a different country must not outrank a
+    // same-country designer — free-text names repeat across borders.
+    store.updateMe("eniola.stitches", {
+      profile_location: { city: "Lagos", state: "Lagos", country: "GH" },
+    });
+    const near = store.explore(
+      "kiki.adeyemi",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      true,
+    );
+    // her newest-overall post still ranks LAST despite the matching text
+    expect(near[near.length - 1].id).toBe("post-atelier-abuja");
+  });
+
   it("explore near_me is a no-op for callers without a profile location", () => {
     store.updateMe("kiki.adeyemi", { profile_location: null });
     const near = store.explore(
@@ -444,13 +462,13 @@ describe("capture path (webcam, B4)", () => {
 });
 
 describe("ranked pagination (api.md §5 — snapshot cursors)", () => {
-  const feedPage = (cursor: string | null, limit: number) =>
-    store.rankedPage(
-      "kiki.adeyemi",
-      () => store.feed("kiki.adeyemi"),
-      cursor,
-      limit,
-    );
+  const feedPage = (
+    cursor: string | null,
+    limit: number,
+    actor = "kiki.adeyemi",
+    fingerprint = "feed",
+  ) =>
+    store.rankedPage(actor, fingerprint, () => store.feed(actor), cursor, limit);
 
   it("freezes the rank per scroll session — no duplicates or skips mid-scroll", () => {
     const page1 = feedPage(null, 4);
@@ -500,6 +518,40 @@ describe("ranked pagination (api.md §5 — snapshot cursors)", () => {
     expect(garbled.items).toHaveLength(4);
     expect(garbled.items[0].id).toBe(store.feed("kiki.adeyemi")[0].id);
   });
+
+  it("cursors are bound to their actor + query — cross-use starts fresh (PR #103)", () => {
+    const page1 = feedPage(null, 2);
+    const cursor = page1.next_cursor!;
+    // Same cursor presented against another endpoint/filter fingerprint:
+    // not honored — a fresh explore snapshot starts at offset 0.
+    const crossQuery = store.rankedPage(
+      "kiki.adeyemi",
+      "explore|||||",
+      () => store.explore("kiki.adeyemi"),
+      cursor,
+      2,
+    );
+    expect(crossQuery.items[0].id).toBe(store.explore("kiki.adeyemi")[0].id);
+    // Same cursor replayed by ANOTHER actor: not honored either — tunde
+    // gets his own feed's first page, not kiki's snapshot offsets.
+    const crossActor = feedPage(cursor, 2, "tunde.o");
+    expect(crossActor.items[0].id).toBe(store.feed("tunde.o")[0].id);
+    // …while the minting actor's cursor still resolves its snapshot.
+    const page2 = feedPage(cursor, 2);
+    const ids = [...page1.items, ...page2.items].map((p) => p.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("active snapshots survive heavy first-page traffic (no FIFO eviction)", () => {
+    const page1 = feedPage(null, 2);
+    // 150 other scroll sessions begin before this cursor is consumed —
+    // size-based eviction used to invalidate it (PR #103 review).
+    for (let i = 0; i < 150; i++) feedPage(null, 2, "tunde.o");
+    const page2 = feedPage(page1.next_cursor, 2);
+    const ids = [...page1.items, ...page2.items].map((p) => p.id);
+    expect(new Set(ids).size).toBe(ids.length); // continued, not restarted
+    expect(ids).toHaveLength(4);
+  });
 });
 
 describe("session exports (F2-9 / PLAT-004)", () => {
@@ -530,6 +582,26 @@ describe("session exports (F2-9 / PLAT-004)", () => {
     expect(body.startsWith("%PDF-1.4")).toBe(true);
     expect(body).toContain("shoulder_width: 42.5 cm");
     expect(body.trimEnd().endsWith("%%EOF")).toBe(true);
+  });
+
+  it("pdf export paginates large sessions — no rows fall off the page (PR #103)", () => {
+    // Grow the session well past one page's 36 lines via append-only
+    // corrections (the API accepts unbounded entries).
+    store.appendCorrections(
+      "sess-recent-scan",
+      "kiki.adeyemi",
+      Array.from({ length: 60 }, (_, i) => ({
+        name: `correction_${i}`,
+        value_cm: 40 + i / 10,
+      })),
+    );
+    const { url } = store.sessionExport("sess-recent-scan", "kiki.adeyemi", "pdf");
+    const body = Buffer.from(url.split(",")[1], "base64").toString("utf8");
+    // 4 header lines + 62 measurements = 66 lines → 2 pages
+    expect(body).toContain("/Count 2");
+    // first and LAST rows are both present in the page streams
+    expect(body).toContain("shoulder_width: 42.5 cm");
+    expect(body).toContain("correction_59:");
   });
 
   it("exports are tenant-scoped: another user's session reads not_found", () => {

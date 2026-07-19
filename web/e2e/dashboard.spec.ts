@@ -60,15 +60,22 @@ test("semantic landmarks: every dashboard screen renders one <main> and the prim
 
 // Runs BEFORE the B1 journey (serial file): the journey follows tunde,
 // which grows the feed past the canonical 7-post seed this test paginates.
-test("B1 MI-6: infinite scroll — cursor page prefetched near the end, skeleton ×2, caught-up", async ({
+test("B1 MI-6: infinite scroll — failed page retries, skeleton ×2, caught-up", async ({
   page,
 }) => {
-  // Slow the cursor page down so the MI-6 skeletons are observable.
+  // First cursor request FAILS (transient network); subsequent ones are
+  // slowed so the MI-6 skeletons are observable.
+  let cursorCalls = 0;
   await page.route(
     (url) =>
       url.pathname.endsWith("/api/mock/v1/feed") &&
       url.searchParams.has("cursor"),
     async (route) => {
+      cursorCalls += 1;
+      if (cursorCalls === 1) {
+        await route.abort("connectionfailed");
+        return;
+      }
       await new Promise((resolve) => setTimeout(resolve, 700));
       await route.continue();
     },
@@ -80,8 +87,15 @@ test("B1 MI-6: infinite scroll — cursor page prefetched near the end, skeleton
   await expect(cards).toHaveCount(4);
 
   // Walking toward the end crosses the 3-from-end observer → prefetch;
-  // skeleton ×2 renders while the cursor page is in flight.
+  // the aborted page surfaces the explicit retry control (PR #103) —
+  // the feed must not silently stop at an incomplete page.
   await cards.last().scrollIntoViewIfNeeded();
+  const retry = page.getByTestId("feed-load-more-retry");
+  await expect(retry).toBeVisible();
+  await expect(cards).toHaveCount(4);
+
+  // Retry → skeleton ×2 while the page is in flight → cards append.
+  await retry.click();
   await expect(page.getByTestId("feed-loading-more")).toBeVisible();
   await expect(cards).toHaveCount(7);
   await expect(page.getByTestId("feed-loading-more")).toHaveCount(0);

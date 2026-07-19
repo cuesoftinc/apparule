@@ -9,6 +9,7 @@ import Link from "next/link";
 import type { Post } from "@/models";
 import { useAuth } from "@/controllers/auth/AuthContext";
 import { useFeed } from "@/controllers/use-feed";
+import { Button } from "@/components/ui/Button";
 import { CaughtUpDivider } from "@/components/ui/CaughtUpDivider";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PostCard } from "@/components/ui/PostCard";
@@ -201,6 +202,25 @@ export function FeedView() {
               >
                 <PostCard skeleton />
                 <PostCard skeleton />
+              </div>
+            ) : feed.loadMoreError ? (
+              // A cursor page failed: the observed cards are still
+              // intersecting, so the MI-6 observer won't re-fire on its
+              // own — offer an explicit retry (PR #103 review).
+              <div
+                role="status"
+                className="flex items-center justify-center gap-3 py-6"
+              >
+                <span className="text-body text-text-2">
+                  Couldn&apos;t load more posts.
+                </span>
+                <Button
+                  kind="quiet"
+                  data-testid="feed-load-more-retry"
+                  onClick={() => void feed.loadMore()}
+                >
+                  Retry
+                </Button>
               </div>
             ) : null}
             {feed.caughtUp ? <CaughtUpDivider className="py-6" /> : null}

@@ -13,6 +13,12 @@ export interface FeedState {
   loading: boolean;
   loadingMore: boolean;
   error: string | null;
+  /**
+   * A cursor page failed (PR #103 review): the observed cards are still
+   * intersecting, so the MI-6 observer won't re-fire on its own — the
+   * view renders an explicit retry that calls loadMore again.
+   */
+  loadMoreError: boolean;
   /** MI-6: caught-up divider once the ranked page is exhausted. */
   caughtUp: boolean;
 }
@@ -38,6 +44,7 @@ export function useFeed(mode: "feed" | "explore" = "feed", filters?: ExploreFilt
     loading: true,
     loadingMore: false,
     error: null,
+    loadMoreError: false,
     caughtUp: false,
   });
   const cursorRef = useRef<string | null>(null);
@@ -60,6 +67,7 @@ export function useFeed(mode: "feed" | "explore" = "feed", filters?: ExploreFilt
           loading: false,
           loadingMore: false,
           error: null,
+          loadMoreError: false,
           caughtUp: page.next_cursor === null,
         });
       },
@@ -89,7 +97,7 @@ export function useFeed(mode: "feed" | "explore" = "feed", filters?: ExploreFilt
     // flight — the ref gate keeps one request per cursor.
     if (!cursor || loadingMoreRef.current) return;
     loadingMoreRef.current = true;
-    setState((s) => ({ ...s, loadingMore: true }));
+    setState((s) => ({ ...s, loadingMore: true, loadMoreError: false }));
     try {
       const page =
         mode === "feed"
@@ -103,7 +111,10 @@ export function useFeed(mode: "feed" | "explore" = "feed", filters?: ExploreFilt
         caughtUp: page.next_cursor === null,
       }));
     } catch {
-      setState((s) => ({ ...s, loadingMore: false }));
+      // The failed page stays reachable through the view's retry control
+      // — the observer alone won't re-fire while the same cards remain
+      // intersecting (PR #103 review).
+      setState((s) => ({ ...s, loadingMore: false, loadMoreError: true }));
     } finally {
       loadingMoreRef.current = false;
     }

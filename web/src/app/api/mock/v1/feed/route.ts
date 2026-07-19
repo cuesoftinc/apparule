@@ -12,6 +12,7 @@ export async function GET(request: Request) {
     return jsonResponse(
       store.rankedPage(
         actor,
+        "feed",
         () => store.feed(actor),
         url.searchParams.get("cursor"),
         parseLimit(url),
