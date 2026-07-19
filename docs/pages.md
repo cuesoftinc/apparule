@@ -34,8 +34,9 @@ Analytics events (→ Upstat, D2): `page_view`, `demo_start` (A4 engage),
 `github_click` (A1/A7), `try_cloud_click`, `self_host_click`. **[PRD + Directive]**
 
 Docs: hosted on **GitBook** (Git-synced from this `docs/` folder) **[Directive]**;
-API reference via **Scalar** rendering the OpenAPI specs (api.md) embedded at
-`/docs/api`. **[Proposed]**
+API reference via **Scalar** rendering the OpenAPI spec (docs/api/openapi.yaml)
+embedded at the public `/docs/api` route — the footer Docs column's
+"API reference" links it. **[Ratified 2026-07-20]**
 
 ## Part B — Web dashboard (`apparule.cuesoft.io/dashboard` — canonical [Decided]; "B" routes below are relative to it)
 

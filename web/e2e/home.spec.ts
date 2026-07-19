@@ -351,10 +351,8 @@ test.describe("nav/footer parity canon", () => {
     const canon: [string, string][] = [
       ["Docs", "https://cuesoft.gitbook.io/apparule"],
       ["Quickstart", "https://cuesoft.gitbook.io/apparule/setup"],
-      [
-        "API reference",
-        "https://cuesoft.gitbook.io/apparule/system/api-surface",
-      ],
+      // In-product Scalar reference (F0-8) — /docs/api renders the spec.
+      ["API reference", "/docs/api"],
       [
         "Self-host guide",
         "https://cuesoft.gitbook.io/apparule/system/deployment",

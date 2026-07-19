@@ -16,7 +16,7 @@
 | F0-5 | Designers/open-source/community/cloud-vs-oss sections | A6–A9 | pages.md | F0-2 |
 | F0-6 | Privacy page | APP-005 disclosure, retention copy from data-model §4 | pages.md A10, prd §6 | F0-2 |
 | F0-7 | Analytics client wrapper | queued no-op upstat client; events per master registry | upstat api.md §3.4 | F0-2 |
-| F0-8 | Docs hub links | GitBook space links, Scalar embed at /docs/api | openapi.yaml | F0-2 |
+| F0-8 | Docs hub links | GitBook space links, Scalar embed at /docs/api **[Shipped 2026-07-20]** — public `/docs/api` renders docs/api/openapi.yaml; footer "API reference" points there | openapi.yaml | F0-2 |
 
 ## Phase 1 — Auth + cloud access
 
