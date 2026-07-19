@@ -30,6 +30,13 @@ const PRICE_BANDS = [
   { value: "premium", label: "Over ₦100k" },
 ] as const;
 
+// Turnaround-time chips (pages.md B2) — single-select max-days buckets.
+const TURNAROUNDS = [
+  { value: 7, label: "≤ 1 week" },
+  { value: 14, label: "≤ 2 weeks" },
+  { value: 30, label: "≤ 1 month" },
+] as const;
+
 export function ExploreView() {
   const explore = useExplore();
   const { showToast } = useToasts();
@@ -117,6 +124,30 @@ export function ExploreView() {
               />
             </li>
           ))}
+          {TURNAROUNDS.map((t) => (
+            <li key={t.value}>
+              <Chip
+                label={t.label}
+                kind={
+                  explore.maxTurnaround === t.value ? "selected" : "default"
+                }
+                onClick={() =>
+                  explore.setMaxTurnaround(
+                    explore.maxTurnaround === t.value ? undefined : t.value,
+                  )
+                }
+              />
+            </li>
+          ))}
+          <li>
+            {/* Proximity ranking (designer location vs your profile
+                location) — re-orders, never excludes (pages.md B2). */}
+            <Chip
+              label="Near me"
+              kind={explore.nearMe ? "selected" : "default"}
+              onClick={() => explore.setNearMe(!explore.nearMe)}
+            />
+          </li>
           {tagOptions.map((tag) => (
             <li key={tag}>
               <Chip

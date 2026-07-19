@@ -115,13 +115,22 @@ All under `/api/v1`, workspace/account auth as §2. Deltas only:
 
 | Group | Endpoints |
 | --- | --- |
-| Posts | `POST /posts` (designer) · `GET /posts/{id}` · `GET /feed` (followed + ranked) · `GET /explore?q&tags&price_band` (bands: `budget` <25k, `mid` 25–100k, `premium` >100k NGN **[Decided defaults]**) · `DELETE /posts/{id}` |
+| Posts | `POST /posts` (designer) · `GET /posts/{id}` · `GET /feed` (followed + ranked) · `GET /explore?q&tags&price_band&max_turnaround_days&near_me` (bands: `budget` <25k, `mid` 25–100k, `premium` >100k NGN **[Decided defaults]**; filter-chip params below) · `DELETE /posts/{id}` |
 | Social graph | `POST/DELETE /follows/{designer}` · `POST/DELETE /posts/{id}/like` · `POST/DELETE /posts/{id}/save` · `POST /posts/{id}/comments` (body ≤500 chars) · `GET /posts/{id}/comments` |
 | Trust & safety | `POST /reports` `{subject_kind, subject_id, reason}` · `POST/DELETE /blocks/{account}` · moderator: `GET /moderation/queue` · `POST /moderation/reports/{id}/action` `{action: hide_post\|suspend_account\|dismiss}` (A-6; semantics in data-model §6.2) |
 | Requests | `POST /posts/{id}/requests` (body: vault snapshot selector, notes, budget) · `GET /requests?role=customer\|designer` · `GET /requests/{id}` · `POST /requests/{id}/quote` · `POST /requests/{id}/decline` · `POST /requests/{id}/status` (in_progress/shipped — `delivered` is customer-confirm or system auto-confirm only, order-lifecycle §2) · `POST /requests/{id}/messages` |
 | Payments | `POST /requests/{id}/pay` (provider session) · `POST /webhooks/payments` (unversioned by design; **auth = provider signature only**, never bearer; unauthenticated-but-verified, engineering §2) · `POST /requests/{id}/confirm-delivery` (releases escrow) · `POST /requests/{id}/dispute` |
 | Designer | `POST /designer-profile` (enable + KYC start) · `GET /designer/earnings` · `POST /designer/payout-account` |
 | Notifications | `GET /notifications` · `POST /notifications/read` |
+
+Explore filter-chip params (pages.md B2) **[Proposed 2026-07-19 — mock
+implements]**: `max_turnaround_days` (positive integer) keeps only posts
+with `turnaround_days` within the bound; `near_me` (`1`) proximity-ranks
+results by the designer's `profile_location` against the caller's (X-10
+tier 1) — same city, then same state, then same country, with recency
+preserved within each tier. Proximity is a **ranking, never a hard gate**:
+locationless designers simply sort last, and callers without a profile
+location get plain recency order.
 
 Feed/explore are the only ranked endpoints (recency + follow affinity v1; no
 ML ranking until data exists). Ranked pagination **[Decided]**: cursors encode

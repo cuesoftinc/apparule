@@ -151,6 +151,38 @@ test("B3: the seeded list covers all ten lifecycle states", async ({ page }) => 
   }
 });
 
+test("B2 explore: turnaround chip filters; near-me proximity-ranks without dropping posts", async ({
+  page,
+}) => {
+  await signIn(page);
+  await page.goto("/dashboard/explore");
+  const tiles = page.getByLabel("Posts").locator("li");
+  const tileImgs = page.getByLabel("Posts").locator("li img");
+
+  // Default recency order leads with the newest post — the Abuja atelier.
+  await expect(tileImgs.first()).toHaveAttribute("alt", /atelier/);
+  const total = await tiles.count();
+
+  // "Near me" (kiki is Lagos-based): every Lagos designer's post ranks
+  // above the Abuja designer's; the Abuja post still renders — proximity
+  // is a ranking, never a hard gate (pages.md B2).
+  await page.getByRole("button", { name: "Near me" }).click();
+  await expect(tileImgs.first()).not.toHaveAttribute("alt", /atelier/);
+  await expect(tileImgs.last()).toHaveAttribute("alt", /atelier/);
+  await expect(tiles).toHaveCount(total);
+  await page.getByRole("button", { name: "Near me" }).click();
+
+  // Turnaround "≤ 1 week" keeps only the 7-day posts (both tunde's).
+  await page.getByRole("button", { name: "≤ 1 week" }).click();
+  await expect(tiles).toHaveCount(2);
+  await expect(tileImgs.first()).toHaveAttribute(
+    "alt",
+    "Two men in matching African print shirts",
+  );
+  await page.getByRole("button", { name: "≤ 1 week" }).click();
+  await expect(tiles).toHaveCount(total);
+});
+
 test("B4 vault: webcam QC failure → retake → capture → save; history delete", async ({
   page,
 }) => {

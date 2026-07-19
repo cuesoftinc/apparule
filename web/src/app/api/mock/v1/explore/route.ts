@@ -1,5 +1,7 @@
-// Mock: GET /api/v1/explore?q&tags&price_band (api.md §5 — bands: budget
-// <25k, mid 25–100k, premium >100k NGN).
+// Mock: GET /api/v1/explore?q&tags&price_band&max_turnaround_days&near_me
+// (api.md §5 — bands: budget <25k, mid 25–100k, premium >100k NGN;
+// max_turnaround_days + near_me are the 2026-07-19 filter-chip extension —
+// near_me proximity-ranks by designer profile_location vs the caller's).
 import { actorUsername, handle, jsonResponse, paginate } from "@/mocks/http";
 import { getStore } from "@/mocks/store";
 
@@ -13,7 +15,23 @@ export async function GET(request: Request) {
       bandRaw === "budget" || bandRaw === "mid" || bandRaw === "premium"
         ? bandRaw
         : undefined;
-    const posts = getStore().explore(actorUsername(request), q, tags, priceBand);
+    const turnaroundRaw = Number(
+      url.searchParams.get("max_turnaround_days") ?? "",
+    );
+    const maxTurnaroundDays =
+      Number.isFinite(turnaroundRaw) && turnaroundRaw > 0
+        ? Math.floor(turnaroundRaw)
+        : undefined;
+    const nearRaw = url.searchParams.get("near_me");
+    const nearMe = nearRaw === "1" || nearRaw === "true";
+    const posts = getStore().explore(
+      actorUsername(request),
+      q,
+      tags,
+      priceBand,
+      maxTurnaroundDays,
+      nearMe,
+    );
     return jsonResponse(paginate(posts, url));
   });
 }

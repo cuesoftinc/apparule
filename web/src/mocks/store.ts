@@ -261,6 +261,8 @@ export class MockStore {
     q?: string,
     tags?: string[],
     priceBand?: "budget" | "mid" | "premium",
+    maxTurnaroundDays?: number,
+    nearMe?: boolean,
   ): Post[] {
     const viewer = this.accountByUsername(viewerUsername);
     let posts = [...this.posts];
@@ -287,12 +289,33 @@ export class MockStore {
         return naira > 100_000;
       });
     }
-    return posts
-      .sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-      )
-      .map((p) => this.viewPost(p, viewer.id));
+    if (maxTurnaroundDays !== undefined) {
+      posts = posts.filter((p) => p.turnaround_days <= maxTurnaroundDays);
+    }
+    posts.sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
+    if (nearMe) {
+      // Proximity RANKING, not a hard gate (pages.md B2, X-10 tier 1):
+      // designer profile_location vs the caller's — city > state > country;
+      // locationless designers simply don't rank (sort last). Recency holds
+      // within a tier. Callers without a profile location keep recency order.
+      const home = viewer.profile_location;
+      if (home) {
+        const tierOf = (post: Post): number => {
+          const loc = this.designerByUsername(post.designer.username)?.location;
+          if (!loc) return 3;
+          if (loc.city === home.city && loc.state === home.state) return 0;
+          if (loc.state === home.state) return 1;
+          if (loc.country === home.country) return 2;
+          return 3;
+        };
+        // Array.prototype.sort is stable — recency survives within tiers.
+        posts.sort((a, b) => tierOf(a) - tierOf(b));
+      }
+    }
+    return posts.map((p) => this.viewPost(p, viewer.id));
   }
 
   post(idOrPermalink: string, viewerUsername: string): Post {

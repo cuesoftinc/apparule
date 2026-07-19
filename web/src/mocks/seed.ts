@@ -1,7 +1,9 @@
 // Seed data — the canonical Figma narrative (docs/design.md §8.3 sourced
 // photography; the mock narratives the designs boot with):
 //   kiki.adeyemi (customer) · amara.designs / tunde.o / maisonbisi
-//   (designers, Lagos) · orders #APR-1042 (ankara, ₦45,000, in_progress) and
+//   (designers, Lagos) · eniola.stitches (designer, Abuja — the non-Lagos
+//   contrast that makes the explore "near me" proximity ranking visible)
+//   · orders #APR-1042 (ankara, ₦45,000, in_progress) and
 //   #APR-1058 (little senator, ₦62,000, delivered/paid-out) · measurements
 //   (shoulder 42.5 cm etc. with freshness) · feed posts referencing the
 //   CC-licensed photos in web/public/demo (see ATTRIBUTIONS.md there).
@@ -112,6 +114,26 @@ export const seedAccounts: Account[] = [
     ],
     created_at: daysAgo(400),
   },
+  {
+    id: "acc-eniola",
+    firebase_uid: "test-uid-eniola",
+    email: "eniola@example.com",
+    username: "eniola.stitches",
+    display_name: "Eniola Stitches",
+    avatar_url: null,
+    // The one non-Lagos designer: kiki (Lagos) ranks her LAST under the
+    // explore "near me" proximity ordering — the visible contrast case.
+    profile_location: { city: "Abuja", state: "FCT", country: "NG" },
+    deletion_state: "active",
+    designer: { enabled: true, kyc_complete: true },
+    is_staff: false,
+    notification_prefs: defaultPrefs(),
+    consent: [
+      { document: "tos", version: "1.0", accepted_at: daysAgo(160) },
+      { document: "privacy", version: "1.0", accepted_at: daysAgo(160) },
+    ],
+    created_at: daysAgo(160),
+  },
 ];
 
 // Community members — the wider Lagos-scene audience around the four core
@@ -173,7 +195,7 @@ export const seedDesigners: DesignerProfile[] = [
     // Counts mirror the seeded graph exactly (P1 realism pass: the
     // followers sheet lists every follower, so count == list; posts_count
     // == the seeded grid).
-    followers_count: 7,
+    followers_count: 8,
     following_count: 2,
     posts_count: 3,
   },
@@ -214,6 +236,25 @@ export const seedDesigners: DesignerProfile[] = [
     followers_count: 6,
     following_count: 1,
     posts_count: 4,
+  },
+  {
+    id: "des-eniola",
+    account_id: "acc-eniola",
+    username: "eniola.stitches",
+    display_name: "Eniola Stitches",
+    bio: "Bespoke womenswear from the Abuja atelier — corporate and occasion.",
+    avatar_url: null,
+    payout_account: {
+      provider_ref: "PSTK-RCP-55492",
+      bank_name: "UBA",
+      account_last4: "7305",
+      kyc_state: "verified",
+    },
+    verified: true,
+    location: { city: "Abuja", state: "FCT", country: "NG" },
+    followers_count: 1,
+    following_count: 1,
+    posts_count: 1,
   },
 ];
 
@@ -270,6 +311,27 @@ function makePost(input: SeedPostInput): Post {
 }
 
 export const seedPosts: Post[] = [
+  makePost({
+    // Newest post overall: explore's default recency order leads with the
+    // Abuja atelier, and switching "near me" on visibly re-ranks it below
+    // every Lagos designer for the Lagos-based test user.
+    id: "post-atelier-abuja",
+    designerId: "des-eniola",
+    caption:
+      "Cutting for the September calendar at the Abuja atelier — corporate and occasion pieces, made to your vault numbers.",
+    tags: ["bespoke", "workwear"],
+    priceCents: 3_800_000,
+    turnaround: 10,
+    media: [
+      {
+        file: "outfit-w10.jpg",
+        alt: "Designer at a work table making clothes in the atelier",
+      },
+    ],
+    likes: 9,
+    comments: 1,
+    createdDaysAgo: 0.3,
+  }),
   makePost({
     id: "post-ankara-gown",
     designerId: "des-amara",
@@ -403,6 +465,16 @@ export const seedPosts: Post[] = [
 ];
 
 export const seedComments: Comment[] = [
+  {
+    id: "cmt-33",
+    post_id: "post-atelier-abuja",
+    author: { id: "acc-zainab", username: "zainab.k", avatar_url: null },
+    body: "An atelier this side of Abuja at last — booking for December.",
+    like_count: 1,
+    liked: false,
+    hidden_by_moderation: false,
+    created_at: daysAgo(0.15),
+  },
   {
     id: "cmt-1",
     post_id: "post-ankara-gown",
@@ -1400,8 +1472,12 @@ export const seedFollows: [string, string][] = [
   ["acc-amara", "maisonbisi"],
   ["acc-tunde", "amara.designs"],
   ["acc-bisi", "amara.designs"],
+  // The Abuja designer follows the Lagos scene; zainab (Abuja) follows her
+  // hometown atelier.
+  ["acc-eniola", "amara.designs"],
+  ["acc-zainab", "eniola.stitches"],
   // Community edges — the designers' followers_count mirrors this graph
-  // exactly (amara 7 · tunde 4 · bisi 6).
+  // exactly (amara 8 · tunde 4 · bisi 6 · eniola 1).
   ["acc-ada", "amara.designs"],
   ["acc-ada", "maisonbisi"],
   ["acc-funmi", "amara.designs"],

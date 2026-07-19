@@ -223,6 +223,53 @@ describe("engagement", () => {
     const premium = store.explore("kiki.adeyemi", undefined, undefined, "premium");
     expect(premium.map((p) => p.id)).toEqual(["post-bridal-gown"]);
   });
+
+  it("explore max_turnaround_days keeps only posts deliverable in time", () => {
+    const week = store.explore(
+      "kiki.adeyemi",
+      undefined,
+      undefined,
+      undefined,
+      7,
+    );
+    expect(week.map((p) => p.id)).toEqual([
+      "post-print-brothers",
+      "post-dance-troupe",
+    ]);
+    for (const p of week) expect(p.turnaround_days).toBeLessThanOrEqual(7);
+  });
+
+  it("explore near_me proximity-ranks by designer location — no hard gate", () => {
+    // Default recency order leads with the newest post: the Abuja atelier.
+    const recency = store.explore("kiki.adeyemi");
+    expect(recency[0].id).toBe("post-atelier-abuja");
+    // near_me for Lagos-based kiki: every Lagos designer's post ranks above
+    // the Abuja designer's, which still APPEARS (ranking, not filtering).
+    const near = store.explore(
+      "kiki.adeyemi",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      true,
+    );
+    expect(near).toHaveLength(recency.length);
+    expect(near[0].id).toBe("post-print-couple"); // newest Lagos post
+    expect(near[near.length - 1].id).toBe("post-atelier-abuja");
+  });
+
+  it("explore near_me is a no-op for callers without a profile location", () => {
+    store.updateMe("kiki.adeyemi", { profile_location: null });
+    const near = store.explore(
+      "kiki.adeyemi",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      true,
+    );
+    expect(near[0].id).toBe("post-atelier-abuja"); // recency order holds
+  });
 });
 
 describe("earnings (designer view)", () => {
@@ -335,10 +382,10 @@ describe("profiles & social lists", () => {
     expect(following.map((f) => f.username)).toEqual(
       expect.arrayContaining(["tunde.o", "maisonbisi"]),
     );
-    // tunde is the seeded suggestion (not followed by kiki)
+    // tunde + the Abuja atelier are the seeded suggestions (not followed)
     expect(
       store.suggestedDesigners("kiki.adeyemi").map((d) => d.username),
-    ).toEqual(["tunde.o"]);
+    ).toEqual(["tunde.o", "eniola.stitches"]);
   });
 
   it("saved posts round-trip through engagement", () => {

@@ -33,6 +33,12 @@ export function useExplore() {
   const [priceBand, setPriceBand] = useState<
     "budget" | "mid" | "premium" | undefined
   >(undefined);
+  /** Turnaround-time chip — max days, single-select like the price bands. */
+  const [maxTurnaround, setMaxTurnaround] = useState<number | undefined>(
+    undefined,
+  );
+  /** "Near me" chip — proximity ranking, never a hard gate (pages.md B2). */
+  const [nearMe, setNearMe] = useState(false);
   // Lazy init: reads localStorage once; hydration-safe because the recent
   // dropdown only renders after a client-side focus interaction.
   const [recent, setRecent] = useState<string[]>(readRecent);
@@ -44,8 +50,10 @@ export function useExplore() {
       q: submitted ?? undefined,
       tags: tags.length > 0 ? tags : undefined,
       price_band: priceBand,
+      max_turnaround_days: maxTurnaround,
+      near_me: nearMe || undefined,
     }),
-    [submitted, tags, priceBand],
+    [submitted, tags, priceBand, maxTurnaround, nearMe],
   );
 
   const feed = useFeed("explore", filters);
@@ -139,6 +147,10 @@ export function useExplore() {
     toggleTag,
     priceBand,
     setPriceBand,
+    maxTurnaround,
+    setMaxTurnaround,
+    nearMe,
+    setNearMe,
     designers,
     designersLoading,
     toggleDesignerFollow,
