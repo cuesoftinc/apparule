@@ -3,6 +3,7 @@
 // AddressFieldset — design.md §8.2: context delivery (request stepper —
 // frozen per order) / profile location (city + state + country · "near me"
 // explainer, X-10 tier 1) · NG-state select · prefill-from-last-order.
+import { useId } from "react";
 import clsx from "clsx";
 import type { DeliveryAddress } from "@/models";
 import { FormRow } from "./FormRow";
@@ -40,6 +41,9 @@ export function AddressFieldset({
 }: AddressFieldsetProps) {
   const set = (patch: Partial<DeliveryAddress>) =>
     onChange({ ...value, ...patch });
+  // Programmatic label→control association (semantic-forms rule).
+  const idBase = useId();
+  const fieldId = (name: string) => `${idBase}-${name}`;
 
   return (
     <fieldset
@@ -51,24 +55,27 @@ export function AddressFieldset({
           stacked full-width; recipient/line-2 are web data-model additions */}
       {context === "delivery" ? (
         <>
-          <FormRow label="Recipient name" required error={errors.recipient_name}>
+          <FormRow label="Recipient name" htmlFor={fieldId("recipient")} required error={errors.recipient_name}>
             <Input
+              id={fieldId("recipient")}
               value={value.recipient_name ?? ""}
               onChange={(e) => set({ recipient_name: e.target.value })}
               placeholder="Full name"
               error={errors.recipient_name}
             />
           </FormRow>
-          <FormRow label="Address line 1" required error={errors.line1}>
+          <FormRow label="Address line 1" htmlFor={fieldId("line1")} required error={errors.line1}>
             <Input
+              id={fieldId("line1")}
               value={value.line1 ?? ""}
               onChange={(e) => set({ line1: e.target.value })}
               placeholder="14 Adeola Odeku St"
               error={errors.line1}
             />
           </FormRow>
-          <FormRow label="Address line 2">
+          <FormRow label="Address line 2" htmlFor={fieldId("line2")}>
             <Input
+              id={fieldId("line2")}
               value={value.line2 ?? ""}
               onChange={(e) => set({ line2: e.target.value })}
               placeholder="Apartment, landmark (optional)"
@@ -76,8 +83,9 @@ export function AddressFieldset({
           </FormRow>
         </>
       ) : null}
-      <FormRow label="City" required={context === "delivery"} error={errors.city}>
+      <FormRow label="City" htmlFor={fieldId("city")} required={context === "delivery"} error={errors.city}>
         <Input
+          id={fieldId("city")}
           value={value.city ?? ""}
           onChange={(e) => set({ city: e.target.value })}
           placeholder="Ikeja"
@@ -107,8 +115,9 @@ export function AddressFieldset({
       </FormRow>
       {context === "delivery" ? (
         <>
-          <FormRow label="Phone" required error={errors.phone}>
+          <FormRow label="Phone" htmlFor={fieldId("phone")} required error={errors.phone}>
             <Input
+              id={fieldId("phone")}
               value={value.phone ?? ""}
               onChange={(e) => set({ phone: e.target.value })}
               placeholder="+234 801 234 5678"
