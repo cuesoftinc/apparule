@@ -4,7 +4,7 @@
 // values + delete) / picker (radio select + freshness warning fresh /
 // aging / stale) · state default / selected.
 import clsx from "clsx";
-import { Trash2 } from "lucide-react";
+import { FileDown, Trash2 } from "lucide-react";
 import type { MeasurementSession } from "@/models";
 import { freshnessOf } from "@/models";
 import { formatCm } from "@/lib/format";
@@ -19,6 +19,8 @@ export interface SessionRowProps {
   selected?: boolean;
   onSelect?: () => void;
   onDelete?: () => void;
+  /** F2-9 per-session export (history context only): pdf/csv → signed URL. */
+  onExport?: (format: "csv" | "pdf") => void;
   className?: string;
 }
 
@@ -36,6 +38,7 @@ export function SessionRow({
   selected = false,
   onSelect,
   onDelete,
+  onExport,
   className,
 }: SessionRowProps) {
   const freshness = freshnessOf(session.created_at);
@@ -117,6 +120,31 @@ export function SessionRow({
       )}
     >
       {body}
+      {onExport ? (
+        // F2-9: per-session export, both documented formats (api.md §2).
+        <span className="flex shrink-0 items-center gap-1">
+          <FileDown size={16} aria-hidden className="text-text-2" />
+          <button
+            type="button"
+            aria-label="Export session as CSV"
+            onClick={() => onExport("csv")}
+            className="text-caption font-semibold text-link"
+          >
+            CSV
+          </button>
+          <span aria-hidden className="text-caption text-text-2">
+            ·
+          </span>
+          <button
+            type="button"
+            aria-label="Export session as PDF"
+            onClick={() => onExport("pdf")}
+            className="text-caption font-semibold text-link"
+          >
+            PDF
+          </button>
+        </span>
+      ) : null}
       <button
         type="button"
         aria-label="Delete session"

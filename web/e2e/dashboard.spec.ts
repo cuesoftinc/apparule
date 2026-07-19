@@ -247,6 +247,23 @@ test("B4 vault: webcam QC failure → retake → capture → save; history delet
   await page.getByTestId("vault-grid").getByRole("button").first().click();
   const history = page.getByTestId("history-list");
   await expect(history).toBeVisible();
+
+  // F2-9: per-session export hands the browser a real download.
+  const csvDownload = page.waitForEvent("download");
+  await history
+    .getByRole("button", { name: "Export session as CSV" })
+    .first()
+    .click();
+  expect((await csvDownload).suggestedFilename()).toMatch(
+    /^apparule-session-\d{4}-\d{2}-\d{2}\.csv$/,
+  );
+  const pdfDownload = page.waitForEvent("download");
+  await history
+    .getByRole("button", { name: "Export session as PDF" })
+    .first()
+    .click();
+  expect((await pdfDownload).suggestedFilename()).toMatch(/\.pdf$/);
+
   const before = await history.locator("li").count();
   await history.getByRole("button", { name: "Delete session" }).first().click();
   await expect(history.locator("li")).toHaveCount(before - 1);

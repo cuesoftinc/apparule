@@ -87,6 +87,41 @@ function deepClone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
+/**
+ * A real (minimal) one-page PDF for the F2-9 pdf export: Helvetica text
+ * lines, uncompressed stream, byte-accurate xref — enough that any viewer
+ * opens it. Stands in for the backend's rendered report the way the rest of
+ * the mock stands in for api/common.
+ */
+function minimalPdf(lines: string[]): Buffer {
+  const escape = (s: string) =>
+    s.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+  const text = lines
+    .map((line, i) => `1 0 0 1 72 ${720 - i * 18} Tm (${escape(line)}) Tj`)
+    .join("\n");
+  const stream = `BT\n/F1 12 Tf\n${text}\nET`;
+  const objects = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>",
+    `<< /Length ${Buffer.byteLength(stream, "utf8")} >>\nstream\n${stream}\nendstream`,
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+  ];
+  let body = "%PDF-1.4\n";
+  const offsets: number[] = [];
+  objects.forEach((obj, i) => {
+    offsets.push(Buffer.byteLength(body, "utf8"));
+    body += `${i + 1} 0 obj\n${obj}\nendobj\n`;
+  });
+  const xrefAt = Buffer.byteLength(body, "utf8");
+  body += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  for (const offset of offsets) {
+    body += `${String(offset).padStart(10, "0")} 00000 n \n`;
+  }
+  body += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefAt}\n%%EOF`;
+  return Buffer.from(body, "utf8");
+}
+
 export class MockStore {
   accounts: Account[] = deepClone(seedAccounts);
   designers: DesignerProfile[] = deepClone(seedDesigners);
@@ -723,13 +758,33 @@ export class MockStore {
     return deepClone(session);
   }
 
-  /** PLAT-004 export — the mock returns an inline data URL as the signed URL. */
+  /**
+   * PLAT-004 / F2-9 export — pdf or csv per the api.md contract; the mock
+   * returns an inline data URL where the backend will return a signed URL.
+   */
   sessionExport(
     sessionId: string,
     username: string,
     format: "csv" | "pdf",
   ): { url: string; format: string } {
     const session = this.session(sessionId, username);
+    if (format === "pdf") {
+      const pdf = minimalPdf([
+        "Apparule — measurement session export",
+        `Session ${session.id} · method ${session.method}`,
+        `Captured ${new Date(session.created_at).toDateString()}`,
+        "",
+        ...session.measurements.map(
+          (m) =>
+            `${m.name}: ${m.value_cm} cm (${m.source}` +
+            `${m.confidence !== null ? `, confidence ${m.confidence}` : ""})`,
+        ),
+      ]);
+      return {
+        url: `data:application/pdf;base64,${pdf.toString("base64")}`,
+        format,
+      };
+    }
     const rows = [
       "name,value_cm,source,confidence",
       ...session.measurements.map(

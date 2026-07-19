@@ -424,6 +424,43 @@ describe("capture path (webcam, B4)", () => {
   });
 });
 
+describe("session exports (F2-9 / PLAT-004)", () => {
+  it("csv export inlines a header + one row per measurement", () => {
+    const { url, format } = store.sessionExport(
+      "sess-manual-tape",
+      "kiki.adeyemi",
+      "csv",
+    );
+    expect(format).toBe("csv");
+    expect(url).toMatch(/^data:text\/csv;base64,/);
+    const body = Buffer.from(url.split(",")[1], "base64").toString("utf8");
+    const lines = body.split("\n");
+    expect(lines[0]).toBe("name,value_cm,source,confidence");
+    expect(lines).toHaveLength(1 + 4); // header + the session's 4 values
+    expect(body).toContain("shoulder_width,42,");
+  });
+
+  it("pdf export is a real PDF carrying the measurement lines", () => {
+    const { url, format } = store.sessionExport(
+      "sess-recent-scan",
+      "kiki.adeyemi",
+      "pdf",
+    );
+    expect(format).toBe("pdf");
+    expect(url).toMatch(/^data:application\/pdf;base64,/);
+    const body = Buffer.from(url.split(",")[1], "base64").toString("utf8");
+    expect(body.startsWith("%PDF-1.4")).toBe(true);
+    expect(body).toContain("shoulder_width: 42.5 cm");
+    expect(body.trimEnd().endsWith("%%EOF")).toBe(true);
+  });
+
+  it("exports are tenant-scoped: another user's session reads not_found", () => {
+    expect(() =>
+      store.sessionExport("sess-recent-scan", "tunde.o", "csv"),
+    ).toThrowError(expect.objectContaining({ code: "not_found", status: 404 }));
+  });
+});
+
 describe("designer KYC gate + payout scripting", () => {
   it("pre-KYC designers can post but their posts serve post_unavailable", () => {
     store.enableDesigner("kiki.adeyemi", "Kiki Studio");

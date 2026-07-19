@@ -78,6 +78,15 @@ export function useVault() {
     setSessions((prev) => prev.filter((s) => s.id !== id));
   }, []);
 
+  /**
+   * F2-9 session export: POST /sessions/{id}/exports → the signed URL
+   * (an inline data URL in TEST_MODE) the view hands to the browser.
+   */
+  const exportSession = useCallback(
+    (id: string, format: "csv" | "pdf") => vaultRepo.exportSession(id, format),
+    [],
+  );
+
   return {
     sessions,
     latest,
@@ -87,5 +96,6 @@ export function useVault() {
     reload,
     addManualSession,
     deleteSession,
+    exportSession,
   };
 }
