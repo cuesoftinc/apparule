@@ -326,7 +326,7 @@ Stage 5 and non-blocking; everything else feeds Stages 1–4.
 | ThreadBubble | side: sent / received · content: text / image attachment (images only, [order-lifecycle.md](order-lifecycle.md) §5) · state: sending / sent / failed · typing variant: three-dot "responding…" pulse (MI-17) · theme ×2 · **as built (2026-07-17):** typing folds into `content: text / image / typing` (13 children — not the full 2×3×3 matrix; the send-state axis doesn't apply to typing) |
 | CommentRow | avatar 32 + username + text + timestamp + like heart · state: default / liked / posting-optimistic (MI-18) / reply-indent · theme ×2 |
 | NotificationRow | kind: like / follow / comment / quote / status-change / payout · state: unread / read · trailing: post thumb / Follow button / none · theme ×2 |
-| SessionRow | context: history (date + method chip + values + delete) / picker (radio select + freshness warning: fresh / aging / stale) · state: default / selected · theme ×2 |
+| SessionRow | context: history (date + method chip + values + per-session CSV/PDF export controls + delete — the vault history sheet exports one session per file, F2-9) / picker (radio select + freshness warning: fresh / aging / stale) · state: default / selected · theme ×2 **[Revised 2026-07-19]** |
 | ModerationQueueRow | subject preview: post/comment thumb + reporter context · reason · actions: hide_post / suspend_account / dismiss · state: open / actioned (audit: actioned_by) · theme ×2 |
 | EarningsSummary | balance (released) / pending (held escrow) cards · TransactionRow: kind payout / escrow-held / fee-line (10%) · amount tabular + provider ref · theme ×2 |
 | EmptyState (extends §8.2) | + capture/camera-permission-denied: explainer + settings deep-link + "enter manually instead" |

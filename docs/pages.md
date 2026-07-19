@@ -57,7 +57,7 @@ toggle, support (`clients.cuesoft.io`).
 - Masonry grid of outfit posts (1:1 crops); hover: like/comment counts
   overlay fade-in 120ms; click → post modal (IG desktop pattern: media left,
   detail right).
-- Filter chips: style tags, price band, turnaround time, "near me" **[Proposed]**
+- Filter chips: style tags, price band, turnaround (≤1w / ≤2w / ≤1m), "Near me" — Near me re-ranks results (city > state > country); it is not a hard filter **[Revised 2026-07-19]**
   — proximity ranking by designer `profile_location` (data-model.md §2,
   X-10 tier 1); designers without a location simply don't rank in proximity
   results (no hard gate).
