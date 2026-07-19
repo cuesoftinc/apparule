@@ -375,38 +375,5 @@ test("designer quote via the UI: the due-date calendar works inside the quote sh
   await expect(page.getByText(/₦58,000/).first()).toBeVisible();
 });
 
-test("no horizontal overflow on dashboard screens at 390 (system QA regression)", async ({
-  page,
-}) => {
-  // Regression: at 390 the order-detail grid (min-content sizing), the
-  // moderation action row and the profile stats row all pushed past the
-  // viewport (178/58/17px).
-  await page.setViewportSize({ width: 390, height: 844 });
-  await signIn(page);
-  for (const route of [
-    "/dashboard",
-    "/dashboard/explore",
-    "/dashboard/orders",
-    "/dashboard/orders/req-apr-1042",
-    "/dashboard/vault",
-    "/dashboard/create",
-    "/dashboard/kiki.adeyemi",
-    "/dashboard/amara.designs",
-    "/dashboard/settings",
-    "/dashboard/admin/moderation",
-    "/dashboard/designer/onboarding",
-    "/dashboard/earnings",
-  ]) {
-    await page.goto(route);
-    // networkidle never settles against the dev server (HMR socket) — wait
-    // for the screen's <main> content instead.
-    await expect(page.locator("main")).toBeVisible();
-    await page.waitForTimeout(400);
-    const overflow = await page.evaluate(
-      () =>
-        document.documentElement.scrollWidth -
-        document.documentElement.clientWidth,
-    );
-    expect(overflow, `${route} horizontal overflow`).toBeLessThanOrEqual(2);
-  }
-});
+// The 390 overflow sweep moved to e2e/mobile-responsive.spec.ts (P1
+// mobile pass): every route, 390 + 768, plus wide-element containment.

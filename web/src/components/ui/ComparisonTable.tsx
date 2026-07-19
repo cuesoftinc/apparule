@@ -50,48 +50,53 @@ export function ComparisonTable({
         className,
       )}
     >
-      <table className="w-full border-collapse text-body">
-        <thead>
-          <tr className="border-b border-border text-left">
-            {/* Figma master: Feature reads Caption/13 Semi Bold in text-2 */}
-            <th className="h-25 px-6 text-caption font-semibold text-text-2">
-              Feature
-            </th>
-            <th className="h-25 w-35 text-center text-body-lg font-semibold text-text">
-              Cloud
-            </th>
-            <th className="h-25 w-35 px-6 pl-0 text-center text-body-lg font-semibold text-text">
-              Self-host
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.feature} className="border-b border-border">
-              <td className="h-25 px-6 text-text">{row.feature}</td>
+      {/* Wide-table rule (P1 mobile pass): below the table's min-content
+          width the inner container scrolls horizontally within the card —
+          the document itself never side-scrolls. */}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-body">
+          <thead>
+            <tr className="border-b border-border text-left">
+              {/* Figma master: Feature reads Caption/13 Semi Bold in text-2 */}
+              <th className="h-25 px-6 text-caption font-semibold text-text-2">
+                Feature
+              </th>
+              <th className="h-25 w-35 text-center text-body-lg font-semibold text-text">
+                Cloud
+              </th>
+              <th className="h-25 w-35 px-6 pl-0 text-center text-body-lg font-semibold text-text">
+                Self-host
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.feature} className="border-b border-border">
+                <td className="h-25 px-6 text-text">{row.feature}</td>
+                <td className="h-25 text-center">
+                  <Cell value={row.cloud} />
+                </td>
+                <td className="h-25 px-6 pl-0 text-center">
+                  <Cell value={row.oss} />
+                </td>
+              </tr>
+            ))}
+            <tr data-testid="cta-row">
+              <td className="h-25 px-6" />
               <td className="h-25 text-center">
-                <Cell value={row.cloud} />
+                <Button kind="gradient-primary" size="sm" onClick={onTryCloud}>
+                  Start on Cloud
+                </Button>
               </td>
               <td className="h-25 px-6 pl-0 text-center">
-                <Cell value={row.oss} />
+                <Button kind="quiet" size="sm" onClick={onSelfHost}>
+                  Self-host it
+                </Button>
               </td>
             </tr>
-          ))}
-          <tr data-testid="cta-row">
-            <td className="h-25 px-6" />
-            <td className="h-25 text-center">
-              <Button kind="gradient-primary" size="sm" onClick={onTryCloud}>
-                Start on Cloud
-              </Button>
-            </td>
-            <td className="h-25 px-6 pl-0 text-center">
-              <Button kind="quiet" size="sm" onClick={onSelfHost}>
-                Self-host it
-              </Button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

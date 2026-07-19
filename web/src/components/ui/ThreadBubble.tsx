@@ -67,7 +67,7 @@ export function ThreadBubble({
             ))}
           </span>
         ) : content === "image" && imageUrl ? (
-          <span className="relative block h-48 w-56">
+          <span className="relative block h-48 w-56 max-w-full">
             <Image src={imageUrl} alt="" fill sizes="224px" className="object-cover" />
           </span>
         ) : (

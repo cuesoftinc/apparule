@@ -88,6 +88,14 @@
   label[for] {
     cursor: pointer;
   }
+
+  /* Fieldsets default to min-inline-size:min-content, which defeats child
+     truncation/wrapping — the request-stepper snapshot picker pushed past
+     the 390 viewport this way (P1 mobile pass). Normalize so flex children
+     can shrink like they do in any other container. */
+  fieldset {
+    min-inline-size: 0;
+  }
 }
 
 /* Tabular numerals for measurements and money (design.md §2 Type) */
