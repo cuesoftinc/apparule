@@ -34,22 +34,33 @@ describe("ThreadBubble (§8.2b as built)", () => {
   });
 
   it("renders a per-bubble timestamp — bare time today, dated when older (B3 frame)", () => {
+    // UTC-anchored instants: the label is UTC-derived (hydration-stable),
+    // so these expectations hold on any host timezone.
     const today = new Date();
-    today.setHours(14, 5, 0, 0);
+    today.setUTCHours(14, 5, 0, 0);
     render(
       <ThreadBubble side="sent" text="hi" timestamp={today.toISOString()} />,
     );
     expect(screen.getByText("14:05")).toBeInTheDocument();
 
-    const older = new Date("2026-03-04T13:58:00");
     render(
       <ThreadBubble
         side="received"
         text="ok"
-        timestamp={older.toISOString()}
+        timestamp="2026-03-04T13:58:00Z"
       />,
     );
     expect(screen.getByText("Mar 4, 13:58")).toBeInTheDocument();
+  });
+
+  it("timestamps derive from UTC — never the host timezone (review P2)", () => {
+    // 23:30Z: any non-UTC host would land this on a different local
+    // wall-clock (and often a different calendar day) — the rendered
+    // label must stay the UTC reading either way, matching SSR output.
+    render(
+      <ThreadBubble side="sent" text="late" timestamp="2026-03-04T23:30:00Z" />,
+    );
+    expect(screen.getByText("Mar 4, 23:30")).toBeInTheDocument();
   });
 
   it("timestamp waits for delivery and never applies to typing", () => {

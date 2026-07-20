@@ -7,7 +7,7 @@
 // side-aligned; older-than-today messages carry the date.
 import clsx from "clsx";
 import Image from "next/image";
-import { format, isSameDay } from "date-fns";
+import { formatDateTimeUtc, formatTimeUtc, isSameUtcDay } from "@/lib/format";
 
 export type ThreadBubbleContent = "text" | "image" | "typing";
 export type ThreadBubbleState = "sending" | "sent" | "failed";
@@ -94,17 +94,16 @@ export function ThreadBubble({
       {showTimestamp ? (
         <time
           dateTime={timestamp!}
-          // Render-time timestamps may differ between server and client by
-          // design (same rationale as OrderTimelineRow).
+          // The label is UTC-derived — a pure function of the instant, so
+          // SSR and the client emit the identical string in any timezone.
+          // suppressHydrationWarning guards only the same-day check racing
+          // a UTC midnight between server render and hydration.
           suppressHydrationWarning
           className="tnum mt-0.5 text-micro text-text-2"
         >
-          {format(
-            new Date(timestamp!),
-            isSameDay(new Date(timestamp!), new Date())
-              ? "HH:mm"
-              : "MMM d, HH:mm",
-          )}
+          {isSameUtcDay(timestamp!, new Date())
+            ? formatTimeUtc(timestamp!)
+            : formatDateTimeUtc(timestamp!)}
         </time>
       ) : null}
       {state === "failed" && content !== "typing" ? (

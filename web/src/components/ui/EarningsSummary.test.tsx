@@ -27,4 +27,18 @@ describe("EarningsSummary + TransactionRow (§8.2b)", () => {
     render(<TransactionRow entry={fee} />);
     expect(screen.getByText("−₦6,200")).toBeInTheDocument();
   });
+
+  it("old payout dates read the UTC calendar day — SSR/client-stable (review P2)", () => {
+    // 23:30Z on Jan 15: a host in Lagos (+01:00) would locally render
+    // "16 Jan" while a UTC server said "15 Jan" — a hydration mismatch
+    // and visible date flip. The ≥30d fallback derives from UTC.
+    const entry = {
+      ...fixtureEarnings.transactions[0],
+      created_at: "2026-01-15T23:30:00Z",
+    };
+    render(<TransactionRow entry={entry} />);
+    const time = screen.getByText("15 Jan");
+    expect(time.tagName).toBe("TIME");
+    expect(time).toHaveAttribute("dateTime", "2026-01-15T23:30:00Z");
+  });
 });
