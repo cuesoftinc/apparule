@@ -40,8 +40,8 @@ import { FAQGroup, FAQItem } from "@/components/ui/FAQItem";
 import { FormRow } from "@/components/ui/FormRow";
 import { GoogleAuthButton } from "@/components/ui/GoogleAuthButton";
 import { GridTile } from "@/components/ui/GridTile";
-import { HomeFooter } from "@/components/ui/HomeFooter";
-import { HomeNav } from "@/components/ui/HomeNav";
+import { MarketingFooter } from "@/components/ui/MarketingFooter";
+import { MarketingNav } from "@/components/ui/MarketingNav";
 import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Input";
 import { ManualMeasureRow } from "@/components/ui/ManualMeasureRow";
@@ -1092,12 +1092,12 @@ export function ComponentGallery() {
         </div>
       </Section>
 
-      <Section title="Marketing — HomeNav / HomeFooter">
+      <Section title="Marketing — MarketingNav / MarketingFooter">
         <div className="overflow-hidden rounded-card border border-border">
-          <HomeNav />
+          <MarketingNav />
         </div>
         <div className="overflow-hidden rounded-card border border-border">
-          <HomeFooter />
+          <MarketingFooter />
         </div>
       </Section>
 

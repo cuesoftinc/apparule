@@ -96,7 +96,7 @@ design-phase QA loops, design.md §8).
 - Walkthrough and feature-deep-dive thumbnails are composed mini-previews
   (`MiniScreen`) rendered from real components, not raster screen exports.
 - FAQ answers 2–5 are authored to the pages.md contract.
-- The theme toggle lives in `HomeNav`, not a standalone control.
+- The theme toggle lives in `MarketingNav`, not a standalone control.
 - Analytics events land on a TEST_MODE queue behind an `AnalyticsTransport`
   seam — the Upstat transport wires in at D2.
 - The GitHub star badge renders neutral first, then resolves via a runtime
@@ -116,8 +116,8 @@ screenshot compares had missed:
   the photo an explicit square CSS box (`object-cover`) and draws the ring
   as a separate stroke with a clear gap, per the Figma master.
 - The 1080 content column is enforced pixel-exact, not eyeballed:
-  `web/e2e/home.spec.ts` asserts every home section, `HomeNav`, and
-  `HomeFooter` share the column within ±1px at 1440/390/2400 widths.
+  `web/e2e/home.spec.ts` asserts every home section, `MarketingNav`, and
+  `MarketingFooter` share the column within ±1px at 1440/390/2400 widths.
 - Decorative dashboard thumbnails (`MiniScreen`, rendered via real
   `NavRail`/`TabBar` links for visual fidelity) carry `prefetch={false}` so
   viewport prefetch on the landing page doesn't fire live 404s against
