@@ -108,7 +108,9 @@ toggle, support (`clients.cuesoft.io`).
 
 ### B6 `/app/{username}` — Profiles
 - Designer: avatar + story ring, follower/following/posts counts, Follow
-  (MI-7), Request CTA, bio, grid/saved tabs; earnings tab visible only to
+  (MI-7), Request CTA, bio, grid/saved tabs — saved is viewer-private, so
+  the tabs render only on your own profile; other viewers see the grid
+  alone **[Decided 2026-07-20]**; earnings tab visible only to
   self (payout balance, payout account setup, transaction list) **[Proposed]**.
 - Regular user: private vault indicator (measurements NEVER public), saved
   looks tab, order history link. Privacy default: vault visible to no one;
