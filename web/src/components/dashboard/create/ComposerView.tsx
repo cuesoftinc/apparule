@@ -17,7 +17,14 @@ import { Chip } from "@/components/ui/Chip";
 import { FormRow } from "@/components/ui/FormRow";
 import { Input } from "@/components/ui/Input";
 import { MediaDropzone, MediaUploadTile } from "@/components/ui/MediaDropzone";
+import { Select } from "@/components/ui/Select";
 import { useToasts } from "../toast-context";
+
+// Price-or-quote is a designed Select on the B5 frame, not helper text.
+const PRICING_OPTIONS = [
+  { value: "base", label: "Set a base price" },
+  { value: "quote", label: "Quote on request" },
+];
 
 export function ComposerView() {
   const { account } = useAuth();
@@ -84,8 +91,10 @@ export function ComposerView() {
 
   return (
     <div className="mx-auto flex max-w-xl flex-col gap-6 px-4 py-6">
+      {/* Title + CTA copy per the B5 frame (180:827): "New outfit post" /
+          "Publish outfit" (audit #21). */}
       <header>
-        <h1 className="text-title-lg font-bold text-text">Post an outfit</h1>
+        <h1 className="text-title-lg font-bold text-text">New outfit post</h1>
       </header>
 
       {kycPending ? (
@@ -247,27 +256,53 @@ export function ComposerView() {
           </div>
         </FormRow>
 
-        <FormRow label="Base price" helper="Leave empty for “quote on request”">
-          <Input
-            kind="currency"
-            aria-label="Base price"
-            placeholder="45,000"
-            value={
-              composer.details.basePriceCents !== null
-                ? String(composer.details.basePriceCents / 100)
-                : ""
-            }
-            onChange={(e) => {
-              const parsed = Number(e.target.value.replace(/[^\d.]/g, ""));
-              composer.setDetails({
-                ...composer.details,
-                basePriceCents:
-                  Number.isFinite(parsed) && e.target.value !== ""
-                    ? Math.round(parsed * 100)
-                    : null,
-              });
-            }}
-          />
+        {/* B5 frame: price input · "or" · the pricing Select ("Quote on
+            request") — one designed row, not helper text (audit #21).
+            Typing a price flips the Select to "Set a base price"; picking
+            "Quote on request" clears the price. */}
+        <FormRow label="Base price">
+          <div className="flex items-center gap-3">
+            <Input
+              kind="currency"
+              aria-label="Base price"
+              placeholder="45,000"
+              className="flex-1"
+              value={
+                composer.details.basePriceCents !== null
+                  ? String(composer.details.basePriceCents / 100)
+                  : ""
+              }
+              onChange={(e) => {
+                const parsed = Number(e.target.value.replace(/[^\d.]/g, ""));
+                composer.setDetails({
+                  ...composer.details,
+                  basePriceCents:
+                    Number.isFinite(parsed) && e.target.value !== ""
+                      ? Math.round(parsed * 100)
+                      : null,
+                });
+              }}
+            />
+            <span aria-hidden className="text-body text-text-2">
+              or
+            </span>
+            <Select
+              aria-label="Pricing"
+              className="w-52"
+              options={PRICING_OPTIONS}
+              value={
+                composer.details.basePriceCents !== null ? "base" : "quote"
+              }
+              onValueChange={(mode) => {
+                if (mode === "quote") {
+                  composer.setDetails({
+                    ...composer.details,
+                    basePriceCents: null,
+                  });
+                }
+              }}
+            />
+          </div>
         </FormRow>
 
         <FormRow label="Turnaround (days)" required>
@@ -296,7 +331,7 @@ export function ComposerView() {
             loading={composer.publishing}
             data-testid="composer-publish"
           >
-            {composer.uploading ? "Uploading…" : "Publish"}
+            {composer.uploading ? "Uploading…" : "Publish outfit"}
           </Button>
         </footer>
       </form>
