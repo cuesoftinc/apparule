@@ -107,6 +107,62 @@ describe("seed narrative", () => {
     }
   });
 
+  it("order events read as real days of back-and-forth (PR #102 cadence)", () => {
+    // The synthetic failure class: every event stamped with the boot
+    // minute (an entire timeline at "15:51"). Each order's events must be
+    // strictly ordered, never in the future, and a multi-event timeline
+    // never collapses onto one wall-clock minute.
+    const wallMinute = (iso: string) => {
+      const d = new Date(iso);
+      return `${d.getHours()}:${d.getMinutes()}`;
+    };
+    for (const order of store.orders) {
+      const times = order.events.map((e) => new Date(e.created_at).getTime());
+      for (let i = 1; i < times.length; i++) {
+        expect(times[i], `${order.id} event ${i}`).toBeGreaterThan(
+          times[i - 1],
+        );
+      }
+      expect(Math.max(...times), order.id).toBeLessThanOrEqual(Date.now());
+      if (order.events.length > 1) {
+        const minutes = new Set(
+          order.events.map((e) => wallMinute(e.created_at)),
+        );
+        expect(minutes.size, order.id).toBeGreaterThan(1);
+      }
+      // One coherent record: the order (and its frozen snapshot) exists
+      // from the requested event, not from a separately-stamped boot time.
+      expect(order.created_at, order.id).toBe(order.events[0].created_at);
+      expect(order.snapshot.created_at, order.id).toBe(order.created_at);
+    }
+  });
+
+  it("thread messages follow the same cadence rule per thread (PR #102)", () => {
+    const wallMinute = (iso: string) => {
+      const d = new Date(iso);
+      return `${d.getHours()}:${d.getMinutes()}`;
+    };
+    const byThread = new Map<string, typeof store.messages>();
+    for (const message of store.messages) {
+      const list = byThread.get(message.request_id) ?? [];
+      list.push(message);
+      byThread.set(message.request_id, list);
+    }
+    for (const [requestId, messages] of byThread) {
+      const times = messages.map((m) => new Date(m.created_at).getTime());
+      for (let i = 1; i < times.length; i++) {
+        expect(times[i], `${requestId} message ${i}`).toBeGreaterThan(
+          times[i - 1],
+        );
+      }
+      expect(Math.max(...times), requestId).toBeLessThanOrEqual(Date.now());
+      if (messages.length > 1) {
+        const minutes = new Set(messages.map((m) => wallMinute(m.created_at)));
+        expect(minutes.size, requestId).toBeGreaterThan(1);
+      }
+    }
+  });
+
   it("feed contains only followed designers (amara + bisi, not tunde)", () => {
     const feed = store.feed("kiki.adeyemi");
     expect(feed.length).toBeGreaterThan(0);
