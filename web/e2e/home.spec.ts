@@ -159,9 +159,7 @@ test.describe("Marketing site — home page", () => {
     // Fresh visit = light (key absent), the design default.
     await expect(html).toHaveAttribute("data-theme", "light");
     expect(
-      await page.evaluate(() =>
-        window.localStorage.getItem("apparule.theme"),
-      ),
+      await page.evaluate(() => window.localStorage.getItem("apparule.theme")),
     ).toBeNull();
     await page
       .getByRole("button", { name: "Theme: light — switch to dark" })
@@ -174,9 +172,7 @@ test.describe("Marketing site — home page", () => {
     // "system" is now stored explicitly (not key-absent); resolved from
     // the OS (light here).
     expect(
-      await page.evaluate(() =>
-        window.localStorage.getItem("apparule.theme"),
-      ),
+      await page.evaluate(() => window.localStorage.getItem("apparule.theme")),
     ).toBe("system");
     await expect(html).toHaveAttribute("data-theme", "light");
 
