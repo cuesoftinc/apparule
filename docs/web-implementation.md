@@ -362,12 +362,12 @@ feed at the base itself.
 | Part A (A1–A10 + A4b/A7b/A7c/A9b/A9c) | `/` | Public home page |
 | B2 permalink note | `/p/{post_id}` | Public post detail (MI-9 share target; request CTA for signed-in users) |
 | flows/auth.md §5 | `/signin` | Single auth screen — GoogleAuthButton + legal links **[Decided 2026-07-18, route canon]** |
-| F0-8 / APP-004 | `/docs/api` | Public API reference — Scalar embed rendering `docs/api/openapi.yaml` (served at `/docs/api/openapi.yaml`); marketing nav chrome, minimal legal strip **[Ratified 2026-07-20]** |
+| F0-8 / APP-004 | `/docs/api` | Public API reference — Scalar embed rendering `docs/api/openapi.yaml` (served at `/docs/api/openapi.yaml`); marketing nav chrome, minimal legal strip; Scalar's dev toolbar is disabled (`showDeveloperTools: "never"` — authoring chrome, not public-reference UI) **[Ratified 2026-07-20]** |
 | B1 | `/dashboard` | Feed (story rail, PostCard column, freshness + suggestions) |
 | B2 | `/dashboard/explore` | Discover (masonry, filters, search-results state) |
 | B3 | `/dashboard/orders` · `/dashboard/orders/{id}` | Requests & orders — tabs, detail (snapshot, thread, timeline, payment box, decline sheet, dispute flow) |
 | B4 | `/dashboard/vault` | Measurement vault |
-| B5 | `/dashboard/create` | Post an outfit (designer) / creator upsell |
+| B5 | `/dashboard/create` | "New outfit post" composer (designer): dropzone + tiles with the counted limits line, removable style-tag chips, price-or-quote Select, "Publish outfit" CTA; non-designers see the titled-card upsell (camera icon · "Become a designer" · "Set up your designer profile" CTA) |
 | B6 | `/dashboard/{username}` | Profiles (designer / regular; followers/following sheets) |
 | B7 | `/dashboard/settings` + sub-screens `/dashboard/settings/notifications` · `/dashboard/settings/privacy` · `/dashboard/settings/account` | Settings + the three 2026-07-18 sub-screens |
 | B7a | `/dashboard/admin/moderation` | Moderation queue (staff only) |
@@ -431,20 +431,38 @@ the designs:
   CC-sourced outfit photography (design.md §8.3 — same pool as the Figma
   Assets page), captions, style tags, and NGN pricing spread across the
   explore price bands (api.md §5: budget <25k, mid 25–100k, premium >100k).
+- **Every account carries a photo avatar** seeded from the same licensed
+  pool (`web/public/demo`, attributions in its `ATTRIBUTIONS.md`) — the
+  dashboard boots with photo avatars inside the freshness/story rings, not
+  the initials fallback.
 - The signed-in test user: non-designer, vault populated with scan +
   manual sessions whose `measured_at` spread exercises all three freshness
   ring states (fresh/aging/stale, MI-11), follows several designers (story
-  rail + feed content, plus a caught-up divider within reach).
+  rail + feed content, plus a caught-up divider within reach). The latest
+  values fan out to **14 metrics** (B4: six-card grid + "+8 more
+  measurements →" expand link) with one 0.62 low-confidence exemplar so
+  the MeasurementCard low-confidence chip renders from boot.
 - Orders covering **all ten states** (requested → … → cancelled), at least
   one per state and per role view, so every StatusPill, OrderTimelineRow,
   and PaymentBox variant renders from seed — including an escrow-held
   payment with the itemized 10% fee line and a dispute-frozen order.
+  Timeline events land at plausible business-hour clock times (the B3
+  09:14 / 14:02 / 10:26 / 09:40 cadence), never all at the boot minute.
 - Notifications of every kind (like / follow / comment / quote /
-  status-change / payout), part unread; open moderation-queue reports; a
-  designer persona with EarningsSummary balances and TransactionRow
-  history for B9.
+  status-change / payout), part unread; a designer persona with
+  EarningsSummary balances and TransactionRow history for B9 (payout
+  surfaces render the bank **display name** — `attachPayoutAccount` maps
+  the onboarding Select's bank code to it, so B8/B9/settings read
+  "GTBank ••• 4521 · Verified").
+- The moderation queue seeds the full B7a anatomy: an open reported post,
+  an open reported comment, and an actioned exemplar whose audit line
+  ("Actioned · hide_comment by @kiki.adeyemi · {date, time}") renders from
+  boot; the queue lists open reports first and keeps actioned rows,
+  dropping dismissed ones.
 - Measurement snapshots frozen per request (vault edits after seed never
-  mutate them — the data-model.md §5 rule holds in the mock too).
+  mutate them — the data-model.md §5 rule holds in the mock too); recent
+  orders freeze the full 12-metric scan so the B3 snapshot chip row shows
+  four compact chips ("shoulder 42.5") plus "+8 more".
 
 ## 7. Test strategy
 
