@@ -163,6 +163,19 @@ describe("seed narrative", () => {
     }
   });
 
+  it("suggested designers carry real photo avatars from the licensed pool", () => {
+    // Audit 2026-07-20: initials-only suggestion rows read as broken next
+    // to the canvas narrative. Each suggested designer fronts their own
+    // published photography — counts and identities stay honest.
+    const rows = store.suggestedDesigners("kiki.adeyemi");
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      expect(row.avatar_url, row.username).toMatch(
+        /^\/demo\/outfit-w\d+\.jpg$/,
+      );
+    }
+  });
+
   it("feed contains only followed designers (amara + bisi, not tunde)", () => {
     const feed = store.feed("kiki.adeyemi");
     expect(feed.length).toBeGreaterThan(0);

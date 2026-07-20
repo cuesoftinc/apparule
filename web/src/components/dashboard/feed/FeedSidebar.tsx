@@ -98,6 +98,7 @@ export function FeedSidebar({
                 <UserRow
                   username={row.username}
                   meta={row.meta ?? undefined}
+                  avatarUrl={row.avatar_url}
                   verified={row.verified}
                   trailing={row.viewer_follows ? "following" : "follow"}
                   onFollow={() =>

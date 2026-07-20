@@ -99,7 +99,10 @@ export const seedAccounts: Account[] = [
     email: "tunde@example.com",
     username: "tunde.o",
     display_name: "Tunde Okonkwo",
-    avatar_url: null,
+    // Suggestion-rail avatars are real photos from the licensed pool
+    // (audit 2026-07-20: initials-only reads as broken beside the canvas).
+    // Each designer fronts their OWN published work — no new assets.
+    avatar_url: "/demo/outfit-w15.jpg",
     profile_location: { city: "Lagos", state: "Lagos", country: "NG" },
     deletion_state: "active",
     designer: { enabled: true, kyc_complete: true },
@@ -135,7 +138,7 @@ export const seedAccounts: Account[] = [
     email: "eniola@example.com",
     username: "eniola.stitches",
     display_name: "Eniola Stitches",
-    avatar_url: null,
+    avatar_url: "/demo/outfit-w10.jpg", // her own atelier post photo
     // The one non-Lagos designer: kiki (Lagos) ranks her LAST under the
     // explore "near me" proximity ordering — the visible contrast case.
     profile_location: { city: "Abuja", state: "FCT", country: "NG" },
@@ -290,7 +293,7 @@ export const seedDesigners: DesignerProfile[] = [
     username: "tunde.o",
     display_name: "Tunde Okonkwo",
     bio: "Agbada, senator suits, and sharp menswear.",
-    avatar_url: null,
+    avatar_url: "/demo/outfit-w15.jpg", // mirrors acc-tunde — one identity
     payout_account: {
       provider_ref: "PSTK-RCP-77310",
       bank_name: "Access Bank",
@@ -328,7 +331,7 @@ export const seedDesigners: DesignerProfile[] = [
     username: "eniola.stitches",
     display_name: "Eniola Stitches",
     bio: "Bespoke womenswear from the Abuja atelier — corporate and occasion.",
-    avatar_url: null,
+    avatar_url: "/demo/outfit-w10.jpg", // mirrors acc-eniola — one identity
     payout_account: {
       provider_ref: "PSTK-RCP-55492",
       bank_name: "UBA",
