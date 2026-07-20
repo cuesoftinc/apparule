@@ -13,9 +13,21 @@
 import clsx from "clsx";
 import Image from "next/image";
 import { Check } from "lucide-react";
+import type { Freshness } from "@/models";
 
 export type AvatarSize = 32 | 44 | 56 | 64 | 96;
 export type AvatarRing = "none" | "gradient" | "amber" | "gray";
+
+/**
+ * MI-11 freshness → ring mapping (design.md §2: gradient <30d, amber
+ * 30–90d, gray >90d; no measurements reads gray). One mapping for every
+ * own-avatar surface — vault header, feed freshness card, own profile.
+ */
+export function freshnessRing(freshness: Freshness | null): AvatarRing {
+  if (freshness === "fresh") return "gradient";
+  if (freshness === "aging") return "amber";
+  return "gray";
+}
 
 export interface AvatarProps {
   size?: AvatarSize;

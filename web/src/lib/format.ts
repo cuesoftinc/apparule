@@ -11,13 +11,17 @@ export function formatNaira(cents: number, currency = "NGN"): string {
   return `${cents < 0 ? "−" : ""}${symbol}${formatted}`;
 }
 
-/** 42.5 → "42.5 cm" (or inches when the vault unit toggle flips, MI-13). */
+/**
+ * 42.5 → "42.5 cm" (or inches when the vault unit toggle flips, MI-13).
+ * Always one decimal — the Figma idiom ("58.0 cm") keeps tabular columns
+ * aligned; "92 cm" next to "78.5 cm" broke the tnum grid (audit 2026-07-20).
+ */
 export function formatCm(valueCm: number, unit: "cm" | "in" = "cm"): string {
   if (unit === "in") {
     const inches = valueCm / 2.54;
     return `${inches.toFixed(1)} in`;
   }
-  return `${valueCm % 1 === 0 ? valueCm.toFixed(0) : valueCm.toFixed(1)} cm`;
+  return `${valueCm.toFixed(1)} cm`;
 }
 
 /** Compact social counts ("12.4k followers", IG-style — Figma 182:969). */

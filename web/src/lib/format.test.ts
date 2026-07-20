@@ -8,9 +8,10 @@ describe("format utilities", () => {
     expect(formatNaira(-620_000)).toBe("−₦6,200");
   });
 
-  it("formats centimetres and inches", () => {
+  it("formats centimetres and inches — always one decimal (Figma '58.0 cm' idiom)", () => {
     expect(formatCm(42.5)).toBe("42.5 cm");
-    expect(formatCm(42)).toBe("42 cm");
+    expect(formatCm(42)).toBe("42.0 cm");
+    expect(formatCm(92)).toBe("92.0 cm");
     expect(formatCm(50.8, "in")).toBe("20.0 in");
   });
 

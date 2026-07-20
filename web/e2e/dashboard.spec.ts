@@ -180,6 +180,11 @@ test("B1 journey: like/save/follow → request stepper → order → quote → p
   await expect(page.getByText(/reply properly shortly/)).toBeVisible({
     timeout: 5_000,
   });
+  // B3 frame: every delivered bubble carries its send time beneath it
+  // ("14:05" today, dated when older).
+  await expect(
+    page.getByTestId("order-thread").locator("time").first(),
+  ).toBeVisible();
 });
 
 test("B3: the seeded list covers all ten lifecycle states", async ({
@@ -348,6 +353,20 @@ test("B5/B8: creator upsell → onboarding with Paystack resolution states → p
   await expect(page.getByTestId("profile-grid").locator("li")).toHaveCount(1);
 });
 
+test("B6 own profile: the avatar wears the measurement-freshness ring (MI-11)", async ({
+  page,
+}) => {
+  await signIn(page);
+  // /dashboard/profile redirects to the canonical own-profile route.
+  await page.goto("/dashboard/profile");
+  await page.waitForURL("**/dashboard/kiki.adeyemi");
+  const avatar = page.locator("header [data-ring]").first();
+  // Seeded vault freshness drives the band — any of the three ring states
+  // is valid here (earlier serial tests may add fresh captures), but the
+  // ring must be present ("none" would be the audited regression).
+  await expect(avatar).toHaveAttribute("data-ring", /^(gradient|amber|gray)$/);
+});
+
 test("B7: notification prefs persist across reload; consent history renders", async ({
   page,
 }) => {
@@ -369,15 +388,26 @@ test("B7: notification prefs persist across reload; consent history renders", as
   );
 });
 
-test("B7a: staff moderation queue — dismiss clears the report", async ({
+test("B7a: staff moderation queue — audit exemplar from boot; dismiss drops a row", async ({
   page,
 }) => {
   await signIn(page);
   await page.goto("/dashboard/admin/moderation");
   const queue = page.getByTestId("moderation-queue");
+  // Seeded canvas narrative: two open rows (spam comment + reported post
+  // with author) and one actioned audit-trail exemplar.
   await expect(queue).toContainText("Buy followers cheap");
-  await queue.getByRole("button", { name: "Dismiss" }).click();
-  await expect(page.getByText(/queue is clear/)).toBeVisible();
+  await expect(queue).toContainText("Reported post by @amara.designs");
+  await expect(page.getByTestId("audit-line")).toContainText(
+    "hide_comment by @mod.sarah",
+  );
+  const spamRow = queue
+    .locator("li")
+    .filter({ hasText: "Buy followers cheap" });
+  await spamRow.getByRole("button", { name: "Dismiss" }).click();
+  await expect(queue).not.toContainText("Buy followers cheap");
+  // The rest of the queue survives the dismissal.
+  await expect(queue).toContainText("Reported post by @amara.designs");
 });
 
 test("B3 matrix: customer dispute freezes payout; confirm-delivery releases it", async ({

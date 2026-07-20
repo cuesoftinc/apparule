@@ -107,6 +107,75 @@ describe("seed narrative", () => {
     }
   });
 
+  it("order events read as real days of back-and-forth (PR #102 cadence)", () => {
+    // The synthetic failure class: every event stamped with the boot
+    // minute (an entire timeline at "15:51"). Each order's events must be
+    // strictly ordered, never in the future, and a multi-event timeline
+    // never collapses onto one wall-clock minute.
+    const wallMinute = (iso: string) => {
+      const d = new Date(iso);
+      return `${d.getHours()}:${d.getMinutes()}`;
+    };
+    for (const order of store.orders) {
+      const times = order.events.map((e) => new Date(e.created_at).getTime());
+      for (let i = 1; i < times.length; i++) {
+        expect(times[i], `${order.id} event ${i}`).toBeGreaterThan(
+          times[i - 1],
+        );
+      }
+      expect(Math.max(...times), order.id).toBeLessThanOrEqual(Date.now());
+      if (order.events.length > 1) {
+        const minutes = new Set(
+          order.events.map((e) => wallMinute(e.created_at)),
+        );
+        expect(minutes.size, order.id).toBeGreaterThan(1);
+      }
+      // One coherent record: the order (and its frozen snapshot) exists
+      // from the requested event, not from a separately-stamped boot time.
+      expect(order.created_at, order.id).toBe(order.events[0].created_at);
+      expect(order.snapshot.created_at, order.id).toBe(order.created_at);
+    }
+  });
+
+  it("thread messages follow the same cadence rule per thread (PR #102)", () => {
+    const wallMinute = (iso: string) => {
+      const d = new Date(iso);
+      return `${d.getHours()}:${d.getMinutes()}`;
+    };
+    const byThread = new Map<string, typeof store.messages>();
+    for (const message of store.messages) {
+      const list = byThread.get(message.request_id) ?? [];
+      list.push(message);
+      byThread.set(message.request_id, list);
+    }
+    for (const [requestId, messages] of byThread) {
+      const times = messages.map((m) => new Date(m.created_at).getTime());
+      for (let i = 1; i < times.length; i++) {
+        expect(times[i], `${requestId} message ${i}`).toBeGreaterThan(
+          times[i - 1],
+        );
+      }
+      expect(Math.max(...times), requestId).toBeLessThanOrEqual(Date.now());
+      if (messages.length > 1) {
+        const minutes = new Set(messages.map((m) => wallMinute(m.created_at)));
+        expect(minutes.size, requestId).toBeGreaterThan(1);
+      }
+    }
+  });
+
+  it("suggested designers carry real photo avatars from the licensed pool", () => {
+    // Audit 2026-07-20: initials-only suggestion rows read as broken next
+    // to the canvas narrative. Each suggested designer fronts their own
+    // published photography — counts and identities stay honest.
+    const rows = store.suggestedDesigners("kiki.adeyemi");
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      expect(row.avatar_url, row.username).toMatch(
+        /^\/demo\/outfit-w\d+\.jpg$/,
+      );
+    }
+  });
+
   it("feed contains only followed designers (amara + bisi, not tunde)", () => {
     const feed = store.feed("kiki.adeyemi");
     expect(feed.length).toBeGreaterThan(0);
@@ -741,6 +810,30 @@ describe("notification prefs + moderation gate + thread auto-reply", () => {
     expect(() => store.moderationQueue("tunde.o")).toThrow(
       expect.objectContaining({ code: "forbidden", status: 403 }),
     );
+  });
+
+  it("queue seeds the canvas narrative: open rows lead, actioned audit row renders, dismissed drop", () => {
+    const queue = store.moderationQueue("kiki.adeyemi");
+    expect(queue.length).toBe(3);
+    expect(queue.filter((r) => r.status === "open").length).toBe(2);
+    // Open rows lead; the actioned exemplar (audit trail) trails.
+    expect(queue[queue.length - 1].status).toBe("actioned");
+    const actioned = queue[queue.length - 1];
+    expect(actioned.actioned_by?.username).toBe("mod.sarah");
+    expect(actioned.action).toBe("hide_post");
+    expect(actioned.actioned_at).toBeTruthy();
+    // The reported-post row carries its author + thumb (canvas anatomy).
+    const postReport = queue.find((r) => r.subject_kind === "post")!;
+    expect(postReport.subject_preview.author_username).toBe("amara.designs");
+    expect(postReport.subject_preview.thumb_url).toMatch(/^\/demo\//);
+    // Acting writes the audit fields; dismissing removes the row.
+    const acted = store.actOnReport("rep-2", "kiki.adeyemi", "hide_post");
+    expect(acted.actioned_by?.username).toBe("kiki.adeyemi");
+    expect(acted.action).toBe("hide_post");
+    store.actOnReport("rep-1", "kiki.adeyemi", "dismiss");
+    const after = store.moderationQueue("kiki.adeyemi");
+    expect(after.some((r) => r.id === "rep-1")).toBe(false);
+    expect(after.find((r) => r.id === "rep-2")?.status).toBe("actioned");
   });
 
   it("scripts one counterparty auto-reply per thread (MI-17)", () => {

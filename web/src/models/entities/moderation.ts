@@ -11,10 +11,18 @@ export interface Report {
   subject_kind: ReportSubjectKind;
   subject_id: string;
   /** Preview of the reported content for the queue row. */
-  subject_preview: { text: string; thumb_url: string | null };
+  subject_preview: {
+    text: string;
+    thumb_url: string | null;
+    /** Author of the reported content ("Reported post by @…"), if known. */
+    author_username: string | null;
+  };
   reason: ReportReason;
   detail: string | null;
   status: "open" | "actioned" | "dismissed";
-  actioned_by: string | null;
+  /** Audit trail (B7a queue row): what was done, by whom, when. */
+  action: ModerationAction | null;
+  actioned_by: { id: string; username: string } | null;
+  actioned_at: string | null;
   created_at: string;
 }

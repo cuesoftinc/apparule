@@ -10,7 +10,8 @@ describe("ModerationQueueRow (§8.2b, A-6)", () => {
     // Figma master (93:1219): "Reported comment" headline + excerpt meta
     expect(screen.getByText("Reported comment")).toBeInTheDocument();
     expect(screen.getByText(/Buy followers cheap/)).toBeInTheDocument();
-    expect(screen.getByText(/Reported by tunde.o/)).toBeInTheDocument();
+    expect(screen.getByText(/Reported by @/)).toBeInTheDocument();
+    expect(screen.getByText(/tunde.o/)).toBeInTheDocument();
     expect(screen.getByText("spam")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Hide comment" }),
@@ -32,19 +33,45 @@ describe("ModerationQueueRow (§8.2b, A-6)", () => {
     expect(onAction).toHaveBeenCalledWith("suspend_account");
   });
 
-  it("actioned state swaps actions for the audit line", () => {
+  it("headline carries the content author when known (B7a canvas)", () => {
+    render(
+      <ModerationQueueRow
+        report={{
+          ...fixtureReport,
+          subject_kind: "post",
+          subject_preview: {
+            text: "New fabric drop",
+            thumb_url: "/demo/outfit-w14.jpg",
+            author_username: "amara.designs",
+          },
+        }}
+      />,
+    );
+    expect(
+      screen.getByText("Reported post by @amara.designs"),
+    ).toBeInTheDocument();
+  });
+
+  it("actioned state swaps actions for the audit line (effective action + @moderator + time)", () => {
     render(
       <ModerationQueueRow
         report={{
           ...fixtureReport,
           status: "actioned",
-          actioned_by: "staff.ops",
+          action: "hide_post", // comment subject → reads hide_comment
+          actioned_by: { id: "acc-staff", username: "staff.ops" },
+          actioned_at: "2026-07-15T09:12:00",
         }}
       />,
     );
-    expect(screen.getByTestId("audit-line")).toHaveTextContent("staff.ops");
+    expect(screen.getByTestId("audit-line")).toHaveTextContent(
+      "Actioned · hide_comment by @staff.ops · Jul 15, 09:12",
+    );
     expect(
       screen.queryByRole("button", { name: "Hide post" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Hide comment" }),
     ).not.toBeInTheDocument();
   });
 });

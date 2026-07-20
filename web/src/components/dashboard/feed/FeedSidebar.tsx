@@ -9,17 +9,11 @@ import { formatAgoPhrase } from "@/lib/format";
 import { useVault } from "@/controllers/use-vault";
 import { useSuggestions } from "@/controllers/use-suggestions";
 import { useAuth } from "@/controllers/auth/AuthContext";
-import { Avatar } from "@/components/ui/Avatar";
+import { Avatar, freshnessRing } from "@/components/ui/Avatar";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { UserRow } from "@/components/ui/UserRow";
 import { useToasts } from "../toast-context";
-
-const RING: Record<string, "gradient" | "amber" | "gray"> = {
-  fresh: "gradient",
-  aging: "amber",
-  stale: "gray",
-};
 
 export function FeedSidebar({
   onUnfollow,
@@ -65,7 +59,7 @@ export function FeedSidebar({
                 <Avatar
                   size={56}
                   name={account?.display_name ?? "You"}
-                  ring={vault.freshness ? RING[vault.freshness] : "gray"}
+                  ring={freshnessRing(vault.freshness)}
                 />
               </Link>
             </Tooltip>
@@ -104,6 +98,7 @@ export function FeedSidebar({
                 <UserRow
                   username={row.username}
                   meta={row.meta ?? undefined}
+                  avatarUrl={row.avatar_url}
                   verified={row.verified}
                   trailing={row.viewer_follows ? "following" : "follow"}
                   onFollow={() =>

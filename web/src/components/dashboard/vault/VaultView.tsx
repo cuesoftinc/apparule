@@ -11,7 +11,7 @@ import { formatAgoPhrase } from "@/lib/format";
 import type { MeasurementSession } from "@/models";
 import { useAuth } from "@/controllers/auth/AuthContext";
 import { useVault } from "@/controllers/use-vault";
-import { Avatar } from "@/components/ui/Avatar";
+import { Avatar, freshnessRing } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { MeasurementCard } from "@/components/ui/MeasurementCard";
@@ -24,12 +24,6 @@ import {
   WebcamCaptureSheet,
 } from "./CaptureSheets";
 import { useToasts } from "../toast-context";
-
-const RING: Record<string, "gradient" | "amber" | "gray"> = {
-  fresh: "gradient",
-  aging: "amber",
-  stale: "gray",
-};
 
 export function VaultView() {
   const { account } = useAuth();
@@ -92,7 +86,7 @@ export function VaultView() {
         <Avatar
           size={96}
           name={account?.display_name ?? "You"}
-          ring={vault.freshness ? RING[vault.freshness] : "gray"}
+          ring={freshnessRing(vault.freshness)}
         />
         <div className="flex min-w-0 flex-1 flex-col gap-2 pt-1">
           <h1 className="text-title-lg font-bold text-text">

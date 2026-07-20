@@ -158,11 +158,14 @@ export const fixtureReport: Report = {
   subject_preview: {
     text: "Buy followers cheap — link in bio",
     thumb_url: null,
+    author_username: null,
   },
   reason: "spam",
   detail: null,
   status: "open",
+  action: null,
   actioned_by: null,
+  actioned_at: null,
   created_at: daysAgo(1),
 };
 

@@ -27,6 +27,21 @@ export function daysAgo(days: number, base: Date = NOW()): string {
   return new Date(base.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
 }
 
+/**
+ * N days ago, pinned to a plausible local time of day ("HH:mm"). daysAgo
+ * alone stamps everything with the boot minute, so a multi-event order
+ * timeline read as a synthetic same-minute cluster (PR #102 cadence rule:
+ * timelines must read like days of real back-and-forth, not one batch
+ * insert). Only used for whole-day offsets ≥ 1 — a pinned time on a
+ * same-day offset could land in the future.
+ */
+function daysAgoAt(days: number, time: string, base: Date = NOW()): string {
+  const d = new Date(base.getTime() - days * 24 * 60 * 60 * 1000);
+  const [hours, minutes] = time.split(":").map(Number);
+  d.setHours(hours, minutes, 0, 0);
+  return d.toISOString();
+}
+
 function hoursAgo(hours: number): string {
   return new Date(NOW().getTime() - hours * 60 * 60 * 1000).toISOString();
 }
@@ -84,7 +99,10 @@ export const seedAccounts: Account[] = [
     email: "tunde@example.com",
     username: "tunde.o",
     display_name: "Tunde Okonkwo",
-    avatar_url: null,
+    // Suggestion-rail avatars are real photos from the licensed pool
+    // (audit 2026-07-20: initials-only reads as broken beside the canvas).
+    // Each designer fronts their OWN published work — no new assets.
+    avatar_url: "/demo/outfit-w15.jpg",
     profile_location: { city: "Lagos", state: "Lagos", country: "NG" },
     deletion_state: "active",
     designer: { enabled: true, kyc_complete: true },
@@ -120,7 +138,7 @@ export const seedAccounts: Account[] = [
     email: "eniola@example.com",
     username: "eniola.stitches",
     display_name: "Eniola Stitches",
-    avatar_url: null,
+    avatar_url: "/demo/outfit-w10.jpg", // her own atelier post photo
     // The one non-Lagos designer: kiki (Lagos) ranks her LAST under the
     // explore "near me" proximity ordering — the visible contrast case.
     profile_location: { city: "Abuja", state: "FCT", country: "NG" },
@@ -133,6 +151,26 @@ export const seedAccounts: Account[] = [
       { document: "privacy", version: "1.0", accepted_at: daysAgo(160) },
     ],
     created_at: daysAgo(160),
+  },
+  {
+    // Platform moderator — the B7a audit-trail actor (the actioned queue
+    // row reads "… by @mod.sarah"). Staff, not a designer; no social edges.
+    id: "acc-sarah",
+    firebase_uid: "test-uid-sarah",
+    email: "sarah@apparule.example.com",
+    username: "mod.sarah",
+    display_name: "Sarah Bello",
+    avatar_url: null,
+    profile_location: { city: "Lagos", state: "Lagos", country: "NG" },
+    deletion_state: "active",
+    designer: { enabled: false, kyc_complete: false },
+    is_staff: true,
+    notification_prefs: defaultPrefs(),
+    consent: [
+      { document: "tos", version: "1.0", accepted_at: daysAgo(320) },
+      { document: "privacy", version: "1.0", accepted_at: daysAgo(320) },
+    ],
+    created_at: daysAgo(320),
   },
 ];
 
@@ -255,7 +293,7 @@ export const seedDesigners: DesignerProfile[] = [
     username: "tunde.o",
     display_name: "Tunde Okonkwo",
     bio: "Agbada, senator suits, and sharp menswear.",
-    avatar_url: null,
+    avatar_url: "/demo/outfit-w15.jpg", // mirrors acc-tunde — one identity
     payout_account: {
       provider_ref: "PSTK-RCP-77310",
       bank_name: "Access Bank",
@@ -293,7 +331,7 @@ export const seedDesigners: DesignerProfile[] = [
     username: "eniola.stitches",
     display_name: "Eniola Stitches",
     bio: "Bespoke womenswear from the Abuja atelier — corporate and occasion.",
-    avatar_url: null,
+    avatar_url: "/demo/outfit-w10.jpg", // mirrors acc-eniola — one identity
     payout_account: {
       provider_ref: "PSTK-RCP-55492",
       bank_name: "UBA",
@@ -1018,6 +1056,13 @@ interface SeedOrderInput {
     kind: string;
     actor: "customer" | "designer" | "system";
     at: number;
+    /**
+     * Local time of day ("HH:mm") for the event — required for whole-day
+     * offsets so each order's story spreads across real-looking hours
+     * (PR #102 cadence rule); omit only for same-day offsets (< 1), which
+     * stay relative to boot.
+     */
+    time?: string;
   }[];
   quote?: number | null;
   budget?: number | null;
@@ -1038,6 +1083,17 @@ function makeOrder(input: SeedOrderInput): CommissionRequest {
   const post = postById(input.postId);
   const id = `req-apr-${input.num}`;
   const quote = input.quote ?? null;
+  const events = input.events.map((e, i) => ({
+    id: `evt-${input.num}-${i}`,
+    request_id: id,
+    kind: e.kind,
+    actor: e.actor,
+    created_at: e.time ? daysAgoAt(e.at, e.time) : daysAgo(e.at),
+  }));
+  // The order (and the snapshot freeze) exists from the moment it was
+  // requested — anchor both to the first event so the record is one
+  // coherent story, not three separately-stamped rows.
+  const requestedAt = events[0].created_at;
   return {
     id,
     order_number: `APR-${input.num}`,
@@ -1097,15 +1153,9 @@ function makeOrder(input: SeedOrderInput): CommissionRequest {
                   { name: "hip_width", value_cm: 37.0 },
                 ],
               },
-      created_at: daysAgo(input.createdDaysAgo),
+      created_at: requestedAt,
     },
-    events: input.events.map((e, i) => ({
-      id: `evt-${input.num}-${i}`,
-      request_id: id,
-      kind: e.kind,
-      actor: e.actor,
-      created_at: daysAgo(e.at),
-    })),
+    events,
     payment:
       input.payment && quote !== null
         ? {
@@ -1118,7 +1168,7 @@ function makeOrder(input: SeedOrderInput): CommissionRequest {
             platform_fee_cents: Math.round(quote * 0.1),
           }
         : null,
-    created_at: daysAgo(input.createdDaysAgo),
+    created_at: requestedAt,
   };
 }
 
@@ -1163,36 +1213,38 @@ export const seedOrders: CommissionRequest[] = [
           { name: "hip_width", value_cm: 36.8 },
         ],
       },
-      created_at: daysAgo(8),
+      created_at: daysAgoAt(8, "09:14"),
     },
+    // Event times spread across real-looking hours (PR #102 cadence rule);
+    // the B3 canvas timeline adopts these same stamps.
     events: [
       {
         id: "evt-1042-1",
         request_id: "req-apr-1042",
         kind: "requested",
         actor: "customer",
-        created_at: daysAgo(8),
+        created_at: daysAgoAt(8, "09:14"),
       },
       {
         id: "evt-1042-2",
         request_id: "req-apr-1042",
         kind: "quoted",
         actor: "designer",
-        created_at: daysAgo(7),
+        created_at: daysAgoAt(7, "14:02"),
       },
       {
         id: "evt-1042-3",
         request_id: "req-apr-1042",
         kind: "paid",
         actor: "customer",
-        created_at: daysAgo(6),
+        created_at: daysAgoAt(6, "10:26"),
       },
       {
         id: "evt-1042-4",
         request_id: "req-apr-1042",
         kind: "in_progress",
         actor: "designer",
-        created_at: daysAgo(5),
+        created_at: daysAgoAt(5, "09:40"),
       },
     ],
     payment: {
@@ -1204,7 +1256,7 @@ export const seedOrders: CommissionRequest[] = [
       amount_cents: 4_500_000,
       platform_fee_cents: 450_000, // 10% (A-1)
     },
-    created_at: daysAgo(8),
+    created_at: daysAgoAt(8, "09:14"),
   },
   {
     id: "req-apr-1058",
@@ -1254,7 +1306,7 @@ export const seedOrders: CommissionRequest[] = [
           { name: "waist_girth", value_cm: 55.0 },
         ],
       },
-      created_at: daysAgo(40),
+      created_at: daysAgoAt(40, "11:05"),
     },
     events: [
       {
@@ -1262,42 +1314,42 @@ export const seedOrders: CommissionRequest[] = [
         request_id: "req-apr-1058",
         kind: "requested",
         actor: "customer",
-        created_at: daysAgo(40),
+        created_at: daysAgoAt(40, "11:05"),
       },
       {
         id: "evt-1058-2",
         request_id: "req-apr-1058",
         kind: "quoted",
         actor: "designer",
-        created_at: daysAgo(38),
+        created_at: daysAgoAt(38, "16:40"),
       },
       {
         id: "evt-1058-3",
         request_id: "req-apr-1058",
         kind: "paid",
         actor: "customer",
-        created_at: daysAgo(36),
+        created_at: daysAgoAt(36, "08:57"),
       },
       {
         id: "evt-1058-4",
         request_id: "req-apr-1058",
         kind: "in_progress",
         actor: "designer",
-        created_at: daysAgo(30),
+        created_at: daysAgoAt(30, "09:18"),
       },
       {
         id: "evt-1058-5",
         request_id: "req-apr-1058",
         kind: "shipped",
         actor: "designer",
-        created_at: daysAgo(10),
+        created_at: daysAgoAt(10, "17:25"),
       },
       {
         id: "evt-1058-6",
         request_id: "req-apr-1058",
         kind: "delivered",
         actor: "customer",
-        created_at: daysAgo(7),
+        created_at: daysAgoAt(7, "13:44"),
       },
     ],
     payment: {
@@ -1309,7 +1361,7 @@ export const seedOrders: CommissionRequest[] = [
       amount_cents: 6_200_000,
       platform_fee_cents: 620_000,
     },
-    created_at: daysAgo(40),
+    created_at: daysAgoAt(40, "11:05"),
   },
   makeOrder({
     num: 1031,
@@ -1318,7 +1370,7 @@ export const seedOrders: CommissionRequest[] = [
     createdDaysAgo: 1,
     budget: 6_000_000,
     notes: "Need it for my brother's wedding in August.",
-    events: [{ kind: "requested", actor: "customer", at: 1 }],
+    events: [{ kind: "requested", actor: "customer", at: 1, time: "18:32" }],
   }),
   makeOrder({
     num: 1033,
@@ -1330,8 +1382,9 @@ export const seedOrders: CommissionRequest[] = [
     dueInDays: 12,
     notes: "Two-piece for an engagement shoot.",
     events: [
-      { kind: "requested", actor: "customer", at: 3 },
-      // 0.25d = 6h — matches the unread "quoted ₦40,000" notification.
+      { kind: "requested", actor: "customer", at: 3, time: "12:47" },
+      // 0.25d = 6h, relative to boot — matches the unread "quoted ₦40,000"
+      // notification (hoursAgo(6)); same-day offsets stay unpinned.
       { kind: "quoted", actor: "designer", at: 0.25 },
     ],
   }),
@@ -1344,9 +1397,9 @@ export const seedOrders: CommissionRequest[] = [
     dueInDays: 21,
     payment: "held",
     events: [
-      { kind: "requested", actor: "customer", at: 6 },
-      { kind: "quoted", actor: "designer", at: 5 },
-      { kind: "paid", actor: "customer", at: 4 },
+      { kind: "requested", actor: "customer", at: 6, time: "09:05" },
+      { kind: "quoted", actor: "designer", at: 5, time: "15:22" },
+      { kind: "paid", actor: "customer", at: 4, time: "19:48" },
     ],
   }),
   makeOrder({
@@ -1359,11 +1412,11 @@ export const seedOrders: CommissionRequest[] = [
     payment: "held",
     tracking: "GIG-5567-LAG",
     events: [
-      { kind: "requested", actor: "customer", at: 20 },
-      { kind: "quoted", actor: "designer", at: 19 },
-      { kind: "paid", actor: "customer", at: 18 },
-      { kind: "in_progress", actor: "designer", at: 15 },
-      { kind: "shipped", actor: "designer", at: 3 },
+      { kind: "requested", actor: "customer", at: 20, time: "10:12" },
+      { kind: "quoted", actor: "designer", at: 19, time: "13:37" },
+      { kind: "paid", actor: "customer", at: 18, time: "08:26" },
+      { kind: "in_progress", actor: "designer", at: 15, time: "11:54" },
+      { kind: "shipped", actor: "designer", at: 3, time: "16:09" },
     ],
   }),
   makeOrder({
@@ -1378,11 +1431,11 @@ export const seedOrders: CommissionRequest[] = [
       detail: "Colours differ from the reference photos.",
     },
     events: [
-      { kind: "requested", actor: "customer", at: 25 },
-      { kind: "quoted", actor: "designer", at: 24 },
-      { kind: "paid", actor: "customer", at: 22 },
-      { kind: "in_progress", actor: "designer", at: 20 },
-      { kind: "disputed", actor: "customer", at: 2 },
+      { kind: "requested", actor: "customer", at: 25, time: "14:31" },
+      { kind: "quoted", actor: "designer", at: 24, time: "10:58" },
+      { kind: "paid", actor: "customer", at: 22, time: "20:15" },
+      { kind: "in_progress", actor: "designer", at: 20, time: "09:47" },
+      { kind: "disputed", actor: "customer", at: 2, time: "18:03" },
     ],
   }),
   makeOrder({
@@ -1392,8 +1445,8 @@ export const seedOrders: CommissionRequest[] = [
     createdDaysAgo: 30,
     decline: "workload",
     events: [
-      { kind: "requested", actor: "customer", at: 30 },
-      { kind: "declined", actor: "designer", at: 29 },
+      { kind: "requested", actor: "customer", at: 30, time: "13:20" },
+      { kind: "declined", actor: "designer", at: 29, time: "09:36" },
     ],
   }),
   makeOrder({
@@ -1404,10 +1457,10 @@ export const seedOrders: CommissionRequest[] = [
     quote: 4_200_000,
     payment: "refunded",
     events: [
-      { kind: "requested", actor: "customer", at: 60 },
-      { kind: "quoted", actor: "designer", at: 58 },
-      { kind: "paid", actor: "customer", at: 55 },
-      { kind: "refunded", actor: "system", at: 41 },
+      { kind: "requested", actor: "customer", at: 60, time: "11:41" },
+      { kind: "quoted", actor: "designer", at: 58, time: "15:07" },
+      { kind: "paid", actor: "customer", at: 55, time: "10:33" },
+      { kind: "refunded", actor: "system", at: 41, time: "09:02" },
     ],
   }),
   makeOrder({
@@ -1416,12 +1469,14 @@ export const seedOrders: CommissionRequest[] = [
     status: "cancelled",
     createdDaysAgo: 45,
     events: [
-      { kind: "requested", actor: "customer", at: 45 },
-      { kind: "cancelled", actor: "customer", at: 44 },
+      { kind: "requested", actor: "customer", at: 45, time: "17:29" },
+      { kind: "cancelled", actor: "customer", at: 44, time: "08:44" },
     ],
   }),
 ];
 
+// Message times sit minutes-to-hours around the order events they narrate
+// (PR #102 cadence rule — the thread and the timeline tell one story).
 export const seedThreadMessages = [
   {
     id: "msg-1042-1",
@@ -1429,7 +1484,7 @@ export const seedThreadMessages = [
     author_id: "acc-kiki",
     body: "Hi Amara! Excited about this one — here's my inspiration.",
     image_url: "/demo/outfit-w01.jpg",
-    created_at: daysAgo(8),
+    created_at: daysAgoAt(8, "09:31"), // shortly after requesting (09:14)
   },
   {
     id: "msg-1042-2",
@@ -1437,7 +1492,7 @@ export const seedThreadMessages = [
     author_id: "des-amara",
     body: "Love it. Quote sent — I can have it ready two weeks after payment.",
     image_url: null,
-    created_at: daysAgo(7),
+    created_at: daysAgoAt(7, "14:05"), // right behind the quote (14:02)
   },
   {
     id: "msg-1042-3",
@@ -1445,7 +1500,7 @@ export const seedThreadMessages = [
     author_id: "des-amara",
     body: "Fabric cut today — progress shot attached.",
     image_url: "/demo/outfit-w14.jpg",
-    created_at: daysAgo(2),
+    created_at: daysAgoAt(2, "16:12"),
   },
   {
     id: "msg-1058-1",
@@ -1453,7 +1508,7 @@ export const seedThreadMessages = [
     author_id: "acc-kiki",
     body: "Colour scheme: royal blue and white, please — same as the post.",
     image_url: null,
-    created_at: daysAgo(39),
+    created_at: daysAgoAt(39, "10:20"),
   },
   {
     id: "msg-1058-2",
@@ -1461,7 +1516,7 @@ export const seedThreadMessages = [
     author_id: "des-bisi",
     body: "Delivered via GIG — enjoy the wedding!",
     image_url: null,
-    created_at: daysAgo(10),
+    created_at: daysAgoAt(10, "17:31"), // minutes after shipping (17:25)
   },
   // The helper-built orders carry short, state-appropriate exchanges so
   // every thread reads like a real buyer–designer conversation.
@@ -1471,7 +1526,7 @@ export const seedThreadMessages = [
     author_id: "acc-kiki",
     body: "Sent the request — it's for my brother's wedding on Aug 22. Can you match the fabric in your post?",
     image_url: null,
-    created_at: daysAgo(1),
+    created_at: daysAgoAt(1, "18:41"), // right after requesting (18:32)
   },
   {
     id: "msg-1033-1",
@@ -1487,7 +1542,7 @@ export const seedThreadMessages = [
     author_id: "des-amara",
     body: "Just quoted ₦40,000 — three weeks is fine if payment lands this week.",
     image_url: null,
-    created_at: daysAgo(0.25),
+    created_at: daysAgo(0.24), // ~15 min after the 0.25d quote event
   },
   {
     id: "msg-1036-1",
@@ -1503,7 +1558,7 @@ export const seedThreadMessages = [
     author_id: "des-tunde",
     body: "Shipped via GIG — tracking GIG-5567-LAG. Apologies for the two-day slip, the collars took longer than planned.",
     image_url: null,
-    created_at: daysAgo(3),
+    created_at: daysAgoAt(3, "16:14"), // minutes after shipping (16:09)
   },
   {
     id: "msg-1018-1",
@@ -1527,7 +1582,7 @@ export const seedThreadMessages = [
     author_id: "des-tunde",
     body: "Fully booked until September, so I have to decline — sorry! maisonbisi does beautiful work in this style.",
     image_url: null,
-    created_at: daysAgo(29),
+    created_at: daysAgoAt(29, "09:41"), // right after declining (09:36)
   },
 ];
 
@@ -1639,6 +1694,11 @@ export const seedNotifications: Notification[] = [
   },
 ];
 
+// The B7a queue narrative (canvas shape): two open reports — a spam
+// comment and a reported post with its thumb — plus one actioned exemplar
+// so the audit-trail row state renders from boot. Reported comments exist
+// as previews only (the spam one was never a seeded comment; the actioned
+// one is hidden), so post comment_counts stay honest.
 export const seedReports: Report[] = [
   {
     id: "rep-1",
@@ -1648,12 +1708,51 @@ export const seedReports: Report[] = [
     subject_preview: {
       text: "🔥🔥 Buy followers cheap — link in bio",
       thumb_url: null,
+      author_username: null,
     },
     reason: "spam",
     detail: null,
     status: "open",
+    action: null,
     actioned_by: null,
-    created_at: daysAgo(1),
+    actioned_at: null,
+    created_at: daysAgoAt(1, "21:37"),
+  },
+  {
+    id: "rep-2",
+    reporter: { id: "acc-chidi", username: "chidi.n" },
+    subject_kind: "post",
+    subject_id: "post-fabric-drop",
+    subject_preview: {
+      text: "New fabric drop — bring your vault measurements and pick a silhouette.",
+      thumb_url: "/demo/outfit-w14.jpg",
+      author_username: "amara.designs",
+    },
+    reason: "spam",
+    detail: "Reads like an ad, not an outfit post.",
+    status: "open",
+    action: null,
+    actioned_by: null,
+    actioned_at: null,
+    created_at: daysAgoAt(2, "08:19"),
+  },
+  {
+    id: "rep-3",
+    reporter: { id: "acc-zainab", username: "zainab.k" },
+    subject_kind: "comment",
+    subject_id: "cmt-counterfeit-1",
+    subject_preview: {
+      text: "DM for the exact same aso-oke, half the price 👀",
+      thumb_url: null,
+      author_username: null,
+    },
+    reason: "counterfeit",
+    detail: "Selling knockoffs of maisonbisi pieces in the comments.",
+    status: "actioned",
+    action: "hide_post", // comment subject — renders as hide_comment
+    actioned_by: { id: "acc-sarah", username: "mod.sarah" },
+    actioned_at: daysAgoAt(5, "09:12"),
+    created_at: daysAgoAt(6, "22:05"),
   },
 ];
 
