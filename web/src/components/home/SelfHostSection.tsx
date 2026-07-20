@@ -18,7 +18,10 @@ export function SelfHostSection() {
       className="mx-auto w-full max-w-[1128px] scroll-mt-20 px-6 py-12"
     >
       <div className="flex flex-col items-start gap-10 md:flex-row md:gap-16">
-        <div className="max-w-[560px] flex-1">
+        {/* min-w-0: the snippet's nowrap command lines must not widen the
+            flex item past the viewport at 390 — they scroll inside the
+            block's own overflow-x rail instead (container canon) */}
+        <div className="w-full min-w-0 max-w-[560px] flex-1">
           <h2
             id="self-host-heading"
             className="text-title-lg font-bold text-text"
