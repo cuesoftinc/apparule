@@ -27,6 +27,7 @@ import { CaughtUpDivider } from "@/components/ui/CaughtUpDivider";
 import { CountdownRing } from "@/components/ui/CountdownRing";
 import { Chip } from "@/components/ui/Chip";
 import { CodeSnippetBlock } from "@/components/ui/CodeSnippetBlock";
+import { CodeSnippetTabs } from "@/components/ui/CodeSnippetTabs";
 import { CommentRow } from "@/components/ui/CommentRow";
 import { CommunityCard } from "@/components/ui/CommunityCard";
 import { ComparisonTable } from "@/components/ui/ComparisonTable";
@@ -1129,6 +1130,20 @@ export function ComponentGallery() {
         <ComparisonTable />
         <div className="max-w-md">
           <CodeSnippetBlock />
+        </div>
+        <div className="max-w-md">
+          <CodeSnippetTabs
+            tabs={[
+              {
+                label: "Docker Compose",
+                code: "git clone https://github.com/cuesoftinc/apparule\ncd apparule && docker compose up --build -d",
+              },
+              {
+                label: "Helm",
+                code: "git clone https://github.com/cuesoftinc/apparule\ncd apparule && helm install apparule deploy/helm",
+              },
+            ]}
+          />
         </div>
         <CommunityCard />
       </Section>
