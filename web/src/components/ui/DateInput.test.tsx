@@ -53,6 +53,34 @@ describe("DateInput (§8.2b)", () => {
     );
   });
 
+  it("month grid is Sunday-first with blank outside-month cells (master 87:1035)", () => {
+    // July 2026: starts Wednesday, 31 days — Sunday-first ⇒ 3 leading and
+    // 1 trailing blank cell, and day 1 lands in the 4th column.
+    render(
+      <DatePickerPopover
+        value={new Date("2026-07-15T00:00:00")}
+        onSelect={() => {}}
+      />,
+    );
+    const grid = screen
+      .getByTestId("date-picker")
+      .querySelector(".grid-cols-7")!;
+    const cells = [...grid.children];
+    expect(cells.slice(0, 7).map((c) => c.textContent)).toEqual([
+      "S",
+      "M",
+      "T",
+      "W",
+      "T",
+      "F",
+      "S",
+    ]);
+    const dayButtons = grid.querySelectorAll("button");
+    expect(dayButtons).toHaveLength(31); // only July renders as buttons
+    expect(grid.querySelectorAll("span[aria-hidden]")).toHaveLength(4);
+    expect(cells[7 + 3].textContent).toBe("1"); // Wednesday column
+  });
+
   it("DatePickerPopover disables days before minDate", async () => {
     const onSelect = vi.fn();
     const base = new Date("2026-07-15T00:00:00");

@@ -535,3 +535,195 @@ test("designer quote via the UI: the due-date calendar works inside the quote sh
 
 // The 390 overflow sweep moved to e2e/mobile-responsive.spec.ts (P1
 // mobile pass): every route, 390 + 768, plus wide-element containment.
+
+// ---------------------------------------------------------------------------
+// Cross-check pass (2026-07-20) — C1 date-picker geometry + C2 in-sheet
+// select clipping, on a shared fixture order. Lives in this serial file
+// because it mutates the store (kiki's request on post-chromat-look — its
+// only seeded order is closed/cancelled and no journey above touches it),
+// then drives maisonbisi's quote/decline sheets through the actor seam.
+// ---------------------------------------------------------------------------
+
+test.describe("order-sheet floating layers (shared fixture)", () => {
+  let orderId: string;
+
+  test.beforeAll(async ({ request }) => {
+    const res = await request.post(
+      "/api/mock/v1/posts/post-chromat-look/requests",
+      {
+        headers: {
+          "x-mock-actor": "kiki.adeyemi",
+          "idempotency-key": "e2e-order-sheet-geometry-fixture",
+        },
+        data: {
+          session_id: "sess-recent-scan",
+          notes: "Calendar/select geometry fixture",
+          delivery: {
+            recipient_name: "Kiki Adeyemi",
+            phone: "+2348012345678",
+            line1: "14 Adeola Odeku St",
+            city: "Lagos",
+            state: "Lagos",
+            country: "NG",
+          },
+        },
+      },
+    );
+    expect(res.status()).toBe(201);
+    orderId = (await res.json()).id;
+  });
+
+  async function openOrderAsDesigner(page: Page) {
+    await page.addInitScript(() => {
+      window.sessionStorage.setItem("apparule.testmode.actor", "maisonbisi");
+    });
+    await signIn(page);
+    await page.goto(`/dashboard/orders/${orderId}`);
+  }
+
+  async function openDueDatePicker(page: Page) {
+    await openOrderAsDesigner(page);
+    await page.getByRole("button", { name: "Send quote" }).click();
+    await page.getByLabel("Due date").click();
+    const picker = page.getByTestId("date-picker");
+    await expect(picker).toBeVisible();
+    // The panel is the popover content wrapping the grid.
+    return { panel: picker.locator("xpath=.."), picker };
+  }
+
+  async function expectMenuUnclipped(page: Page, height: number) {
+    const menu = page.getByRole("listbox");
+    await expect(menu).toBeVisible();
+    const box = await menu.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.y, "menu top inside viewport").toBeGreaterThanOrEqual(0);
+    expect(
+      box!.y + box!.height,
+      "menu bottom inside viewport",
+    ).toBeLessThanOrEqual(height);
+    // 288px cap (max-h-72) + hairline borders.
+    expect(box!.height).toBeLessThanOrEqual(290);
+    // No clipping: the point just inside the menu's bottom edge hit-tests
+    // to the menu itself, not an overlaying sheet or scrollbox.
+    const hit = await page.evaluate(() => {
+      const lb = document.querySelector('[role="listbox"]')!;
+      const r = lb.getBoundingClientRect();
+      const el = document.elementFromPoint(r.x + r.width / 2, r.bottom - 5);
+      return lb.contains(el);
+    });
+    expect(hit, "menu bottom edge is hit-testable").toBe(true);
+  }
+
+  test("date-picker panel matches the 87:1035 master anatomy", async ({
+    page,
+  }) => {
+    const { panel, picker } = await openDueDatePicker(page);
+
+    const anatomy = await panel.evaluate((el) => {
+      const grid = el.querySelector(".grid-cols-7")!;
+      const dayButtons = [...grid.querySelectorAll("button")];
+      const sample = dayButtons[Math.floor(dayButtons.length / 2)];
+      const scs = getComputedStyle(sample);
+      const weekLabels = [...grid.children]
+        .slice(0, 7)
+        .map((c) => c.textContent);
+      const weekCs = getComputedStyle(grid.children[0]);
+      return {
+        padding: getComputedStyle(el).padding,
+        rowGap: getComputedStyle(grid).rowGap,
+        weekLabels,
+        weekWeight: weekCs.fontWeight,
+        day: {
+          w: (sample as HTMLElement).offsetWidth,
+          h: (sample as HTMLElement).offsetHeight,
+          fontSize: scs.fontSize,
+        },
+        dayCount: dayButtons.length,
+      };
+    });
+    // Master: 16px panel padding — the grid never sits flush to the edges.
+    expect(anatomy.padding).toBe("16px");
+    // Master: rows separated by 8px.
+    expect(anatomy.rowGap).toBe("8px");
+    // Master: Sunday-first S M T W T F S, 12 semibold.
+    expect(anatomy.weekLabels).toEqual(["S", "M", "T", "W", "T", "F", "S"]);
+    expect(Number(anatomy.weekWeight)).toBeGreaterThanOrEqual(600);
+    // Master: 36×32 pill day cells, 13px numerals.
+    expect(anatomy.day.w).toBe(36);
+    expect(anatomy.day.h).toBe(32);
+    expect(anatomy.day.fontSize).toBe("13px");
+    // Master: outside-month cells are blank — exactly the displayed
+    // month's days render as buttons.
+    const title = await panel
+      .getByText(/^[A-Z][a-z]+ \d{4}$/)
+      .first()
+      .textContent();
+    const shown = new Date(`1 ${title}`);
+    const daysInMonth = new Date(
+      shown.getFullYear(),
+      shown.getMonth() + 1,
+      0,
+    ).getDate();
+    expect(anatomy.dayCount).toBe(daysInMonth);
+
+    // Today ring (master: 1px border-token ring) — only when today's month
+    // is on screen.
+    const now = new Date();
+    if (
+      now.getFullYear() === shown.getFullYear() &&
+      now.getMonth() === shown.getMonth()
+    ) {
+      const todayBtn = picker.getByRole("button", {
+        name: String(now.getDate()),
+        exact: true,
+      });
+      const borderWidth = await todayBtn.evaluate(
+        (el) => getComputedStyle(el).borderWidth,
+      );
+      expect(borderWidth).toBe("1px");
+    }
+  });
+
+  for (const height of [900, 700]) {
+    test(`date-picker stays inside the 1440×${height} viewport (flip/clamp, no page scrollbar growth)`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 1440, height });
+      const scrollHeight = () =>
+        page.evaluate(() => document.documentElement.scrollHeight);
+      const { panel } = await openDueDatePicker(page);
+      const before = await scrollHeight();
+
+      const box = await panel.boundingBox();
+      expect(box, "open calendar has a bounding box").not.toBeNull();
+      expect(box!.y, "top edge inside viewport").toBeGreaterThanOrEqual(0);
+      expect(
+        box!.y + box!.height,
+        "bottom edge inside viewport",
+      ).toBeLessThanOrEqual(height);
+
+      const trigger = await page.getByLabel("Due date").boundingBox();
+      if (trigger!.y + trigger!.height + box!.height + 8 > height) {
+        // Not enough room below the trigger: the panel must flip above it.
+        expect(
+          box!.y + box!.height,
+          "panel flips above the trigger",
+        ).toBeLessThanOrEqual(trigger!.y);
+      }
+      // The open popover never gives the document extra scroll height.
+      expect(await scrollHeight()).toBe(before);
+    });
+  }
+
+  for (const height of [900, 700]) {
+    test(`decline-reason select inside the order sheet is unclipped at 1440×${height}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 1440, height });
+      await openOrderAsDesigner(page);
+      await page.getByRole("button", { name: "Decline" }).click();
+      await page.getByLabel("Decline reason").click();
+      await expectMenuUnclipped(page, height);
+    });
+  }
+});

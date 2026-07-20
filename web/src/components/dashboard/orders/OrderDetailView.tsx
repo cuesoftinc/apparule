@@ -443,9 +443,16 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
           </section>
         </div>
 
-        {/* Right rail (Figma 179:536): the order thread as a bordered card. */}
+        {/* Right rail (Figma 179:536): the order thread as a bordered card.
+            The frame draws the panel spanning the band beside the order
+            content with the composer pinned to its bottom edge — on lg the
+            card fills the grid row (capped at 70vh) instead of hugging a
+            short thread and leaving the band bottom-heavy on the left. */}
         <aside aria-labelledby="order-thread-h" className="lg:pt-0">
-          <section className="flex max-h-[70vh] flex-col rounded-card border border-border p-4">
+          <section
+            data-testid="order-thread-panel"
+            className="flex max-h-[70vh] flex-col rounded-card border border-border p-4 lg:h-full"
+          >
             <h2
               id="order-thread-h"
               className="pb-3 text-body font-semibold text-text"
