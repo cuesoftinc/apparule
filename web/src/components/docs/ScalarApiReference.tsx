@@ -7,8 +7,10 @@
 // the OS live) via `forceDarkModeState` — `darkMode` alone is only an
 // initial hint and loses to Scalar's internal state. Scalar's own theme
 // toggle is hidden (ours is the master) and the remote default fonts are
-// disabled (self-host ethos: no external runtime dependencies). The dev
-// toolbar needs no config: Scalar only shows it on localhost.
+// disabled (self-host ethos: no external runtime dependencies). Scalar's
+// dev toolbar (Developer Tools · Configure · Share · Deploy) is disabled
+// outright — it's authoring chrome, not public-reference UI, and Scalar
+// shows it on localhost by default (audit #27).
 import { useSyncExternalStore } from "react";
 import { ApiReferenceReact } from "@scalar/api-reference-react";
 import "@scalar/api-reference-react/style.css";
@@ -44,6 +46,7 @@ export function ScalarApiReference() {
         forceDarkModeState: resolvedTheme,
         hideDarkModeToggle: true,
         withDefaultFonts: false,
+        showDeveloperTools: "never",
       }}
     />
   );

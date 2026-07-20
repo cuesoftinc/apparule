@@ -11,7 +11,7 @@ import clsx from "clsx";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, Heart, MoreHorizontal } from "lucide-react";
 import type { Post } from "@/models";
-import { formatAgo } from "@/lib/format";
+import { formatAgoLong } from "@/lib/format";
 import { ActionRow } from "./ActionRow";
 import { Avatar } from "./Avatar";
 import { Button } from "./Button";
@@ -193,8 +193,11 @@ export function PostCard({
         className="px-1.5 pt-1"
       />
 
-      {/* like count + caption + comments + CTA + timestamp — Figma master:
-          one px-16 column at 4px rhythm, semibold caption, inline "more" */}
+      {/* like count + caption + CTA + timestamp — Figma master (52:462):
+          one px-16 column at 4px rhythm, semibold caption, inline "more".
+          No "View all n comments" row — the master's anatomy goes caption →
+          CTA → timestamp; comments open via the ActionRow bubble (audit
+          #27). */}
       <div className="flex flex-col items-start gap-1 px-4">
         <span className="tnum text-body font-semibold text-text">
           {post.like_count.toLocaleString("en-NG")} likes
@@ -219,15 +222,6 @@ export function PostCard({
             </>
           ) : null}
         </p>
-        {post.comment_count > 0 ? (
-          <button
-            type="button"
-            onClick={onComment}
-            className="w-fit text-body text-text-2"
-          >
-            View all {post.comment_count} comments
-          </button>
-        ) : null}
         {/* request CTA — full-width quiet button on designer posts */}
         {showCta ? (
           <Button kind="quiet" size="md" className="w-full" onClick={onRequest}>
@@ -236,12 +230,13 @@ export function PostCard({
         ) : null}
         {/* suppressHydrationWarning: relative timestamps are computed at
             render time and may differ between server and client by design */}
+        {/* Master: long-form "2 HOURS AGO" (12px, 0.4px tracking) */}
         <time
           dateTime={post.created_at}
           suppressHydrationWarning
           className="text-micro uppercase tracking-[0.4px] text-text-2"
         >
-          {formatAgo(post.created_at)}
+          {formatAgoLong(post.created_at)}
         </time>
       </div>
     </article>

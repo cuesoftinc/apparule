@@ -11,13 +11,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Clock } from "lucide-react";
 import type { CommissionRequest, OrderStatus } from "@/models";
-import { formatCm, formatNaira } from "@/lib/format";
+import { formatNaira } from "@/lib/format";
 import { useAuth } from "@/controllers/auth/AuthContext";
 import { useOrder } from "@/controllers/use-orders";
 import { useThread } from "@/controllers/use-thread";
 import { AppBar } from "@/components/ui/AppBar";
 import { Button } from "@/components/ui/Button";
-import { humanizeMeasureName } from "@/components/ui/ManualMeasureRow";
 import { OrderTimelineRow } from "@/components/ui/OrderTimelineRow";
 import { PaymentBox, type PaymentBoxState } from "@/components/ui/PaymentBox";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -62,6 +61,11 @@ const TERMINAL: OrderStatus[] = [
   "declined",
   "cancelled",
 ];
+
+/** "shoulder_width" → "shoulder" — the B3 snapshot chips' compact label. */
+function compactMeasureName(name: string): string {
+  return name.split("_")[0];
+}
 
 function paymentBoxState(order: CommissionRequest): PaymentBoxState | null {
   if (order.status === "quoted") return "quoted";
@@ -265,10 +269,12 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
                 ? order.snapshot.values.measurements
                 : order.snapshot.values.measurements.slice(0, 4)
               ).map((m) => (
+                // B3 frame (179:536): compact lowercase chips, one-decimal
+                // value, no unit — "shoulder 42.5 · hip 96.2" (audit #27).
                 <li key={m.name} className="text-caption text-text">
-                  {humanizeMeasureName(m.name)}{" "}
+                  {compactMeasureName(m.name)}{" "}
                   <span className="tnum font-semibold">
-                    {formatCm(m.value_cm)}
+                    {m.value_cm.toFixed(1)}
                   </span>
                   <span aria-hidden className="px-1 text-text-2 last:hidden">
                     ·

@@ -1173,6 +1173,32 @@ const MANUAL_SNAPSHOT_VALUES = [
   { name: "inseam_length", value_cm: 81.0 },
 ];
 
+/**
+ * Timeline events land at plausible business-hour clock times (B3 frame
+ * cadence: 09:14 / 14:02 / 10:26 / 09:40), minute-varied per order — not
+ * all stamped at the boot minute (PR #102 plausible-cadence rule, audit
+ * #27). Fresh (<1d) events keep their exact relative offset so they stay
+ * coherent with the notifications that reference them ("6h ago").
+ */
+const EVENT_CLOCK: Record<string, [number, number]> = {
+  requested: [9, 14],
+  quoted: [14, 2],
+  paid: [10, 26],
+  in_progress: [9, 40],
+  shipped: [11, 5],
+  delivered: [16, 20],
+  declined: [13, 45],
+  disputed: [18, 32],
+  refunded: [12, 10],
+  cancelled: [8, 55],
+};
+
+function eventTimestamp(kind: string, daysBack: number, num: number): string {
+  if (daysBack < 1) return daysAgo(daysBack);
+  const [hour, minute] = EVENT_CLOCK[kind] ?? [12, 0];
+  return daysAgoAt(daysBack, `${hour}:${(minute + (num % 9)) % 60}`);
+}
+
 function makeOrder(input: SeedOrderInput): CommissionRequest {
   const post = postById(input.postId);
   const id = `req-apr-${input.num}`;
@@ -1239,7 +1265,7 @@ function makeOrder(input: SeedOrderInput): CommissionRequest {
       request_id: id,
       kind: e.kind,
       actor: e.actor,
-      created_at: daysAgo(e.at),
+      created_at: eventTimestamp(e.kind, e.at, input.num),
     })),
     payment:
       input.payment && quote !== null
@@ -1312,28 +1338,28 @@ export const seedOrders: CommissionRequest[] = [
         request_id: "req-apr-1042",
         kind: "requested",
         actor: "customer",
-        created_at: daysAgo(8),
+        created_at: daysAgoAt(8, "9:14"),
       },
       {
         id: "evt-1042-2",
         request_id: "req-apr-1042",
         kind: "quoted",
         actor: "designer",
-        created_at: daysAgo(7),
+        created_at: daysAgoAt(7, "14:02"),
       },
       {
         id: "evt-1042-3",
         request_id: "req-apr-1042",
         kind: "paid",
         actor: "customer",
-        created_at: daysAgo(6),
+        created_at: daysAgoAt(6, "10:26"),
       },
       {
         id: "evt-1042-4",
         request_id: "req-apr-1042",
         kind: "in_progress",
         actor: "designer",
-        created_at: daysAgo(5),
+        created_at: daysAgoAt(5, "9:40"),
       },
     ],
     payment: {
@@ -1411,42 +1437,42 @@ export const seedOrders: CommissionRequest[] = [
         request_id: "req-apr-1058",
         kind: "requested",
         actor: "customer",
-        created_at: daysAgo(40),
+        created_at: daysAgoAt(40, "10:12"),
       },
       {
         id: "evt-1058-2",
         request_id: "req-apr-1058",
         kind: "quoted",
         actor: "designer",
-        created_at: daysAgo(38),
+        created_at: daysAgoAt(38, "15:37"),
       },
       {
         id: "evt-1058-3",
         request_id: "req-apr-1058",
         kind: "paid",
         actor: "customer",
-        created_at: daysAgo(36),
+        created_at: daysAgoAt(36, "11:48"),
       },
       {
         id: "evt-1058-4",
         request_id: "req-apr-1058",
         kind: "in_progress",
         actor: "designer",
-        created_at: daysAgo(30),
+        created_at: daysAgoAt(30, "9:05"),
       },
       {
         id: "evt-1058-5",
         request_id: "req-apr-1058",
         kind: "shipped",
         actor: "designer",
-        created_at: daysAgo(10),
+        created_at: daysAgoAt(10, "14:56"),
       },
       {
         id: "evt-1058-6",
         request_id: "req-apr-1058",
         kind: "delivered",
         actor: "customer",
-        created_at: daysAgo(7),
+        created_at: daysAgoAt(7, "17:23"),
       },
     ],
     payment: {

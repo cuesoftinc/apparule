@@ -212,9 +212,12 @@ describe("OrderDetailView — designer action matrix", () => {
 });
 
 describe("OrderDetailView — snapshot immutability note", () => {
-  it("renders the frozen snapshot with its rule line", () => {
+  it("renders the frozen snapshot chips with the rule line", () => {
     renderDetail(order("in_progress"), "customer");
-    expect(screen.getByText("Shoulder Width")).toBeInTheDocument();
+    // B3 chip format (audit #27): compact lowercase name + one-decimal
+    // value, no unit — "shoulder 42.5".
+    expect(screen.getByText("shoulder")).toBeInTheDocument();
+    expect(screen.getByText("42.5")).toBeInTheDocument();
     expect(
       screen.getByText(/vault changes never alter this order/i),
     ).toBeInTheDocument();

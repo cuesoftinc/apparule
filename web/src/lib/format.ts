@@ -11,13 +11,17 @@ export function formatNaira(cents: number, currency = "NGN"): string {
   return `${cents < 0 ? "−" : ""}${symbol}${formatted}`;
 }
 
-/** 42.5 → "42.5 cm" (or inches when the vault unit toggle flips, MI-13). */
+/**
+ * 42.5 → "42.5 cm" (or inches when the vault unit toggle flips, MI-13).
+ * Always one decimal — the MeasurementCard master renders "58.0 cm", and
+ * mixed precision ("92 cm" beside "78.5 cm") breaks the tnum column.
+ */
 export function formatCm(valueCm: number, unit: "cm" | "in" = "cm"): string {
   if (unit === "in") {
     const inches = valueCm / 2.54;
     return `${inches.toFixed(1)} in`;
   }
-  return `${valueCm % 1 === 0 ? valueCm.toFixed(0) : valueCm.toFixed(1)} cm`;
+  return `${valueCm.toFixed(1)} cm`;
 }
 
 /** Compact social counts ("12.4k followers", IG-style — Figma 182:969). */
@@ -43,6 +47,30 @@ export function formatAgoPhrase(iso: string, now: Date = new Date()): string {
   if (days >= 30) return `on ${formatAgo(iso, now)}`;
   const label = formatAgo(iso, now);
   return label === "now" ? "just now" : `${label} ago`;
+}
+
+/**
+ * Long-form relative label for the PostCard timestamp — the master renders
+ * "2 HOURS AGO" (uppercase via CSS), switching to the absolute date after
+ * 30d like formatAgo.
+ */
+export function formatAgoLong(iso: string, now: Date = new Date()): string {
+  const ms = now.getTime() - new Date(iso).getTime();
+  const days = Math.floor(ms / (24 * 60 * 60 * 1000));
+  if (days <= 0) {
+    const hours = Math.floor(ms / (60 * 60 * 1000));
+    if (hours <= 0) return "just now";
+    return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  }
+  if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`;
+  if (days < 30) {
+    const weeks = Math.floor(days / 7);
+    return `${weeks} week${weeks === 1 ? "" : "s"} ago`;
+  }
+  return new Date(iso).toLocaleDateString("en-NG", {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 /** Relative day label for meta lines ("today", "3d", "2w"). */
