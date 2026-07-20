@@ -608,7 +608,7 @@ describe("session exports (F2-9 / PLAT-004)", () => {
     const body = Buffer.from(url.split(",")[1], "base64").toString("utf8");
     const lines = body.split("\n");
     expect(lines[0]).toBe("name,value_cm,source,confidence");
-    expect(lines).toHaveLength(1 + 4); // header + the session's 4 values
+    expect(lines).toHaveLength(1 + 6); // header + the session's 6 values
     expect(body).toContain("shoulder_width,42,");
   });
 
@@ -643,8 +643,9 @@ describe("session exports (F2-9 / PLAT-004)", () => {
       "pdf",
     );
     const body = Buffer.from(url.split(",")[1], "base64").toString("utf8");
-    // 4 header lines + 62 measurements = 66 lines → 2 pages
-    expect(body).toContain("/Count 2");
+    // 4 header lines + 72 measurements (12 scan + 60 corrections) = 76
+    // lines → 3 pages at 36 lines/page
+    expect(body).toContain("/Count 3");
     // first and LAST rows are both present in the page streams
     expect(body).toContain("shoulder_width: 42.5 cm");
     expect(body).toContain("correction_59:");

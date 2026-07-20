@@ -980,8 +980,30 @@ export const seedComments: Comment[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Vault — kiki's measurement sessions (shoulder 42.5 cm etc., freshness)
+// Vault — kiki's measurement sessions (shoulder 42.5 cm etc., freshness).
+// The latest values fan out to 14 metrics (B4 frame: "14 measurements on
+// file", 6-card grid + "+8 more measurements →") including one 0.62
+// low-confidence exemplar so the MeasurementCard low-confidence chip is
+// reachable from boot (audit #20). Scan girths come from the fresh 12d
+// pipeline session; sleeve/inseam stay manual-only (tape) so the grid mixes
+// Scan and Manual source chips like the canvas.
 // ---------------------------------------------------------------------------
+
+/** The 12d scan session's metric list (12 of the 14 latest values). */
+const RECENT_SCAN_MEASUREMENTS: [string, number, number][] = [
+  ["shoulder_width", 42.5, 0.92],
+  ["hip_width", 36.8, 0.88],
+  ["chest_girth", 101.5, 0.62], // the low-confidence exemplar (<0.7 chip)
+  ["waist_girth", 78.4, 0.9],
+  ["hip_girth", 96.2, 0.87],
+  ["neck_girth", 34.6, 0.85],
+  ["bicep_girth", 29.4, 0.79],
+  ["wrist_girth", 15.8, 0.74],
+  ["thigh_girth", 55.4, 0.83],
+  ["knee_girth", 37.2, 0.8],
+  ["calf_girth", 36.5, 0.81],
+  ["ankle_girth", 22.1, 0.76],
+];
 
 export const seedSessions: MeasurementSession[] = [
   {
@@ -990,24 +1012,16 @@ export const seedSessions: MeasurementSession[] = [
     method: "mediapipe_2d_v2",
     input_height_cm: 168,
     status: "complete",
-    measurements: [
-      {
-        id: "m-1",
+    measurements: RECENT_SCAN_MEASUREMENTS.map(
+      ([name, value, confidence], i) => ({
+        id: `m-scan-${i + 1}`,
         session_id: "sess-recent-scan",
-        name: "shoulder_width",
-        value_cm: 42.5,
-        source: "pipeline",
-        confidence: 0.92,
-      },
-      {
-        id: "m-2",
-        session_id: "sess-recent-scan",
-        name: "hip_width",
-        value_cm: 36.8,
-        source: "pipeline",
-        confidence: 0.88,
-      },
-    ],
+        name,
+        value_cm: value,
+        source: "pipeline" as const,
+        confidence,
+      }),
+    ),
     pipeline_meta: { model_version: "mp2d-v2.3", qc: "pass" },
     created_at: daysAgo(12), // fresh (<30d) — "Measured 12 days ago" (MI-11)
   },
@@ -1047,6 +1061,24 @@ export const seedSessions: MeasurementSession[] = [
         session_id: "sess-manual-tape",
         name: "waist_girth",
         value_cm: 78.5,
+        source: "pipeline",
+        confidence: null,
+      },
+      // Tape-only metrics the scan doesn't produce — these stay the latest
+      // values, so the B4 grid mixes Manual chips among the Scan ones.
+      {
+        id: "m-6b",
+        session_id: "sess-manual-tape",
+        name: "sleeve_length",
+        value_cm: 58.0,
+        source: "pipeline",
+        confidence: null,
+      },
+      {
+        id: "m-6c",
+        session_id: "sess-manual-tape",
+        name: "inseam_length",
+        value_cm: 81.0,
         source: "pipeline",
         confidence: null,
       },
@@ -1124,6 +1156,23 @@ const postById = (id: string) => {
   return post;
 };
 
+/**
+ * Snapshot value lists — orders freeze whichever vault session existed at
+ * request time. Recent orders freeze the full 12-metric scan (B3 frame:
+ * four chips + "+N more"); older ones freeze the 6-metric tape session.
+ */
+const SCAN_SNAPSHOT_VALUES = RECENT_SCAN_MEASUREMENTS.map(
+  ([name, value_cm]) => ({ name, value_cm }),
+);
+const MANUAL_SNAPSHOT_VALUES = [
+  { name: "shoulder_width", value_cm: 42.0 },
+  { name: "hip_width", value_cm: 37.2 },
+  { name: "chest_girth", value_cm: 92.0 },
+  { name: "waist_girth", value_cm: 78.5 },
+  { name: "sleeve_length", value_cm: 58.0 },
+  { name: "inseam_length", value_cm: 81.0 },
+];
+
 function makeOrder(input: SeedOrderInput): CommissionRequest {
   const post = postById(input.postId);
   const id = `req-apr-${input.num}`;
@@ -1167,21 +1216,13 @@ function makeOrder(input: SeedOrderInput): CommissionRequest {
           ? {
               method: "mediapipe_2d_v2",
               measured_at: daysAgo(12),
-              measurements: [
-                { name: "shoulder_width", value_cm: 42.5 },
-                { name: "hip_width", value_cm: 36.8 },
-              ],
+              measurements: SCAN_SNAPSHOT_VALUES,
             }
           : input.createdDaysAgo <= 58
             ? {
                 method: "manual",
                 measured_at: daysAgo(58),
-                measurements: [
-                  { name: "shoulder_width", value_cm: 42.0 },
-                  { name: "hip_width", value_cm: 37.2 },
-                  { name: "chest_girth", value_cm: 92.0 },
-                  { name: "waist_girth", value_cm: 78.5 },
-                ],
+                measurements: MANUAL_SNAPSHOT_VALUES,
               }
             : {
                 method: "mediapipe_2d",
@@ -1260,10 +1301,8 @@ export const seedOrders: CommissionRequest[] = [
       values: {
         method: "mediapipe_2d_v2",
         measured_at: daysAgo(12),
-        measurements: [
-          { name: "shoulder_width", value_cm: 42.5 },
-          { name: "hip_width", value_cm: 36.8 },
-        ],
+        // Full 12-metric scan freeze — B3 renders four chips + "+8 more".
+        measurements: SCAN_SNAPSHOT_VALUES,
       },
       created_at: daysAgo(8),
     },

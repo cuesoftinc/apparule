@@ -31,6 +31,9 @@ const RING: Record<string, "gradient" | "amber" | "gray"> = {
   stale: "gray",
 };
 
+/** B4 frame (180:657): six cards, then "+N more measurements →". */
+const GRID_PREVIEW = 6;
+
 export function VaultView() {
   const { account } = useAuth();
   const vault = useVault();
@@ -38,6 +41,7 @@ export function VaultView() {
   const [sheet, setSheet] = useState<
     null | "options" | "webcam" | "manual" | "history"
   >(null);
+  const [allMetrics, setAllMetrics] = useState(false);
 
   const sessionById = useMemo(() => {
     const map = new Map<string, MeasurementSession>();
@@ -145,7 +149,10 @@ export function VaultView() {
             className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3"
             data-testid="vault-grid"
           >
-            {vault.latest.map((measurement) => {
+            {(allMetrics
+              ? vault.latest
+              : vault.latest.slice(0, GRID_PREVIEW)
+            ).map((measurement) => {
               const session = sessionById.get(measurement.session_id);
               return (
                 <li key={measurement.name}>
@@ -162,6 +169,19 @@ export function VaultView() {
               );
             })}
           </ul>
+          {vault.latest.length > GRID_PREVIEW ? (
+            <button
+              type="button"
+              data-testid="vault-more"
+              aria-expanded={allMetrics}
+              onClick={() => setAllMetrics((v) => !v)}
+              className="pt-4 text-body font-semibold text-link"
+            >
+              {allMetrics
+                ? "Show fewer measurements"
+                : `+${vault.latest.length - GRID_PREVIEW} more measurements →`}
+            </button>
+          ) : null}
         </section>
       )}
 
