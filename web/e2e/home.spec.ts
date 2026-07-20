@@ -152,14 +152,32 @@ test.describe("Marketing site — home page", () => {
     ).toBeInViewport();
   });
 
-  test("theme toggle switches light and dark", async ({ page }) => {
+  test("theme toggle cycles light → dark → system", async ({ page }) => {
     await page.goto("/");
     const html = page.locator("html");
 
-    await page.getByRole("button", { name: /switch to dark theme/i }).click();
+    // Fresh visit = system (key absent), resolved from the OS (light here).
+    await expect(html).toHaveAttribute("data-theme", "light");
+    await page
+      .getByRole("button", { name: "Theme: system — switch to light" })
+      .click();
+    await expect(html).toHaveAttribute("data-theme", "light");
+
+    await page
+      .getByRole("button", { name: "Theme: light — switch to dark" })
+      .click();
     await expect(html).toHaveAttribute("data-theme", "dark");
 
-    await page.getByRole("button", { name: /switch to light theme/i }).click();
+    // Third press returns to system — resolved live from the OS.
+    await page
+      .getByRole("button", { name: "Theme: dark — switch to system" })
+      .click();
+    await expect(html).toHaveAttribute("data-theme", "light");
+
+    // System mode follows an OS-level scheme flip without a reload.
+    await page.emulateMedia({ colorScheme: "dark" });
+    await expect(html).toHaveAttribute("data-theme", "dark");
+    await page.emulateMedia({ colorScheme: "light" });
     await expect(html).toHaveAttribute("data-theme", "light");
   });
 
@@ -444,10 +462,11 @@ test.describe("nav/footer parity canon", () => {
       0,
     );
 
-    // the theme toggle works from inside the panel
-    await panel.getByRole("button", { name: /switch to dark theme/i }).click();
+    // the theme toggle works from inside the panel (system → light → dark)
+    await panel.getByRole("button", { name: /^Theme: system/ }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    await panel.getByRole("button", { name: /^Theme: light/ }).click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    await panel.getByRole("button", { name: /switch to light theme/i }).click();
 
     // a link click closes the disclosure
     await panel.getByRole("link", { name: "Features" }).click();
@@ -505,28 +524,28 @@ test.describe("nav/footer parity canon", () => {
   test("theme toggle flips and persists on home and dashboard", async ({
     page,
   }) => {
-    // marketing surface
+    // marketing surface: system → light → dark, persisted across reload
     await page.goto("/");
-    await page.getByRole("button", { name: /switch to dark theme/i }).click();
+    await page.getByRole("button", { name: /^Theme: system/ }).click();
+    await page.getByRole("button", { name: /^Theme: light/ }).click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
     await page.reload();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 
-    // dashboard surface (same apparule.theme key via NavRail toggle)
+    // dashboard surface (same apparule.theme key via NavRail toggle):
+    // dark → system removes the key; resolved follows the OS again.
     await page.goto("/signin");
     await page.getByRole("button", { name: /continue with google/i }).click();
     await page.waitForURL("**/dashboard");
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    await page.getByRole("button", { name: /switch to light theme/i }).click();
-    await expect(page.locator("html")).not.toHaveAttribute(
-      "data-theme",
-      "dark",
+    await page.getByRole("button", { name: /^Theme: dark/ }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    const stored = await page.evaluate(() =>
+      window.localStorage.getItem("apparule.theme"),
     );
+    expect(stored).toBeNull();
     await page.reload();
-    await expect(page.locator("html")).not.toHaveAttribute(
-      "data-theme",
-      "dark",
-    );
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   });
 });
 

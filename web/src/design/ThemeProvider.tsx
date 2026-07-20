@@ -1,18 +1,24 @@
 "use client";
 
 /**
- * Theme provider — manual light/dark override with system default
- * (docs/design.md §2, §7: true Light/Dark modes; components bind one token
- * and switch by mode).
+ * Theme provider — tri-state light | dark | system (docs/design.md §2, §7;
+ * theme contract ratified 2026-07-20, identical across apparule, expendit
+ * and upstat):
  *
- * - `system` (default): no data-theme attribute → tokens.css follows
- *   prefers-color-scheme.
- * - `light` / `dark`: data-theme set on <html>, persisted in localStorage.
+ * - `preference` is what the user chose; persisted at `apparule.theme`
+ *   ("light"/"dark" stored explicitly; KEY ABSENT = system — the
+ *   cross-product storage convention).
+ * - `data-theme` on <html> always carries the RESOLVED theme ("light" or
+ *   "dark"): explicit preferences resolve to themselves; system resolves
+ *   via `prefers-color-scheme` and tracks it LIVE (matchMedia listener —
+ *   an OS theme flip updates data-theme without a reload).
+ * - tokens.css keeps its media-query fallback for the pre-JS/no-JS case;
+ *   with JS the attribute is authoritative.
  *
  * The preference lives in an external module store (localStorage-backed,
  * read via useSyncExternalStore) so no state syncs through effects; a tiny
- * inline script in the root layout applies the persisted override before
- * first paint to avoid a theme flash.
+ * inline script in the root layout applies the resolved theme before first
+ * paint (no FOUC in any mode, including system).
  */
 
 import {
@@ -25,14 +31,39 @@ import {
 } from "react";
 
 export type ThemePreference = "light" | "dark" | "system";
+export type ResolvedTheme = "light" | "dark";
 
 export const THEME_STORAGE_KEY = "apparule.theme";
+const DARK_QUERY = "(prefers-color-scheme: dark)";
 
 // -- external preference store ----------------------------------------------
 
 const listeners = new Set<() => void>();
 
+// System tracking: one module-level matchMedia listener, attached lazily on
+// first subscription (client only), kept for the app lifetime.
+let systemListenerAttached = false;
+
+function onSystemChange(): void {
+  // Only the system preference re-resolves on an OS flip.
+  if (readStoredPreference() === "system") {
+    applyResolved(resolveTheme("system"));
+    emit();
+  }
+}
+
+function ensureSystemListener(): void {
+  if (systemListenerAttached || typeof window === "undefined") return;
+  try {
+    window.matchMedia(DARK_QUERY).addEventListener("change", onSystemChange);
+    systemListenerAttached = true;
+  } catch {
+    // matchMedia unavailable — system just won't track live
+  }
+}
+
 function subscribe(listener: () => void): () => void {
+  ensureSystemListener();
   listeners.add(listener);
   return () => {
     listeners.delete(listener);
@@ -53,17 +84,34 @@ function readStoredPreference(): ThemePreference {
   return "system";
 }
 
-function getServerSnapshot(): ThemePreference {
+function systemPrefersDark(): boolean {
+  try {
+    return window.matchMedia(DARK_QUERY).matches;
+  } catch {
+    return false;
+  }
+}
+
+/** Resolve a preference to the concrete theme ("system" → the OS theme). */
+export function resolveTheme(preference: ThemePreference): ResolvedTheme {
+  if (preference === "light" || preference === "dark") return preference;
+  return systemPrefersDark() ? "dark" : "light";
+}
+
+function readResolvedTheme(): ResolvedTheme {
+  return resolveTheme(readStoredPreference());
+}
+
+function getServerPreference(): ThemePreference {
   return "system";
 }
 
-function applyPreference(preference: ThemePreference): void {
-  const root = document.documentElement;
-  if (preference === "system") {
-    root.removeAttribute("data-theme");
-  } else {
-    root.setAttribute("data-theme", preference);
-  }
+function getServerResolved(): ResolvedTheme {
+  return "light";
+}
+
+function applyResolved(theme: ResolvedTheme): void {
+  document.documentElement.setAttribute("data-theme", theme);
 }
 
 // -- context ------------------------------------------------------------------
@@ -71,7 +119,9 @@ function applyPreference(preference: ThemePreference): void {
 interface ThemeContextValue {
   /** The user's stored preference (may be "system"). */
   preference: ThemePreference;
-  /** Set + persist the preference; "system" clears the override. */
+  /** The concrete theme currently applied ("system" resolved live). */
+  resolvedTheme: ResolvedTheme;
+  /** Set + persist the preference; "system" removes the stored key. */
   setPreference: (preference: ThemePreference) => void;
 }
 
@@ -81,11 +131,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const preference = useSyncExternalStore(
     subscribe,
     readStoredPreference,
-    getServerSnapshot,
+    getServerPreference,
+  );
+  const resolvedTheme = useSyncExternalStore(
+    subscribe,
+    readResolvedTheme,
+    getServerResolved,
   );
 
   const setPreference = useCallback((next: ThemePreference) => {
-    applyPreference(next);
+    applyResolved(resolveTheme(next));
     try {
       if (next === "system") {
         window.localStorage.removeItem(THEME_STORAGE_KEY);
@@ -99,8 +154,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ preference, setPreference }),
-    [preference, setPreference],
+    () => ({ preference, resolvedTheme, setPreference }),
+    [preference, resolvedTheme, setPreference],
   );
 
   return (
@@ -118,6 +173,8 @@ export function useTheme(): ThemeContextValue {
  * Pre-paint theme bootstrap (inlined by the root layout). A fully static
  * string — no runtime code construction (CodeQL js/bad-code-sanitization);
  * the literal storage key must match THEME_STORAGE_KEY (unit-tested).
+ * Applies the RESOLVED theme: stored light/dark verbatim, otherwise the
+ * OS preference — so system mode paints correctly on first frame (no FOUC).
  */
 export const themeInitScript =
-  '(function(){try{var t=localStorage.getItem("apparule.theme");if(t==="light"||t==="dark"){document.documentElement.setAttribute("data-theme",t);}}catch(e){}})();';
+  '(function(){try{var t=localStorage.getItem("apparule.theme");if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}document.documentElement.setAttribute("data-theme",t);}catch(e){}})();';
