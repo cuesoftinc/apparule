@@ -353,6 +353,20 @@ test("B5/B8: creator upsell → onboarding with Paystack resolution states → p
   await expect(page.getByTestId("profile-grid").locator("li")).toHaveCount(1);
 });
 
+test("B6 own profile: the avatar wears the measurement-freshness ring (MI-11)", async ({
+  page,
+}) => {
+  await signIn(page);
+  // /dashboard/profile redirects to the canonical own-profile route.
+  await page.goto("/dashboard/profile");
+  await page.waitForURL("**/dashboard/kiki.adeyemi");
+  const avatar = page.locator("header [data-ring]").first();
+  // Seeded vault freshness drives the band — any of the three ring states
+  // is valid here (earlier serial tests may add fresh captures), but the
+  // ring must be present ("none" would be the audited regression).
+  await expect(avatar).toHaveAttribute("data-ring", /^(gradient|amber|gray)$/);
+});
+
 test("B7: notification prefs persist across reload; consent history renders", async ({
   page,
 }) => {
