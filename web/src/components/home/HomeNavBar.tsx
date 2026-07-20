@@ -1,11 +1,11 @@
 "use client";
 
-// A1 nav wrapper — HomeNav instance wired to the controllers: the live
+// A1 nav wrapper — MarketingNav instance wired to the controllers: the live
 // star count (shared cached fetch seam with A7b, neutral "Star" fallback),
 // `github_click` / `try_cloud_click`, the Try Cloud → /signin handoff, and
 // the theme toggle.
 import { useRouter } from "next/navigation";
-import { HomeNav } from "@/components/ui/HomeNav";
+import { MarketingNav } from "@/components/ui/MarketingNav";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { track } from "@/controllers/use-analytics";
 import { useGithubStars } from "@/controllers/use-github-stars";
@@ -15,7 +15,7 @@ export function HomeNavBar() {
   const stars = useGithubStars();
 
   return (
-    <HomeNav
+    <MarketingNav
       starCount={stars}
       onGithubClick={() => track("github_click", { section: "nav" })}
       onTryCloud={() => {

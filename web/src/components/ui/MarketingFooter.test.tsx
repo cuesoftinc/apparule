@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { HomeFooter } from "./HomeFooter";
+import { MarketingFooter } from "./MarketingFooter";
 
-describe("HomeFooter (§8.2b marketing, parity canon 2026-07-19)", () => {
+describe("MarketingFooter (§8.2b marketing, parity canon 2026-07-19)", () => {
   it("renders the four canon link columns", () => {
-    render(<HomeFooter />);
+    render(<MarketingFooter />);
     for (const heading of ["Product", "Docs", "Community", "Legal"]) {
       expect(
         screen.getByRole("heading", { name: heading }),
@@ -13,7 +13,7 @@ describe("HomeFooter (§8.2b marketing, parity canon 2026-07-19)", () => {
   });
 
   it("Docs and Community columns hit the verified canonical URLs", () => {
-    render(<HomeFooter />);
+    render(<MarketingFooter />);
     const canon: [string, string][] = [
       ["Docs", "https://cuesoft.gitbook.io/apparule"],
       ["Quickstart", "https://cuesoft.gitbook.io/apparule/setup"],
@@ -36,7 +36,7 @@ describe("HomeFooter (§8.2b marketing, parity canon 2026-07-19)", () => {
   });
 
   it("renders the Legal column and the verbatim legal bar", () => {
-    render(<HomeFooter />);
+    render(<MarketingFooter />);
     expect(screen.getByRole("link", { name: "Privacy" })).toHaveAttribute(
       "href",
       "https://privacy.cuesoft.io",
@@ -70,12 +70,12 @@ describe("HomeFooter (§8.2b marketing, parity canon 2026-07-19)", () => {
   });
 
   it("renders the language selector", () => {
-    render(<HomeFooter />);
+    render(<MarketingFooter />);
     expect(screen.getByLabelText("Language")).toBeInTheDocument();
   });
 
   it("groups Security policy with the language selector in the legal bar's right cluster (Figma 98:1248)", () => {
-    render(<HomeFooter />);
+    render(<MarketingFooter />);
     // Canon layout: © line left · [Security policy · English ▾] right —
     // the security affordance must NOT trail the copyright sentence inline.
     const cluster = screen.getByTestId("legal-bar-utilities");

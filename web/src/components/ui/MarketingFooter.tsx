@@ -1,4 +1,4 @@
-// HomeFooter — design.md §8.2b marketing kit, laid out to the org
+// MarketingFooter — design.md §8.2b marketing kit, laid out to the org
 // "Marketing nav, footer & theme parity canon" (SKILL.md, ratified
 // 2026-07-19): brand block + 4 link columns (Product · Docs · Community ·
 // Legal) + legal bar (verbatim © line · security policy · language).
@@ -60,15 +60,15 @@ const DEFAULT_COLUMNS: FooterColumn[] = [
   },
 ];
 
-export interface HomeFooterProps {
+export interface MarketingFooterProps {
   columns?: FooterColumn[];
   className?: string;
 }
 
-export function HomeFooter({
+export function MarketingFooter({
   columns = DEFAULT_COLUMNS,
   className,
-}: HomeFooterProps) {
+}: MarketingFooterProps) {
   return (
     <footer className={clsx("border-t border-border px-6 py-12", className)}>
       {/* Canonical 1080 content column (design.md container canon) —

@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { HomeNav } from "./HomeNav";
+import { MarketingNav } from "./MarketingNav";
 
-describe("HomeNav (§8.2b marketing)", () => {
+describe("MarketingNav (§8.2b marketing)", () => {
   it("renders logo, canon links and the Sign in CTA", () => {
-    render(<HomeNav />);
+    render(<MarketingNav />);
     expect(screen.getByText("Apparule")).toBeInTheDocument();
     // Parity canon (SKILL.md 2026-07-19): Features · For designers · Docs ·
     // GitHub (star badge) + the single Sign in CTA — no nav Try Cloud.
@@ -42,15 +42,15 @@ describe("HomeNav (§8.2b marketing)", () => {
   });
 
   it("star badge is neutral until the live count arrives (never invented)", () => {
-    const { rerender } = render(<HomeNav starCount={null} />);
+    const { rerender } = render(<MarketingNav starCount={null} />);
     expect(screen.getByTestId("star-badge")).toHaveTextContent("Star");
-    rerender(<HomeNav starCount={1234} />);
+    rerender(<MarketingNav starCount={1234} />);
     expect(screen.getByTestId("star-badge")).toHaveTextContent("1,234");
   });
 
   it("the mobile panel's GitHub item mirrors the same live starCount (Codex P2)", async () => {
     const user = userEvent.setup();
-    const { rerender } = render(<HomeNav starCount={null} />);
+    const { rerender } = render(<MarketingNav starCount={null} />);
     await user.click(screen.getByTestId("nav-menu-button"));
     const panel = screen.getByTestId("nav-menu-panel");
     const panelBadge = within(panel).getByRole("link", {
@@ -58,7 +58,7 @@ describe("HomeNav (§8.2b marketing)", () => {
     });
     expect(panelBadge).toHaveTextContent("Star");
 
-    rerender(<HomeNav starCount={1234} />);
+    rerender(<MarketingNav starCount={1234} />);
     expect(
       within(screen.getByTestId("nav-menu-panel")).getByRole("link", {
         name: "Star cuesoftinc/apparule on GitHub",
@@ -68,7 +68,7 @@ describe("HomeNav (§8.2b marketing)", () => {
 
   it("badge aria-label is derived from a custom githubHref, not hardcoded (PR review fix)", async () => {
     const user = userEvent.setup();
-    render(<HomeNav githubHref="https://github.com/acme/widgets" />);
+    render(<MarketingNav githubHref="https://github.com/acme/widgets" />);
     // desktop badge
     expect(
       screen.getByRole("link", { name: "Star acme/widgets on GitHub" }),
@@ -83,7 +83,9 @@ describe("HomeNav (§8.2b marketing)", () => {
 
   it("collapses the links into a hamburger disclosure below md", async () => {
     const user = userEvent.setup();
-    render(<HomeNav trailing={<button type="button">Toggle theme</button>} />);
+    render(
+      <MarketingNav trailing={<button type="button">Toggle theme</button>} />,
+    );
     const trigger = screen.getByTestId("nav-menu-button");
     expect(trigger).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByTestId("nav-menu-panel")).not.toBeInTheDocument();
@@ -137,7 +139,7 @@ describe("HomeNav (§8.2b marketing)", () => {
   });
 
   it("blurs when stuck (scroll state)", () => {
-    render(<HomeNav />);
+    render(<MarketingNav />);
     const nav = screen.getByRole("navigation", { name: "Home" });
     expect(nav).toHaveAttribute("data-state", "top");
     act(() => {
