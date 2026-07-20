@@ -180,6 +180,11 @@ test("B1 journey: like/save/follow → request stepper → order → quote → p
   await expect(page.getByText(/reply properly shortly/)).toBeVisible({
     timeout: 5_000,
   });
+  // B3 frame: every delivered bubble carries its send time beneath it
+  // ("14:05" today, dated when older).
+  await expect(
+    page.getByTestId("order-thread").locator("time").first(),
+  ).toBeVisible();
 });
 
 test("B3: the seeded list covers all ten lifecycle states", async ({

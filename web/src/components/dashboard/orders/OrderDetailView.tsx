@@ -468,6 +468,7 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
                         text={message.body}
                         content={message.image_url ? "image" : "text"}
                         imageUrl={message.image_url ?? undefined}
+                        timestamp={message.created_at}
                         state={
                           message.state === "sent" ? undefined : message.state
                         }

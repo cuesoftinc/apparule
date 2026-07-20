@@ -33,6 +33,37 @@ describe("ThreadBubble (§8.2b as built)", () => {
     expect(container.querySelector("[data-state]")).toBeNull();
   });
 
+  it("renders a per-bubble timestamp — bare time today, dated when older (B3 frame)", () => {
+    const today = new Date();
+    today.setHours(14, 5, 0, 0);
+    render(
+      <ThreadBubble side="sent" text="hi" timestamp={today.toISOString()} />,
+    );
+    expect(screen.getByText("14:05")).toBeInTheDocument();
+
+    const older = new Date("2026-03-04T13:58:00");
+    render(
+      <ThreadBubble
+        side="received"
+        text="ok"
+        timestamp={older.toISOString()}
+      />,
+    );
+    expect(screen.getByText("Mar 4, 13:58")).toBeInTheDocument();
+  });
+
+  it("timestamp waits for delivery and never applies to typing", () => {
+    const iso = new Date().toISOString();
+    const { container, rerender } = render(
+      <ThreadBubble side="sent" text="…" state="sending" timestamp={iso} />,
+    );
+    expect(container.querySelector("time")).toBeNull();
+    rerender(<ThreadBubble side="received" content="typing" timestamp={iso} />);
+    expect(container.querySelector("time")).toBeNull();
+    rerender(<ThreadBubble side="sent" text="…" timestamp={iso} />);
+    expect(container.querySelector("time")).not.toBeNull();
+  });
+
   it("sending dims; failed offers retry", async () => {
     const onRetry = vi.fn();
     const { rerender, container } = render(
