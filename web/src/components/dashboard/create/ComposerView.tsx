@@ -13,7 +13,6 @@ import { useComposer } from "@/controllers/use-composer";
 import { Banner } from "@/components/ui/Banner";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
-import { EmptyState } from "@/components/ui/EmptyState";
 import { FormRow } from "@/components/ui/FormRow";
 import { Input } from "@/components/ui/Input";
 import { MediaDropzone, MediaUploadTile } from "@/components/ui/MediaDropzone";
@@ -97,11 +96,8 @@ export function ComposerView() {
         aria-labelledby="composer-media-h"
         className="flex flex-col gap-3"
       >
-        <h2
-          id="composer-media-h"
-          className="text-body font-semibold text-text-2"
-        >
-          Photos ({composer.media.length}/10)
+        <h2 id="composer-media-h" className="sr-only">
+          Photos
         </h2>
         {composer.media.length < 10 ? (
           <MediaDropzone
@@ -110,6 +106,10 @@ export function ComposerView() {
             errorMessage={composer.dropError ?? undefined}
           />
         ) : null}
+        {/* B5 frame (180:827): the media area is the dropzone + tiles with
+            the counted limits line beneath — no EmptyState here (the
+            explore-context EmptyState with its search icon + "Clear search"
+            CTA was a wrong-context bug, audit #11). */}
         {composer.media.length > 0 ? (
           <ul className="flex flex-wrap gap-2" data-testid="composer-tiles">
             {composer.media.map((item, index) => (
@@ -170,12 +170,13 @@ export function ComposerView() {
               </li>
             ))}
           </ul>
-        ) : (
-          <EmptyState
-            context="explore"
-            line="Add up to 10 photos — JPEG, PNG, or WebP, 10 MB max."
-          />
-        )}
+        ) : null}
+        {composer.media.length > 0 ? (
+          <p className="text-caption text-text-2">
+            {composer.media.length} of 10 · JPEG, PNG or WebP · ≤10 MB each ·
+            alt text required
+          </p>
+        ) : null}
       </section>
 
       <form
