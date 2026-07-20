@@ -140,6 +140,19 @@ function minimalPdf(lines: string[]): Buffer {
   return Buffer.from(body, "utf8");
 }
 
+/**
+ * Seeded NG banks (mirrors the B8 onboarding Select). Payout surfaces
+ * render the DISPLAY name ("GTBank ••• 4521 · Verified", Figma 210:3) —
+ * the CBN code is a Paystack wire detail that must never reach bank_name.
+ */
+const BANK_NAMES: Record<string, string> = {
+  "058": "GTBank",
+  "044": "Access Bank",
+  "057": "Zenith Bank",
+  "011": "First Bank",
+  "033": "UBA",
+};
+
 export class MockStore {
   accounts: Account[] = deepClone(seedAccounts);
   designers: DesignerProfile[] = deepClone(seedDesigners);
@@ -1506,7 +1519,7 @@ export class MockStore {
     const lapsed = accountNumber === "9999999999";
     designer.payout_account = {
       provider_ref: `PSTK-RCP-${accountNumber.slice(-5)}`,
-      bank_name: bankCode,
+      bank_name: BANK_NAMES[bankCode] ?? bankCode,
       account_last4: accountNumber.slice(-4),
       kyc_state: lapsed ? "lapsed" : "verified",
     };

@@ -4,7 +4,7 @@
 // controllers/home-demo, the star count from the github repository, and
 // analytics through the controller transport.
 import type { Metadata } from "next";
-import { HomeFooter } from "@/components/ui/HomeFooter";
+import { MarketingFooter } from "@/components/ui/MarketingFooter";
 import { CommunitySection } from "@/components/home/CommunitySection";
 import { ComparisonSection } from "@/components/home/ComparisonSection";
 import { DesignersSection } from "@/components/home/DesignersSection";
@@ -60,7 +60,7 @@ export default function HomePage() {
         <CommunitySection />
         <FinalCtaBand />
       </main>
-      <HomeFooter />
+      <MarketingFooter />
     </div>
   );
 }

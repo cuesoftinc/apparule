@@ -1,6 +1,6 @@
 "use client";
 
-// HomeNav — design.md §8.2b marketing kit, per the org "Marketing nav,
+// MarketingNav — design.md §8.2b marketing kit, per the org "Marketing nav,
 // footer & theme parity canon" (SKILL.md, revised 2026-07-19): four links
 // — Features · For designers · Docs · GitHub, with GitHub rendered as the
 // compact star badge (star glyph + "Star" + the live count from the shared
@@ -18,13 +18,13 @@ import { Menu, Star, X } from "lucide-react";
 import { Button } from "./Button";
 import { GitHubMark } from "@/components/icons/GitHubMark";
 
-export interface HomeNavLink {
+export interface MarketingNavLink {
   label: string;
   href: string;
 }
 
-export interface HomeNavProps {
-  links?: HomeNavLink[];
+export interface MarketingNavProps {
+  links?: MarketingNavLink[];
   githubHref?: string;
   /** Live star count (shared cached fetch); null keeps the neutral badge. */
   starCount?: number | null;
@@ -42,7 +42,7 @@ export interface HomeNavProps {
   className?: string;
 }
 
-const DEFAULT_LINKS: HomeNavLink[] = [
+const DEFAULT_LINKS: MarketingNavLink[] = [
   { label: "Features", href: "#product" },
   { label: "For designers", href: "#designers" },
   { label: "Docs", href: "https://cuesoft.gitbook.io/apparule" },
@@ -78,7 +78,7 @@ function githubRepoSlug(href: string): string {
   }
 }
 
-export function HomeNav({
+export function MarketingNav({
   links = DEFAULT_LINKS,
   githubHref = "https://github.com/cuesoftinc/apparule",
   starCount = null,
@@ -86,7 +86,7 @@ export function HomeNav({
   onTryCloud,
   trailing,
   className,
-}: HomeNavProps) {
+}: MarketingNavProps) {
   const [stuck, setStuck] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const githubAriaLabel = `Star ${githubRepoSlug(githubHref)} on GitHub`;

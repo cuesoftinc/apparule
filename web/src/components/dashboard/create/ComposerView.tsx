@@ -13,7 +13,6 @@ import { useComposer } from "@/controllers/use-composer";
 import { Banner } from "@/components/ui/Banner";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
-import { EmptyState } from "@/components/ui/EmptyState";
 import { FormRow } from "@/components/ui/FormRow";
 import { Input } from "@/components/ui/Input";
 import { MediaDropzone, MediaUploadTile } from "@/components/ui/MediaDropzone";
@@ -171,10 +170,12 @@ export function ComposerView() {
             ))}
           </ul>
         ) : (
-          <EmptyState
-            context="explore"
-            line="Add up to 10 photos — JPEG, PNG, or WebP, 10 MB max."
-          />
+          /* B5 frame (180:827): the media area carries no EmptyState — the
+             explore-context EmptyState rendered a search icon + "Clear
+             search" CTA on the create screen (wrong-context bug, audit §3). */
+          <p className="text-caption text-text-2">
+            Add up to 10 photos — JPEG, PNG, or WebP, 10 MB max.
+          </p>
         )}
       </section>
 
