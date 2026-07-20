@@ -577,3 +577,114 @@ test.describe("cursor affordance", () => {
     expect(linkCursor).toBe("pointer");
   });
 });
+
+// Type contract — the landing's key roles render the Figma Home frame's
+// (186:2) computed type: Inter (next/font, variable — real 400/600/700, no
+// synthetic bolding) at the ramp's size/line-height, with the type styles'
+// tracking pinned by the utilities (Title/24 −0.25px · Display/32 −0.5px).
+// Regression lock for the font-weight audit (2026-07-20).
+test.describe("type contract — Figma Home frame roles", () => {
+  test("per-role computed font-family/weight/size/tracking match the ramp", async ({
+    page,
+  }) => {
+    await page.goto("/");
+
+    const rail = page.getByTestId("walkthrough-rail");
+    const roles = [
+      {
+        role: "hero H1 (Display/32 Bold)",
+        locator: page.getByRole("heading", {
+          name: "Two photos. A perfect fit.",
+        }),
+        weight: "700",
+        size: "32px",
+        lineHeight: "40px",
+        letterSpacing: "-0.5px",
+      },
+      {
+        role: "stat-band heading (Title/24 Bold)",
+        locator: page.getByRole("heading", {
+          name: "Made-to-measure, without the guesswork",
+        }),
+        weight: "700",
+        size: "24px",
+        lineHeight: "30px",
+        letterSpacing: "-0.25px",
+      },
+      {
+        role: "walkthrough heading (Title/24 Bold)",
+        locator: page.getByRole("heading", { name: "How it works" }),
+        weight: "700",
+        size: "24px",
+        lineHeight: "30px",
+        letterSpacing: "-0.25px",
+      },
+      {
+        role: "stat value (Display/32 Bold)",
+        locator: page.getByText("±2 cm", { exact: true }),
+        weight: "700",
+        size: "32px",
+        lineHeight: "40px",
+        letterSpacing: "-0.5px",
+      },
+      {
+        role: "stat caption (Body/14 Regular)",
+        locator: page.getByText(
+          "target accuracy vs a professional tape measure",
+        ),
+        weight: "400",
+        size: "14px",
+        lineHeight: "20px",
+        letterSpacing: "normal",
+      },
+      {
+        role: "step title (Body/16 Semi Bold)",
+        locator: rail.getByText("Capture", { exact: true }),
+        weight: "600",
+        size: "16px",
+        lineHeight: "22px",
+        letterSpacing: "normal",
+      },
+      {
+        role: "step caption (Body/14 Regular)",
+        locator: rail.getByText(
+          "Two photos — your measurements, automatically",
+        ),
+        weight: "400",
+        size: "14px",
+        lineHeight: "20px",
+        letterSpacing: "normal",
+      },
+    ] as const;
+
+    for (const r of roles) {
+      const cs = await r.locator.evaluate((el) => {
+        const s = getComputedStyle(el);
+        return {
+          fontFamily: s.fontFamily,
+          fontWeight: s.fontWeight,
+          fontSize: s.fontSize,
+          lineHeight: s.lineHeight,
+          letterSpacing: s.letterSpacing,
+        };
+      });
+      expect.soft(cs.fontFamily, `${r.role} family`).toMatch(/^Inter\b/);
+      expect.soft(cs.fontWeight, `${r.role} weight`).toBe(r.weight);
+      expect.soft(cs.fontSize, `${r.role} size`).toBe(r.size);
+      expect.soft(cs.lineHeight, `${r.role} line-height`).toBe(r.lineHeight);
+      expect
+        .soft(cs.letterSpacing, `${r.role} letter-spacing`)
+        .toBe(r.letterSpacing);
+    }
+
+    // The ramp's three weights are real Inter faces (variable font loaded)
+    // — a missing weight would silently fall back to synthetic bolding.
+    const weightsReal = await page.evaluate(async () => {
+      await document.fonts.ready;
+      return ["400 14px Inter", "600 16px Inter", "700 24px Inter"].map((f) =>
+        document.fonts.check(f),
+      );
+    });
+    expect(weightsReal).toEqual([true, true, true]);
+  });
+});
