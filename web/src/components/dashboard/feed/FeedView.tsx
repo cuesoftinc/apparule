@@ -132,7 +132,11 @@ export function FeedView() {
   };
 
   return (
-    <div className="mx-auto flex max-w-5xl justify-center gap-16 px-4 py-6">
+    // B1 frame (176:72): 630px feed column + 48px gutter + 320px meta rail,
+    // centered — 1030 = 630+48+320 plus the 16px side paddings. max-w-5xl
+    // (1024) with gap-16 squeezed the feed to 608 and stretched the gutter
+    // to 64.
+    <div className="mx-auto flex max-w-[1030px] justify-center gap-12 px-4 py-6">
       <div className="flex w-full max-w-[630px] flex-col">
         <h1 className="sr-only">Home feed</h1>
 
