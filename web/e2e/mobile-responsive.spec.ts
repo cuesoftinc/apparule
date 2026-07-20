@@ -183,6 +183,9 @@ test("order-thread image attachments stay inside the bubble at 390", async ({
   await signIn(page);
   await settle(page, "/dashboard/orders/req-apr-1042");
   const images = page.locator("[data-content='image']");
+  // The thread hydrates after <main> paints (async fetch) — auto-wait for
+  // the first attachment instead of racing settle()'s fixed delay.
+  await expect(images.first()).toBeVisible();
   const count = await images.count();
   expect(count).toBeGreaterThan(0);
   for (let i = 0; i < count; i++) {
