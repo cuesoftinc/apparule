@@ -26,6 +26,11 @@ test.describe("API reference — /docs/api", () => {
     await expect(
       page.getByText("Resolve caller's account").first(),
     ).toBeVisible();
+
+    // Scalar's developer toolbar is author chrome — never on the public
+    // reference (showDeveloperTools: "never"; the default leaks it on
+    // localhost-class hosts, which is exactly how e2e runs).
+    await expect(page.getByText("Developer Tools")).toHaveCount(0);
   });
 
   test("the OpenAPI document is served at /docs/api/openapi.yaml", async ({
