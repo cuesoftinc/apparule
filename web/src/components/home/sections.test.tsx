@@ -91,10 +91,17 @@ describe("DesignersSection (A6)", () => {
 });
 
 describe("SelfHostSection (A7c)", () => {
-  it("renders pitch, one-liner, what-ships and the docs link", () => {
+  it("renders pitch, tabbed snippet, what-ships and the docs link", () => {
     render(<SelfHostSection />);
     expect(screen.getByText("Self-host — own your data")).toBeInTheDocument();
-    expect(screen.getByText(/docker compose up -d/)).toBeInTheDocument();
+    // tabbed snippet (Figma 415:2): Docker Compose active, Helm mirrored
+    expect(
+      screen.getByRole("tablist", { name: "Install method" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/cd apparule && docker compose up --build -d/),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Helm" })).toBeInTheDocument();
     expect(screen.getByText("api-common")).toBeInTheDocument();
     expect(screen.getByText("api-measure")).toBeInTheDocument();
     expect(

@@ -57,11 +57,14 @@ test.describe("Marketing site — home page", () => {
     ).toBeVisible();
     expect(await page.getByTestId("dev-topic-card").count()).toBe(3);
 
-    // A7c self-host + A7 architecture diagram
+    // A7c self-host (tabbed, Figma 415:2) + A7 architecture diagram
     await expect(
       page.getByRole("heading", { name: "Self-host — own your data" }),
     ).toBeVisible();
-    await expect(page.getByText("docker compose up -d")).toBeVisible();
+    await expect(
+      page.getByText("cd apparule && docker compose up --build -d"),
+    ).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Helm" })).toBeVisible();
     await expect(page.getByTestId("architecture-diagram")).toBeVisible();
 
     // A9 comparison
@@ -189,13 +192,52 @@ test.describe("Marketing site — home page", () => {
     await expect(html).toHaveAttribute("data-theme", "light");
   });
 
-  test("snippet copy button morphs to the copied check", async ({ page }) => {
+  // A7c tabbed snippet (Figma 415:2): tab switch is instant with no layout
+  // shift, copy targets the ACTIVE tab's full two-line block, and the
+  // section fits the 1440/390 container canons.
+  test("self-host tabs — helm copy lands the full block on the clipboard", async ({
+    page,
+    context,
+  }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/");
-    await page
-      .getByRole("heading", { name: "Self-host — own your data" })
-      .scrollIntoViewIfNeeded();
-    await page.getByRole("button", { name: "Copy command" }).click();
-    await expect(page.getByTestId("copied-check")).toBeVisible();
+    const section = page.locator("#self-host");
+    await section.scrollIntoViewIfNeeded();
+    const block = page.getByTestId("selfhost-snippet");
+    const tablist = block.getByRole("tablist", { name: "Install method" });
+    await expect(tablist).toBeVisible();
+
+    const before = await block.boundingBox();
+    await tablist.getByRole("tab", { name: "Helm" }).click();
+    await expect(
+      block.getByText("cd apparule && helm install apparule deploy/helm"),
+    ).toBeVisible();
+    // no layout shift — the mirrored two-line block keeps its box
+    const after = await block.boundingBox();
+    expect(after!.height).toBe(before!.height);
+    expect(after!.width).toBe(before!.width);
+
+    await block.getByRole("button", { name: "Copy commands" }).click();
+    await expect(block.getByTestId("copied-check")).toBeVisible();
+    const clip = await page.evaluate(() => navigator.clipboard.readText());
+    expect(clip).toBe(
+      "git clone https://github.com/cuesoftinc/apparule\ncd apparule && helm install apparule deploy/helm",
+    );
+
+    // 390 canon: the block stays inside the viewport, no document overflow
+    await page.setViewportSize({ width: 390, height: 844 });
+    await section.scrollIntoViewIfNeeded();
+    const mobile = await block.boundingBox();
+    expect(mobile!.width).toBeLessThanOrEqual(390);
+    const overflow = await page.evaluate(
+      () =>
+        Math.max(
+          document.documentElement.scrollWidth,
+          document.body.scrollWidth,
+        ) - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
   });
 });
 
