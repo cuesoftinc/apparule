@@ -799,6 +799,30 @@ describe("notification prefs + moderation gate + thread auto-reply", () => {
     );
   });
 
+  it("queue seeds the canvas narrative: open rows lead, actioned audit row renders, dismissed drop", () => {
+    const queue = store.moderationQueue("kiki.adeyemi");
+    expect(queue.length).toBe(3);
+    expect(queue.filter((r) => r.status === "open").length).toBe(2);
+    // Open rows lead; the actioned exemplar (audit trail) trails.
+    expect(queue[queue.length - 1].status).toBe("actioned");
+    const actioned = queue[queue.length - 1];
+    expect(actioned.actioned_by?.username).toBe("mod.sarah");
+    expect(actioned.action).toBe("hide_post");
+    expect(actioned.actioned_at).toBeTruthy();
+    // The reported-post row carries its author + thumb (canvas anatomy).
+    const postReport = queue.find((r) => r.subject_kind === "post")!;
+    expect(postReport.subject_preview.author_username).toBe("amara.designs");
+    expect(postReport.subject_preview.thumb_url).toMatch(/^\/demo\//);
+    // Acting writes the audit fields; dismissing removes the row.
+    const acted = store.actOnReport("rep-2", "kiki.adeyemi", "hide_post");
+    expect(acted.actioned_by?.username).toBe("kiki.adeyemi");
+    expect(acted.action).toBe("hide_post");
+    store.actOnReport("rep-1", "kiki.adeyemi", "dismiss");
+    const after = store.moderationQueue("kiki.adeyemi");
+    expect(after.some((r) => r.id === "rep-1")).toBe(false);
+    expect(after.find((r) => r.id === "rep-2")?.status).toBe("actioned");
+  });
+
   it("scripts one counterparty auto-reply per thread (MI-17)", () => {
     const before = store.messagesFor("req-apr-1042", "kiki.adeyemi").length;
     store.addMessage("req-apr-1042", "kiki.adeyemi", "Any progress?", null);

@@ -149,6 +149,26 @@ export const seedAccounts: Account[] = [
     ],
     created_at: daysAgo(160),
   },
+  {
+    // Platform moderator — the B7a audit-trail actor (the actioned queue
+    // row reads "… by @mod.sarah"). Staff, not a designer; no social edges.
+    id: "acc-sarah",
+    firebase_uid: "test-uid-sarah",
+    email: "sarah@apparule.example.com",
+    username: "mod.sarah",
+    display_name: "Sarah Bello",
+    avatar_url: null,
+    profile_location: { city: "Lagos", state: "Lagos", country: "NG" },
+    deletion_state: "active",
+    designer: { enabled: false, kyc_complete: false },
+    is_staff: true,
+    notification_prefs: defaultPrefs(),
+    consent: [
+      { document: "tos", version: "1.0", accepted_at: daysAgo(320) },
+      { document: "privacy", version: "1.0", accepted_at: daysAgo(320) },
+    ],
+    created_at: daysAgo(320),
+  },
 ];
 
 // Community members — the wider Lagos-scene audience around the four core
@@ -1671,6 +1691,11 @@ export const seedNotifications: Notification[] = [
   },
 ];
 
+// The B7a queue narrative (canvas shape): two open reports — a spam
+// comment and a reported post with its thumb — plus one actioned exemplar
+// so the audit-trail row state renders from boot. Reported comments exist
+// as previews only (the spam one was never a seeded comment; the actioned
+// one is hidden), so post comment_counts stay honest.
 export const seedReports: Report[] = [
   {
     id: "rep-1",
@@ -1680,12 +1705,51 @@ export const seedReports: Report[] = [
     subject_preview: {
       text: "🔥🔥 Buy followers cheap — link in bio",
       thumb_url: null,
+      author_username: null,
     },
     reason: "spam",
     detail: null,
     status: "open",
+    action: null,
     actioned_by: null,
-    created_at: daysAgo(1),
+    actioned_at: null,
+    created_at: daysAgoAt(1, "21:37"),
+  },
+  {
+    id: "rep-2",
+    reporter: { id: "acc-chidi", username: "chidi.n" },
+    subject_kind: "post",
+    subject_id: "post-fabric-drop",
+    subject_preview: {
+      text: "New fabric drop — bring your vault measurements and pick a silhouette.",
+      thumb_url: "/demo/outfit-w14.jpg",
+      author_username: "amara.designs",
+    },
+    reason: "spam",
+    detail: "Reads like an ad, not an outfit post.",
+    status: "open",
+    action: null,
+    actioned_by: null,
+    actioned_at: null,
+    created_at: daysAgoAt(2, "08:19"),
+  },
+  {
+    id: "rep-3",
+    reporter: { id: "acc-zainab", username: "zainab.k" },
+    subject_kind: "comment",
+    subject_id: "cmt-counterfeit-1",
+    subject_preview: {
+      text: "DM for the exact same aso-oke, half the price 👀",
+      thumb_url: null,
+      author_username: null,
+    },
+    reason: "counterfeit",
+    detail: "Selling knockoffs of maisonbisi pieces in the comments.",
+    status: "actioned",
+    action: "hide_post", // comment subject — renders as hide_comment
+    actioned_by: { id: "acc-sarah", username: "mod.sarah" },
+    actioned_at: daysAgoAt(5, "09:12"),
+    created_at: daysAgoAt(6, "22:05"),
   },
 ];
 

@@ -374,15 +374,26 @@ test("B7: notification prefs persist across reload; consent history renders", as
   );
 });
 
-test("B7a: staff moderation queue — dismiss clears the report", async ({
+test("B7a: staff moderation queue — audit exemplar from boot; dismiss drops a row", async ({
   page,
 }) => {
   await signIn(page);
   await page.goto("/dashboard/admin/moderation");
   const queue = page.getByTestId("moderation-queue");
+  // Seeded canvas narrative: two open rows (spam comment + reported post
+  // with author) and one actioned audit-trail exemplar.
   await expect(queue).toContainText("Buy followers cheap");
-  await queue.getByRole("button", { name: "Dismiss" }).click();
-  await expect(page.getByText(/queue is clear/)).toBeVisible();
+  await expect(queue).toContainText("Reported post by @amara.designs");
+  await expect(page.getByTestId("audit-line")).toContainText(
+    "hide_comment by @mod.sarah",
+  );
+  const spamRow = queue
+    .locator("li")
+    .filter({ hasText: "Buy followers cheap" });
+  await spamRow.getByRole("button", { name: "Dismiss" }).click();
+  await expect(queue).not.toContainText("Buy followers cheap");
+  // The rest of the queue survives the dismissal.
+  await expect(queue).toContainText("Reported post by @amara.designs");
 });
 
 test("B3 matrix: customer dispute freezes payout; confirm-delivery releases it", async ({

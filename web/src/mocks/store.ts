@@ -1599,11 +1599,15 @@ export class MockStore {
       subject_preview: {
         text: post?.caption ?? comment?.body ?? subjectId,
         thumb_url: post?.media[0]?.url ?? null,
+        author_username:
+          post?.designer.username ?? comment?.author.username ?? null,
       },
       reason,
       detail: detail ?? null,
       status: "open",
+      action: null,
       actioned_by: null,
+      actioned_at: null,
       created_at: new Date().toISOString(),
     };
     this.reports.unshift(report);
@@ -1633,7 +1637,13 @@ export class MockStore {
 
   moderationQueue(moderatorUsername: string): Report[] {
     this.requireStaff(moderatorUsername);
-    return deepClone(this.reports.filter((r) => r.status === "open"));
+    // Open reports lead; actioned rows stay listed as the audit trail
+    // (canvas narrative — the queue shows what moderation did, not just
+    // what's pending). Dismissed reports leave the queue.
+    return deepClone([
+      ...this.reports.filter((r) => r.status === "open"),
+      ...this.reports.filter((r) => r.status === "actioned"),
+    ]);
   }
 
   actOnReport(
@@ -1652,7 +1662,9 @@ export class MockStore {
       if (comment) comment.hidden_by_moderation = true;
     }
     report.status = action === "dismiss" ? "dismissed" : "actioned";
-    report.actioned_by = moderator.id;
+    report.action = action;
+    report.actioned_by = { id: moderator.id, username: moderator.username };
+    report.actioned_at = new Date().toISOString();
     return deepClone(report);
   }
 
