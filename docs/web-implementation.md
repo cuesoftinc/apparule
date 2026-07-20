@@ -295,6 +295,9 @@ approved gap implementations:
   mounts after hydration and remounts on theme change, since
   `updateConfiguration` never re-applies it); Scalar's own toggle is
   hidden and its remote default fonts are disabled (self-host ethos).
+  Scalar's developer toolbar is pinned off (`showDeveloperTools:
+  "never"` — the `"localhost"` default surfaced author chrome on the
+  public reference in local/TEST_MODE runs).
   Header construction: the sticky marketing nav (h-16) and Scalar's
   sticky layout coexist via `--scalar-custom-header-height: 64px` on the
   embed wrapper (offsets Scalar's sticky sidebar/mobile bar below the
@@ -304,6 +307,33 @@ approved gap implementations:
   pins route 200, a rendered operation from the spec, the served
   document, the footer handoff, the header/scroll sanity and the
   embed-theme sync.
+
+**Design-convergence as-built notes (2026-07-20):** the code-side fixes
+from the Figma ↔ code divergence audit (seed-side details live in §6):
+
+- Thread bubbles carry per-bubble timestamps (B3 frame): bare `HH:mm` for
+  same-day messages, `MMM d, HH:mm` (the OrderTimelineRow idiom) when
+  older, side-aligned under the bubble; delivered messages only — never
+  sending or typing bubbles.
+- Measurement values render **one decimal everywhere** ("92.0 cm", the
+  frame's "58.0 cm" idiom) via `formatCm` — MeasurementCard, SessionRow,
+  snapshot chips and the request stepper share the single formatter, so
+  tnum columns stay aligned.
+- The OWN avatar wears the measurement-freshness ring (MI-11 / the C9
+  construction) on the profile header — both the regular-user and
+  designer-self branches — while other designers keep the B6 gradient
+  story ring. The fresh/aging/stale → gradient/amber/gray mapping is one
+  helper (`freshnessRing` on the Avatar atom) shared by the vault header,
+  the feed freshness card and the profile.
+- ModerationQueueRow anatomy matches the B7a canvas: headline carries the
+  content author when known ("Reported post by @amara.designs"),
+  reporters are @-prefixed, and actioned rows render the audit line
+  ("Actioned · hide_comment by @mod.sarah · Jul 15, 09:12" — the
+  effective action; `hide_post` on a comment subject reads
+  `hide_comment`). Acting morphs the row in place; dismissing removes it;
+  the queue banner links "Learn more" to the trust & safety doc.
+- `UserRow` call sites (suggestions, explore designer search, follower
+  sheets) pass `avatar_url` through — the row always supported it.
 
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
@@ -431,6 +461,9 @@ the designs:
   CC-sourced outfit photography (design.md §8.3 — same pool as the Figma
   Assets page), captions, style tags, and NGN pricing spread across the
   explore price bands (api.md §5: budget <25k, mid 25–100k, premium >100k).
+  Suggested designers (the B1 rail) carry real photo avatars — each fronts
+  their OWN published photography from the licensed pool, so the booted
+  rail matches the canvas without new assets or fabricated identities.
 - The signed-in test user: non-designer, vault populated with scan +
   manual sessions whose `measured_at` spread exercises all three freshness
   ring states (fresh/aging/stale, MI-11), follows several designers (story
@@ -439,10 +472,23 @@ the designs:
   one per state and per role view, so every StatusPill, OrderTimelineRow,
   and PaymentBox variant renders from seed — including an escrow-held
   payment with the itemized 10% fee line and a dispute-frozen order.
+  Timestamps follow the **plausible-cadence rule**: each order's events
+  spread across real-looking hours (strictly ordered, never a same-minute
+  cluster; the order and its frozen snapshot anchor to the requested
+  event) and thread messages sit minutes-to-hours around the events they
+  narrate — unit-gated in `store.test.ts`.
 - Notifications of every kind (like / follow / comment / quote /
-  status-change / payout), part unread; open moderation-queue reports; a
-  designer persona with EarningsSummary balances and TransactionRow
-  history for B9.
+  status-change / payout), part unread; a designer persona with
+  EarningsSummary balances and TransactionRow history for B9.
+- A moderation queue in the B7a canvas shape: two open reports (a spam
+  comment and a reported post with thumb + author) plus one ACTIONED
+  audit-trail exemplar by the seeded staff moderator (`mod.sarah`).
+  Reported comments exist as previews only, so post comment_counts stay
+  honest. The mock's REPORT carries audit fields — `action`,
+  `actioned_by {id, username}`, `actioned_at`, subject author — ahead of
+  the data-model.md §6.2 sketch (deviation noted, same as the profile
+  reads); the queue lists open rows first with actioned rows trailing as
+  the audit trail, and dismissals drop out.
 - Measurement snapshots frozen per request (vault edits after seed never
   mutate them — the data-model.md §5 rule holds in the mock too).
 
