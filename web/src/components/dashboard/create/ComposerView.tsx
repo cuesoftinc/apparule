@@ -8,6 +8,7 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Camera } from "lucide-react";
 import { useAuth } from "@/controllers/auth/AuthContext";
 import { useComposer } from "@/controllers/use-composer";
 import { Banner } from "@/components/ui/Banner";
@@ -25,26 +26,36 @@ export function ComposerView() {
   const { showToast } = useToasts();
   const [tagDraft, setTagDraft] = useState("");
 
-  // Creator-profile upsell for non-designers (pages.md B5).
+  // Creator-profile upsell for non-designers (pages.md B5: "Become a
+  // designer"). Figma 269:9589 construction: the screen keeps the "New
+  // outfit post" title, and the upsell is a bordered card — camera icon,
+  // headline, post-now/bank-later body, gradient "Set up your designer
+  // profile" CTA (audit #5).
   if (account && !account.designer.enabled) {
     return (
-      <div className="mx-auto flex max-w-xl flex-col gap-4 px-4 py-16 text-center">
-        <h1 className="text-title-lg font-bold text-text">
-          Post outfits, get commissioned, get paid
-        </h1>
-        <p className="text-body text-text-2">
-          Turn your work into a storefront: publish looks, receive requests with
-          exact measurements attached, and get paid through escrow.
-        </p>
-        <div>
+      <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6">
+        <header>
+          <h1 className="text-title-lg font-bold text-text">New outfit post</h1>
+        </header>
+        <section
+          aria-label="Become a designer"
+          className="mx-auto mt-16 flex w-full max-w-xl flex-col items-center gap-4 rounded-card border border-border bg-bg-elev px-8 py-12 text-center"
+        >
+          <Camera size={32} aria-hidden className="text-text" />
+          <h2 className="text-title font-bold text-text">Become a designer</h2>
+          <p className="text-body text-text-2">
+            Posting outfits is for designer profiles. Set yours up in a minute —
+            post right away, add banking details when you&apos;re ready to
+            accept requests.
+          </p>
           <Link
             href="/dashboard/designer/onboarding"
             data-testid="become-designer"
             className="inline-flex h-11 items-center justify-center rounded-card bg-accent-gradient px-6 text-body font-semibold text-on-accent"
           >
-            Become a designer
+            Set up your designer profile
           </Link>
-        </div>
+        </section>
       </div>
     );
   }
