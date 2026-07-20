@@ -2,9 +2,12 @@
 
 // ThreadBubble — design.md §8.2b (as built): side sent / received ·
 // content text / image / typing (MI-17 three-dot "responding…" pulse) ·
-// state sending / sent / failed (send-state axis doesn't apply to typing).
+// state sending / sent / failed (send-state axis doesn't apply to typing) ·
+// per-bubble timestamp beneath, aligned to the bubble side (B3 frame
+// 179:536: "13:58" under each bubble — audit #15).
 import clsx from "clsx";
 import Image from "next/image";
+import { format } from "date-fns";
 
 export type ThreadBubbleContent = "text" | "image" | "typing";
 export type ThreadBubbleState = "sending" | "sent" | "failed";
@@ -15,6 +18,8 @@ export interface ThreadBubbleProps {
   state?: ThreadBubbleState;
   text?: string;
   imageUrl?: string;
+  /** ISO timestamp — renders "13:58" under the bubble (B3 frame). */
+  timestamp?: string | null;
   onRetry?: () => void;
   className?: string;
 }
@@ -25,6 +30,7 @@ export function ThreadBubble({
   state = "sent",
   text,
   imageUrl,
+  timestamp,
   onRetry,
   className,
 }: ThreadBubbleProps) {
@@ -88,6 +94,10 @@ export function ThreadBubble({
         >
           Failed — tap to retry
         </button>
+      ) : timestamp && content !== "typing" ? (
+        <time dateTime={timestamp} className="tnum mt-1 text-micro text-text-2">
+          {format(new Date(timestamp), "HH:mm")}
+        </time>
       ) : null}
     </div>
   );
