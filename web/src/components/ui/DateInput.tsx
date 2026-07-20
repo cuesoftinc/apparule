@@ -17,6 +17,7 @@ import {
   isBefore,
   isSameDay,
   isSameMonth,
+  isToday,
   startOfDay,
   startOfMonth,
   startOfWeek,
@@ -92,7 +93,9 @@ export function DateInput({
             // paints over it and swallows every click, so the due date could
             // never be picked. Same layer as the sheet, later in portal
             // order wins (the same class of fix as Select, W3).
-            className="z-40 rounded-card border border-border bg-bg-elev p-3 shadow-lg"
+            // p-4: the master (87:1035) pads the panel 16px — the grid never
+            // sits flush against the panel edges.
+            className="z-40 rounded-card border border-border bg-bg-elev p-4 shadow-lg"
           >
             <DatePickerPopover
               value={value}
@@ -114,7 +117,14 @@ export function DateInput({
   );
 }
 
-/** DatePickerPopover — the standalone month-grid calendar (bespoke, no kit). */
+/**
+ * DatePickerPopover — the standalone month-grid calendar.
+ *
+ * Anatomy is the Figma master (87:1035): 252px grid on a 16px-padded panel,
+ * Sunday-first S M T W T F S header (12 semibold, text-2), 36×32 pill day
+ * cells (13px, tnum) in rows separated by 8px, outside-month cells blank,
+ * today ringed with the border token, selected = gradient pill.
+ */
 export function DatePickerPopover({
   value,
   minDate,
@@ -126,21 +136,21 @@ export function DatePickerPopover({
 }) {
   const [month, setMonth] = useState(() => startOfMonth(value ?? new Date()));
   const days = eachDayOfInterval({
-    start: startOfWeek(startOfMonth(month), { weekStartsOn: 1 }),
-    end: endOfWeek(endOfMonth(month), { weekStartsOn: 1 }),
+    start: startOfWeek(startOfMonth(month), { weekStartsOn: 0 }),
+    end: endOfWeek(endOfMonth(month), { weekStartsOn: 0 }),
   });
   const min = minDate ? startOfDay(minDate) : undefined;
 
   return (
-    <div data-testid="date-picker" className="w-64 select-none">
+    <div data-testid="date-picker" className="w-[252px] select-none">
       <div className="mb-2 flex items-center justify-between">
         <button
           type="button"
           aria-label="Previous month"
           onClick={() => setMonth((m) => addMonths(m, -1))}
-          className="grid size-8 place-items-center rounded-pill text-text-2 hover:bg-border/40"
+          className="grid size-6 place-items-center rounded-pill text-text-2 hover:bg-border/40"
         >
-          <ChevronLeft size={16} />
+          <ChevronLeft size={18} />
         </button>
         <span className="text-body font-semibold">
           {format(month, "MMMM yyyy")}
@@ -149,21 +159,28 @@ export function DatePickerPopover({
           type="button"
           aria-label="Next month"
           onClick={() => setMonth((m) => addMonths(m, 1))}
-          className="grid size-8 place-items-center rounded-pill text-text-2 hover:bg-border/40"
+          className="grid size-6 place-items-center rounded-pill text-text-2 hover:bg-border/40"
         >
-          <ChevronRight size={16} />
+          <ChevronRight size={18} />
         </button>
       </div>
-      <div className="grid grid-cols-7 gap-y-0.5 text-center">
-        {["M", "T", "W", "T2", "F", "S", "S2"].map((d) => (
-          <span key={d} className="py-1 text-micro text-text-2">
+      <div className="grid grid-cols-7 gap-y-2 text-center">
+        {["S", "M", "T", "W", "T2", "F", "S2"].map((d) => (
+          <span key={d} className="py-1 text-micro font-semibold text-text-2">
             {d.replace(/\d/, "")}
           </span>
         ))}
         {days.map((day) => {
-          const outside = !isSameMonth(day, month);
+          if (!isSameMonth(day, month)) {
+            // Master leaves outside-month cells empty — no adjacent-month
+            // day numbers.
+            return (
+              <span key={day.toISOString()} aria-hidden className="h-8 w-9" />
+            );
+          }
           const disabled = min !== undefined && isBefore(day, min);
           const selected = value !== null && isSameDay(day, value);
+          const today = isToday(day);
           return (
             <button
               key={day.toISOString()}
@@ -172,13 +189,16 @@ export function DatePickerPopover({
               onClick={() => onSelect(day)}
               aria-pressed={selected || undefined}
               className={clsx(
-                "tnum mx-auto grid size-8 place-items-center rounded-pill text-body",
+                "tnum grid h-8 w-9 place-items-center rounded-pill text-caption",
                 selected
                   ? "bg-accent-gradient font-semibold text-on-accent"
                   : "text-text hover:bg-border/40",
-                outside && !selected && "text-text-2/60",
-                disabled &&
-                  "cursor-not-allowed text-text-2/30 hover:bg-transparent",
+                today && !selected && "border border-border",
+                disabled && "cursor-not-allowed hover:bg-transparent",
+                // Today stays legible even when the min-date rule disables
+                // it (master: text-2 at full opacity); other disabled days
+                // fade to text-2/50.
+                disabled && (today ? "text-text-2" : "text-text-2/50"),
               )}
             >
               {format(day, "d")}
