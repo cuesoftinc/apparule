@@ -19,10 +19,7 @@ export function HeroSection() {
     >
       <div className="flex flex-col items-start gap-12 pb-16 pt-10 md:flex-row md:items-center md:gap-16 md:pb-20 md:pt-16">
         <div className="max-w-[520px]">
-          <h1
-            id="hero-heading"
-            className="text-display font-bold text-text"
-          >
+          <h1 id="hero-heading" className="text-display font-bold text-text">
             Two photos. A perfect fit.
           </h1>
           <p className="mt-6 max-w-[480px] text-body-lg text-text-2">
