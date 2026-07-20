@@ -21,7 +21,7 @@ export function HeroSection() {
         <div className="max-w-[520px]">
           <h1
             id="hero-heading"
-            className="text-display font-bold tracking-[-0.5px] text-text"
+            className="text-display font-bold text-text"
           >
             Two photos. A perfect fit.
           </h1>
