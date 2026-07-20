@@ -119,7 +119,7 @@ Numbered so pages.md can reference them as `MI-n`.
 | MI-8 | **Story ring** | 2px gradient ring; consumed → 1px `border` gray; subtle 1.5s rotation on ring while loading content |
 | MI-9 | **Share** | native share sheet (mobile) / copy-link popover (desktop); post flashes 1px gradient border 400ms on copy |
 | MI-10 | **Request stepper** | 3-step sheet (Measurements → Notes/Budget → Review); progress bar fills with 300ms ease; step transitions slide 24px; final CTA shows inline spinner then ✓ morph + confetti burst ≤ 800ms (once per order) |
-| MI-11 | **Measurement freshness ring** | profile avatar ring: gradient if measured <30d, amber 30–90d, gray >90d; tooltip "Measured 12 days ago — retake?" |
+| MI-11 | **Measurement freshness ring** | vault-header avatar ring: gradient if measured <30d, amber 30–90d, gray >90d; tooltip "Measured 12 days ago — retake?" — the ring is a vault affordance; profile avatars, including the viewer's own B6 profile, render plain **[Decided 2026-07-20]** |
 | MI-12 | **Capture flow** | camera overlay silhouette guide pulses gently; countdown 3-2-1 rings; processing state: landmark constellation animates over photo (the "AI is working" moment — also the SMPL demo asset); results cards stagger-in 60ms apart |
 | MI-13 | **Manual measure input** | tape-measure themed slider + numeric field; value change animates sparkline preview; unit toggle cm/in flips with 3D x-rotation 200ms |
 | MI-14 | **Order status pill** | status changes pulse once (scale 1→1.06→1) + color crossfade; timeline dot draws its connector line 400ms |
@@ -266,7 +266,7 @@ canonical scheme. The single auth CTA component (X-1) is named
 | StatusPill | the 10 order states + freshness (fresh/aging/stale) · **[Decided 2026-07-16]** order-state → token mapping: quoted/shipped → `link` · paid/delivered → `success` · in_progress/refunded → `warn` · declined/disputed → `error` · requested/cancelled → `text-2` |
 | MeasurementCard | source: scan / manual · confidence: normal / low (<0.7 chip) · with/without sparkline |
 | TabBar | active tab ×5 · Orders badge: none / count |
-| Sheet | mobile bottom / desktop modal · with/without stepper header |
+| Sheet | mobile bottom / desktop modal · with/without stepper header · size: default 480 / wide 896 (viewport-clamped — post detail opens wide) |
 | EmptyState | feed / vault / orders / explore / notifications (5 illustrated) |
 | Toast | success / error+retry / neutral |
 | Skeleton | kind: line / avatar / media / card (§3 anatomy; MI-19 shimmer) *(as built 2026-07-17)* |
