@@ -283,9 +283,18 @@ approved gap implementations:
   no persisted state), so an expanded rail can never squeeze the mobile
   content column; every dashboard route reflows cleanly at 1264/1440
   with content contained in the column.
-- F0-8 Scalar embed at `/docs/api`: **[Proposed — deferred pending
-  ratification vs the GitBook links canon]** — the docs surface stays
-  the GitBook links inventory (§ nav/footer canon) until adjudicated.
+- F0-8 Scalar embed at `/docs/api` **[Ratified 2026-07-20]**: the public
+  API reference is the `@scalar/api-reference-react` embed
+  (`ScalarApiReference` view) under the marketing nav with a minimal
+  legal strip. It renders `docs/api/openapi.yaml` — the single spec
+  source — served by the `/docs/api/openapi.yaml` route handler from a
+  build-time string asset (`npm run generate:openapi`, wired as
+  `predev`/`prebuild`/`pretypecheck`; output gitignored under
+  `src/generated/`). Theme follows ThemeProvider (Scalar `darkMode`
+  config; its own toggle hidden); remote default fonts are disabled
+  (self-host ethos). The footer Docs column's "API reference" links
+  `/docs/api`; `e2e/docs-api.spec.ts` pins route 200, a rendered
+  operation from the spec, the served document, and the footer handoff.
 
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
@@ -327,6 +336,7 @@ feed at the base itself.
 | Part A (A1–A10 + A4b/A7b/A7c/A9b/A9c) | `/` | Public home page |
 | B2 permalink note | `/p/{post_id}` | Public post detail (MI-9 share target; request CTA for signed-in users) |
 | flows/auth.md §5 | `/signin` | Single auth screen — GoogleAuthButton + legal links **[Decided 2026-07-18, route canon]** |
+| F0-8 / APP-004 | `/docs/api` | Public API reference — Scalar embed rendering `docs/api/openapi.yaml` (served at `/docs/api/openapi.yaml`); marketing nav chrome, minimal legal strip **[Ratified 2026-07-20]** |
 | B1 | `/dashboard` | Feed (story rail, PostCard column, freshness + suggestions) |
 | B2 | `/dashboard/explore` | Discover (masonry, filters, search-results state) |
 | B3 | `/dashboard/orders` · `/dashboard/orders/{id}` | Requests & orders — tabs, detail (snapshot, thread, timeline, payment box, decline sheet, dispute flow) |

@@ -30,10 +30,8 @@ const DEFAULT_COLUMNS: FooterColumn[] = [
         label: "Quickstart",
         href: "https://cuesoft.gitbook.io/apparule/setup",
       },
-      {
-        label: "API reference",
-        href: "https://cuesoft.gitbook.io/apparule/system/api-surface",
-      },
+      // In-product Scalar reference (F0-8) — renders docs/api/openapi.yaml.
+      { label: "API reference", href: "/docs/api" },
       {
         label: "Self-host guide",
         href: "https://cuesoft.gitbook.io/apparule/system/deployment",
