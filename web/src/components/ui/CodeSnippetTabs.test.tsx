@@ -39,9 +39,7 @@ describe("CodeSnippetTabs (§8.2b marketing, pages.md A7c tabbed — Figma 415:2
     expect(
       screen.getByText(/cd apparule && docker compose up --build -d/),
     ).toBeInTheDocument();
-    expect(
-      screen.queryByText(/helm install apparule/),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/helm install apparule/)).not.toBeInTheDocument();
   });
 
   it("switches tabs and copies the ACTIVE tab's full block (prompts stay out)", async () => {
