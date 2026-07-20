@@ -369,15 +369,33 @@ test("B7: notification prefs persist across reload; consent history renders", as
   );
 });
 
-test("B7a: staff moderation queue — dismiss clears the report", async ({
+test("B7a: staff moderation queue — seeded anatomy; dismiss drops the row", async ({
   page,
 }) => {
   await signIn(page);
   await page.goto("/dashboard/admin/moderation");
+
+  // Audit-log banner carries its "Learn more" action (B7a frame).
+  await expect(page.getByRole("button", { name: "Learn more" })).toBeVisible();
+
+  // Seeded anatomy (audit #19): open post report (thumb + authored title),
+  // open comment report, and an actioned exemplar with its audit line.
   const queue = page.getByTestId("moderation-queue");
-  await expect(queue).toContainText("Buy followers cheap");
-  await queue.getByRole("button", { name: "Dismiss" }).click();
-  await expect(page.getByText(/queue is clear/)).toBeVisible();
+  await expect(queue.locator("li")).toHaveCount(3);
+  await expect(queue).toContainText("Reported post by @lagos.bulk.wears");
+  await expect(queue).toContainText("Reported comment by @fitfluence.ng");
+  await expect(queue).toContainText("Reported by @tunde.o");
+  await expect(page.getByTestId("audit-line")).toContainText(
+    "Actioned · hide_comment by @kiki.adeyemi",
+  );
+
+  // Dismissing the spam-comment report drops that row; the rest stay.
+  await queue
+    .locator("li", { hasText: "Buy followers cheap" })
+    .getByRole("button", { name: "Dismiss" })
+    .click();
+  await expect(queue.locator("li")).toHaveCount(2);
+  await expect(queue).not.toContainText("Buy followers cheap");
 });
 
 test("B3 matrix: customer dispute freezes payout; confirm-delivery releases it", async ({

@@ -31,6 +31,22 @@ function hoursAgo(hours: number): string {
   return new Date(NOW().getTime() - hours * 60 * 60 * 1000).toISOString();
 }
 
+/**
+ * daysAgo pinned to a local clock time ("09:14") — seeded history events
+ * carry a plausible time-of-day cadence instead of all clustering at the
+ * boot minute (PR #102 plausible-cadence rule; audit #27/#19).
+ */
+export function daysAgoAt(
+  days: number,
+  time: `${number}:${number}`,
+  base: Date = NOW(),
+): string {
+  const date = new Date(base.getTime() - days * 24 * 60 * 60 * 1000);
+  const [hour, minute] = time.split(":").map(Number);
+  date.setHours(hour, minute, 0, 0);
+  return date.toISOString();
+}
+
 function defaultPrefs() {
   return { quotes: true, order_status: true, social: true, payouts: true };
 }
@@ -1733,21 +1749,68 @@ export const seedNotifications: Notification[] = [
   },
 ];
 
+/**
+ * B7a moderation queue anatomy from boot (audit #19): an open reported
+ * POST, an open reported comment, and an ACTIONED exemplar with its audit
+ * line. Reporters and the moderator are seed personas (kiki is the staff
+ * account); the reported-content authors are deliberately off-graph bad
+ * actors — spam/harassment comes from outside the healthy social graph,
+ * so the queue never maligns a core persona.
+ */
 export const seedReports: Report[] = [
   {
-    id: "rep-1",
+    id: "rep-post-spam",
     reporter: { id: "acc-tunde", username: "tunde.o" },
+    subject_kind: "post",
+    subject_id: "post-bulk-knockoffs",
+    subject_preview: {
+      text: "Bulk ankara sets — 90% off, DM for catalogue 🔥🔥",
+      thumb_url: "/demo/outfit-w14.jpg",
+      author_username: "lagos.bulk.wears",
+    },
+    reason: "spam",
+    detail: null,
+    status: "open",
+    action: null,
+    actioned_by: null,
+    actioned_at: null,
+    created_at: hoursAgo(2),
+  },
+  {
+    id: "rep-1",
+    reporter: { id: "acc-amara", username: "amara.designs" },
     subject_kind: "comment",
     subject_id: "cmt-spam-1",
     subject_preview: {
       text: "🔥🔥 Buy followers cheap — link in bio",
       thumb_url: null,
+      author_username: "fitfluence.ng",
     },
     reason: "spam",
     detail: null,
     status: "open",
+    action: null,
     actioned_by: null,
-    created_at: daysAgo(1),
+    actioned_at: null,
+    created_at: hoursAgo(4),
+  },
+  {
+    id: "rep-actioned",
+    reporter: { id: "acc-funmi", username: "funmi.b" },
+    subject_kind: "comment",
+    subject_id: "cmt-hidden-1",
+    subject_preview: {
+      text: "Your “designs” are traced from other people’s work — everyone knows.",
+      thumb_url: null,
+      author_username: "no.filter.lagos",
+    },
+    reason: "harassment",
+    detail: null,
+    status: "actioned",
+    action: "hide_post",
+    actioned_by: "kiki.adeyemi",
+    actioned_at: daysAgoAt(1, "09:12"),
+    created_at: daysAgoAt(2, "17:40"),
   },
 ];
 

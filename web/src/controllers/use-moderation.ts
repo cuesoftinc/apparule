@@ -81,8 +81,13 @@ export function useModeration() {
   const act = useCallback(
     async (reportId: string, action: ModerationAction) => {
       const actioned = await moderationRepo.act(reportId, action);
-      // Open queue only shows open reports — actioned rows drop out.
-      setReports((prev) => prev.filter((r) => r.id !== reportId));
+      // B7a: actioned rows stay in the queue with their audit line;
+      // dismissed reports drop out (audit #19).
+      setReports((prev) =>
+        actioned.status === "dismissed"
+          ? prev.filter((r) => r.id !== reportId)
+          : prev.map((r) => (r.id === reportId ? actioned : r)),
+      );
       return actioned;
     },
     [],

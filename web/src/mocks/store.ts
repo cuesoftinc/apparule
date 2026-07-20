@@ -1612,11 +1612,15 @@ export class MockStore {
       subject_preview: {
         text: post?.caption ?? comment?.body ?? subjectId,
         thumb_url: post?.media[0]?.url ?? null,
+        author_username:
+          post?.designer.username ?? comment?.author.username ?? null,
       },
       reason,
       detail: detail ?? null,
       status: "open",
+      action: null,
       actioned_by: null,
+      actioned_at: null,
       created_at: new Date().toISOString(),
     };
     this.reports.unshift(report);
@@ -1646,7 +1650,14 @@ export class MockStore {
 
   moderationQueue(moderatorUsername: string): Report[] {
     this.requireStaff(moderatorUsername);
-    return deepClone(this.reports.filter((r) => r.status === "open"));
+    // B7a frame: open reports first (newest first), then actioned rows
+    // with their audit line. Dismissed reports leave the queue.
+    const byNewest = (a: Report, b: Report) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    return deepClone([
+      ...this.reports.filter((r) => r.status === "open").sort(byNewest),
+      ...this.reports.filter((r) => r.status === "actioned").sort(byNewest),
+    ]);
   }
 
   actOnReport(
@@ -1665,7 +1676,9 @@ export class MockStore {
       if (comment) comment.hidden_by_moderation = true;
     }
     report.status = action === "dismiss" ? "dismissed" : "actioned";
-    report.actioned_by = moderator.id;
+    report.action = action;
+    report.actioned_by = moderator.username;
+    report.actioned_at = new Date().toISOString();
     return deepClone(report);
   }
 

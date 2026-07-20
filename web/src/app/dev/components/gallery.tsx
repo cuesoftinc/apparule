@@ -233,11 +233,14 @@ const sampleReport: Report = {
   subject_preview: {
     text: "🔥🔥 Buy followers cheap — link in bio",
     thumb_url: null,
+    author_username: "fitfluence.ng",
   },
   reason: "spam",
   detail: null,
   status: "open",
+  action: null,
   actioned_by: null,
+  actioned_at: null,
   created_at: daysAgo(1),
 };
 
@@ -838,7 +841,9 @@ export function ComponentGallery() {
               ...sampleReport,
               id: "rep-2",
               status: "actioned",
+              action: "hide_post",
               actioned_by: "staff.ops",
+              actioned_at: daysAgo(0.5),
             }}
           />
         </div>

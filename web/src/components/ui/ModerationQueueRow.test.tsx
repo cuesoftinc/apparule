@@ -5,12 +5,14 @@ import { ModerationQueueRow } from "./ModerationQueueRow";
 import { fixtureReport } from "./fixtures";
 
 describe("ModerationQueueRow (§8.2b, A-6)", () => {
-  it("open state renders preview, reporter context, reason, three actions", () => {
+  it("open state renders authored title, preview, @reporter, reason, three actions", () => {
     render(<ModerationQueueRow report={fixtureReport} />);
-    // Figma master (93:1219): "Reported comment" headline + excerpt meta
-    expect(screen.getByText("Reported comment")).toBeInTheDocument();
+    // B7a frame (audit #19): authored headline + excerpt + "@reporter" meta
+    expect(
+      screen.getByText("Reported comment by @fitfluence.ng"),
+    ).toBeInTheDocument();
     expect(screen.getByText(/Buy followers cheap/)).toBeInTheDocument();
-    expect(screen.getByText(/Reported by tunde.o/)).toBeInTheDocument();
+    expect(screen.getByText(/Reported by @tunde.o/)).toBeInTheDocument();
     expect(screen.getByText("spam")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Hide comment" }),
@@ -32,17 +34,22 @@ describe("ModerationQueueRow (§8.2b, A-6)", () => {
     expect(onAction).toHaveBeenCalledWith("suspend_account");
   });
 
-  it("actioned state swaps actions for the audit line", () => {
+  it("actioned state swaps actions for the audit line (action · @mod · when)", () => {
     render(
       <ModerationQueueRow
         report={{
           ...fixtureReport,
           status: "actioned",
+          action: "hide_post",
           actioned_by: "staff.ops",
+          actioned_at: "2026-07-15T09:12:00",
         }}
       />,
     );
-    expect(screen.getByTestId("audit-line")).toHaveTextContent("staff.ops");
+    // hide on a comment subject records as "hide_comment" (B7a frame)
+    expect(screen.getByTestId("audit-line")).toHaveTextContent(
+      "Actioned · hide_comment by @staff.ops · Jul 15, 09:12",
+    );
     expect(
       screen.queryByRole("button", { name: "Hide post" }),
     ).not.toBeInTheDocument();

@@ -19,8 +19,19 @@ export function ModerationView() {
     <div className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-6">
       <header className="flex flex-col gap-4">
         <h1 className="text-title-lg font-bold text-text">Moderation queue</h1>
-        {/* Figma 182:1223: audit-log notice as an info Banner. */}
-        <Banner tone="info">
+        {/* Figma 182:1223: audit-log notice as an info Banner with the
+            frame's "Learn more" action → the product docs (audit #19). */}
+        <Banner
+          tone="info"
+          actionLabel="Learn more"
+          onAction={() =>
+            window.open(
+              "https://cuesoft.gitbook.io/apparule",
+              "_blank",
+              "noopener",
+            )
+          }
+        >
           Every action here is recorded in the audit log.
         </Banner>
       </header>
