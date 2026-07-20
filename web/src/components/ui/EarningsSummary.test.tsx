@@ -27,4 +27,15 @@ describe("EarningsSummary + TransactionRow (§8.2b)", () => {
     render(<TransactionRow entry={fee} />);
     expect(screen.getByText("−₦6,200")).toBeInTheDocument();
   });
+
+  it("meta reads ref-first with the absolute date (master 97:1281 — audit #27)", () => {
+    const payout = fixtureEarnings.transactions[0];
+    render(
+      <TransactionRow
+        entry={{ ...payout, created_at: "2026-07-14T09:00:00" }}
+      />,
+    );
+    // "PSTK-TRF-1058 · Jul 14" — never relative-first
+    expect(screen.getByText("PSTK-TRF-1058 · Jul 14")).toBeInTheDocument();
+  });
 });

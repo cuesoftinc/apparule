@@ -33,14 +33,18 @@ const FRESH_MS = 48 * 60 * 60 * 1000; // story ring = outfits <48h (MI-8)
  * scope (same shape as models' freshnessOf). */
 function storyDesignersOf(
   posts: Post[],
-): { username: string; fresh: boolean }[] {
+): { username: string; avatarUrl: string | null; fresh: boolean }[] {
   const now = Date.now();
-  const byUsername = new Map<string, { username: string; fresh: boolean }>();
+  const byUsername = new Map<
+    string,
+    { username: string; avatarUrl: string | null; fresh: boolean }
+  >();
   for (const post of posts) {
     const existing = byUsername.get(post.designer.username);
     const fresh = now - new Date(post.created_at).getTime() < FRESH_MS;
     byUsername.set(post.designer.username, {
       username: post.designer.username,
+      avatarUrl: post.designer.avatar_url,
       fresh: (existing?.fresh ?? false) || fresh,
     });
   }
@@ -144,6 +148,7 @@ export function FeedView() {
                   <Link href={`/dashboard/${d.username}`}>
                     <StoryRailItem
                       username={d.username}
+                      avatarUrl={d.avatarUrl}
                       state={d.fresh ? "unseen" : "seen"}
                     />
                   </Link>

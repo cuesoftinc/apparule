@@ -4,6 +4,7 @@
 // pending (held escrow) cards · TransactionRow kind payout / escrow-held /
 // fee-line (10%) · amount tabular + provider ref.
 import clsx from "clsx";
+import { format } from "date-fns";
 import { CreditCard, Info, ShieldCheck } from "lucide-react";
 import type { Earnings, EarningsEntry } from "@/models";
 import { formatNaira } from "@/lib/format";
@@ -85,10 +86,7 @@ export function TransactionRow({
             Jul 14"; ref-less fee lines carry the date alone (audit #27). */}
         <p className="truncate text-micro text-text-2">
           {entry.provider_ref ? `${entry.provider_ref} · ` : ""}
-          {new Date(entry.created_at).toLocaleDateString("en-NG", {
-            month: "short",
-            day: "numeric",
-          })}
+          {format(new Date(entry.created_at), "MMM d")}
         </p>
       </div>
       {/* Figma master: debits read in the text tokens, credits in success */}

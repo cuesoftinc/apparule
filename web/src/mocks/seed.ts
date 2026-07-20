@@ -1604,7 +1604,7 @@ export const seedThreadMessages = [
     author_id: "acc-kiki",
     body: "Hi Amara! Excited about this one — here's my inspiration.",
     image_url: "/demo/outfit-w01.jpg",
-    created_at: daysAgo(8),
+    created_at: daysAgoAt(8, "13:58"),
   },
   {
     id: "msg-1042-2",
@@ -1612,7 +1612,7 @@ export const seedThreadMessages = [
     author_id: "des-amara",
     body: "Love it. Quote sent — I can have it ready two weeks after payment.",
     image_url: null,
-    created_at: daysAgo(7),
+    created_at: daysAgoAt(7, "14:05"),
   },
   {
     id: "msg-1042-3",
@@ -1620,7 +1620,7 @@ export const seedThreadMessages = [
     author_id: "des-amara",
     body: "Fabric cut today — progress shot attached.",
     image_url: "/demo/outfit-w14.jpg",
-    created_at: daysAgo(2),
+    created_at: daysAgoAt(2, "14:11"),
   },
   {
     id: "msg-1058-1",
@@ -1628,7 +1628,7 @@ export const seedThreadMessages = [
     author_id: "acc-kiki",
     body: "Colour scheme: royal blue and white, please — same as the post.",
     image_url: null,
-    created_at: daysAgo(39),
+    created_at: daysAgoAt(39, "10:05"),
   },
   {
     id: "msg-1058-2",
@@ -1636,7 +1636,7 @@ export const seedThreadMessages = [
     author_id: "des-bisi",
     body: "Delivered via GIG — enjoy the wedding!",
     image_url: null,
-    created_at: daysAgo(10),
+    created_at: daysAgoAt(10, "15:12"),
   },
   // The helper-built orders carry short, state-appropriate exchanges so
   // every thread reads like a real buyer–designer conversation.
@@ -1646,7 +1646,7 @@ export const seedThreadMessages = [
     author_id: "acc-kiki",
     body: "Sent the request — it's for my brother's wedding on Aug 22. Can you match the fabric in your post?",
     image_url: null,
-    created_at: daysAgo(1),
+    created_at: daysAgoAt(1, "09:20"),
   },
   {
     id: "msg-1033-1",
@@ -1678,7 +1678,7 @@ export const seedThreadMessages = [
     author_id: "des-tunde",
     body: "Shipped via GIG — tracking GIG-5567-LAG. Apologies for the two-day slip, the collars took longer than planned.",
     image_url: null,
-    created_at: daysAgo(3),
+    created_at: daysAgoAt(3, "11:15"),
   },
   {
     id: "msg-1018-1",
@@ -1702,7 +1702,7 @@ export const seedThreadMessages = [
     author_id: "des-tunde",
     body: "Fully booked until September, so I have to decline — sorry! maisonbisi does beautiful work in this style.",
     image_url: null,
-    created_at: daysAgo(29),
+    created_at: daysAgoAt(29, "13:50"),
   },
 ];
 

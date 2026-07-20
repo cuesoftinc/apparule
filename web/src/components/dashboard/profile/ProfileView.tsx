@@ -66,6 +66,7 @@ function FollowListSheet({
             <li key={row.username}>
               <UserRow
                 username={row.username}
+                avatarUrl={row.avatar_url}
                 meta={row.meta ?? undefined}
                 verified={row.verified}
                 trailing={

@@ -186,6 +186,7 @@ export function ExploreView() {
                 <li key={row.username}>
                   <UserRow
                     username={row.username}
+                    avatarUrl={row.avatar_url}
                     meta={row.meta ?? undefined}
                     verified={row.verified}
                     trailing={row.viewer_follows ? "following" : "follow"}
