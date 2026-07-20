@@ -59,8 +59,56 @@ export function formatAgo(iso: string, now: Date = new Date()): string {
   }
   if (days < 7) return `${days}d`;
   if (days < 30) return `${Math.floor(days / 7)}w`;
-  return new Date(iso).toLocaleDateString("en-NG", {
-    month: "short",
-    day: "numeric",
-  });
+  return formatDateUtc(iso);
+}
+
+// ---------------------------------------------------------------------------
+// UTC-derived timestamp text. These are pure functions of the instant, so
+// the server and every client render the identical string regardless of
+// host timezone — hydrated <time> labels never mismatch or flip (the local
+// alternative emits different calendar days/times across timezones for the
+// same instant). The API speaks UTC ISO strings; these read that same
+// UTC clock.
+// ---------------------------------------------------------------------------
+
+const UTC_MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+/** "13:58" — UTC wall-clock time (per-bubble thread stamps). */
+export function formatTimeUtc(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+}
+
+/** "22 May" — UTC calendar date (the ≥30d relative-label fallback). */
+export function formatDateUtc(iso: string): string {
+  const d = new Date(iso);
+  return `${d.getUTCDate()} ${UTC_MONTHS[d.getUTCMonth()]}`;
+}
+
+/** "Mar 4, 13:58" — UTC date + time (older-than-today thread bubbles). */
+export function formatDateTimeUtc(iso: string): string {
+  const d = new Date(iso);
+  return `${UTC_MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${formatTimeUtc(iso)}`;
+}
+
+/** True when both instants fall on the same UTC calendar day. */
+export function isSameUtcDay(a: string | Date, b: string | Date): boolean {
+  return (
+    new Date(a).toISOString().slice(0, 10) ===
+    new Date(b).toISOString().slice(0, 10)
+  );
 }

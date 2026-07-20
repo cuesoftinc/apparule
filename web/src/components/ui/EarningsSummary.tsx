@@ -82,7 +82,13 @@ export function TransactionRow({
           {label ?? `${meta.label} · ${entry.order_number}`}
         </p>
         <p className="truncate text-micro text-text-2">
-          {formatAgo(entry.created_at)}
+          {/* suppressHydrationWarning: the relative window ("6h", "3d")
+              reads the render-time clock (PostCard convention); the ≥30d
+              absolute fallback is UTC-derived, so the server and every
+              client agree on the payout's calendar day. */}
+          <time dateTime={entry.created_at} suppressHydrationWarning>
+            {formatAgo(entry.created_at)}
+          </time>
           {entry.provider_ref ? ` · ${entry.provider_ref}` : ""}
         </p>
       </div>
