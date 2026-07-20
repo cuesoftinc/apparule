@@ -259,23 +259,24 @@ describe("HomeNavBar (A1)", () => {
         <HomeNavBar />
       </ThemeProvider>,
     );
-    // Default preference is system — the label announces the active mode.
+    // Key absent = light, the design default — the label announces it.
     const toggle = screen.getByRole("button", {
-      name: "Theme: system — switch to light",
+      name: "Theme: light — switch to dark",
     });
     await userEvent.click(toggle);
-    expect(document.documentElement).toHaveAttribute("data-theme", "light");
-    await userEvent.click(
-      screen.getByRole("button", { name: "Theme: light — switch to dark" }),
-    );
     expect(document.documentElement).toHaveAttribute("data-theme", "dark");
     await userEvent.click(
       screen.getByRole("button", { name: "Theme: dark — switch to system" }),
     );
-    // system resolves via matchMedia (light in the test polyfill) and the
-    // stored key is removed.
+    // "system" is stored explicitly; data-theme carries the RESOLVED theme
+    // (light — the jsdom matchMedia stub reports no dark preference).
     expect(document.documentElement).toHaveAttribute("data-theme", "light");
-    expect(window.localStorage.getItem("apparule.theme")).toBeNull();
+    expect(window.localStorage.getItem("apparule.theme")).toBe("system");
+    await userEvent.click(
+      screen.getByRole("button", { name: "Theme: system — switch to light" }),
+    );
+    expect(document.documentElement).toHaveAttribute("data-theme", "light");
+    expect(window.localStorage.getItem("apparule.theme")).toBe("light");
   });
 
   it("nav: Sign in text link + Try Cloud CTA hands off with try_cloud_click", async () => {

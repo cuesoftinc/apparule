@@ -156,28 +156,36 @@ test.describe("Marketing site — home page", () => {
     await page.goto("/");
     const html = page.locator("html");
 
-    // Fresh visit = system (key absent), resolved from the OS (light here).
+    // Fresh visit = light (key absent), the design default.
     await expect(html).toHaveAttribute("data-theme", "light");
-    await page
-      .getByRole("button", { name: "Theme: system — switch to light" })
-      .click();
-    await expect(html).toHaveAttribute("data-theme", "light");
-
+    expect(
+      await page.evaluate(() => window.localStorage.getItem("apparule.theme")),
+    ).toBeNull();
     await page
       .getByRole("button", { name: "Theme: light — switch to dark" })
       .click();
     await expect(html).toHaveAttribute("data-theme", "dark");
 
-    // Third press returns to system — resolved live from the OS.
     await page
       .getByRole("button", { name: "Theme: dark — switch to system" })
       .click();
+    // "system" is now stored explicitly (not key-absent); resolved from
+    // the OS (light here).
+    expect(
+      await page.evaluate(() => window.localStorage.getItem("apparule.theme")),
+    ).toBe("system");
     await expect(html).toHaveAttribute("data-theme", "light");
 
     // System mode follows an OS-level scheme flip without a reload.
     await page.emulateMedia({ colorScheme: "dark" });
     await expect(html).toHaveAttribute("data-theme", "dark");
     await page.emulateMedia({ colorScheme: "light" });
+    await expect(html).toHaveAttribute("data-theme", "light");
+
+    // Fourth press returns to light, closing the cycle.
+    await page
+      .getByRole("button", { name: "Theme: system — switch to light" })
+      .click();
     await expect(html).toHaveAttribute("data-theme", "light");
   });
 
@@ -462,11 +470,13 @@ test.describe("nav/footer parity canon", () => {
       0,
     );
 
-    // the theme toggle works from inside the panel (system → light → dark)
-    await panel.getByRole("button", { name: /^Theme: system/ }).click();
-    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    // the theme toggle works from inside the panel (fresh boot is light,
+    // the design default; light → dark → system)
     await panel.getByRole("button", { name: /^Theme: light/ }).click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await panel.getByRole("button", { name: /^Theme: dark/ }).click();
+    // "system" is stored explicitly; resolved from the OS (light here).
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 
     // a link click closes the disclosure
     await panel.getByRole("link", { name: "Features" }).click();
@@ -524,16 +534,17 @@ test.describe("nav/footer parity canon", () => {
   test("theme toggle flips and persists on home and dashboard", async ({
     page,
   }) => {
-    // marketing surface: system → light → dark, persisted across reload
+    // marketing surface: fresh boot is light (the design default, key
+    // absent) → dark, persisted across reload
     await page.goto("/");
-    await page.getByRole("button", { name: /^Theme: system/ }).click();
     await page.getByRole("button", { name: /^Theme: light/ }).click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
     await page.reload();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 
     // dashboard surface (same apparule.theme key via NavRail toggle):
-    // dark → system removes the key; resolved follows the OS again.
+    // dark → system now stores "system" explicitly; resolved follows the
+    // OS again.
     await page.goto("/signin");
     await page.getByRole("button", { name: /continue with google/i }).click();
     await page.waitForURL("**/dashboard");
@@ -543,7 +554,7 @@ test.describe("nav/footer parity canon", () => {
     const stored = await page.evaluate(() =>
       window.localStorage.getItem("apparule.theme"),
     );
-    expect(stored).toBeNull();
+    expect(stored).toBe("system");
     await page.reload();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   });
