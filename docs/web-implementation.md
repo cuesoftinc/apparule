@@ -340,6 +340,35 @@ every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the
 Figma templates, and the QA loop checks all three.
 
+**Floating-layer + band cross-check as-built notes (2026-07-20):** the
+three-class cross-check (date-popover anatomy/overflow · modal-embedded
+select clipping · two-column band balance) verified every instance
+against its Figma master and fixed the hits:
+
+- `DatePickerPopover` now carries the master anatomy (87:1035): 16px
+  panel padding (was 12), 8px row gaps (was 2), Sunday-first
+  `S M T W T F S` header (was Monday-first) at 12 semibold, 36×32 pill
+  day cells at 13px (was 32×32 at 14), blank outside-month cells (was
+  grayed adjacent-month days), a 1px border-token ring on today, and
+  disabled days at `text-2/50` — today stays `text-2` at full opacity
+  when the min-date rule disables it. Bottom-edge behavior verified at
+  1440×900 and 1440×700: Radix flips the panel above the trigger when
+  the space below runs out, never past the viewport and never adding
+  document scroll height (locked in `dashboard.spec.ts`, serial fixture
+  on `post-chromat-look`).
+- Selects inside sheets (decline/dispute/report/stepper-address) came
+  back clean — the W3 portal-at-z-40 + `max-h-72` pattern holds at both
+  heights; now locked (`dashboard.spec.ts` decline,
+  `floating-layers.spec.ts` report).
+- B1 feed band matches the 176:72 frame exactly: 630px feed column +
+  48px gutter + 320px meta rail (`max-w-[1030px]`/`gap-12`; the old
+  `max-w-5xl`/`gap-16` squeezed the feed to 608 and stretched the gutter
+  to 64).
+- The order-detail thread panel fills the band beside the order content
+  on `lg` (capped at 70vh) with the composer pinned to its bottom edge,
+  per 179:536 — a short thread used to hug and leave ~576px of dead band
+  under the card. Both bands locked in `band-balance.spec.ts` (±2px).
+
 **Self-host tabbed snippet as-built (2026-07-20, PR #118).** The A7c
 compose one-liner is now the user-approved Docker Compose | Helm tab pair
 (Figma proposal 415:2), built as `CodeSnippetTabs` in the §8.2b marketing

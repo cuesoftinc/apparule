@@ -311,7 +311,7 @@ Stage 5 and non-blocking; everything else feeds Stages 1–4.
 | --- | --- |
 | GoogleAuthButton | the single auth CTA (X-1): Google 'G' mark + "Continue with Google" · state: default / pressed / loading / disabled · theme ×2 |
 | Select / OptionRow | trigger: default / focus / error / disabled · OptionRow: default / selected (radio · check) · contexts: decline-reason enum, dispute reason picker, NG-state, bank (KYC), language · theme ×2 |
-| DateInput | state: default / focus / error / disabled · calendar popover · min-date rules (due_at ≥ today+1; target date ≥ today+turnaround soft-warn) · theme ×2 · **as built (2026-07-17):** the calendar popover is a standalone `DatePickerPopover` component |
+| DateInput | state: default / focus / error / disabled · calendar popover · min-date rules (due_at ≥ today+1; target date ≥ today+turnaround soft-warn) · theme ×2 · **as built (2026-07-17):** the calendar popover is a standalone `DatePickerPopover` component — per the 87:1035 master: Sunday-first week, blank outside-month cells, border-ring on today (2026-07-20) |
 | Input (extends §8.2) | + kind: textarea (multiline, 0–500 counter) / currency (₦ prefix, tabular numerals) · state: default / focus / error / disabled · theme ×2 |
 | MediaDropzone | state: empty (drop target) / uploading (progress) / error (size · type) · MediaUploadTile: thumb ×≤10 · drag-reorder handle · alt-text indicator · remove · theme ×2 |
 | Banner / InlineAlert | tone: info / warn / error / success · persistent / dismissable · action-link slot (Retry, support, explainer) · theme ×2 |
