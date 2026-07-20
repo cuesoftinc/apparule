@@ -776,6 +776,22 @@ describe("designer KYC gate + payout scripting", () => {
     expect(store.me("kiki.adeyemi").designer.kyc_complete).toBe(true);
   });
 
+  it("attach stores the bank display name, never the code (audit #10)", () => {
+    store.enableDesigner("kiki.adeyemi", "Kiki Studio");
+    const attached = store.attachPayoutAccount(
+      "kiki.adeyemi",
+      "058",
+      "0123454521",
+    );
+    // Every payout surface (B8 verified, B9, settings) renders bank_name —
+    // "GTBank ••• 4521", not "058 ••• 4521" (Figma 210:3 / 269:10345).
+    expect(attached.bank_name).toBe("GTBank");
+    expect(attached.account_last4).toBe("4521");
+    expect(
+      store.attachPayoutAccount("kiki.adeyemi", "033", "0123456789").bank_name,
+    ).toBe("UBA");
+  });
+
   it("allows requote while quoted without a transition", () => {
     const requoted = store.quote(
       "req-apr-1033",
