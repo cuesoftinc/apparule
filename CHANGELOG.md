@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Full web implementation: a marketing landing page and a dashboard
+  application, composed from the shared component registry and running over
+  a mock CRUD API (`TEST_MODE`), backed by a coherent seeded demo (designer
+  profiles, orders across every lifecycle state, notifications, follows,
+  comments, webcam capture sessions, and scripted Paystack payouts).
+- Explore filter chips, feed/profile infinite scroll, and per-session vault
+  export.
+- Interactive Scalar API reference at `/docs/api`, rendered live from the
+  repository's OpenAPI spec.
+- Tri-state theme control (light / dark / system).
+- Marketing nav: star badge, "Sign in" link, and "Try Cloud" call-to-action;
+  a mobile hamburger disclosure for the canonical nav links.
+
+### Changed
+- Mobile-responsive pass across every route, clean at the 390px and 768px
+  breakpoints (scroll containers for wide elements, floating-layer viewport
+  clamping, mobile panel and star-badge fixes).
+- Cross-repo tooling parity with the other CueLABS™ repositories.
+
+### Removed
+- The legacy quarantine directory (`src/legacy/`), retired now that the
+  system QA gate has passed.
+
+### Fixed
+- An unset theme preference now boots the design default instead of forcing
+  a theme choice; the `/docs/api` header now coexists cleanly with the rest
+  of the app shell.
+- CueLABS™ brand mark rendering and the disabled chip remove control.
+- Demo-realism and usability QA passes: coherent seed narrative, in-app
+  comments, and navigation accuracy across the app.
+
 ### Fixed
 - Flutter: form validation restored (an `if (true)` bypassed it), generated
   l10n rewired (labels rendered as empty strings), password fields start
