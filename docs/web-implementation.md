@@ -340,7 +340,7 @@ every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the
 Figma templates, and the QA loop checks all three.
 
-**Self-host tabbed snippet as-built (2026-07-20, PR #TBD).** The A7c
+**Self-host tabbed snippet as-built (2026-07-20, PR #118).** The A7c
 compose one-liner is now the user-approved Docker Compose | Helm tab pair
 (Figma proposal 415:2), built as `CodeSnippetTabs` in the §8.2b marketing
 kit beside `CodeSnippetBlock` (whose copy-pill grammar — Copy → ✓ Copied
