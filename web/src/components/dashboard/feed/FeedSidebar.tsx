@@ -65,6 +65,7 @@ export function FeedSidebar({
                 <Avatar
                   size={56}
                   name={account?.display_name ?? "You"}
+                  src={account?.avatar_url}
                   ring={vault.freshness ? RING[vault.freshness] : "gray"}
                 />
               </Link>

@@ -139,7 +139,11 @@ export function ProfileView({ username }: { username: string }) {
     return (
       <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-6">
         <header className="flex items-center gap-6">
-          <Avatar size={96} name={profile.account.display_name} />
+          <Avatar
+            size={96}
+            name={profile.account.display_name}
+            src={profile.account.avatar_url}
+          />
           <div className="flex min-w-0 flex-col gap-1">
             <h1 className="text-title-lg font-bold text-text">
               {profile.account.username}

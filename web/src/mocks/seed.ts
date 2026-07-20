@@ -35,6 +35,31 @@ function defaultPrefs() {
   return { quotes: true, order_status: true, social: true, payouts: true };
 }
 
+/**
+ * Licensed avatar pool — the same CC photo set the Figma Assets page
+ * documents and the marketing MiniScreens already ship (web/public/demo;
+ * attributions stay in ATTRIBUTIONS.md there). Every seeded account carries
+ * a photo avatar so the TEST_MODE boot looks like the B/C canvases (photo
+ * avatars inside the freshness/story rings, never the initials fallback) —
+ * web-implementation.md §6 seed contract (audit #9).
+ */
+const AVATARS = {
+  kiki: "/demo/outfit-w16.jpg",
+  amara: "/demo/outfit-w00.jpg",
+  tunde: "/demo/outfit-w15.jpg",
+  bisi: "/demo/outfit-w13.jpg",
+  eniola: "/demo/outfit-w10.jpg",
+  ada: "/demo/outfit-w01.jpg",
+  funmi: "/demo/outfit-w03.jpg",
+  chidi: "/demo/outfit-w06.jpg",
+  zainab: "/demo/outfit-w05.jpg",
+  emeka: "/demo/outfit-w14.jpg",
+  // The pool holds ten photos for eleven personas; tola shares chidi's
+  // group shot — their follower sheets are disjoint, so the two avatars
+  // never co-render.
+  tola: "/demo/outfit-w06.jpg",
+} as const;
+
 // ---------------------------------------------------------------------------
 // Accounts
 // ---------------------------------------------------------------------------
@@ -46,7 +71,7 @@ export const seedAccounts: Account[] = [
     email: "kiki.adeyemi@example.com",
     username: "kiki.adeyemi",
     display_name: "Kiki Adeyemi",
-    avatar_url: null,
+    avatar_url: AVATARS.kiki,
     profile_location: { city: "Lagos", state: "Lagos", country: "NG" },
     deletion_state: "active",
     designer: { enabled: false, kyc_complete: false },
@@ -66,7 +91,7 @@ export const seedAccounts: Account[] = [
     email: "amara@example.com",
     username: "amara.designs",
     display_name: "Amara Designs",
-    avatar_url: null,
+    avatar_url: AVATARS.amara,
     profile_location: { city: "Lagos", state: "Lagos", country: "NG" },
     deletion_state: "active",
     designer: { enabled: true, kyc_complete: true },
@@ -84,7 +109,7 @@ export const seedAccounts: Account[] = [
     email: "tunde@example.com",
     username: "tunde.o",
     display_name: "Tunde Okonkwo",
-    avatar_url: null,
+    avatar_url: AVATARS.tunde,
     profile_location: { city: "Lagos", state: "Lagos", country: "NG" },
     deletion_state: "active",
     designer: { enabled: true, kyc_complete: true },
@@ -102,7 +127,7 @@ export const seedAccounts: Account[] = [
     email: "bisi@example.com",
     username: "maisonbisi",
     display_name: "Maison Bisi",
-    avatar_url: null,
+    avatar_url: AVATARS.bisi,
     profile_location: { city: "Lagos", state: "Lagos", country: "NG" },
     deletion_state: "active",
     designer: { enabled: true, kyc_complete: true },
@@ -120,7 +145,7 @@ export const seedAccounts: Account[] = [
     email: "eniola@example.com",
     username: "eniola.stitches",
     display_name: "Eniola Stitches",
-    avatar_url: null,
+    avatar_url: AVATARS.eniola,
     // The one non-Lagos designer: kiki (Lagos) ranks her LAST under the
     // explore "near me" proximity ordering — the visible contrast case.
     profile_location: { city: "Abuja", state: "FCT", country: "NG" },
@@ -153,7 +178,8 @@ function makeCommunityAccount(input: {
     email: `${input.username.replace(/\./g, "_")}@example.com`,
     username: input.username,
     display_name: input.displayName,
-    avatar_url: null,
+    // Community ids mirror the AVATARS keys ("acc-ada" → AVATARS.ada).
+    avatar_url: AVATARS[input.id.replace("acc-", "") as keyof typeof AVATARS],
     profile_location: { city: input.city, state: input.state, country: "NG" },
     deletion_state: "active",
     designer: { enabled: false, kyc_complete: false },
@@ -233,7 +259,7 @@ export const seedDesigners: DesignerProfile[] = [
     username: "amara.designs",
     display_name: "Amara Designs",
     bio: "Ankara & contemporary tailoring. Lagos. Made-to-measure only.",
-    avatar_url: null,
+    avatar_url: AVATARS.amara,
     payout_account: {
       provider_ref: "PSTK-RCP-88121",
       bank_name: "GTBank",
@@ -255,7 +281,7 @@ export const seedDesigners: DesignerProfile[] = [
     username: "tunde.o",
     display_name: "Tunde Okonkwo",
     bio: "Agbada, senator suits, and sharp menswear.",
-    avatar_url: null,
+    avatar_url: AVATARS.tunde,
     payout_account: {
       provider_ref: "PSTK-RCP-77310",
       bank_name: "Access Bank",
@@ -274,7 +300,7 @@ export const seedDesigners: DesignerProfile[] = [
     username: "maisonbisi",
     display_name: "Maison Bisi",
     bio: "Aso-oke ceremonial wear — weddings, chieftaincy, statement pieces.",
-    avatar_url: null,
+    avatar_url: AVATARS.bisi,
     payout_account: {
       provider_ref: "PSTK-RCP-66104",
       bank_name: "Zenith Bank",
@@ -293,7 +319,7 @@ export const seedDesigners: DesignerProfile[] = [
     username: "eniola.stitches",
     display_name: "Eniola Stitches",
     bio: "Bespoke womenswear from the Abuja atelier — corporate and occasion.",
-    avatar_url: null,
+    avatar_url: AVATARS.eniola,
     payout_account: {
       provider_ref: "PSTK-RCP-55492",
       bank_name: "UBA",
@@ -560,7 +586,11 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-33",
     post_id: "post-atelier-abuja",
-    author: { id: "acc-zainab", username: "zainab.k", avatar_url: null },
+    author: {
+      id: "acc-zainab",
+      username: "zainab.k",
+      avatar_url: AVATARS.zainab,
+    },
     body: "An atelier this side of Abuja at last — booking for December.",
     like_count: 1,
     liked: false,
@@ -570,7 +600,11 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-1",
     post_id: "post-ankara-gown",
-    author: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
+    author: {
+      id: "acc-kiki",
+      username: "kiki.adeyemi",
+      avatar_url: AVATARS.kiki,
+    },
     body: "Obsessed with this print 😍",
     like_count: 4,
     liked: false,
@@ -580,7 +614,11 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-2",
     post_id: "post-ankara-gown",
-    author: { id: "acc-bisi", username: "maisonbisi", avatar_url: null },
+    author: {
+      id: "acc-bisi",
+      username: "maisonbisi",
+      avatar_url: AVATARS.bisi,
+    },
     body: "Beautiful work as always, Amara.",
     like_count: 2,
     liked: false,
@@ -590,7 +628,7 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-3",
     post_id: "post-ankara-gown",
-    author: { id: "acc-funmi", username: "funmi.b", avatar_url: null },
+    author: { id: "acc-funmi", username: "funmi.b", avatar_url: AVATARS.funmi },
     body: "Do you have this in a longer length? Asking for a wedding guest look.",
     like_count: 0,
     liked: false,
@@ -600,7 +638,11 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-4",
     post_id: "post-asooke-set",
-    author: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
+    author: {
+      id: "acc-kiki",
+      username: "kiki.adeyemi",
+      avatar_url: AVATARS.kiki,
+    },
     body: "Commissioned one of these — the finish is even better in person.",
     like_count: 6,
     liked: false,
@@ -610,7 +652,11 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-5",
     post_id: "post-asooke-set",
-    author: { id: "acc-bisi", username: "maisonbisi", avatar_url: null },
+    author: {
+      id: "acc-bisi",
+      username: "maisonbisi",
+      avatar_url: AVATARS.bisi,
+    },
     body: "@kiki.adeyemi thank you! Your little senator came out so well — one of my favourites this year.",
     like_count: 3,
     liked: false,
@@ -620,7 +666,7 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-6",
     post_id: "post-asooke-set",
-    author: { id: "acc-ada", username: "ada.eze", avatar_url: null },
+    author: { id: "acc-ada", username: "ada.eze", avatar_url: AVATARS.ada },
     body: "The texture on this is unreal.",
     like_count: 1,
     liked: false,
@@ -630,7 +676,7 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-7",
     post_id: "post-asooke-set",
-    author: { id: "acc-tunde", username: "tunde.o", avatar_url: null },
+    author: { id: "acc-tunde", username: "tunde.o", avatar_url: AVATARS.tunde },
     body: "Clean finishing as usual, Bisi. 🔥",
     like_count: 2,
     liked: false,
@@ -640,7 +686,11 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-8",
     post_id: "post-asooke-set",
-    author: { id: "acc-zainab", username: "zainab.k", avatar_url: null },
+    author: {
+      id: "acc-zainab",
+      username: "zainab.k",
+      avatar_url: AVATARS.zainab,
+    },
     body: "Could you do a lighter fabric version for Abuja heat?",
     like_count: 0,
     liked: false,
@@ -650,7 +700,11 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-9",
     post_id: "post-bridal-gown",
-    author: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
+    author: {
+      id: "acc-kiki",
+      username: "kiki.adeyemi",
+      avatar_url: AVATARS.kiki,
+    },
     body: "Sending this to my cousin immediately.",
     like_count: 3,
     liked: false,
@@ -660,7 +714,7 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-10",
     post_id: "post-bridal-gown",
-    author: { id: "acc-funmi", username: "funmi.b", avatar_url: null },
+    author: { id: "acc-funmi", username: "funmi.b", avatar_url: AVATARS.funmi },
     body: "That train 😭😭",
     like_count: 2,
     liked: false,
@@ -670,7 +724,7 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-11",
     post_id: "post-bridal-gown",
-    author: { id: "acc-ada", username: "ada.eze", avatar_url: null },
+    author: { id: "acc-ada", username: "ada.eze", avatar_url: AVATARS.ada },
     body: "How far in advance should a bride book?",
     like_count: 1,
     liked: false,
@@ -680,7 +734,7 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-12",
     post_id: "post-bridal-gown",
-    author: { id: "acc-tunde", username: "tunde.o", avatar_url: null },
+    author: { id: "acc-tunde", username: "tunde.o", avatar_url: AVATARS.tunde },
     body: "Season's best, easily.",
     like_count: 2,
     liked: false,
@@ -690,7 +744,7 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-13",
     post_id: "post-print-couple",
-    author: { id: "acc-chidi", username: "chidi.n", avatar_url: null },
+    author: { id: "acc-chidi", username: "chidi.n", avatar_url: AVATARS.chidi },
     body: "My fiancée just tagged me. I know what that means.",
     like_count: 2,
     liked: false,
@@ -700,7 +754,7 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-14",
     post_id: "post-print-couple",
-    author: { id: "acc-funmi", username: "funmi.b", avatar_url: null },
+    author: { id: "acc-funmi", username: "funmi.b", avatar_url: AVATARS.funmi },
     body: "Coordination without the costume feel — exactly right.",
     like_count: 0,
     liked: false,
@@ -710,7 +764,7 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-15",
     post_id: "post-agbada",
-    author: { id: "acc-emeka", username: "emeka.u", avatar_url: null },
+    author: { id: "acc-emeka", username: "emeka.u", avatar_url: AVATARS.emeka },
     body: "That drape — exactly what ceremony wear needed.",
     like_count: 3,
     liked: false,
@@ -720,7 +774,7 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-16",
     post_id: "post-agbada",
-    author: { id: "acc-ada", username: "ada.eze", avatar_url: null },
+    author: { id: "acc-ada", username: "ada.eze", avatar_url: AVATARS.ada },
     body: "My dad would love this.",
     like_count: 0,
     liked: false,
@@ -730,7 +784,7 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-17",
     post_id: "post-agbada",
-    author: { id: "acc-tola", username: "tola.mak", avatar_url: null },
+    author: { id: "acc-tola", username: "tola.mak", avatar_url: AVATARS.tola },
     body: "Ceremony-ready indeed. Sharp.",
     like_count: 1,
     liked: false,
@@ -740,7 +794,11 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-18",
     post_id: "post-agbada",
-    author: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
+    author: {
+      id: "acc-kiki",
+      username: "kiki.adeyemi",
+      avatar_url: AVATARS.kiki,
+    },
     body: "Just sent a request for my brother's wedding — fingers crossed! 🤞",
     like_count: 2,
     liked: false,
@@ -750,7 +808,7 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-19",
     post_id: "post-print-brothers",
-    author: { id: "acc-chidi", username: "chidi.n", avatar_url: null },
+    author: { id: "acc-chidi", username: "chidi.n", avatar_url: AVATARS.chidi },
     body: "Need this for my brother and me. Those collars!",
     like_count: 1,
     liked: false,
@@ -760,7 +818,7 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-20",
     post_id: "post-runway-orange",
-    author: { id: "acc-funmi", username: "funmi.b", avatar_url: null },
+    author: { id: "acc-funmi", username: "funmi.b", avatar_url: AVATARS.funmi },
     body: "Resort season starts here.",
     like_count: 4,
     liked: false,
@@ -770,7 +828,7 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-21",
     post_id: "post-runway-orange",
-    author: { id: "acc-ada", username: "ada.eze", avatar_url: null },
+    author: { id: "acc-ada", username: "ada.eze", avatar_url: AVATARS.ada },
     body: "Saw this on the runway — stunned it's available made-to-measure.",
     like_count: 2,
     liked: false,
@@ -780,7 +838,11 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-22",
     post_id: "post-runway-orange",
-    author: { id: "acc-zainab", username: "zainab.k", avatar_url: null },
+    author: {
+      id: "acc-zainab",
+      username: "zainab.k",
+      avatar_url: AVATARS.zainab,
+    },
     body: "This silhouette would be perfect for a December event.",
     like_count: 0,
     liked: false,
@@ -790,7 +852,7 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-23",
     post_id: "post-runway-orange",
-    author: { id: "acc-emeka", username: "emeka.u", avatar_url: null },
+    author: { id: "acc-emeka", username: "emeka.u", avatar_url: AVATARS.emeka },
     body: "Vacation booked just for this.",
     like_count: 1,
     liked: false,
@@ -800,7 +862,11 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-24",
     post_id: "post-runway-orange",
-    author: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
+    author: {
+      id: "acc-kiki",
+      username: "kiki.adeyemi",
+      avatar_url: AVATARS.kiki,
+    },
     body: "This print 😍",
     like_count: 2,
     liked: false,
@@ -810,7 +876,7 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-25",
     post_id: "post-runway-orange",
-    author: { id: "acc-tola", username: "tola.mak", avatar_url: null },
+    author: { id: "acc-tola", username: "tola.mak", avatar_url: AVATARS.tola },
     body: "Bisi never misses.",
     like_count: 1,
     liked: false,
@@ -820,7 +886,7 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-26",
     post_id: "post-fabric-drop",
-    author: { id: "acc-funmi", username: "funmi.b", avatar_url: null },
+    author: { id: "acc-funmi", username: "funmi.b", avatar_url: AVATARS.funmi },
     body: "That second print — reserving a silhouette this week.",
     like_count: 1,
     liked: false,
@@ -830,7 +896,11 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-27",
     post_id: "post-fabric-drop",
-    author: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
+    author: {
+      id: "acc-kiki",
+      username: "kiki.adeyemi",
+      avatar_url: AVATARS.kiki,
+    },
     body: "Coming through with my vault numbers!",
     like_count: 1,
     liked: false,
@@ -840,7 +910,7 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-28",
     post_id: "post-chromat-look",
-    author: { id: "acc-ada", username: "ada.eze", avatar_url: null },
+    author: { id: "acc-ada", username: "ada.eze", avatar_url: AVATARS.ada },
     body: "Statement is an understatement.",
     like_count: 2,
     liked: false,
@@ -850,7 +920,11 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-29",
     post_id: "post-chromat-look",
-    author: { id: "acc-zainab", username: "zainab.k", avatar_url: null },
+    author: {
+      id: "acc-zainab",
+      username: "zainab.k",
+      avatar_url: AVATARS.zainab,
+    },
     body: "The drape on this — beautiful.",
     like_count: 0,
     liked: false,
@@ -860,7 +934,7 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-30",
     post_id: "post-chromat-look",
-    author: { id: "acc-chidi", username: "chidi.n", avatar_url: null },
+    author: { id: "acc-chidi", username: "chidi.n", avatar_url: AVATARS.chidi },
     body: "Saving this for my sister.",
     like_count: 1,
     liked: false,
@@ -870,7 +944,7 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-31",
     post_id: "post-dance-troupe",
-    author: { id: "acc-emeka", username: "emeka.u", avatar_url: null },
+    author: { id: "acc-emeka", username: "emeka.u", avatar_url: AVATARS.emeka },
     body: "12 pieces in a week is wild. Respect.",
     like_count: 3,
     liked: false,
@@ -880,7 +954,7 @@ export const seedComments: Comment[] = [
   {
     id: "cmt-32",
     post_id: "post-dance-troupe",
-    author: { id: "acc-tola", username: "tola.mak", avatar_url: null },
+    author: { id: "acc-tola", username: "tola.mak", avatar_url: AVATARS.tola },
     body: "The showcase was amazing — costumes made it.",
     like_count: 1,
     liked: false,
@@ -1046,7 +1120,11 @@ function makeOrder(input: SeedOrderInput): CommissionRequest {
       caption: post.caption.split(" — ")[0],
       thumb_url: post.media[0].url,
     },
-    customer: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
+    customer: {
+      id: "acc-kiki",
+      username: "kiki.adeyemi",
+      avatar_url: AVATARS.kiki,
+    },
     designer: {
       id: post.designer.id,
       username: post.designer.username,
@@ -1131,8 +1209,16 @@ export const seedOrders: CommissionRequest[] = [
       caption: "Ankara maxi skirt with structured waistband",
       thumb_url: "/demo/outfit-w01.jpg",
     },
-    customer: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
-    designer: { id: "des-amara", username: "amara.designs", avatar_url: null },
+    customer: {
+      id: "acc-kiki",
+      username: "kiki.adeyemi",
+      avatar_url: AVATARS.kiki,
+    },
+    designer: {
+      id: "des-amara",
+      username: "amara.designs",
+      avatar_url: AVATARS.amara,
+    },
     status: "in_progress",
     notes:
       "Ankle length please, with a small side slit — easier to dance in. Event is July 26.",
@@ -1214,8 +1300,16 @@ export const seedOrders: CommissionRequest[] = [
       caption: "Little senator",
       thumb_url: "/demo/outfit-w13.jpg",
     },
-    customer: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
-    designer: { id: "des-bisi", username: "maisonbisi", avatar_url: null },
+    customer: {
+      id: "acc-kiki",
+      username: "kiki.adeyemi",
+      avatar_url: AVATARS.kiki,
+    },
+    designer: {
+      id: "des-bisi",
+      username: "maisonbisi",
+      avatar_url: AVATARS.bisi,
+    },
     status: "delivered",
     notes:
       "Gift for my nephew Tobi (age 6) — family wedding. Colour scheme in thread; his measurements are tape-measured, entered by hand.",
@@ -1542,7 +1636,7 @@ export const seedNotifications: Notification[] = [
     kind: "quote",
     payload_ref: "req-apr-1033",
     text: "amara.designs quoted your request #APR-1033 — ₦40,000",
-    actor: { username: "amara.designs", avatar_url: null },
+    actor: { username: "amara.designs", avatar_url: AVATARS.amara },
     thumb_url: "/demo/outfit-w16.jpg",
     read_at: null,
     created_at: hoursAgo(6),
@@ -1554,7 +1648,7 @@ export const seedNotifications: Notification[] = [
     payload_ref: "post-asooke-set",
     // Matches cmt-5 (bisi's reply, 2.8d) — read when kiki next opened the app.
     text: "maisonbisi replied to your comment on Little senator",
-    actor: { username: "maisonbisi", avatar_url: null },
+    actor: { username: "maisonbisi", avatar_url: AVATARS.bisi },
     thumb_url: "/demo/outfit-w13.jpg",
     read_at: daysAgo(2),
     created_at: daysAgo(2.8),
@@ -1565,7 +1659,7 @@ export const seedNotifications: Notification[] = [
     kind: "payout",
     payload_ref: "req-apr-1058",
     text: "Payout released for order #APR-1058 — ₦55,800",
-    actor: { username: "kiki.adeyemi", avatar_url: null },
+    actor: { username: "kiki.adeyemi", avatar_url: AVATARS.kiki },
     thumb_url: "/demo/outfit-w13.jpg",
     read_at: daysAgo(6),
     created_at: daysAgo(7),
@@ -1576,7 +1670,7 @@ export const seedNotifications: Notification[] = [
     kind: "status_change",
     payload_ref: "req-apr-1031",
     text: "kiki.adeyemi requested Ceremonial robe set (#APR-1031)",
-    actor: { username: "kiki.adeyemi", avatar_url: null },
+    actor: { username: "kiki.adeyemi", avatar_url: AVATARS.kiki },
     thumb_url: "/demo/outfit-w06.jpg",
     read_at: null,
     created_at: daysAgo(1),
@@ -1587,7 +1681,7 @@ export const seedNotifications: Notification[] = [
     kind: "status_change",
     payload_ref: "req-apr-1042",
     text: "amara.designs started work on your order #APR-1042",
-    actor: { username: "amara.designs", avatar_url: null },
+    actor: { username: "amara.designs", avatar_url: AVATARS.amara },
     thumb_url: "/demo/outfit-w01.jpg",
     read_at: daysAgo(4),
     created_at: daysAgo(5),
@@ -1598,7 +1692,7 @@ export const seedNotifications: Notification[] = [
     kind: "like",
     payload_ref: "post-ankara-gown",
     text: "maisonbisi liked your comment",
-    actor: { username: "maisonbisi", avatar_url: null },
+    actor: { username: "maisonbisi", avatar_url: AVATARS.bisi },
     thumb_url: "/demo/outfit-w01.jpg",
     read_at: null,
     created_at: hoursAgo(20),
@@ -1609,7 +1703,7 @@ export const seedNotifications: Notification[] = [
     kind: "status_change",
     payload_ref: "req-apr-1058",
     text: "Order #APR-1058 was delivered — payout released to maisonbisi",
-    actor: { username: "maisonbisi", avatar_url: null },
+    actor: { username: "maisonbisi", avatar_url: AVATARS.bisi },
     thumb_url: "/demo/outfit-w13.jpg",
     read_at: daysAgo(6),
     created_at: daysAgo(7),
@@ -1621,7 +1715,7 @@ export const seedNotifications: Notification[] = [
     payload_ref: "post-runway-orange",
     // Fresh activity — someone browsing an older post minutes ago.
     text: "ada.eze liked your comment on Resort one-piece",
-    actor: { username: "ada.eze", avatar_url: null },
+    actor: { username: "ada.eze", avatar_url: AVATARS.ada },
     thumb_url: "/demo/outfit-w05.jpg",
     read_at: null,
     created_at: hoursAgo(0.6),
@@ -1632,7 +1726,7 @@ export const seedNotifications: Notification[] = [
     kind: "follow",
     payload_ref: "des-tunde",
     text: "funmi.b started following you",
-    actor: { username: "funmi.b", avatar_url: null },
+    actor: { username: "funmi.b", avatar_url: AVATARS.funmi },
     thumb_url: null,
     read_at: daysAgo(2),
     created_at: daysAgo(3),

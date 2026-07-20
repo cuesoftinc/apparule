@@ -92,6 +92,7 @@ export function VaultView() {
         <Avatar
           size={96}
           name={account?.display_name ?? "You"}
+          src={account?.avatar_url}
           ring={vault.freshness ? RING[vault.freshness] : "gray"}
         />
         <div className="flex min-w-0 flex-1 flex-col gap-2 pt-1">
