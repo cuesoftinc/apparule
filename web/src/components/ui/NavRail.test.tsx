@@ -49,8 +49,10 @@ describe("NavRail (§8.2b)", () => {
 
   it("footer slot carries theme toggle + support link", () => {
     renderRail({ expanded: true });
+    // Tri-state cycle (theme contract 2026-07-20): the label announces
+    // the active mode and the next one.
     expect(
-      screen.getByRole("button", { name: /switch to .* theme/i }),
+      screen.getByRole("button", { name: /^Theme: .* — switch to .*/ }),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /support/i })).toHaveAttribute(
       "href",

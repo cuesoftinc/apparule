@@ -9,16 +9,19 @@ import Link from "next/link";
 import {
   Home,
   Info,
-  Moon,
   Package,
   Plus,
   Ruler,
   Search,
   Settings,
-  Sun,
   User,
   type LucideIcon,
 } from "lucide-react";
+import {
+  THEME_CYCLE,
+  THEME_ICONS,
+  themeToggleLabel,
+} from "@/components/ui/ThemeToggle";
 import { useTheme } from "@/design/ThemeProvider";
 
 export interface NavRailItemSpec {
@@ -68,7 +71,8 @@ export function NavRail({
   className,
 }: NavRailProps) {
   const { preference, setPreference } = useTheme();
-  const nextTheme = preference === "dark" ? "light" : "dark";
+  // Tri-state cycle (theme contract 2026-07-20): light → dark → system.
+  const ThemeIcon = THEME_ICONS[preference];
   return (
     <nav
       data-expanded={expanded}
@@ -104,11 +108,11 @@ export function NavRail({
       <div className="flex flex-col gap-1 pt-3">
         <button
           type="button"
-          onClick={() => setPreference(nextTheme)}
-          aria-label={`Switch to ${nextTheme} theme`}
+          onClick={() => setPreference(THEME_CYCLE[preference])}
+          aria-label={themeToggleLabel(preference)}
           className={itemClasses(false, expanded)}
         >
-          {preference === "dark" ? <Sun size={24} /> : <Moon size={24} />}
+          <ThemeIcon size={24} />
           {expanded ? <span>Theme</span> : null}
         </button>
         <a
