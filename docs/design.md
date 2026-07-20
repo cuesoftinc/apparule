@@ -42,10 +42,16 @@
 
 ### Type
 
-- Family: system stack (`-apple-system, Roboto, …`) on app surfaces; a display
-  serif/geometric (brand pass) only on the public home page hero. **[Proposed]**
+- Family: **Inter** on app and marketing surfaces — the family the Figma
+  library's type styles render, so live type weight/width match the canvas on
+  every platform (web self-hosts it via `next/font` with the system stack as
+  fallback). A display serif/geometric for the public home hero remains a
+  brand-pass option. **[Decided 2026-07-20 — font-weight audit vs the Home
+  frame; sibling products already ship Inter]**
 - Scale: 12 / 13 / 14 (base) / 16 / 20 / 24 / 32. Weights 400/600/700.
-  Usernames 600; numerals tabular for measurements and money.
+  Tracking: Title/24 −0.25px, Display/32 −0.5px, all smaller sizes 0 (the
+  type styles pin these). Usernames 600; numerals tabular for measurements
+  and money.
 
 ### Layout
 

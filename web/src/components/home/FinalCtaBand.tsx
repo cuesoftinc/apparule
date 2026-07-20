@@ -23,7 +23,7 @@ export function FinalCtaBand() {
       <div className="mx-auto flex max-w-[1080px] flex-col items-center gap-5 text-center">
         <h2
           id="final-cta-heading"
-          className="text-display font-bold tracking-[-0.5px] text-on-accent"
+          className="text-display font-bold text-on-accent"
         >
           Get measured once. Dress like it was always made for you.
         </h2>

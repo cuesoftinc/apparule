@@ -32,7 +32,10 @@
   --ease-exit: var(--ap-ease-exit);
 
   /* Type scale 12/13/14(base)/16/20/24/32 — names mirror the Figma styles:
-     Micro/12 · Caption/13 · Body/14 · Body/16 · Title/20 · Title/24 · Display/32 */
+     Micro/12 · Caption/13 · Body/14 · Body/16 · Title/20 · Title/24 · Display/32.
+     The two largest sizes carry the styles' negative tracking (Title/24
+     −0.25px · Display/32 −0.5px) so the utilities pin it — every other
+     ramp entry is 0 (Figma type styles, design.md §2). */
   --text-micro: 12px;
   --text-micro--line-height: 16px;
   --text-caption: 13px;
@@ -45,10 +48,12 @@
   --text-title--line-height: 26px;
   --text-title-lg: 24px;
   --text-title-lg--line-height: 30px;
+  --text-title-lg--letter-spacing: -0.25px;
   --text-display: 32px;
   --text-display--line-height: 40px;
+  --text-display--letter-spacing: -0.5px;
 
-  /* Fonts — system stack on app surfaces (design.md §2 Type) */
+  /* Fonts — Inter with system-stack fallback (design.md §2 Type) */
   --font-sans: var(--ap-font-sans);
 }
 

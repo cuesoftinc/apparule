@@ -398,6 +398,20 @@ on gradient/destructive fills (exception: on-media capture UI, by design).
 Tabular numerals (`font-variant-numeric: tabular-nums`) apply wherever the
 design.md §7 `tnum` note applies — measurement values and money.
 
+**Type as-built (2026-07-20, font-weight audit vs the Figma Home frame).**
+Inter loads via `next/font` in `layout.tsx` (variable font — the ramp's
+400/600/700 are real faces, no synthetic bolding) and reaches components as
+`--ap-font-sans` = `var(--font-inter)` + the system stack as fallback; the
+computed family therefore matches the Figma type styles on every platform.
+The Tailwind ramp utilities pin the styles' tracking — `text-title-lg`
+−0.25px, `text-display` −0.5px, all smaller sizes 0 — so components never
+hand-set `tracking-*` for ramp roles. Font smoothing stays `antialiased` on
+`<html>` (expendit sets the same pair in CSS; grayscale AA is also how the
+canvas rasterizes, keeping weights visually comparable). The home e2e
+journey carries the regression lock: per-role computed
+family/weight/size/line-height/letter-spacing plus a `document.fonts.check`
+that the three ramp weights loaded as real Inter faces.
+
 ## 4. Route map — pages.md Part A/B → app routes
 
 pages.md writes Part B routes with an `/app` shorthand prefix "relative to"

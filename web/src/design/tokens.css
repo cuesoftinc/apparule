@@ -70,10 +70,13 @@
   --ap-z-sheet: 40;
   --ap-z-toast: 50;
 
-  /* ---- Type: system stack on app surfaces (design.md §2 Type) ---- */
+  /* ---- Type: Inter with system-stack fallback (design.md §2 Type).
+     --font-inter is the next/font variable set on <html> (layout.tsx) —
+     the same family every Figma frame renders, so type weight/width match
+     the canvas on every platform instead of drifting per-OS. ---- */
   --ap-font-sans:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
-    sans-serif;
+    var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
 
   color-scheme: light;
 }
