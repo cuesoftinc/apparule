@@ -28,7 +28,7 @@ export const heroStories: DemoStory[] = [
   { username: "tunde.a", avatarUrl: "/demo/outfit-w15.jpg", state: "unseen" },
   { username: "kiki", avatarUrl: "/demo/outfit-w16.jpg", state: "unseen" },
   { username: "zuri", avatarUrl: "/demo/outfit-w05.jpg", state: "seen" },
-  { username: "bisi", avatarUrl: "/demo/outfit-w13.jpg", state: "seen" },
+  { username: "bisi", avatarUrl: "/demo/outfit-w04.jpg", state: "seen" },
 ];
 
 function makeHeroPost(input: {
@@ -95,10 +95,10 @@ export const heroPosts: Post[] = [
     caption:
       "Matching aso-oke set — hand-loomed in Ilorin, sized from your vault.",
     media: [
-      { file: "outfit-w13.jpg", alt: "Matching aso-oke set at a ceremony" },
+      { file: "outfit-09.jpg", alt: "Beaded aso-oke ceremonial look" },
       { file: "outfit-w14.jpg", alt: "Aso-oke fabric detail" },
       { file: "outfit-w10.jpg", alt: "Designer at the loom" },
-      { file: "outfit-w06.jpg", alt: "Aso-oke set worn by dancers" },
+      { file: "outfit-w04.jpg", alt: "Runway pair in ankara-trim jackets" },
       { file: "outfit-w16.jpg", alt: "Couple in matching aso-oke" },
     ],
     likes: 3_872,
@@ -189,7 +189,7 @@ export const demoOrders: CommissionRequest[] = [
     post: {
       id: "demo-asooke-wrap",
       caption: "Aso-oke wrap set",
-      thumb_url: "/demo/outfit-w13.jpg",
+      thumb_url: "/demo/outfit-09.jpg",
     },
     designer: {
       id: "des-kiki",
@@ -297,9 +297,9 @@ export const demoGridImages: { src: string; alt: string }[] = [
   { src: "/demo/outfit-w01.jpg", alt: "Ankara look, full length" },
   { src: "/demo/outfit-w03.jpg", alt: "Statement evening look" },
   { src: "/demo/outfit-w05.jpg", alt: "Orange runway outfit" },
-  { src: "/demo/outfit-w06.jpg", alt: "Dancers in traditional dress" },
+  { src: "/demo/outfit-09.jpg", alt: "Beaded traditional ceremonial dress" },
   { src: "/demo/outfit-w10.jpg", alt: "Designer cutting cloth" },
-  { src: "/demo/outfit-w13.jpg", alt: "Aso-oke outfit" },
+  { src: "/demo/outfit-w12.jpg", alt: "Tailor with ceremonial menswear" },
   { src: "/demo/outfit-w14.jpg", alt: "African print fabrics" },
   { src: "/demo/outfit-w15.jpg", alt: "Matching print shirts" },
 ];

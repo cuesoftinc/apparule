@@ -116,10 +116,12 @@ describe("seed narrative", () => {
     expect(usernames.has("tunde.o")).toBe(false);
   });
 
-  it("every seeded post references a /demo/ photo", () => {
+  it("every seeded post references a /demo/ pool photo", () => {
+    // Pool naming spans both series ("outfit-w00" and "outfit-29") — the
+    // Figma Assets page inventory.
     for (const post of store.explore("kiki.adeyemi")) {
       for (const media of post.media) {
-        expect(media.url).toMatch(/^\/demo\/outfit-w\d+\.jpg$/);
+        expect(media.url).toMatch(/^\/demo\/outfit-w?\d+\.jpg$/);
         expect(media.alt_text.length).toBeGreaterThan(0);
       }
     }

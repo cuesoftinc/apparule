@@ -60,20 +60,17 @@ function defaultPrefs() {
  * web-implementation.md §6 seed contract (audit #9).
  */
 const AVATARS = {
-  kiki: "/demo/outfit-w16.jpg",
+  kiki: "/demo/outfit-03.jpg",
   amara: "/demo/outfit-w00.jpg",
-  tunde: "/demo/outfit-w15.jpg",
-  bisi: "/demo/outfit-w13.jpg",
+  tunde: "/demo/outfit-29.jpg",
+  bisi: "/demo/outfit-w04.jpg",
   eniola: "/demo/outfit-w10.jpg",
   ada: "/demo/outfit-w01.jpg",
   funmi: "/demo/outfit-w03.jpg",
-  chidi: "/demo/outfit-w06.jpg",
+  chidi: "/demo/outfit-w11.jpg",
   zainab: "/demo/outfit-w05.jpg",
   emeka: "/demo/outfit-w14.jpg",
-  // The pool holds ten photos for eleven personas; tola shares chidi's
-  // group shot — their follower sheets are disjoint, so the two avatars
-  // never co-render.
-  tola: "/demo/outfit-w06.jpg",
+  tola: "/demo/outfit-w16.jpg",
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -452,8 +449,8 @@ export const seedPosts: Post[] = [
     turnaround: 21,
     media: [
       {
-        file: "outfit-w13.jpg",
-        alt: "Boy in a royal blue senator outfit with white piping",
+        file: "outfit-29.jpg",
+        alt: "Young man in a dark senator outfit with layered gold chains",
       },
     ],
     likes: 41,
@@ -505,7 +502,10 @@ export const seedPosts: Post[] = [
     priceCents: 5_500_000,
     turnaround: 21,
     media: [
-      { file: "outfit-w06.jpg", alt: "Men in traditional ceremonial dress" },
+      {
+        file: "outfit-w12.jpg",
+        alt: "Tailor in an ivory double-breasted suit beside racks of ceremonial menswear",
+      },
     ],
     likes: 27,
     comments: 4,
@@ -588,8 +588,8 @@ export const seedPosts: Post[] = [
     turnaround: 7,
     media: [
       {
-        file: "outfit-w06.jpg",
-        alt: "Dancers performing in traditional dress",
+        file: "outfit-09.jpg",
+        alt: "Performer in beaded traditional dress at a cultural showcase",
       },
     ],
     likes: 19,
@@ -1379,7 +1379,7 @@ export const seedOrders: CommissionRequest[] = [
     post: {
       id: "post-asooke-set",
       caption: "Little senator",
-      thumb_url: "/demo/outfit-w13.jpg",
+      thumb_url: "/demo/outfit-29.jpg",
     },
     customer: {
       id: "acc-kiki",
@@ -1730,7 +1730,7 @@ export const seedNotifications: Notification[] = [
     // Matches cmt-5 (bisi's reply, 2.8d) — read when kiki next opened the app.
     text: "maisonbisi replied to your comment on Little senator",
     actor: { username: "maisonbisi", avatar_url: AVATARS.bisi },
-    thumb_url: "/demo/outfit-w13.jpg",
+    thumb_url: "/demo/outfit-29.jpg",
     read_at: daysAgo(2),
     created_at: daysAgo(2.8),
   },
@@ -1741,7 +1741,7 @@ export const seedNotifications: Notification[] = [
     payload_ref: "req-apr-1058",
     text: "Payout released for order #APR-1058 — ₦55,800",
     actor: { username: "kiki.adeyemi", avatar_url: AVATARS.kiki },
-    thumb_url: "/demo/outfit-w13.jpg",
+    thumb_url: "/demo/outfit-29.jpg",
     read_at: daysAgo(6),
     created_at: daysAgo(7),
   },
@@ -1752,7 +1752,7 @@ export const seedNotifications: Notification[] = [
     payload_ref: "req-apr-1031",
     text: "kiki.adeyemi requested Ceremonial robe set (#APR-1031)",
     actor: { username: "kiki.adeyemi", avatar_url: AVATARS.kiki },
-    thumb_url: "/demo/outfit-w06.jpg",
+    thumb_url: "/demo/outfit-w12.jpg",
     read_at: null,
     created_at: daysAgo(1),
   },
@@ -1785,7 +1785,7 @@ export const seedNotifications: Notification[] = [
     payload_ref: "req-apr-1058",
     text: "Order #APR-1058 was delivered — payout released to maisonbisi",
     actor: { username: "maisonbisi", avatar_url: AVATARS.bisi },
-    thumb_url: "/demo/outfit-w13.jpg",
+    thumb_url: "/demo/outfit-29.jpg",
     read_at: daysAgo(6),
     created_at: daysAgo(7),
   },
