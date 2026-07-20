@@ -1,10 +1,12 @@
 "use client";
 
-// A7c Self-host (canvas 186:160–186:170, 198:6492/6493, 264:8529) —
-// data-ownership pitch · the shared `docker compose up -d` snippet with
-// copy-✓ morph (A7 asset) · "what ships" line · architecture mini-diagram ·
-// docs quickstart link. `self_host_click` fires on the docs handoff.
-import { CodeSnippetBlock } from "@/components/ui/CodeSnippetBlock";
+// A7c Self-host (canvas 186:160–186:170, 198:6492/6493, 264:8529; tabbed
+// proposal 415:2) — data-ownership pitch · the Docker Compose | Helm
+// tabbed snippet with copy-✓ morph (mirrored two-line commands; compose =
+// `make up`, helm chart at deploy/helm) · "what ships" line · architecture
+// mini-diagram · docs quickstart link. `self_host_click` fires on the docs
+// handoff.
+import { CodeSnippetTabs } from "@/components/ui/CodeSnippetTabs";
 import { track } from "@/controllers/use-analytics";
 import { ArchitectureDiagram } from "./ArchitectureDiagram";
 
@@ -16,7 +18,10 @@ export function SelfHostSection() {
       className="mx-auto w-full max-w-[1128px] scroll-mt-20 px-6 py-12"
     >
       <div className="flex flex-col items-start gap-10 md:flex-row md:gap-16">
-        <div className="max-w-[560px] flex-1">
+        {/* min-w-0: the snippet's nowrap command lines must not widen the
+            flex item past the viewport at 390 — they scroll inside the
+            block's own overflow-x rail instead (container canon) */}
+        <div className="w-full min-w-0 max-w-[560px] flex-1">
           <h2
             id="self-host-heading"
             className="text-title-lg font-bold text-text"
@@ -30,8 +35,20 @@ export function SelfHostSection() {
             S3-compatible storage. Your customers&apos; measurements never leave
             your box.
           </p>
-          <div className="mt-6 max-w-[420px]">
-            <CodeSnippetBlock code="docker compose up -d" />
+          <div className="mt-6 max-w-[460px]" data-testid="selfhost-snippet">
+            <CodeSnippetTabs
+              label="Install method"
+              tabs={[
+                {
+                  label: "Docker Compose",
+                  code: "git clone https://github.com/cuesoftinc/apparule\ncd apparule && docker compose up --build -d",
+                },
+                {
+                  label: "Helm",
+                  code: "git clone https://github.com/cuesoftinc/apparule\ncd apparule && helm install apparule deploy/helm",
+                },
+              ]}
+            />
           </div>
           <p className="mt-3 text-caption text-text-2">
             All services, your storage, no lock-in.

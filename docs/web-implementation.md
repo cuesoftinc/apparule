@@ -340,6 +340,24 @@ every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the
 Figma templates, and the QA loop checks all three.
 
+**Self-host tabbed snippet as-built (2026-07-20, PR #118).** The A7c
+compose one-liner is now the user-approved Docker Compose | Helm tab pair
+(Figma proposal 415:2), built as `CodeSnippetTabs` in the §8.2b marketing
+kit beside `CodeSnippetBlock` (whose copy-pill grammar — Copy → ✓ Copied
+morph — it reuses). Mirrored two-line commands: `git clone
+https://github.com/cuesoftinc/apparule` shared; `cd apparule && docker
+compose up --build -d` (the repo's `make up`) vs `cd apparule && helm
+install apparule deploy/helm` (the real chart path). Copy targets the
+ACTIVE tab's full block; the rendered `$ ` prompts are decorative
+(select-none) and stay out of the payload. Tab grammar per the frame:
+Micro/12 Semi Bold labels on the dark block, active = 2px `link`
+underline, inactive at 60%; tablist semantics with roving tabindex +
+Arrow/Home/End. Both tabs are two lines, so switching never shifts layout
+(apparule carries no extra caption — the "what ships" lines stay). Unit:
+`CodeSnippetTabs.test.tsx` (tab state, per-tab copy payload, roving
+focus, copied-morph reset); e2e: `home.spec.ts` pins helm-tab copy → the
+clipboard payload plus the 1440/390 container fit.
+
 ## 3. Token mapping — design.md §2 → `web/src/design/tokens.css`
 
 One custom property per Figma variable in the `apparule/tokens` collection
