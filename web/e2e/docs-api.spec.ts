@@ -85,16 +85,29 @@ test.describe("API reference — /docs/api", () => {
     ).toBeVisible({ timeout: 20_000 });
 
     // Scalar mirrors the resolved theme on body (light-mode/dark-mode).
+    // Fresh boot is light, the design default (key absent).
     const body = page.locator("body");
     await expect(body).toHaveClass(/light-mode/);
 
-    // system mode (default) follows an OS scheme flip live.
+    // Select system explicitly (light → dark → system) to exercise live
+    // OS-flip tracking.
+    await page
+      .getByRole("button", { name: "Theme: light — switch to dark" })
+      .click();
+    await page
+      .getByRole("button", { name: "Theme: dark — switch to system" })
+      .click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    await expect(body).toHaveClass(/light-mode/, { timeout: 15_000 });
+
+    // system mode follows an OS scheme flip live.
     await page.emulateMedia({ colorScheme: "dark" });
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
     await expect(body).toHaveClass(/dark-mode/, { timeout: 15_000 });
 
-    // Explicit choice via the nav toggle wins over the OS (dark stays after
-    // cycling system → light → the embed resyncs to light).
+    // Explicit choice via the nav toggle wins over the OS (system stays
+    // dark from the OS flip; cycling system → light and the embed resyncs
+    // to light).
     await page
       .getByRole("button", { name: "Theme: system — switch to light" })
       .click();
