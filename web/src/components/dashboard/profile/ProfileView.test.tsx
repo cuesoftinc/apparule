@@ -64,7 +64,12 @@ function designerProfile(selfViewing: boolean): PublicProfile {
       display_name: "Amara Designs",
       bio: "Ankara & contemporary tailoring.",
       avatar_url: null,
-      payout_account: null,
+      payout_account: {
+        provider_ref: null,
+        bank_name: null,
+        account_last4: null,
+        kyc_state: "none",
+      },
       verified: true,
       location: { city: "Lagos", state: "Lagos", country: "NG" },
       followers_count: 8,
