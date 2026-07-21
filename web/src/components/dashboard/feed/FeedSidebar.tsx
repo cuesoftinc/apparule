@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { formatAgoPhrase } from "@/lib/format";
 import { useVault } from "@/controllers/use-vault";
 import { useSuggestions } from "@/controllers/use-suggestions";
-import { useAuth } from "@/controllers/auth/AuthContext";
+import { useAuth } from "@/auth/AuthContext";
 import { Avatar, freshnessRing } from "@/components/ui/Avatar";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Tooltip } from "@/components/ui/Tooltip";

@@ -5,7 +5,7 @@
 // visit), and the single <main> landmark every screen renders into.
 import { useEffect, useMemo, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { useAuth } from "@/controllers/auth/AuthContext";
+import { useAuth } from "@/auth/AuthContext";
 import { useNotifications } from "@/controllers/use-notifications";
 import { NavRail, DEFAULT_NAV_ITEMS } from "@/components/ui/NavRail";
 import { Spinner } from "@/components/ui/Spinner";

@@ -10,7 +10,7 @@ const account = {
   username: "kiki.adeyemi",
   designer: { enabled: false, kyc_complete: false },
 };
-vi.mock("@/controllers/auth/AuthContext", () => ({
+vi.mock("@/auth/AuthContext", () => ({
   useAuth: () => ({ status: "signed_in", account }),
 }));
 vi.mock("@/controllers/use-orders", () => ({

@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import { Clock } from "lucide-react";
 import type { CommissionRequest, OrderStatus } from "@/models";
 import { formatCm, formatNaira } from "@/lib/format";
-import { useAuth } from "@/controllers/auth/AuthContext";
+import { useAuth } from "@/auth/AuthContext";
 import { useOrder } from "@/controllers/use-orders";
 import { useThread } from "@/controllers/use-thread";
 import { AppBar } from "@/components/ui/AppBar";

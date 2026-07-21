@@ -5,7 +5,7 @@
 // before the account loads.
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/controllers/auth/AuthContext";
+import { useAuth } from "@/auth/AuthContext";
 import { Spinner } from "@/components/ui/Spinner";
 
 export function ProfileRedirect() {

@@ -10,7 +10,7 @@ import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 import type { Post } from "@/models";
 import { formatAgo, formatNaira } from "@/lib/format";
 import { usePost } from "@/controllers/use-post";
-import { useAuth } from "@/controllers/auth/AuthContext";
+import { useAuth } from "@/auth/AuthContext";
 import { ActionRow } from "@/components/ui/ActionRow";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";

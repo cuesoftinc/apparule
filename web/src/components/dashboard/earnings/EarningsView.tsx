@@ -7,7 +7,7 @@
 // itemized 10% fee lines, provider refs). Render-only over useEarnings.
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/controllers/auth/AuthContext";
+import { useAuth } from "@/auth/AuthContext";
 import { useEarnings } from "@/controllers/use-earnings";
 import {
   EarningsSummary,

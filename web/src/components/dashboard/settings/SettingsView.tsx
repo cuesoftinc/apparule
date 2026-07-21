@@ -9,7 +9,7 @@ import Link from "next/link";
 import { ChevronRight, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { DeliveryAddress } from "@/models";
-import { useAuth } from "@/controllers/auth/AuthContext";
+import { useAuth } from "@/auth/AuthContext";
 import { useSettings } from "@/controllers/use-settings";
 import { useTheme } from "@/design/ThemeProvider";
 import { AddressFieldset } from "@/components/ui/AddressFieldset";

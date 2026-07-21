@@ -35,8 +35,8 @@
   views = `web/src/app/**` routes + composed components, render-only.
 - **TEST_MODE**: `NEXT_PUBLIC_TEST_MODE=1` → GoogleAuthButton navigates
   straight to the dashboard (no Firebase), and the API client targets the
-  in-app mock server (§5). Auth sits behind an `AuthProvider` interface
-  (`TestModeAuthProvider` now; `FirebaseAuthProvider` added at
+  in-app mock server (§5). Auth sits behind an `AuthProvider` interface in
+  `web/src/auth/` (`TestModeAuthProvider` now; `FirebaseAuthProvider` added at
   backend-integration time — X-1 Google-only either way,
   [flows/auth.md](flows/auth.md)).
 - **Mock server**: Next route handlers under `web/src/app/api/mock/*`

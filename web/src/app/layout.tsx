@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider, themeInitScript } from "@/design/ThemeProvider";
-import { AuthProvider } from "@/controllers/auth/AuthContext";
+import { AuthProvider } from "@/auth/AuthContext";
 
 // Design-system type (design.md §2): Inter — the family the Figma library
 // renders — self-hosted via next/font (variable font, so the ramp's

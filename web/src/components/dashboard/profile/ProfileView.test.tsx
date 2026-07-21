@@ -11,7 +11,7 @@ import { ToastProvider } from "../toast-context";
 const usePublicProfileMock = vi.fn();
 const useVaultMock = vi.fn();
 
-vi.mock("@/controllers/auth/AuthContext", () => ({
+vi.mock("@/auth/AuthContext", () => ({
   useAuth: () => ({
     status: "signed_in",
     account: { username: "kiki.adeyemi", display_name: "Kiki Adeyemi" },
