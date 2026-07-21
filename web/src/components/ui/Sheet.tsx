@@ -7,7 +7,7 @@
 import * as RadixDialog from "@radix-ui/react-dialog";
 import clsx from "clsx";
 import { X } from "lucide-react";
-import { type ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 
 export interface SheetStepper {
   steps: string[];
@@ -51,11 +51,31 @@ export function Sheet({
   children,
   className,
 }: SheetProps) {
+  // Sheets are controlled dialogs with no RadixDialog.Trigger, so Radix's
+  // default close autofocus targets a null triggerRef and focus falls to
+  // <body> (2026-07-21 a11y audit). Capture the opener ourselves —
+  // onOpenAutoFocus fires before Radix moves focus into the panel — and
+  // send focus back on close.
+  const returnFocusRef = useRef<HTMLElement | null>(null);
   return (
     <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
       <RadixDialog.Portal>
         <RadixDialog.Overlay className="fixed inset-0 z-30 bg-black/50 motion-reduce:animate-none" />
         <RadixDialog.Content
+          aria-modal="true"
+          onOpenAutoFocus={() => {
+            returnFocusRef.current =
+              document.activeElement instanceof HTMLElement
+                ? document.activeElement
+                : null;
+          }}
+          onCloseAutoFocus={(event) => {
+            // preventDefault also skips Radix's own (null-trigger) handler.
+            event.preventDefault();
+            const opener = returnFocusRef.current;
+            returnFocusRef.current = null;
+            if (opener?.isConnected) opener.focus();
+          }}
           className={clsx(
             // z-40 sheet/modal layer; bottom sheet <md, centered modal ≥md
             "fixed z-40 flex max-h-[85vh] w-full flex-col overflow-hidden bg-bg-elev",

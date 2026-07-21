@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { Sheet } from "./Sheet";
 
 describe("Sheet (§8.2)", () => {
@@ -66,6 +67,40 @@ describe("Sheet (§8.2)", () => {
     const wide = screen.getByRole("dialog").className;
     expect(wide).not.toContain("md:w-[480px]");
     expect(wide).toContain("md:w-[min(56rem,calc(100vw-4rem))]");
+  });
+
+  it("is announced as modal (aria-modal)", () => {
+    render(
+      <Sheet open onOpenChange={() => {}} title="Request">
+        <p>Body</p>
+      </Sheet>,
+    );
+    expect(screen.getByRole("dialog")).toHaveAttribute("aria-modal", "true");
+  });
+
+  it("returns focus to the opener on close (2026-07-21 a11y audit)", async () => {
+    // Sheets are controlled with no RadixDialog.Trigger, so Radix's default
+    // close autofocus has no trigger to return to — the Sheet must capture
+    // and restore the opener itself, even after focus moved inside.
+    function Harness() {
+      const [open, setOpen] = useState(false);
+      return (
+        <>
+          <button onClick={() => setOpen(true)}>Open sheet</button>
+          <Sheet open={open} onOpenChange={setOpen} title="Request">
+            <button>Inside action</button>
+          </Sheet>
+        </>
+      );
+    }
+    render(<Harness />);
+    const opener = screen.getByRole("button", { name: "Open sheet" });
+    await userEvent.click(opener);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    await userEvent.tab();
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(opener).toHaveFocus();
   });
 
   it("close affordance fires onOpenChange(false)", async () => {
