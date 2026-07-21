@@ -206,3 +206,72 @@ before public launch. Alternative: commission the brand pass first.
   the template); tier-2 fields are high-sensitivity in every data-model §4
   classification; verification is delegated to the money/filing provider —
   no in-house document review. ☑
+
+## Mobile (apparule-only)
+
+> Mobile is authorized for apparule alone (2026-07-21, explicit) — no
+> sibling product carries a mobile app in its PRD. These rulings execute the
+> ratified `oss-engineering-standards` SKILL.md "Mobile (Flutter)
+> implementation standard" against `mobile/flutter`; full detail lives in
+> [mobile-implementation.md](mobile-implementation.md).
+
+- **M-1 Flutter standard ratification (RATIFIED 2026-07-21)**: the org
+  SKILL.md canon (`oss-engineering-standards` PR #120) governs
+  `mobile/flutter`; mobile-implementation.md carries the full contract.
+  Toolchain: **Flutter 3.44.7 / Dart 3.12**, pinned via **FVM**
+  (`.fvmrc` is the source of truth, mirrored in `pubspec.yaml`); Android
+  floor **API 24**, iOS floor 13; **SwiftPM** is the iOS dependency
+  default (CocoaPods' registry goes read-only 2026-12-02, so no new
+  CocoaPods dependency is added — the salvaged iOS shell migrates to
+  SwiftPM in the restructure phase). ☑
+- **M-2 Architecture & state acceptances (RATIFIED 2026-07-21)**: the
+  official Flutter **MVVM + Repository** vocabulary, organized
+  **feature-first** (`lib/src/features/<feature>/{presentation,domain,
+  data}` + `src/{app,routing,core}` — no separate `application/` layer);
+  **Riverpod 3 with codegen** for state and DI (provider overrides per
+  environment; no `get_it` second container) — Bloc rejected as
+  boilerplate for this app's size, GetX rejected as not standards-grade,
+  and the legacy `provider ^6.0.5` package is superseded outright, not
+  bridged; **go_router + go_router_builder** typed routes accepted **in
+  maintenance mode** (first-party; revisit only on a successor package),
+  `StatefulShellRoute` driving the Home·Explore·➕·Orders·Profile tab
+  shell (pages.md Part C) with one top-level auth `redirect` off the
+  session provider. ☑
+- **M-3 Legacy auth deletion — X-1 execution (RATIFIED 2026-07-21)**: the
+  entire legacy `lib/src/features/auth/` (9 files: password + phone/SMS +
+  email-OTP flows, the `sms_autofill` dependency, `form_provider`) is
+  **deleted, not migrated** — canon-violation CV-1 in the legacy audit
+  ledger. Replacement is the Google-only Firebase flow (§9 of
+  mobile-implementation.md); the exact screen-removal list already
+  ratified for the web auth surface applies here to its Flutter
+  equivalents, per **flows/auth.md §5**: `login_page` becomes the single
+  auth screen, and `sign_up_form`, `sign_up_screen`, `forgot_password`,
+  `reset_password`, `verify_email`, `sms_verification`, `verify_account`
+  are retired by name. `models/user.dart` (prefs-string identity, CV-2)
+  drops with it. ☑
+- **M-4 Android API floor (RATIFIED 2026-07-21)**: **minSdkVersion 24**
+  (the legacy value, confirmed against the ratified standard's floor) —
+  carried forward, not raised. The Android project is regenerated to
+  current tooling (AGP 8+, Kotlin DSL, package renamed off the stale
+  `com.example.apparule` to match the real `io.cuesoft.apparule`
+  applicationId, ARCore/Sceneform dependencies dropped, DEBUG-key release
+  signing replaced) as part of the toolchain-floor migration step — no
+  behavior change. ☑
+- **M-5 Mock-first sequencing — API last (RATIFIED 2026-07-21)**: mirrors
+  the web `TEST_MODE` contract (web-implementation.md §5) — every
+  repository ships abstract with `*Remote` and `*Fake` implementations;
+  fakes read seeded narrative JSON from flavor-scoped `assets/seed/`
+  (`dev`/`stg` entrypoints run entirely on fakes), tied to the **same
+  designer/order/vault personas** as the web mock server's seed
+  (web-implementation.md §6) so both clients tell one coherent demo.
+  API wiring is the **last** migration step, behind unchanged repository
+  interfaces — no ViewModel or screen changes at that step. ☑
+- **M-6 Single-photo measurement reaffirmation (RATIFIED 2026-07-21)**:
+  the **one frontal photo + height** canon (api.md `POST /measure`;
+  capture-qc.md; flows/vault.md §1) is unchanged by the mobile rebuild —
+  the legacy two-pose `guide_screen.dart` (front + side) is **rewritten**
+  to one pose, not extended (CV-4). C6 owns the silhouette overlay + 3-2-1
+  countdown (the legacy `countdown.dart` is salvaged as-is), the
+  `mediapipe_2d_v2` height-scale correction, capture-qc.md's
+  first-failure-only QC surfacing, and a manual-entry fallback; results
+  save into the vault (C7). ☑
