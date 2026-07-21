@@ -1,0 +1,59 @@
+{
+  "$description": "Apparule design tokens — the reviewed in-repo artifact (mobile-implementation.md §7). Pulled from the Figma variable collection `apparule/tokens`; docs/design.md §2 is the written contract these values must match. Token changes happen in Figma first, then sync here.",
+  "$source": {
+    "figmaFileKey": "34GbYXm8TpxMMUaAGGuwMM",
+    "collection": "apparule/tokens",
+    "collectionId": "VariableCollectionId:13:1015",
+    "modes": { "light": "13:1", "dark": "35:0" },
+    "variableCount": 37,
+    "pulledAt": "2026-07-21"
+  },
+  "$codegen": "mobile/flutter/lib/src/core/theme/tokens/ is generated from this file — never hand-edited. Regenerate from mobile/flutter/ with: dart run tool/gen_tokens.dart",
+  "color": {
+    "bg": { "light": "#FFFFFF", "dark": "#000000" },
+    "bg-elev": { "light": "#FFFFFF", "dark": "#121212" },
+    "border": { "light": "#DBDBDB", "dark": "#262626" },
+    "text": { "light": "#111111", "dark": "#FAFAFA" },
+    "text-2": { "light": "#737373", "dark": "#A8A8A8" },
+    "accent-start": { "light": "#E1306C", "dark": "#E1306C" },
+    "accent-end": { "light": "#F77737", "dark": "#F77737" },
+    "on-accent": { "light": "#FFFFFF", "dark": "#FFFFFF" },
+    "link": { "light": "#00376B", "dark": "#E0F1FF" },
+    "like": { "light": "#ED4956", "dark": "#ED4956" },
+    "success": { "light": "#2E7D32", "dark": "#4ECB71" },
+    "warn": { "light": "#B26A00", "dark": "#FFB020" },
+    "error": { "light": "#C62828", "dark": "#FF6B6E" },
+    "accent-text": { "light": "#DB2967", "dark": "#E73771" },
+    "success-text": { "light": "#27772C", "dark": "#4ECB71" },
+    "warn-text": { "light": "#985A02", "dark": "#FFB020" },
+    "text-2-text": { "light": "#696969", "dark": "#A8A8A8" }
+  },
+  "space": {
+    "1": 4,
+    "2": 8,
+    "3": 12,
+    "4": 16,
+    "6": 24,
+    "8": 32,
+    "12": 48,
+    "16": 64
+  },
+  "radius": {
+    "card": 8,
+    "pill": 9999
+  },
+  "duration": {
+    "fast": 120,
+    "base": 200,
+    "entrance": 250,
+    "slow": 300
+  },
+  "z": {
+    "base": 0,
+    "sticky": 10,
+    "dropdown": 20,
+    "overlay": 30,
+    "sheet": 40,
+    "toast": 50
+  }
+}
