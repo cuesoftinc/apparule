@@ -8,6 +8,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Self-host install snippet goes tabbed: Docker Compose and Helm (#118).
+- SEO plumbing: sitemap, `robots.txt`, canonical URLs, an Open Graph card, and
+  a real brand favicon in place of the placeholder (#129).
+
+### Changed
+- Home page LCP: the hero/demo image now loads with `priority` and sized WebP
+  assets instead of blocking on an unoptimized full-size image (#127).
+- Dead-code and env-plumbing cleanup: removed a dead hook, unused scaffold
+  SVGs, and the dead `NEXT_PUBLIC_GOOGLE_CLIENT_ID` env plumbing; piped
+  Playwright's `webServer` output so CI server deaths are diagnosable
+  (#122, #123, #124).
+
+### Fixed
+- Figma↔code convergence pass: timezone-stable timestamps, date-popover
+  anatomy, marketing chrome naming parity, MI-11 profile avatars/ring, the
+  low-confidence chip's reachability, landing typography (Inter via
+  `next/font`), and assorted copy-parity nits (#113, #115, #116, #119, #120,
+  #121).
+- Seed-photo coherence: every demo image now matches the seeded narrative
+  instead of generic stock art (#125).
+- Accessibility: `Sheet` dialogs restore focus to the trigger on close and
+  expose `aria-modal` (#126).
+
+### Added
 - Full web implementation: a marketing landing page and a dashboard
   application, composed from the shared component registry and running over
   a mock CRUD API (`TEST_MODE`), backed by a coherent seeded demo (designer
