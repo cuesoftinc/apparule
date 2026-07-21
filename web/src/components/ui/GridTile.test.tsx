@@ -6,7 +6,7 @@ describe("GridTile (§8.2b)", () => {
   it("renders the 1:1 tile with hover-stats overlay", () => {
     render(
       <GridTile
-        src="/demo/outfit-w03.jpg"
+        src="/demo/outfit-w19.jpg"
         alt="Outfit"
         likeCount={519}
         commentCount={6}
@@ -19,10 +19,10 @@ describe("GridTile (§8.2b)", () => {
 
   it("corner badge renders only for carousels", () => {
     const { rerender } = render(
-      <GridTile src="/demo/outfit-w03.jpg" carousel />,
+      <GridTile src="/demo/outfit-w19.jpg" carousel />,
     );
     expect(screen.getByTestId("carousel-badge")).toBeInTheDocument();
-    rerender(<GridTile src="/demo/outfit-w03.jpg" />);
+    rerender(<GridTile src="/demo/outfit-w19.jpg" />);
     expect(screen.queryByTestId("carousel-badge")).not.toBeInTheDocument();
   });
 

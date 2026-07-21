@@ -138,7 +138,7 @@ export const seedAccounts: Account[] = [
     email: "eniola@example.com",
     username: "eniola.stitches",
     display_name: "Eniola Stitches",
-    avatar_url: "/demo/outfit-w10.jpg", // her own atelier post photo
+    avatar_url: "/demo/outfit-w18.jpg", // her own atelier post photo
     // The one non-Lagos designer: kiki (Lagos) ranks her LAST under the
     // explore "near me" proximity ordering — the visible contrast case.
     profile_location: { city: "Abuja", state: "FCT", country: "NG" },
@@ -331,7 +331,7 @@ export const seedDesigners: DesignerProfile[] = [
     username: "eniola.stitches",
     display_name: "Eniola Stitches",
     bio: "Bespoke womenswear from the Abuja atelier — corporate and occasion.",
-    avatar_url: "/demo/outfit-w10.jpg", // mirrors acc-eniola — one identity
+    avatar_url: "/demo/outfit-w18.jpg", // mirrors acc-eniola — one identity
     payout_account: {
       provider_ref: "PSTK-RCP-55492",
       bank_name: "UBA",
@@ -412,8 +412,8 @@ export const seedPosts: Post[] = [
     turnaround: 10,
     media: [
       {
-        file: "outfit-w10.jpg",
-        alt: "Designer at a work table making clothes in the atelier",
+        file: "outfit-w18.jpg",
+        alt: "Tailor at the sewing machine working a bold print in the atelier",
       },
     ],
     likes: 9,
@@ -460,14 +460,14 @@ export const seedPosts: Post[] = [
     id: "post-bridal-gown",
     designerId: "des-bisi",
     caption:
-      "Bridal second-look gown — blush, structured train, hand-finished. Booked per season, two fittings included.",
+      "Bridal second-look dress — blush layered organza, hand-finished. Booked per season, two fittings included.",
     tags: ["bridal", "gown", "wedding"],
     priceCents: 15_000_000,
     turnaround: 30,
     media: [
       {
         file: "outfit-w00.jpg",
-        alt: "Model in a blush bridal gown with a structured train",
+        alt: "Model in a blush layered organza dress with voluminous sleeves",
       },
     ],
     likes: 38,
@@ -501,7 +501,10 @@ export const seedPosts: Post[] = [
     priceCents: 5_500_000,
     turnaround: 21,
     media: [
-      { file: "outfit-w06.jpg", alt: "Men in traditional ceremonial dress" },
+      {
+        file: "outfit-w17.jpg",
+        alt: "Man in an embroidered sky-blue agbada with a matching cap",
+      },
     ],
     likes: 27,
     comments: 4,
@@ -560,7 +563,7 @@ export const seedPosts: Post[] = [
     createdDaysAgo: 15,
   }),
   makePost({
-    id: "post-chromat-look",
+    id: "post-evening-gown",
     designerId: "des-bisi",
     caption:
       "Statement eveningwear commission from last season — silhouettes like this start at ₦80k.",
@@ -568,7 +571,10 @@ export const seedPosts: Post[] = [
     priceCents: 8_000_000,
     turnaround: 28,
     media: [
-      { file: "outfit-w03.jpg", alt: "Model in a statement evening look" },
+      {
+        file: "outfit-w19.jpg",
+        alt: "Model in a draped bronze satin evening gown on the runway",
+      },
     ],
     likes: 22,
     comments: 3,
@@ -699,7 +705,7 @@ export const seedComments: Comment[] = [
     id: "cmt-10",
     post_id: "post-bridal-gown",
     author: { id: "acc-funmi", username: "funmi.b", avatar_url: null },
-    body: "That train 😭😭",
+    body: "Those sleeves 😭😭",
     like_count: 2,
     liked: false,
     hidden_by_moderation: false,
@@ -877,7 +883,7 @@ export const seedComments: Comment[] = [
   },
   {
     id: "cmt-28",
-    post_id: "post-chromat-look",
+    post_id: "post-evening-gown",
     author: { id: "acc-ada", username: "ada.eze", avatar_url: null },
     body: "Statement is an understatement.",
     like_count: 2,
@@ -887,7 +893,7 @@ export const seedComments: Comment[] = [
   },
   {
     id: "cmt-29",
-    post_id: "post-chromat-look",
+    post_id: "post-evening-gown",
     author: { id: "acc-zainab", username: "zainab.k", avatar_url: null },
     body: "The drape on this — beautiful.",
     like_count: 0,
@@ -897,7 +903,7 @@ export const seedComments: Comment[] = [
   },
   {
     id: "cmt-30",
-    post_id: "post-chromat-look",
+    post_id: "post-evening-gown",
     author: { id: "acc-chidi", username: "chidi.n", avatar_url: null },
     body: "Saving this for my sister.",
     like_count: 1,
@@ -1469,7 +1475,7 @@ export const seedOrders: CommissionRequest[] = [
   }),
   makeOrder({
     num: 1005,
-    postId: "post-chromat-look",
+    postId: "post-evening-gown",
     status: "cancelled",
     createdDaysAgo: 45,
     events: [
@@ -1503,7 +1509,7 @@ export const seedThreadMessages = [
     request_id: "req-apr-1042",
     author_id: "des-amara",
     body: "Fabric cut today — progress shot attached.",
-    image_url: "/demo/outfit-w14.jpg",
+    image_url: "/demo/outfit-w10.jpg",
     created_at: daysAgoAt(2, "16:12"),
   },
   {
@@ -1636,7 +1642,7 @@ export const seedNotifications: Notification[] = [
     payload_ref: "req-apr-1031",
     text: "kiki.adeyemi requested Ceremonial robe set (#APR-1031)",
     actor: { username: "kiki.adeyemi", avatar_url: null },
-    thumb_url: "/demo/outfit-w06.jpg",
+    thumb_url: "/demo/outfit-w17.jpg",
     read_at: null,
     created_at: daysAgo(1),
   },
@@ -1773,7 +1779,7 @@ export const seedLikes: [string, string][] = [
 
 export const seedSaves: [string, string][] = [
   ["acc-kiki", "post-bridal-gown"],
-  ["acc-kiki", "post-chromat-look"],
+  ["acc-kiki", "post-evening-gown"],
 ];
 
 /**
