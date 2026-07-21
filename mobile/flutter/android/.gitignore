@@ -12,3 +12,6 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Kotlin build-tools session dir (AGP 9/Kotlin 2.3 build junk)
+.kotlin/

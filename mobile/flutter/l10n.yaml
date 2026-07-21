@@ -1,3 +1,9 @@
+# gen-l10n config (standards-research ledger item 10): generated output
+# lives under lib/l10n/generated/ (gitignored — regenerates on `pub get`),
+# non-nullable lookup getter. (synthetic-package is gone upstream — output
+# under lib/ is the only mode now.)
 arb-dir: lib/l10n
 template-arb-file: app_en.arb
 output-localization-file: app_localizations.dart
+output-dir: lib/l10n/generated
+nullable-getter: false

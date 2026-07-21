@@ -1,0 +1,16 @@
+{
+  "@@locale": "en",
+  "appTitle": "Apparule",
+  "tabHome": "Home",
+  "tabExplore": "Explore",
+  "tabCreate": "Create",
+  "tabOrders": "Orders",
+  "tabProfile": "Profile",
+  "signInTitle": "Sign in",
+  "vaultTitle": "Measurement vault",
+  "earningsTitle": "Earnings & payouts",
+  "placeholderBody": "Placeholder screen — the real surface lands with its feature wave.",
+  "@placeholderBody": {
+    "description": "Body copy shown on every skeleton-wave placeholder screen."
+  }
+}
