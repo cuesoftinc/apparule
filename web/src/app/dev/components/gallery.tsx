@@ -331,7 +331,11 @@ export function ComponentGallery() {
   const [payState, setPayState] = useState<PaymentBoxState>("quoted");
 
   return (
-    <main className="mx-auto flex max-w-4xl flex-col px-6 pb-24">
+    <main
+      id="main"
+      tabIndex={-1}
+      className="mx-auto flex max-w-4xl flex-col px-6 pb-24"
+    >
       <h1 className="pt-10 text-display font-bold text-text">
         Component gallery
       </h1>

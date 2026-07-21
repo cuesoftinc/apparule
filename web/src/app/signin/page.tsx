@@ -10,7 +10,11 @@ export const metadata: Metadata = {
 
 export default function SignInPage() {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center px-6 py-16">
+    <main
+      id="main"
+      tabIndex={-1}
+      className="flex flex-1 flex-col items-center justify-center px-6 py-16"
+    >
       <div className="flex w-full max-w-sm flex-col items-stretch gap-8">
         <header className="flex flex-col items-center gap-2 text-center">
           <h1 className="bg-accent-gradient bg-clip-text text-display font-bold text-transparent">

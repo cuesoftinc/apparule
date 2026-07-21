@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider, themeInitScript } from "@/design/ThemeProvider";
 import { AuthProvider } from "@/auth/AuthContext";
+import { SkipLink } from "@/components/ui/SkipLink";
 
 // Design-system type (design.md §2): Inter — the family the Figma library
 // renders — self-hosted via next/font (variable font, so the ramp's
@@ -40,6 +41,9 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className="min-h-full flex flex-col bg-bg text-text">
+        {/* P15 fleet canon: first focusable on every route; targets the
+            route's single <main id="main">. */}
+        <SkipLink />
         <ThemeProvider>
           <AuthProvider>{children}</AuthProvider>
         </ThemeProvider>
