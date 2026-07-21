@@ -8,7 +8,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BadgeCheck, Banknote, Shirt } from "lucide-react";
-import { useAuth } from "@/controllers/auth/AuthContext";
+import { useAuth } from "@/auth/AuthContext";
 import { SUPPORT_URL, useOnboarding } from "@/controllers/use-onboarding";
 import { Banner } from "@/components/ui/Banner";
 import { Button } from "@/components/ui/Button";

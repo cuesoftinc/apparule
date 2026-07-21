@@ -5,7 +5,7 @@
 // pills (MI-14) and per-state next actions; skeleton/empty states.
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/controllers/auth/AuthContext";
+import { useAuth } from "@/auth/AuthContext";
 import { useOrders, type OrdersRole } from "@/controllers/use-orders";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { RequestCard } from "@/components/ui/RequestCard";

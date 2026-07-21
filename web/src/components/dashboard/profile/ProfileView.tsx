@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import { Lock } from "lucide-react";
 import type { Post } from "@/models";
 import { formatCount } from "@/lib/format";
-import { useAuth } from "@/controllers/auth/AuthContext";
+import { useAuth } from "@/auth/AuthContext";
 import {
   useFollowList,
   usePublicProfile,

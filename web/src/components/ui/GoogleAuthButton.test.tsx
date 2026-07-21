@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { GoogleAuthButton } from "./GoogleAuthButton";
-import type { SignInResult } from "@/controllers/auth/types";
+import type { SignInResult } from "@/auth/types";
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({
@@ -12,7 +12,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 const signInWithGoogle = vi.fn<() => Promise<SignInResult>>();
-vi.mock("@/controllers/auth/AuthContext", () => ({
+vi.mock("@/auth/AuthContext", () => ({
   useAuth: () => ({
     status: "signed_out",
     account: null,

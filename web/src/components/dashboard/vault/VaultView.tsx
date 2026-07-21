@@ -9,7 +9,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { formatAgoPhrase } from "@/lib/format";
 import type { MeasurementSession } from "@/models";
-import { useAuth } from "@/controllers/auth/AuthContext";
+import { useAuth } from "@/auth/AuthContext";
 import { useVault } from "@/controllers/use-vault";
 import { Avatar, freshnessRing } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";

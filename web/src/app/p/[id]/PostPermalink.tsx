@@ -6,7 +6,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Post } from "@/models";
-import { useAuth } from "@/controllers/auth/AuthContext";
+import { useAuth } from "@/auth/AuthContext";
 import { AppBar } from "@/components/ui/AppBar";
 import { PostDetailView } from "@/components/dashboard/post/PostDetailView";
 import { PostOptionsSheet } from "@/components/dashboard/feed/PostOptionsSheet";

@@ -11,7 +11,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
-import { useAuth } from "@/controllers/auth/AuthContext";
+import { useAuth } from "@/auth/AuthContext";
 import { GoogleG } from "@/components/icons/GoogleG";
 import { Spinner } from "@/components/ui/Spinner";
 

@@ -8,7 +8,7 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/controllers/auth/AuthContext";
+import { useAuth } from "@/auth/AuthContext";
 import { useComposer } from "@/controllers/use-composer";
 import { Banner } from "@/components/ui/Banner";
 import { Button } from "@/components/ui/Button";

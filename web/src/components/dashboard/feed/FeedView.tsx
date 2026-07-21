@@ -8,7 +8,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Post } from "@/models";
-import { useAuth } from "@/controllers/auth/AuthContext";
+import { useAuth } from "@/auth/AuthContext";
 import { useFeed } from "@/controllers/use-feed";
 import { Button } from "@/components/ui/Button";
 import { CaughtUpDivider } from "@/components/ui/CaughtUpDivider";
