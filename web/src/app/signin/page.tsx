@@ -23,13 +23,16 @@ export default function SignInPage() {
 
         <GoogleAuthButton />
 
+        {/* Inline links in a text block carry a persistent underline —
+            color alone can't distinguish them (WCAG 1.4.1; axe
+            link-in-text-block, 2026-07-21 audit). */}
         <footer className="text-center text-micro text-text-2">
           By continuing you agree to our{" "}
           <a
             href="https://terms.cuesoft.io"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-link"
+            className="text-link underline underline-offset-2"
           >
             Terms
           </a>{" "}
@@ -38,7 +41,7 @@ export default function SignInPage() {
             href="https://privacy.cuesoft.io"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-link"
+            className="text-link underline underline-offset-2"
           >
             Privacy Policy
           </a>
