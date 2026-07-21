@@ -57,7 +57,7 @@ export function CommunityCard({
         size="sm"
         aria-label="Join Discord"
         className="shrink-0"
-        onClick={() => window.open(discordHref, "_blank", "noopener")}
+        onClick={() => window.open(discordHref, "_blank", "noreferrer")}
       >
         Join
       </Button>

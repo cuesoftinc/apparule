@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- External links converge on `rel="noreferrer"` (which implies `noopener`) —
+  the fleet legal-link idiom — across anchors and `window.open` feature
+  strings (#137).
+- The skip-to-content link is now the fleet's byte-identical canonical
+  component: visually hidden via `sr-only` until keyboard focus reveals the
+  pill; the first-Tab/Enter-to-`#main` contract is unchanged (#137).
 - `/docs/api`'s Scalar reference now loads on user intent instead of shipping
   eagerly with the route, cutting settled pre-intent JS from ~1.38MB to
   ~223KB decoded (#131).
@@ -26,6 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `privacy.cuesoft.io` policies instead of dead internal routes (#133).
 
 ### Added
+- Web app manifest at `/manifest.webmanifest`: product identity ("Apparule —
+  Two photos. A perfect fit."), design-token colors, and the committed icon
+  set — locked by the shared SEO spec's generic manifest assertion (#137).
 - Self-host install snippet goes tabbed: Docker Compose and Helm (#118).
 - SEO plumbing: sitemap, `robots.txt`, canonical URLs, an Open Graph card, and
   a real brand favicon in place of the placeholder (#129).

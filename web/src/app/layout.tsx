@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider, themeInitScript } from "@/design/ThemeProvider";
 import { AuthProvider } from "@/auth/AuthContext";
-import { SkipLink } from "@/components/ui/SkipLink";
+import SkipLink from "@/components/ui/SkipLink";
 
 // Design-system type (design.md §2): Inter — the family the Figma library
 // renders — self-hosted via next/font (variable font, so the ramp's

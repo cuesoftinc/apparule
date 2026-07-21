@@ -76,7 +76,7 @@ export function FeatureDeepDives() {
                 <a
                   href={panel.href}
                   target="_blank"
-                  rel="noopener noreferrer"
+                  rel="noreferrer"
                   className="mt-6 inline-block text-body font-semibold text-link hover:underline"
                 >
                   Read more →

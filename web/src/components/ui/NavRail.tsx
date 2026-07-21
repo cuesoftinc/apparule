@@ -122,7 +122,7 @@ export function NavRail({
         <a
           href={supportHref}
           target="_blank"
-          rel="noopener noreferrer"
+          rel="noreferrer"
           className={itemClasses(false, expanded)}
         >
           <Info size={24} />

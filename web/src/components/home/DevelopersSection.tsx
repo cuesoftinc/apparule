@@ -68,7 +68,7 @@ export function DevelopersSection() {
         <a
           href={`${GITHUB_REPO_URL}/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22`}
           target="_blank"
-          rel="noopener noreferrer"
+          rel="noreferrer"
           onClick={() => {
             track("github_click", { section: "developers" });
             track("contribute_click", { link: "good_first_issues" });
@@ -81,7 +81,7 @@ export function DevelopersSection() {
         <a
           href={`${GITHUB_REPO_URL}/blob/main/CONTRIBUTING.md`}
           target="_blank"
-          rel="noopener noreferrer"
+          rel="noreferrer"
           onClick={() => {
             track("github_click", { section: "developers" });
             track("contribute_click", { link: "contributing" });
@@ -93,7 +93,7 @@ export function DevelopersSection() {
         <a
           href="https://discord.gg/CDfZxxrxbb"
           target="_blank"
-          rel="noopener noreferrer"
+          rel="noreferrer"
           onClick={() => track("contribute_click", { link: "discord" })}
           className={LINK_CLASSES}
         >
@@ -103,7 +103,7 @@ export function DevelopersSection() {
         <a
           href={GITHUB_REPO_URL}
           target="_blank"
-          rel="noopener noreferrer"
+          rel="noreferrer"
           data-testid="dev-star-badge"
           onClick={() => track("github_click", { section: "developers" })}
           className="inline-flex h-9 items-center gap-2 rounded-pill border border-border px-4 text-body font-semibold text-text transition-transform duration-120 ease-standard hover:-translate-y-0.5 hover:bg-border/30 motion-reduce:transition-none motion-reduce:hover:translate-y-0"

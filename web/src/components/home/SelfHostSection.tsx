@@ -61,7 +61,7 @@ export function SelfHostSection() {
           <a
             href="https://cuesoft.gitbook.io/apparule/system/deployment"
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noreferrer"
             onClick={() => track("self_host_click", { section: "self-host" })}
             className="mt-4 inline-block text-body font-semibold text-link hover:underline"
           >
