@@ -2,7 +2,6 @@ import 'package:apparule/src/features/auth/login_page.dart';
 import 'package:apparule/src/features/auth/sign_up_screen.dart';
 import 'package:flutter/material.dart';
 
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -29,13 +28,20 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Text(
                 'Elevate your Fashion Design with Augmented Reality',
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 40, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 40,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 16, bottom: 50),
                 child: Text(
                   "Unlock the future of fashion measurement with Apparule and get the perfect fit every time.",
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 16,
+                  ),
                 ),
               ),
               Container(
@@ -47,7 +53,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     elevation: 0.0,
                     backgroundColor: Theme.of(context).colorScheme.tertiary,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10), topRight: Radius.circular(10))),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(10),
+                        bottomRight: Radius.circular(10),
+                        topRight: Radius.circular(10),
+                      ),
+                    ),
                   ),
                   onPressed: () {
                     Navigator.of(context).push(_createSignUpRoute());
@@ -64,8 +75,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     backgroundColor: Colors.transparent,
                     elevation: 0.0,
                     shape: RoundedRectangleBorder(
-                        side: BorderSide(color: Theme.of(context).colorScheme.onSurface),
-                        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10), topRight: Radius.circular(10))),
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(10),
+                        bottomRight: Radius.circular(10),
+                        topRight: Radius.circular(10),
+                      ),
+                    ),
                   ),
                   onPressed: () {
                     Navigator.of(context).push(_createLoginRoute());
@@ -78,9 +96,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: EdgeInsets.only(left: 8.0, top: 4.0),
                         child: Text(
                           "Login",
-                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -96,9 +116,13 @@ class _HomeScreenState extends State<HomeScreen> {
 Route _createSignUpRoute() {
   return PageRouteBuilder<SlideTransition>(
     transitionDuration: const Duration(milliseconds: 500),
-    pageBuilder: (context, animation, secondaryAnimation) => const SignUpScreen(),
+    pageBuilder: (context, animation, secondaryAnimation) =>
+        const SignUpScreen(),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      var tween = Tween<Offset>(begin: const Offset(0.5, 1.0), end: Offset.zero);
+      var tween = Tween<Offset>(
+        begin: const Offset(0.5, 1.0),
+        end: Offset.zero,
+      );
       var curveTween = CurveTween(curve: Curves.fastOutSlowIn);
 
       return SlideTransition(
@@ -114,7 +138,10 @@ Route _createLoginRoute() {
     transitionDuration: const Duration(milliseconds: 500),
     pageBuilder: (context, animation, secondaryAnimation) => const LoginPage(),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      var tween = Tween<Offset>(begin: const Offset(0.5, 1.0), end: Offset.zero);
+      var tween = Tween<Offset>(
+        begin: const Offset(0.5, 1.0),
+        end: Offset.zero,
+      );
       var curveTween = CurveTween(curve: Curves.fastOutSlowIn);
 
       return SlideTransition(

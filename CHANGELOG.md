@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Mobile CI lane: a `mobile · format + analyze + test` job in
+  `build-and-test.yml` — Flutter pinned by `.fvmrc` via
+  `subosito/flutter-action@v2`, gating `dart format`, `flutter analyze`, and
+  `flutter test` — closing the audit's no-mobile-CI gap (CV-7/X-6), seeded
+  with the app's first test (a boot smoke test).
+- `mobile/flutter/.fvmrc` pinning Flutter 3.44.7, mirrored as hard
+  `environment:` pins in `pubspec.yaml` (Dart `^3.12.0`).
 - Mobile implementation contract (`docs/mobile-implementation.md`): the
   Flutter rebuild plan for `mobile/flutter` — feature-first MVVM+Repository
   over Riverpod 3, a typed go_router tab shell, a mock-first data layer
@@ -51,6 +58,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Regenerated `mobile/flutter/android/` on the Flutter 3.44.7 template
+  (mobile-implementation.md §11, decisions.md M-4): AGP 9.0.1 + Gradle 9.1
+  wrapper + Kotlin 2.3.20 on Java/Kotlin 17, declarative `plugins {}`
+  Kotlin-DSL settings, `namespace`/Kotlin package/manifest renamed off
+  `com.example.apparule` to `io.cuesoft.apparule` (matching the
+  applicationId), an environment-variable release-signing stub replacing the
+  debug-key release config (debug fallback documented, no secrets), the
+  minSdk 24 floor and both launcher mipmap sets carried forward, and the
+  dead ARCore/Sceneform native dependencies dropped.
+- Replaced `mobile/flutter/.gitignore` (previously the Flutter framework
+  repo's own template) with the app template plus the contract additions
+  (`.fvm/`, `env/*.json`, generated l10n, golden `failures/`, Firebase
+  config files); `.metadata` regenerated at the 3.44.7 revision.
+- Mobile legacy quarantine, wave 1 (web-legacy pattern — nothing deleted,
+  phased out when replacements land): the pre-regeneration `android/` tree
+  moved to `mobile/flutter/legacy/android-agp7/`, the unused web scaffold to
+  `mobile/flutter/legacy/web-scaffold/` (platform de-registered from
+  `.metadata`), and eight §11-listed assets to `mobile/flutter/assets/legacy/`
+  (unbundled — outside the pubspec asset list); `legacy/` trees are excluded
+  from analysis and the CI gates.
+- Reformatted the legacy Dart tree with `dart format` (whitespace-only) to
+  seed the CI format gate.
 - External links converge on `rel="noreferrer"` (which implies `noopener`) —
   the fleet legal-link idiom — across anchors and `window.open` feature
   strings (#137).
@@ -99,6 +128,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   structure; run commands use `make up` / `go run ./cmd/server`.
 
 ### Removed
+
+- Outer `mobile/android/` and `mobile/ios/` `.gitkeep` stubs (empty
+  placeholders — real platform dirs live inside `mobile/flutter/`), the iOS
+  LaunchImage placeholder README, and the dead ARCore/Sceneform native
+  dependencies from the Android build (§11 ledger; the pre-regeneration
+  build files are preserved under `legacy/android-agp7/`).
 
 - The legacy quarantine directory (`src/legacy/`), retired now that the
   system QA gate has passed.

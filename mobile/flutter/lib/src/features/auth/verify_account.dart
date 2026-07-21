@@ -14,14 +14,18 @@ class EmailVerificationPage extends StatefulWidget {
   State<EmailVerificationPage> createState() => _EmailVerificationPageState();
 }
 
-class _EmailVerificationPageState extends State<EmailVerificationPage> with SingleTickerProviderStateMixin {
+class _EmailVerificationPageState extends State<EmailVerificationPage>
+    with SingleTickerProviderStateMixin {
   AnimationController? _animationController;
   int levelClock = 2 * 60;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(vsync: this, duration: Duration(seconds: levelClock));
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: levelClock),
+    );
 
     _animationController!.forward();
   }
@@ -40,7 +44,10 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> with Sing
     return Scaffold(
       appBar: AppBar(
         title: const Text("Email OTP AutoFill"),
-        titleTextStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 20),
+        titleTextStyle: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface,
+          fontSize: 20,
+        ),
         elevation: 0,
         backgroundColor: Colors.transparent,
         centerTitle: true,
@@ -59,11 +66,18 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> with Sing
                 children: [
                   Text(
                     "Verify Your Account",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Theme.of(context).colorScheme.onSurface),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                   Text(
                     "Check your Email inbox for the code sent to ${Persistence.getUser()?.email ?? 'your email'}. Enter the code below to complete the verification",
-                    style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                 ],
               ),
@@ -77,21 +91,24 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> with Sing
                   decoration: UnderlineDecoration(
                     lineHeight: 2,
                     lineStrokeCap: StrokeCap.square,
-                    bgColorBuilder: PinListenColorBuilder(Colors.green.shade200, Colors.grey.shade200),
+                    bgColorBuilder: PinListenColorBuilder(
+                      Colors.green.shade200,
+                      Colors.grey.shade200,
+                    ),
                     colorBuilder: const FixedColorBuilder(Colors.transparent),
                   ),
                 ),
               ),
             ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   "Resend code after: ",
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
                 Countdown(
                   animation: StepTween(
@@ -129,7 +146,12 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> with Sing
                     elevation: 0.0,
                     backgroundColor: Theme.of(context).colorScheme.tertiary,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10), topRight: Radius.circular(10))),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(10),
+                        bottomRight: Radius.circular(10),
+                        topRight: Radius.circular(10),
+                      ),
+                    ),
                   ),
                   child: const Text("Okay"),
                   onPressed: () {
@@ -142,18 +164,18 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> with Sing
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: AlertDialog(
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(8))),
+                    borderRadius: BorderRadius.all(Radius.circular(8)),
+                  ),
                   iconPadding: EdgeInsets.only(top: 50),
                   contentPadding: EdgeInsets.fromLTRB(30, 10, 30, 0),
                   titlePadding: EdgeInsets.only(top: 20),
                   icon: SvgPicture.asset("assets/images/check.svg"),
                   title: Text("Successful"),
-                  content: Text("Your email has been verified",
+                  content: Text(
+                    "Your email has been verified",
                     textAlign: TextAlign.center,
                   ),
-                  actions: [
-                    okButton,
-                  ],
+                  actions: [okButton],
                 ),
               );
 
@@ -171,7 +193,10 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> with Sing
             height: 56,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HomeScreen()),
+                );
               },
               child: const Text("Log Out"),
             ),
@@ -181,4 +206,3 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> with Sing
     );
   }
 }
-

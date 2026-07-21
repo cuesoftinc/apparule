@@ -90,3 +90,39 @@ jobs:
           name: playwright-report
           path: web/playwright-report
           retention-days: 7
+
+  mobile:
+    name: mobile · format + analyze + test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile/flutter
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Flutter (version pinned by .fvmrc)
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version-file: mobile/flutter/.fvmrc
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Scoped to the live code dirs: quarantined legacy/ trees sit outside
+      # the format/analyze gates (analysis_options excludes them too).
+      - name: Format check
+        run: dart format --set-exit-if-changed lib test
+
+      # Infos are non-fatal while the §11 legacy surface awaits its rewrite —
+      # every current info-level lint lives in a file the salvage ledger
+      # registers as DROP/REWRITE, pending quarantine. Errors and warnings
+      # stay fatal. Steps up to `--fatal-infos` (+ very_good_analysis/
+      # custom_lint, the full mobile-implementation.md §8 gate) once the
+      # legacy surface is replaced.
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos
+
+      - name: Test
+        run: flutter test

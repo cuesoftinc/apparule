@@ -9,17 +9,23 @@ class VerifyEmailForPasswordReset extends StatefulWidget {
   const VerifyEmailForPasswordReset({Key? key}) : super(key: key);
 
   @override
-  State<VerifyEmailForPasswordReset> createState() => _VerifyEmailForPasswordResetState();
+  State<VerifyEmailForPasswordReset> createState() =>
+      _VerifyEmailForPasswordResetState();
 }
 
-class _VerifyEmailForPasswordResetState extends State<VerifyEmailForPasswordReset> with SingleTickerProviderStateMixin {
+class _VerifyEmailForPasswordResetState
+    extends State<VerifyEmailForPasswordReset>
+    with SingleTickerProviderStateMixin {
   AnimationController? _animationController;
   int levelClock = 2 * 60;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(vsync: this, duration: Duration(seconds: levelClock));
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: levelClock),
+    );
 
     _animationController!.forward();
   }
@@ -38,7 +44,10 @@ class _VerifyEmailForPasswordResetState extends State<VerifyEmailForPasswordRese
     return Scaffold(
       appBar: AppBar(
         title: const Text("Email OTP AutoFill"),
-        titleTextStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 20),
+        titleTextStyle: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface,
+          fontSize: 20,
+        ),
         elevation: 0,
         backgroundColor: Colors.transparent,
         centerTitle: true,
@@ -57,11 +66,18 @@ class _VerifyEmailForPasswordResetState extends State<VerifyEmailForPasswordRese
                 children: [
                   Text(
                     "Verify Your Account",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Theme.of(context).colorScheme.onSurface),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                   Text(
                     "Check your Email inbox for the code sent to ${Persistence.getUser()?.email ?? 'your email'}. Enter the code below to complete the verification",
-                    style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                 ],
               ),
@@ -75,21 +91,24 @@ class _VerifyEmailForPasswordResetState extends State<VerifyEmailForPasswordRese
                   decoration: UnderlineDecoration(
                     lineHeight: 2,
                     lineStrokeCap: StrokeCap.square,
-                    bgColorBuilder: PinListenColorBuilder(Colors.green.shade200, Colors.grey.shade200),
+                    bgColorBuilder: PinListenColorBuilder(
+                      Colors.green.shade200,
+                      Colors.grey.shade200,
+                    ),
                     colorBuilder: const FixedColorBuilder(Colors.transparent),
                   ),
                 ),
               ),
             ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   "Resend code after: ",
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
                 Countdown(
                   animation: StepTween(
@@ -121,7 +140,7 @@ class _VerifyEmailForPasswordResetState extends State<VerifyEmailForPasswordRese
             child: ElevatedButton(
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => ResetPassword(),)
+                  MaterialPageRoute(builder: (context) => ResetPassword()),
                 );
               },
               child: const Text("Confirm"),
@@ -131,7 +150,10 @@ class _VerifyEmailForPasswordResetState extends State<VerifyEmailForPasswordRese
             height: 56,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HomeScreen()),
+                );
               },
               child: const Text("Log Out"),
             ),
@@ -141,4 +163,3 @@ class _VerifyEmailForPasswordResetState extends State<VerifyEmailForPasswordRese
     );
   }
 }
-

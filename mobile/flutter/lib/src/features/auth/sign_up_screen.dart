@@ -9,6 +9,9 @@ class SignUpScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(create: (_) => FormProvider(), child: const SignUpForm());
+    return ChangeNotifierProvider(
+      create: (_) => FormProvider(),
+      child: const SignUpForm(),
+    );
   }
 }
