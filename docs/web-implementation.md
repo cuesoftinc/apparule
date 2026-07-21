@@ -627,9 +627,10 @@ Live paths carry zero dead code. `web/src/legacy/` plus the boundary gates
 `scripts/check-boundaries.mjs`, wired into `npm run lint`) are the standing
 mechanism for future replacements per the §1 policy (quarantine → replace →
 QA → dedicated retirement PR) — the directory is currently empty. The
-**mobile Flutter app is a later phase**: `mobile/` (existing auth + capture
-screens, design.md §6) gets its own implementation standard — including its
-own application of the quarantine policy — when that phase opens.
+**mobile Flutter app has its own implementation standard**:
+[mobile-implementation.md](mobile-implementation.md) — including its own
+application of the quarantine policy over the existing `mobile/flutter`
+tree (design.md §6).
 
 ## 9. Acceptance
 
