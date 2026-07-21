@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- `/docs/api`'s Scalar reference now loads on user intent instead of shipping
+  eagerly with the route, cutting settled pre-intent JS from ~1.38MB to
+  ~223KB decoded (#131).
+- Auth module rehomed from `controllers/auth/` to `src/auth/` for tree-shape
+  parity with the sibling repos (#132).
+
+### Fixed
+- Contrast-token canon: AA-compliant `-text` variants for the tinted-chip
+  recipe (accent/success/warn/text-2) so tinted text clears 4.5:1 in both
+  themes (#128).
+- Signin's legal links now point at the canonical `terms.cuesoft.io` /
+  `privacy.cuesoft.io` policies instead of dead internal routes (#133).
+
 ### Added
 - Self-host install snippet goes tabbed: Docker Compose and Helm (#118).
 - SEO plumbing: sitemap, `robots.txt`, canonical URLs, an Open Graph card, and
