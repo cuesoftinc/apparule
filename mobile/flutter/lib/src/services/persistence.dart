@@ -1,4 +1,3 @@
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:apparule/src/shared/models/user.dart';
@@ -6,7 +5,6 @@ import 'package:apparule/src/shared/models/user.dart';
 SharedPreferences? _prefs;
 
 class Persistence {
-
   static Future<void> initPersistence() async {
     _prefs = await SharedPreferences.getInstance();
   }
@@ -22,11 +20,10 @@ class Persistence {
       return null;
     }
     return User(
-        email:  _prefs!.getString("email") ?? "",
-        name:  _prefs!.getString("name") ?? "",
-        phoneNumber:  _prefs!.getString("phone") ?? "",
+      email: _prefs!.getString("email") ?? "",
+      name: _prefs!.getString("name") ?? "",
+      phoneNumber: _prefs!.getString("phone") ?? "",
     );
-
   }
 
   static void deleteUser() {
@@ -36,6 +33,6 @@ class Persistence {
   }
 
   static bool isDarkTheme() => _prefs?.getBool('isDark') ?? false;
-  static void saveDarkTheme(bool isDarkTheme) => _prefs?.setBool('isDark', isDarkTheme);
+  static void saveDarkTheme(bool isDarkTheme) =>
+      _prefs?.setBool('isDark', isDarkTheme);
 }
-

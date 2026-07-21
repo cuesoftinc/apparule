@@ -11,14 +11,18 @@ class SmsVerificationPage extends StatefulWidget {
   State<SmsVerificationPage> createState() => _SmsVerificationPageState();
 }
 
-class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTickerProviderStateMixin {
+class _SmsVerificationPageState extends State<SmsVerificationPage>
+    with SingleTickerProviderStateMixin {
   AnimationController? _animationController;
   int levelClock = 2 * 60;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(vsync: this, duration: Duration(seconds: levelClock));
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: levelClock),
+    );
 
     _animationController!.forward();
 
@@ -41,7 +45,10 @@ class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTi
     return Scaffold(
       appBar: AppBar(
         title: const Text("SMS OTP AutoFill"),
-        titleTextStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 20),
+        titleTextStyle: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface,
+          fontSize: 20,
+        ),
         elevation: 0,
         backgroundColor: Colors.transparent,
         centerTitle: true,
@@ -60,13 +67,18 @@ class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTi
                 children: [
                   Text(
                     "Verify Your Account",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Theme.of(context).colorScheme.onSurface),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                   Text(
                     "Check your SMS inbox for the code sent to ${Persistence.getUser()?.phoneNumber ?? 'your phone'}. Enter the code below to complete the verification",
                     style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).colorScheme.onSurface),
+                      fontSize: 16,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                 ],
               ),
@@ -80,21 +92,24 @@ class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTi
                   decoration: UnderlineDecoration(
                     lineHeight: 2,
                     lineStrokeCap: StrokeCap.square,
-                    bgColorBuilder: PinListenColorBuilder(Colors.green.shade200, Colors.grey.shade200),
+                    bgColorBuilder: PinListenColorBuilder(
+                      Colors.green.shade200,
+                      Colors.grey.shade200,
+                    ),
                     colorBuilder: const FixedColorBuilder(Colors.transparent),
                   ),
                 ),
               ),
             ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   "Resend code after: ",
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
                 Countdown(
                   animation: StepTween(
@@ -115,7 +130,6 @@ class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTi
             height: 56,
             child: ElevatedButton(
               onPressed: () async {
-
                 _animationController!.reset();
                 _animationController!.forward();
               },
@@ -135,7 +149,10 @@ class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTi
             height: 56,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HomeScreen()),
+                );
               },
               child: const Text("Log Out"),
             ),
@@ -145,4 +162,3 @@ class _SmsVerificationPageState extends State<SmsVerificationPage> with SingleTi
     );
   }
 }
-

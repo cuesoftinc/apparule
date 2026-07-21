@@ -9,6 +9,13 @@
 # packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints/flutter.yaml
 
+# Quarantined legacy code (web-legacy pattern: nothing deleted; phased out
+# only when its replacement lands) sits outside the quality gates.
+analyzer:
+  exclude:
+    - legacy/**
+    - lib/legacy/**
+
 linter:
   # The lint rules applied to this project can be customized in the
   # section below to disable rules from the `package:flutter_lints/flutter.yaml`

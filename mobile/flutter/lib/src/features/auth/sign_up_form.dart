@@ -12,7 +12,7 @@ import 'package:apparule/src/shared/app_text_field.dart';
 import 'package:apparule/src/shared/models/user.dart';
 
 class SignUpForm extends StatefulWidget {
-  const SignUpForm({super.key}) ;
+  const SignUpForm({super.key});
 
   @override
   State<SignUpForm> createState() => _SignUpFormState();
@@ -27,8 +27,10 @@ class _SignUpFormState extends State<SignUpForm> {
   void _toggleObscured() {
     setState(() {
       _obscured = !_obscured;
-      if (textFieldFocusNode.hasPrimaryFocus) return; // If focus is on text field, dont unfocus
-      textFieldFocusNode.canRequestFocus = false; // Prevents focus if tap on eye
+      if (textFieldFocusNode.hasPrimaryFocus)
+        return; // If focus is on text field, dont unfocus
+      textFieldFocusNode.canRequestFocus =
+          false; // Prevents focus if tap on eye
     });
   }
 
@@ -50,11 +52,12 @@ class _SignUpFormState extends State<SignUpForm> {
             color: Theme.of(context).colorScheme.onSurface,
           ),
           Container(
-              margin: const EdgeInsets.only(left: 7),
-              child: Text(
-                translation(context).loading,
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-              )),
+            margin: const EdgeInsets.only(left: 7),
+            child: Text(
+              translation(context).loading,
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+            ),
+          ),
         ],
       ),
     );
@@ -70,9 +73,13 @@ class _SignUpFormState extends State<SignUpForm> {
   Route _createRoute() {
     return PageRouteBuilder<SlideTransition>(
       transitionDuration: const Duration(milliseconds: 500),
-      pageBuilder: (context, animation, secondaryAnimation) => const EmailVerificationPage(),
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          const EmailVerificationPage(),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        var tween = Tween<Offset>(begin: const Offset(0.5, 1.0), end: Offset.zero);
+        var tween = Tween<Offset>(
+          begin: const Offset(0.5, 1.0),
+          end: Offset.zero,
+        );
         var curveTween = CurveTween(curve: Curves.fastOutSlowIn);
 
         return SlideTransition(
@@ -94,13 +101,20 @@ class _SignUpFormState extends State<SignUpForm> {
           mainAxisSize: MainAxisSize.max,
           children: [
             Text(
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Theme.of(context).colorScheme.onSurface),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 22,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
               translation(context).createAnAccount,
             ),
             Container(
               padding: const EdgeInsets.only(top: 10),
               child: Text(
-                style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
                 translation(context).startYourJourney,
               ),
             ),
@@ -140,63 +154,73 @@ class _SignUpFormState extends State<SignUpForm> {
               errorText: _formProvider.password.error,
               toggleObscured: _toggleObscured,
               obscureText: _obscured,
-              onChanged: (text) => _formProvider.validatePassword(text, context),
+              onChanged: (text) =>
+                  _formProvider.validatePassword(text, context),
               nextAction: TextInputAction.done,
-              suffixIcon2: _obscured ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+              suffixIcon2: _obscured
+                  ? Icons.visibility_rounded
+                  : Icons.visibility_off_rounded,
             ),
-            Consumer<FormProvider>(builder: (context, model, child) {
-              return Container(
-                height: 80,
-                width: double.infinity,
-                padding: const EdgeInsets.only(top: 25, bottom: 10),
-                child: ElevatedButton(
-                  onPressed: () {
-                    Persistence.saveUser(User(
-                      email: _formProvider.email.value.toString(),
-                      name: _formProvider.name.value.toString(),
-                      phoneNumber: _formProvider.phone.value.toString(),
-                    ));
-                    if (_formProvider.validate) {
-                      showLoaderDialog(context);
-                      Future.delayed(const Duration(seconds: 3), () {
-                        Navigator.of(context).push(_createRoute());
-                      });
-                    } else {
-                      Widget okButton = TextButton(
-                        child: const Text("OK"),
-                        onPressed: () {
-                          Navigator.of(context, rootNavigator: true).pop();
-                        },
+            Consumer<FormProvider>(
+              builder: (context, model, child) {
+                return Container(
+                  height: 80,
+                  width: double.infinity,
+                  padding: const EdgeInsets.only(top: 25, bottom: 10),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Persistence.saveUser(
+                        User(
+                          email: _formProvider.email.value.toString(),
+                          name: _formProvider.name.value.toString(),
+                          phoneNumber: _formProvider.phone.value.toString(),
+                        ),
                       );
+                      if (_formProvider.validate) {
+                        showLoaderDialog(context);
+                        Future.delayed(const Duration(seconds: 3), () {
+                          Navigator.of(context).push(_createRoute());
+                        });
+                      } else {
+                        Widget okButton = TextButton(
+                          child: const Text("OK"),
+                          onPressed: () {
+                            Navigator.of(context, rootNavigator: true).pop();
+                          },
+                        );
 
-                      // set up the AlertDialog
-                      AlertDialog alert = AlertDialog(
-                        title: Text(translation(context).signUp),
-                        content: Text(translation(context).requiredField),
-                        actions: [
-                          okButton,
-                        ],
-                      );
+                        // set up the AlertDialog
+                        AlertDialog alert = AlertDialog(
+                          title: Text(translation(context).signUp),
+                          content: Text(translation(context).requiredField),
+                          actions: [okButton],
+                        );
 
-                      // show the dialog
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return alert;
-                        },
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    elevation: 0.0,
-                    backgroundColor: Theme.of(context).colorScheme.tertiary,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10), topRight: Radius.circular(10))),
+                        // show the dialog
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return alert;
+                          },
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      elevation: 0.0,
+                      backgroundColor: Theme.of(context).colorScheme.tertiary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(10),
+                          bottomRight: Radius.circular(10),
+                          topRight: Radius.circular(10),
+                        ),
+                      ),
+                    ),
+                    child: Text(translation(context).signUp),
                   ),
-                  child: Text(translation(context).signUp),
-                ),
-              );
-            }),
+                );
+              },
+            ),
             Container(
               height: 60,
               width: double.infinity,
@@ -206,8 +230,15 @@ class _SignUpFormState extends State<SignUpForm> {
                 style: ElevatedButton.styleFrom(
                   elevation: 0.0,
                   shape: RoundedRectangleBorder(
-                      side: BorderSide(color: Theme.of(context).colorScheme.onSurface),
-                      borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10), topRight: Radius.circular(10))),
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(10),
+                      bottomRight: Radius.circular(10),
+                      topRight: Radius.circular(10),
+                    ),
+                  ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -218,9 +249,11 @@ class _SignUpFormState extends State<SignUpForm> {
                       padding: EdgeInsets.only(left: 8.0, top: 4.0),
                       child: Text(
                         translation(context).continueWithGoogle,
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -230,17 +263,26 @@ class _SignUpFormState extends State<SignUpForm> {
               children: <Widget>[
                 Text(
                   translation(context).alreadyHaveAnAccount,
-                  style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
                 TextButton(
                   child: Text(
                     translation(context).signIn,
-                    style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.tertiary),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context).colorScheme.tertiary,
+                    ),
                   ),
                   onPressed: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const LoginPage()),
-                    );                  },
+                      MaterialPageRoute(
+                        builder: (context) => const LoginPage(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),

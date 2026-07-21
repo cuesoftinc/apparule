@@ -51,11 +51,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         },
         child: Padding(
           padding: EdgeInsets.all(10),
-          child: Icon(
-            Icons.arrow_forward,
-            color: Colors.blue,
-            size: 20,
-          ),
+          child: Icon(Icons.arrow_forward, color: Colors.blue, size: 20),
         ),
       ),
     );
@@ -79,9 +75,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
           ),
-          onPressed: () {
-    
-          },
+          onPressed: () {},
           child: const Text("Ok", style: TextStyle(color: Colors.white)),
         ),
       ),
@@ -124,7 +118,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         : _skipButton(),
                   ],
                 ),
-              )
+              ),
             ],
           ),
           Positioned(
@@ -142,9 +136,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     );
                   });
                 } else {
-                 
                   Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => Measurement()));
+                    MaterialPageRoute(builder: (context) => Measurement()),
+                  );
                 }
               },
               child: Container(
@@ -183,10 +177,7 @@ class CustomIndicators extends StatelessWidget {
   final int totalSlides;
   final int currentSlide;
 
-  CustomIndicators({
-    required this.totalSlides,
-    required this.currentSlide,
-  });
+  CustomIndicators({required this.totalSlides, required this.currentSlide});
 
   @override
   Widget build(BuildContext context) {
@@ -199,8 +190,9 @@ class CustomIndicators extends StatelessWidget {
           margin: EdgeInsets.all(5),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color:
-                currentSlide == index ? Color(0xFF54A0FE) : Color(0xFF002F6B),
+            color: currentSlide == index
+                ? Color(0xFF54A0FE)
+                : Color(0xFF002F6B),
           ),
         );
       }),
@@ -328,9 +320,7 @@ class Page2 extends StatelessWidget {
                               fontWeight: FontWeight.w400,
                             ),
                           ),
-                          SizedBox(
-                            height: 10,
-                          ),
+                          SizedBox(height: 10),
                           Text(
                             "2. You must be bare feet but socks are allowed.",
                             style: TextStyle(
@@ -400,9 +390,7 @@ class Page3 extends StatelessWidget {
                               fontWeight: FontWeight.w400,
                             ),
                           ),
-                          SizedBox(
-                            height: 10,
-                          ),
+                          SizedBox(height: 10),
                           Text(
                             "2. No other human should be in the screen",
                             style: TextStyle(
@@ -474,9 +462,7 @@ class Page4 extends StatelessWidget {
                                   fontWeight: FontWeight.w400,
                                 ),
                               ),
-                              SizedBox(
-                                height: 10,
-                              ),
+                              SizedBox(height: 10),
                               Text(
                                 "2. With both arms raised at 45 degrees approximately and your feet 1 foot apart",
                                 style: TextStyle(
@@ -550,9 +536,7 @@ class Page5 extends StatelessWidget {
                                   fontWeight: FontWeight.w400,
                                 ),
                               ),
-                              SizedBox(
-                                height: 10,
-                              ),
+                              SizedBox(height: 10),
                               Text(
                                 "2. Stand straight with your arms down",
                                 style: TextStyle(

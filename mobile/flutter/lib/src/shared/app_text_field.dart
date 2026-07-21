@@ -16,7 +16,6 @@ class AppTextField extends StatelessWidget {
     this.onChanged,
     required this.nextAction,
     this.inputFormatters,
-
   });
 
   final FocusNode? textFieldFocusNode;
@@ -32,7 +31,6 @@ class AppTextField extends StatelessWidget {
   final TextInputAction nextAction;
   final List<TextInputFormatter>? inputFormatters;
 
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -45,14 +43,12 @@ class AppTextField extends StatelessWidget {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 18,
-              color: Theme.of(context).colorScheme.onSurface
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ),
         TextFormField(
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface
-          ),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
           cursorColor: Theme.of(context).colorScheme.onSurface,
           onChanged: onChanged,
           keyboardType: keyboardType,
@@ -60,28 +56,34 @@ class AppTextField extends StatelessWidget {
           focusNode: textFieldFocusNode,
           textInputAction: nextAction,
           decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(8.0)),
-              ),
-              fillColor: Theme.of(context).colorScheme.secondary,
-              errorText: errorText,
-              errorMaxLines: 3,
-              floatingLabelBehavior: FloatingLabelBehavior.never,
-              filled: true,
-              hintText: hintText,
-              hintStyle: TextStyle(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(8.0)),
+            ),
+            fillColor: Theme.of(context).colorScheme.secondary,
+            errorText: errorText,
+            errorMaxLines: 3,
+            floatingLabelBehavior: FloatingLabelBehavior.never,
+            filled: true,
+            hintText: hintText,
+            hintStyle: TextStyle(
               fontSize: 14,
-                color: Theme.of(context).hintColor
-              ),
-              isDense: true,
-              // Reduces height a bit
-              suffixIcon: suffixIcon2 == null ? null : Padding(
-                padding: const EdgeInsets.fromLTRB(0, 0, 4, 0),
-                child: GestureDetector(
-                  onTap: toggleObscured,
-                  child: Icon(suffixIcon2, size: 24, color: Theme.of(context).colorScheme.onSurface),
-                ),
-              )
+              color: Theme.of(context).hintColor,
+            ),
+            isDense: true,
+            // Reduces height a bit
+            suffixIcon: suffixIcon2 == null
+                ? null
+                : Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 0, 4, 0),
+                    child: GestureDetector(
+                      onTap: toggleObscured,
+                      child: Icon(
+                        suffixIcon2,
+                        size: 24,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
           ),
         ),
       ],

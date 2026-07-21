@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// Shared mm:ss countdown text driven by an [Animation] of remaining seconds.
 class Countdown extends AnimatedWidget {
   const Countdown({Key? key, required this.animation})
-      : super(key: key, listenable: animation);
+    : super(key: key, listenable: animation);
 
   final Animation<int> animation;
 

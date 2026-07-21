@@ -25,47 +25,69 @@ class _ForgotPasswordState extends State<ForgotPassword> {
             child: MyBackButton(),
           ),
           Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-              child: SingleChildScrollView(
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                    Text(
-                      'Forgot Password',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Theme.of(context).colorScheme.onSurface),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Text(
+                    'Forgot Password',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
-                    Container(
-                      padding: const EdgeInsets.only(top: 10),
-                      child: Text(
-                        'No worries! enter the email address associated with your account, and we\'ll send you a code.',
-                        style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Text(
+                      'No worries! enter the email address associated with your account, and we\'ll send you a code.',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
-                    Padding(
-                        padding: const EdgeInsets.only(top: 16.0),
-                        child:
-                            AppTextField(hintText: translation(context).emailHint, title: translation(context).emailAddress, nextAction: TextInputAction.none)),
-                    Container(
-                      height: 80,
-                      width: double.infinity,
-                      padding: const EdgeInsets.only(top: 25, bottom: 10),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => VerifyEmailForPasswordReset()));
-                        },
-                        style: ElevatedButton.styleFrom(
-                          elevation: 0.0,
-                          backgroundColor: Theme.of(context).colorScheme.tertiary,
-                          shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10), topRight: Radius.circular(10))),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16.0),
+                    child: AppTextField(
+                      hintText: translation(context).emailHint,
+                      title: translation(context).emailAddress,
+                      nextAction: TextInputAction.none,
+                    ),
+                  ),
+                  Container(
+                    height: 80,
+                    width: double.infinity,
+                    padding: const EdgeInsets.only(top: 25, bottom: 10),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => VerifyEmailForPasswordReset(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        elevation: 0.0,
+                        backgroundColor: Theme.of(context).colorScheme.tertiary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(10),
+                            bottomRight: Radius.circular(10),
+                            topRight: Radius.circular(10),
+                          ),
                         ),
-                        child: Text("Submit"),
                       ),
-                    )
-                  ]))),
+                      child: Text("Submit"),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

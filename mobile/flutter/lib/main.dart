@@ -19,20 +19,20 @@ class MyApp extends StatefulWidget {
 
   const MyApp({Key? key}) : super(key: key);
 
-
   @override
   _MyAppFieldState createState() => _MyAppFieldState();
 
   static void setLocale(BuildContext context, Locale newLocale) {
-    _MyAppFieldState? state = context.findAncestorStateOfType<_MyAppFieldState>();
-        state?.setLocale(newLocale);
+    _MyAppFieldState? state = context
+        .findAncestorStateOfType<_MyAppFieldState>();
+    state?.setLocale(newLocale);
   }
 }
 
 class _MyAppFieldState extends State<MyApp> with WidgetsBindingObserver {
   Locale? _locale;
 
-  setLocale(Locale locale){
+  setLocale(Locale locale) {
     setState(() {
       _locale = locale;
     });
@@ -42,7 +42,7 @@ class _MyAppFieldState extends State<MyApp> with WidgetsBindingObserver {
   void initState() {
     var saved = Persistence.isDarkTheme();
     MyApp.themeNotifier = ValueNotifier(
-        saved ? ThemeMode.dark : ThemeMode.light
+      saved ? ThemeMode.dark : ThemeMode.light,
     );
     WidgetsBinding.instance.addObserver(this);
     super.initState();
@@ -54,20 +54,19 @@ class _MyAppFieldState extends State<MyApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
-
   @override
-  void didChangeDependencies()  {
+  void didChangeDependencies() {
     getLocale().then((locale) => setLocale(locale));
     super.didChangeDependencies();
   }
-
 
   @override
   void didChangePlatformBrightness() async {
     WidgetsFlutterBinding.ensureInitialized();
     SharedPreferences prefs = await SharedPreferences.getInstance();
     super.didChangePlatformBrightness();
-    var brightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    var brightness =
+        WidgetsBinding.instance.platformDispatcher.platformBrightness;
     if (brightness == Brightness.light) {
       MyApp.themeNotifier.value = ThemeMode.light;
       prefs.setBool('isDark', false);
@@ -77,22 +76,23 @@ class _MyAppFieldState extends State<MyApp> with WidgetsBindingObserver {
     }
   }
 
-
-    @override
-      Widget build(BuildContext context) {
-        return ValueListenableBuilder<ThemeMode>(
-            valueListenable: MyApp.themeNotifier,
-            builder: (_, ThemeMode currentMode, __) {
-              return MaterialApp(
-                  debugShowCheckedModeBanner: false,
-                  title: 'Apparule',
-                  theme: lightTheme,
-                  darkTheme: darkTheme,
-                  themeMode: currentMode,
-                  localizationsDelegates: AppLocalizations.localizationsDelegates,
-                  supportedLocales: AppLocalizations.supportedLocales,
-                  locale: _locale,
-                  home: SplashScreen());
-            });
-      }
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: MyApp.themeNotifier,
+      builder: (_, ThemeMode currentMode, __) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Apparule',
+          theme: lightTheme,
+          darkTheme: darkTheme,
+          themeMode: currentMode,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: _locale,
+          home: SplashScreen(),
+        );
+      },
+    );
+  }
 }
