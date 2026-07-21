@@ -60,6 +60,10 @@ describe("FeatureDeepDives (A4b)", () => {
     expect(screens.length).toBeGreaterThanOrEqual(4);
     for (const node of screens) {
       expect(node).toHaveAttribute("aria-hidden");
+      // Real `inert`, not just aria-hidden: the composed component
+      // instances are focusable, and without inert they enter the tab
+      // order (8× axe aria-hidden-focus, 2026-07-21 audit).
+      expect(node).toHaveAttribute("inert");
     }
   });
 });
