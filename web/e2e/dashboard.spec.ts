@@ -539,7 +539,7 @@ test("designer quote via the UI: the due-date calendar works inside the quote sh
 // ---------------------------------------------------------------------------
 // Cross-check pass (2026-07-20) — C1 date-picker geometry + C2 in-sheet
 // select clipping, on a shared fixture order. Lives in this serial file
-// because it mutates the store (kiki's request on post-chromat-look — its
+// because it mutates the store (kiki's request on post-evening-gown — its
 // only seeded order is closed/cancelled and no journey above touches it),
 // then drives maisonbisi's quote/decline sheets through the actor seam.
 // ---------------------------------------------------------------------------
@@ -549,7 +549,7 @@ test.describe("order-sheet floating layers (shared fixture)", () => {
 
   test.beforeAll(async ({ request }) => {
     const res = await request.post(
-      "/api/mock/v1/posts/post-chromat-look/requests",
+      "/api/mock/v1/posts/post-evening-gown/requests",
       {
         headers: {
           "x-mock-actor": "kiki.adeyemi",

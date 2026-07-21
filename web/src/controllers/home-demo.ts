@@ -24,7 +24,7 @@ export interface DemoStory {
 
 /** Story rail per the canvas: amara / tunde.a / kiki unseen, zuri / bisi seen. */
 export const heroStories: DemoStory[] = [
-  { username: "amara", avatarUrl: "/demo/outfit-w00.jpg", state: "unseen" },
+  { username: "amara", avatarUrl: "/demo/outfit-w01.jpg", state: "unseen" },
   { username: "tunde.a", avatarUrl: "/demo/outfit-w15.jpg", state: "unseen" },
   { username: "kiki", avatarUrl: "/demo/outfit-w16.jpg", state: "unseen" },
   { username: "zuri", avatarUrl: "/demo/outfit-w05.jpg", state: "seen" },
@@ -78,11 +78,14 @@ export const heroPosts: Post[] = [
     id: "demo-ankara-two-piece",
     username: "amara.designs",
     displayName: "Amara Designs",
-    avatar: "/demo/outfit-w00.jpg",
+    avatar: "/demo/outfit-w01.jpg",
     caption:
       "Ankara two-piece with structured shoulders, made to your measurements — DM slots open for June.",
     media: [
-      { file: "outfit-w00.jpg", alt: "Model in a vibrant ankara two-piece" },
+      {
+        file: "outfit-w01.jpg",
+        alt: "Model in an ankara two-piece on the runway",
+      },
     ],
     likes: 2_141,
     createdHoursAgo: 2,
@@ -95,11 +98,11 @@ export const heroPosts: Post[] = [
     caption:
       "Matching aso-oke set — hand-loomed in Ilorin, sized from your vault.",
     media: [
-      { file: "outfit-w13.jpg", alt: "Matching aso-oke set at a ceremony" },
-      { file: "outfit-w14.jpg", alt: "Aso-oke fabric detail" },
-      { file: "outfit-w10.jpg", alt: "Designer at the loom" },
-      { file: "outfit-w06.jpg", alt: "Aso-oke set worn by dancers" },
-      { file: "outfit-w16.jpg", alt: "Couple in matching aso-oke" },
+      { file: "outfit-w13.jpg", alt: "Boy in an aso-oke trimmed senator set" },
+      { file: "outfit-w14.jpg", alt: "Print fabric stack in the workshop" },
+      { file: "outfit-w10.jpg", alt: "Designer cutting cloth at a work table" },
+      { file: "outfit-w06.jpg", alt: "Hand-loomed sets at a culture showcase" },
+      { file: "outfit-w16.jpg", alt: "Couple in matching print outfits" },
     ],
     likes: 3_872,
     createdHoursAgo: 5,
@@ -118,13 +121,13 @@ export function makeDemoOrder(
     post: {
       id: "demo-ankara-two-piece",
       caption: "Ankara two-piece with structured shoulders",
-      thumb_url: "/demo/outfit-w00.jpg",
+      thumb_url: "/demo/outfit-w01.jpg",
     },
     customer: { id: "acc-kiki", username: "kiki.adeyemi", avatar_url: null },
     designer: {
       id: "des-amara",
       username: "amara.designs",
-      avatar_url: "/demo/outfit-w00.jpg",
+      avatar_url: "/demo/outfit-w01.jpg",
     },
     status,
     notes: "",
@@ -204,7 +207,7 @@ export const demoOrders: CommissionRequest[] = [
     post: {
       id: "demo-agbada",
       caption: "Agbada jacket — ceremony cut",
-      thumb_url: "/demo/outfit-w15.jpg",
+      thumb_url: "/demo/outfit-w17.jpg",
     },
     designer: {
       id: "des-tunde",
@@ -233,12 +236,12 @@ export const demoOrders: CommissionRequest[] = [
     post: {
       id: "demo-evening",
       caption: "Statement eveningwear",
-      thumb_url: "/demo/outfit-w03.jpg",
+      thumb_url: "/demo/outfit-w19.jpg",
     },
     designer: {
       id: "des-bisi",
       username: "maisonbisi",
-      avatar_url: "/demo/outfit-w03.jpg",
+      avatar_url: "/demo/outfit-w19.jpg",
     },
     quote_cents: 8_000_000,
   }),
@@ -293,11 +296,11 @@ export const demoMeasurements: DemoMeasurement[] = [
 ];
 
 export const demoGridImages: { src: string; alt: string }[] = [
-  { src: "/demo/outfit-w00.jpg", alt: "Ankara gown" },
+  { src: "/demo/outfit-w00.jpg", alt: "Blush layered organza dress" },
   { src: "/demo/outfit-w01.jpg", alt: "Ankara look, full length" },
-  { src: "/demo/outfit-w03.jpg", alt: "Statement evening look" },
+  { src: "/demo/outfit-w19.jpg", alt: "Statement evening gown" },
   { src: "/demo/outfit-w05.jpg", alt: "Orange runway outfit" },
-  { src: "/demo/outfit-w06.jpg", alt: "Dancers in traditional dress" },
+  { src: "/demo/outfit-w17.jpg", alt: "Embroidered agbada with cap" },
   { src: "/demo/outfit-w10.jpg", alt: "Designer cutting cloth" },
   { src: "/demo/outfit-w13.jpg", alt: "Aso-oke outfit" },
   { src: "/demo/outfit-w14.jpg", alt: "African print fabrics" },

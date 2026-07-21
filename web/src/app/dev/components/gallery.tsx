@@ -661,7 +661,7 @@ export function ComponentGallery() {
       <Section title="GridTile">
         <div className="grid max-w-xl grid-cols-3 gap-1">
           <GridTile
-            src="/demo/outfit-w03.jpg"
+            src="/demo/outfit-w19.jpg"
             alt="Outfit"
             likeCount={519}
             commentCount={6}

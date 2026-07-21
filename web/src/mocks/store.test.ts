@@ -264,12 +264,12 @@ describe("order lifecycle enforcement", () => {
       state: "Lagos",
       country: "NG",
     };
-    store.createRequest("kiki.adeyemi", "post-chromat-look", {
+    store.createRequest("kiki.adeyemi", "post-evening-gown", {
       session_id: "sess-recent-scan",
       delivery,
     });
     expect(() =>
-      store.createRequest("kiki.adeyemi", "post-chromat-look", {
+      store.createRequest("kiki.adeyemi", "post-evening-gown", {
         session_id: "sess-recent-scan",
         delivery,
       }),
