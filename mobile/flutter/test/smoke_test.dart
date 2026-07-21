@@ -1,37 +1,27 @@
-import 'package:apparule/main.dart';
-import 'package:apparule/src/app/splash_screen.dart';
-import 'package:apparule/src/services/persistence.dart';
+import 'package:apparule/src/app/app.dart';
+import 'package:apparule/src/app/di.dart';
+import 'package:apparule/src/core/ui/app_shell.dart';
+import 'package:apparule/src/features/feed/presentation/home_feed_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  testWidgets('boot smoke: main()\'s MaterialApp builds to the splash screen', (
+  testWidgets('boot smoke: the app builds to the five-tab shell over fakes', (
     tester,
   ) async {
-    // Mirror main(): SharedPreferences is loaded before runApp.
-    SharedPreferences.setMockInitialValues(const <String, Object>{});
-    await Persistence.initPersistence();
-
-    await tester.pumpWidget(const MyApp());
-
-    expect(find.byType(MaterialApp), findsOneWidget);
-    expect(find.byType(SplashScreen), findsOneWidget);
-
-    // The legacy splash schedules a 3s navigation Timer it never cancels;
-    // flush it (and the resulting route transition) so the test ends with
-    // no pending timers.
-    await tester.pump(const Duration(seconds: 3));
+    // Mirrors main_dev.dart's composition (bootstrap itself calls runApp,
+    // so the test pumps the identical ProviderScope by hand).
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: fakeRepositoryOverrides(),
+        child: const ApparuleApp(),
+      ),
+    );
     await tester.pumpAndSettle();
 
-    // The navigation target is the legacy HomeScreen — REWRITE-registered
-    // (mobile-implementation.md §11) and still painting `apparule.png`, an
-    // asset quarantined to assets/legacy/ (unbundled) in the toolchain-floor
-    // wave. Tolerate exactly that documented missing-asset report (and
-    // nothing else) until the C1 rewrite replaces the screen.
-    final Object? exception = tester.takeException();
-    if (exception != null) {
-      expect('$exception', contains('apparule.png'));
-    }
+    expect(find.byType(AppShell), findsOneWidget);
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byType(HomeFeedScreen), findsOneWidget);
   });
 }

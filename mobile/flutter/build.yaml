@@ -1,0 +1,8 @@
+# Keep the quarantined legacy tree (mobile-implementation.md §11) out of
+# build_runner's source set — codegen only runs over the live skeleton.
+targets:
+  $default:
+    sources:
+      exclude:
+        - lib/legacy/**
+        - legacy/**

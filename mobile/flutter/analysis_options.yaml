@@ -1,35 +1,40 @@
-# This file configures the analyzer, which statically analyzes Dart code to
-# check for errors, warnings, and lints.
-#
-# The issues identified by the analyzer are surfaced in the UI of Dart-enabled
-# IDEs (https://dart.dev/tools#ides-and-editors). The analyzer can also be
-# invoked from the command line by running `flutter analyze`.
+# Static analysis per mobile-implementation.md §8 / the standards-research
+# ledger: very_good_analysis + riverpod_lint, strict flags, generated +
+# quarantined code excluded. CI runs `flutter analyze --fatal-infos` over
+# this scope — riverpod_lint 3.x is a native analyzer plugin
+# (analysis_server_plugin), so its diagnostics surface there too; the
+# ledger's custom_lint pairing is retired upstream.
+include: package:very_good_analysis/analysis_options.yaml
 
-# The following line activates a set of recommended lints for Flutter apps,
-# packages, and plugins designed to encourage good coding practices.
-include: package:flutter_lints/flutter.yaml
+plugins:
+  riverpod_lint: ^3.1.4
 
-# Quarantined legacy code (web-legacy pattern: nothing deleted; phased out
-# only when its replacement lands) sits outside the quality gates.
 analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
   exclude:
+    # Build products (incl. iOS SwiftPM checkouts, which carry their own
+    # Dart sources) are never analysis targets.
+    - build/**
+    # Quarantined legacy code (web-legacy pattern, mobile-implementation.md
+    # §11: nothing deleted; phased out only when its replacement lands) sits
+    # outside the quality gates.
     - legacy/**
     - lib/legacy/**
+    # Generated code is reviewed as diffs, not linted as source.
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - lib/l10n/generated/**
+    - lib/firebase_options*.dart
 
 linter:
-  # The lint rules applied to this project can be customized in the
-  # section below to disable rules from the `package:flutter_lints/flutter.yaml`
-  # included above or to enable additional rules. A list of all available lints
-  # and their documentation is published at https://dart.dev/lints.
-  #
-  # Instead of disabling a lint rule for the entire project in the
-  # section below, it can also be suppressed for a single line of code
-  # or a specific dart file by using the `// ignore: name_of_lint` and
-  # `// ignore_for_file: name_of_lint` syntax on the line or in the file
-  # producing the lint.
   rules:
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
-
-# Additional information about this file can be found at
-# https://dart.dev/guides/language/analysis-options
+    # Ratified deviation (standards-research ledger): docs-on-everything is
+    # noise at this stage; doc comments are still written where they earn it.
+    public_member_api_docs: false
+    # Repository interfaces are contractually abstract with *Remote/*Fake
+    # implementations (mobile-implementation.md §6) and grow with their
+    # feature — a one-method interface is the seed, not a typedef candidate.
+    one_member_abstracts: false

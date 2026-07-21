@@ -21,6 +21,12 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    buildFeatures {
+        // AGP 9 defaults resValues off; the flavors below use it for the
+        // per-flavor app_name label.
+        resValues = true
+    }
+
     defaultConfig {
         applicationId = "io.cuesoft.apparule"
         // minSdk 24 per decisions.md M-4 (ratified floor, carried from legacy).
@@ -28,6 +34,28 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+    }
+
+    // dev / stg / prd flavors (mobile-implementation.md §2): distinct
+    // applicationIds so all three install side by side, each paired with
+    // its lib/main_<flavor>.dart entrypoint (main.dart = prd). iOS
+    // schemes/xcconfigs are deferred to an Xcode pass — tracked in the PR.
+    flavorDimensions += "env"
+    productFlavors {
+        create("dev") {
+            dimension = "env"
+            applicationIdSuffix = ".dev"
+            resValue("string", "app_name", "Apparule Dev")
+        }
+        create("stg") {
+            dimension = "env"
+            applicationIdSuffix = ".stg"
+            resValue("string", "app_name", "Apparule Stg")
+        }
+        create("prd") {
+            dimension = "env"
+            resValue("string", "app_name", "Apparule")
+        }
     }
 
     signingConfigs {
