@@ -1,6 +1,8 @@
-// B6 profile header — MI-11: the OWN avatar wears the measurement-
-// freshness ring (C9 construction); other people's designer avatars keep
-// the B6 story-ring (gradient).
+// B6 profile header — MI-11 [Decided 2026-07-20]: the measurement-freshness
+// ring is a VAULT-HEADER affordance. Profile avatars — including the
+// viewer's own (regular user or designer) — render plain; other people's
+// designer avatars keep the B6 story-ring (gradient). Locks the ratified
+// construction (design.md §2 MI-11; Figma B6-own 386:8321 ring=none).
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render } from "@testing-library/react";
 import type { PublicProfile } from "@/models";
@@ -96,29 +98,16 @@ beforeEach(() => {
   useVaultMock.mockReturnValue({ freshness: "aging", loading: false });
 });
 
-describe("ProfileView — own-profile freshness ring (MI-11)", () => {
-  it("own regular-user profile wears the freshness ring (aging → amber)", () => {
-    const { container } = renderProfile(ownUserProfile, "kiki.adeyemi");
-    expect(container.querySelector('[data-ring="amber"]')).not.toBeNull();
-  });
-
-  it.each([
-    ["fresh", "gradient"],
-    ["stale", "gray"],
-  ] as const)("freshness %s renders ring=%s", (freshness, ring) => {
-    useVaultMock.mockReturnValue({ freshness, loading: false });
-    const { container } = renderProfile(ownUserProfile, "kiki.adeyemi");
-    expect(container.querySelector(`[data-ring="${ring}"]`)).not.toBeNull();
-  });
-
-  it("no ring while the vault is still loading", () => {
-    useVaultMock.mockReturnValue({ freshness: null, loading: true });
+describe("ProfileView — profile avatars render plain (MI-11, ring = vault affordance)", () => {
+  it("own regular-user profile renders a plain avatar (no freshness ring)", () => {
     const { container } = renderProfile(ownUserProfile, "kiki.adeyemi");
     expect(container.querySelector('[data-ring="none"]')).not.toBeNull();
+    expect(container.querySelector('[data-ring="amber"]')).toBeNull();
+    expect(container.querySelector('[data-ring="gradient"]')).toBeNull();
   });
 
-  it("someone else's regular-user profile never fetches the vault", () => {
-    renderProfile(
+  it("someone else's regular-user profile renders plain too", () => {
+    const { container } = renderProfile(
       {
         ...ownUserProfile,
         account: { ...ownUserProfile.account, username: "ada.eze" },
@@ -126,20 +115,26 @@ describe("ProfileView — own-profile freshness ring (MI-11)", () => {
       },
       "ada.eze",
     );
-    expect(useVaultMock).not.toHaveBeenCalled();
+    expect(container.querySelector('[data-ring="none"]')).not.toBeNull();
   });
 
-  it("own designer profile wears the freshness ring too", () => {
+  it("own designer profile renders a plain avatar (no freshness ring)", () => {
     const { container } = renderProfile(designerProfile(true), "kiki.adeyemi");
-    expect(container.querySelector('[data-ring="amber"]')).not.toBeNull();
+    expect(container.querySelector('[data-ring="none"]')).not.toBeNull();
+    expect(container.querySelector('[data-ring="amber"]')).toBeNull();
   });
 
-  it("other designers keep the gradient story ring (B6)", () => {
+  it("other designers keep the gradient story ring (B6 anatomy)", () => {
     const { container } = renderProfile(
       designerProfile(false),
       "amara.designs",
     );
     expect(container.querySelector('[data-ring="gradient"]')).not.toBeNull();
+  });
+
+  it("no profile render ever fetches the vault (ring gone → fetch gone)", () => {
+    renderProfile(ownUserProfile, "kiki.adeyemi");
+    renderProfile(designerProfile(true), "kiki.adeyemi");
     expect(useVaultMock).not.toHaveBeenCalled();
   });
 });

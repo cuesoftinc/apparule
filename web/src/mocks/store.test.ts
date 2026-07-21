@@ -49,6 +49,16 @@ describe("seed narrative", () => {
     expect(shoulder?.value_cm).toBe(42.5);
   });
 
+  it("boot vault carries a low-confidence (<0.7) measurement — the B4 chip is reachable from seed (audit 2026-07-20)", () => {
+    const sessions = store.sessionsFor("kiki.adeyemi");
+    const newest = sessions[0];
+    expect(
+      newest.measurements.some(
+        (m) => m.confidence !== null && m.confidence < 0.7,
+      ),
+    ).toBe(true);
+  });
+
   it("designer posts_count matches the actually seeded posts (system QA)", () => {
     for (const designer of store.designers) {
       const actual = store.posts.filter(

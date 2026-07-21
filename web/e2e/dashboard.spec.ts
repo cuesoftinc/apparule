@@ -353,7 +353,7 @@ test("B5/B8: creator upsell → onboarding with Paystack resolution states → p
   await expect(page.getByTestId("profile-grid").locator("li")).toHaveCount(1);
 });
 
-test("B6 own profile: the avatar wears the measurement-freshness ring (MI-11)", async ({
+test("B6 own profile: the avatar renders plain — no freshness ring (MI-11, Decided 2026-07-20)", async ({
   page,
 }) => {
   await signIn(page);
@@ -361,10 +361,10 @@ test("B6 own profile: the avatar wears the measurement-freshness ring (MI-11)", 
   await page.goto("/dashboard/profile");
   await page.waitForURL("**/dashboard/kiki.adeyemi");
   const avatar = page.locator("header [data-ring]").first();
-  // Seeded vault freshness drives the band — any of the three ring states
-  // is valid here (earlier serial tests may add fresh captures), but the
-  // ring must be present ("none" would be the audited regression).
-  await expect(avatar).toHaveAttribute("data-ring", /^(gradient|amber|gray)$/);
+  // The freshness ring is a vault-header affordance (design.md §2 MI-11;
+  // Figma B6-own 386:8321 ring=none) — a ringed profile avatar here would
+  // be the audited regression.
+  await expect(avatar).toHaveAttribute("data-ring", "none");
 });
 
 test("B7: notification prefs persist across reload; consent history renders", async ({

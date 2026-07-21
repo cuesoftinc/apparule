@@ -371,7 +371,7 @@ export function ComponentGallery() {
           <Input placeholder="Display name" aria-label="Text input" />
           <Input
             kind="search"
-            placeholder="Search designers, styles…"
+            placeholder="Search designers, styles, tags…"
             aria-label="Search"
           />
           <Input

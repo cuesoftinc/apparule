@@ -83,7 +83,7 @@ describe("DesignersSection (A6)", () => {
     ).toBeInTheDocument();
     expect(screen.getByTestId("balance-card")).toHaveTextContent("₦82,500");
     expect(screen.getByTestId("pending-card")).toHaveTextContent("₦45,000");
-    expect(screen.getByText("Payout to GTBank •••• 4521")).toBeInTheDocument();
+    expect(screen.getByText("Payout to GTBank ••• 4521")).toBeInTheDocument();
     expect(
       screen.getByText("Escrow held · order #APR-1042"),
     ).toBeInTheDocument();

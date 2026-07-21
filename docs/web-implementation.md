@@ -319,12 +319,13 @@ from the Figma ↔ code divergence audit (seed-side details live in §6):
   frame's "58.0 cm" idiom) via `formatCm` — MeasurementCard, SessionRow,
   snapshot chips and the request stepper share the single formatter, so
   tnum columns stay aligned.
-- The OWN avatar wears the measurement-freshness ring (MI-11 / the C9
-  construction) on the profile header — both the regular-user and
-  designer-self branches — while other designers keep the B6 gradient
-  story ring. The fresh/aging/stale → gradient/amber/gray mapping is one
-  helper (`freshnessRing` on the Avatar atom) shared by the vault header,
-  the feed freshness card and the profile.
+- Profile avatars render PLAIN — the measurement-freshness ring is a
+  vault-header affordance (MI-11 **[Decided 2026-07-20]**, design.md §2);
+  own profiles (regular-user and designer-self branches) carry no ring
+  and fetch no vault, while other designers keep the B6 gradient story
+  ring. The fresh/aging/stale → gradient/amber/gray mapping is one helper
+  (`freshnessRing` on the Avatar atom) shared by the vault header and the
+  feed freshness card.
 - ModerationQueueRow anatomy matches the B7a canvas: headline carries the
   content author when known ("Reported post by @amara.designs"),
   reporters are @-prefixed, and actioned rows render the audit line

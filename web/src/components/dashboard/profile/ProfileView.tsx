@@ -16,8 +16,7 @@ import {
   useFollowList,
   usePublicProfile,
 } from "@/controllers/use-public-profile";
-import { useVault } from "@/controllers/use-vault";
-import { Avatar, freshnessRing } from "@/components/ui/Avatar";
+import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { GridTile } from "@/components/ui/GridTile";
@@ -101,33 +100,6 @@ function FollowListSheet({
   );
 }
 
-/**
- * Own-profile avatar (MI-11 / C9 construction): the viewer's own avatar
- * carries the measurement-freshness ring — same Avatar ring canon as the
- * vault header and the feed freshness card. Mounted only for self so the
- * vault fetch never runs on other people's profiles.
- */
-function OwnProfileAvatar({
-  name,
-  src,
-  verified,
-}: {
-  name: string;
-  src?: string | null;
-  verified?: boolean;
-}) {
-  const vault = useVault();
-  return (
-    <Avatar
-      size={96}
-      name={name}
-      src={src}
-      verified={verified}
-      ring={vault.loading ? "none" : freshnessRing(vault.freshness)}
-    />
-  );
-}
-
 export function ProfileView({ username }: { username: string }) {
   const { account } = useAuth();
   const router = useRouter();
@@ -168,11 +140,10 @@ export function ProfileView({ username }: { username: string }) {
     return (
       <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-6">
         <header className="flex items-center gap-6">
-          {self ? (
-            <OwnProfileAvatar name={profile.account.display_name} />
-          ) : (
-            <Avatar size={96} name={profile.account.display_name} />
-          )}
+          {/* MI-11 [Decided 2026-07-20]: the freshness ring is a
+              vault-header affordance — profile avatars (own included)
+              render plain. */}
+          <Avatar size={96} name={profile.account.display_name} />
           <div className="flex min-w-0 flex-col gap-1">
             <h1 className="text-title-lg font-bold text-text">
               {profile.account.username}
@@ -272,9 +243,11 @@ export function ProfileView({ username }: { username: string }) {
     <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-6">
       <header className="flex items-start gap-6">
         {self ? (
-          // MI-11: the OWN avatar wears the freshness ring; others keep the
+          // MI-11 [Decided 2026-07-20]: own profile renders PLAIN (the
+          // freshness ring is a vault-header affordance); others keep the
           // B6 story-ring construction (gradient).
-          <OwnProfileAvatar
+          <Avatar
+            size={96}
             name={d.display_name}
             src={d.avatar_url}
             verified={d.verified}
