@@ -3,7 +3,6 @@
 export const env = {
   /** Base URL of api/common (used once Firebase/backend integration lands). */
   apiBaseUrl: process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:8080",
-  googleClientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "",
   /**
    * TEST_MODE (web-standard): NEXT_PUBLIC_TEST_MODE=1 →
    * - GoogleAuthButton navigates straight to /dashboard (no Firebase), and

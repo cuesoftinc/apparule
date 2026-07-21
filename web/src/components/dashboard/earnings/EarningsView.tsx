@@ -8,7 +8,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/controllers/auth/AuthContext";
-import { useEarnings } from "@/controllers/use-profile";
+import { useEarnings } from "@/controllers/use-earnings";
 import {
   EarningsSummary,
   TransactionRow,
