@@ -660,8 +660,7 @@ products; per-product values only):
   `twitter:card = summary_large_image`.
 - **Icons** — `src/app/favicon.ico` (16/32/48/256 PNG-in-ICO) and
   `src/app/apple-icon.png` (180×180): white "A" on the accent gradient
-  tile. Replaces the stock create-next-app icon the repo had shipped since
-  scaffold (byte-identical with upstat's — neither product's mark).
+  tile (byte-identical with upstat's — neither product's mark).
 - **Provenance** — all three binaries are generated from the design tokens
   by `web/scripts/generate-brand-assets.mjs` (byte-identical across repos,
   config keyed by package name; Inter via `INTER_WOFF2` or the official
