@@ -388,6 +388,15 @@ Arrow/Home/End. Both tabs are two lines, so switching never shifts layout
 focus, copied-morph reset); e2e: `home.spec.ts` pins helm-tab copy → the
 clipboard payload plus the 1440/390 container fit.
 
+**Sheet focus-restore as-built (2026-07-21 a11y audit).** `Sheet` owns the
+overlay focus contract: it is announced `aria-modal`, and because sheets are
+controlled dialogs with no `RadixDialog.Trigger`, the component captures the
+opener element on open (`onOpenAutoFocus`, before Radix moves focus into the
+panel) and returns focus to it on close — Radix's default would target a
+null trigger and drop focus on `<body>`. Callers never manage focus restore
+themselves. Locked by `Sheet.test.tsx` (unit) and `e2e/focus-restore.spec.ts`
+(open → Tab inside → Escape → trigger refocused), the org P4 probe shape.
+
 ## 3. Token mapping — design.md §2 → `web/src/design/tokens.css`
 
 One custom property per Figma variable in the `apparule/tokens` collection
