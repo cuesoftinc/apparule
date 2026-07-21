@@ -414,20 +414,30 @@ DEBUG-key config); `README.md`/`.metadata`/`.gitignore` (the committed
 `.gitignore` is presently the Flutter *framework* repo's own template, not
 this project's).
 
-**DROP (documented, not migrated)** — `welcome_screen.dart` (no-op icons,
-superseded by the C1 flow); all 9 files under `lib/src/features/auth/` plus
-`form_provider` (password/phone/OTP auth — X-1 violation, CV-1; retired
-**by name** per flows/auth.md §5, same list as §9); `measurement.dart`'s
-menu (empty `onTap`, CV-4); the theme trio (navy/blue "light" theme,
-grey "dark" theme, asymmetric radii — rebuilt from tokens, CV-3);
-`my_back_button.dart`; `number_text_input_formatter.dart`; `models/user.dart`
-(prefs-string identity model, CV-2); the `sq` locale + `Language` class
-(dead — no picker UI ever called `MyApp.setLocale`, CV-6); the tracked
-`flutter/web/` scaffold (unused platform residue — de-registered, not just
-deleted); the outer `mobile/android/.gitkeep` and `mobile/ios/.gitkeep`
-stubs (real platform dirs already live inside `mobile/flutter/`); and the
-following assets: `Blur`, `image2`, `apparule.png`, `howToMeasure`,
-`takeMeasure`, `measurement.jpg`, `arrow.png`, `check.svg`.
+**QUARANTINE → staged removal (the web legacy pattern, user directive
+2026-07-21)** — superseded code is never deleted up front: it moves
+structure-preserved into `mobile/flutter/lib/legacy/` (assets into
+`assets/legacy/`, the old Android tree into `legacy/android-agp7/`, the
+unused web scaffold into `legacy/web-scaffold/`), excluded from
+`pubspec` assets, analysis, CI scope, and builds. A quarantined unit is
+actually removed only when BOTH hold: its replacement has shipped and
+the user gives an explicit removal go (mirroring web's route-by-route
+replacement and end-of-program authorized sweeps). The quarantine set:
+`welcome_screen.dart` (no-op icons, superseded by the C1 flow); all 9
+files under `lib/src/features/auth/` plus `form_provider`
+(password/phone/OTP auth — X-1 violation, CV-1; retired **by name** per
+flows/auth.md §5, same list as §9 — quarantined at the auth cutover,
+removed after C1 ships); `measurement.dart`'s menu (empty `onTap`,
+CV-4); the theme trio (navy/blue "light" theme, grey "dark" theme,
+asymmetric radii — rebuilt from tokens, CV-3); `my_back_button.dart`;
+`number_text_input_formatter.dart`; `models/user.dart` (prefs-string
+identity model, CV-2); the `sq` locale + `Language` class (dead — no
+picker UI ever called `MyApp.setLocale`, CV-6); the tracked
+`flutter/web/` scaffold (platform de-registered in `.metadata`); and
+the assets `Blur`, `image2`, `apparule.png`, `howToMeasure`,
+`takeMeasure`, `measurement.jpg`, `arrow.png`, `check.svg`. The only
+true deletions: the outer `mobile/android/.gitkeep` and
+`mobile/ios/.gitkeep` placeholder stubs (empty markers, not code).
 
 **Toolchain findings folded into the restructure phase (§1)**: Dart
 constraint `>=3.1.2` (Sept 2023) raised to the ratified floor; `.metadata`
