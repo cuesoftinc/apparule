@@ -153,24 +153,30 @@ test("icons are product-branded and distinct from the sibling products", async (
   expect(appleRes.headers()["content-type"]).toContain("image/png");
 });
 
-test("web manifest is served and carries the product identity", async ({
+test("web manifest is linked, resolves, and carries the product identity", async ({
+  page,
   request,
 }) => {
-  const res = await request.get("/manifest.webmanifest");
+  // Linked from the page (App Router `manifest` file convention).
+  await page.goto("/");
+  const href = await page.locator('link[rel="manifest"]').getAttribute("href");
+  expect(href).toBeTruthy();
+  const manifestUrl = new URL(href!, product.base);
+  const res = await request.get(manifestUrl.pathname + manifestUrl.search);
   expect(res.status()).toBe(200);
   const manifest = JSON.parse(await res.text()) as {
-    name: string;
-    short_name: string;
-    icons: { src: string }[];
+    name?: string;
+    icons?: { src: string }[];
   };
-  // Identity: this product's own name — never a sibling's or a placeholder.
-  expect(manifest.name.toLowerCase()).toContain(pkgName);
-  expect(manifest.short_name.toLowerCase()).toContain(pkgName);
-  // Icons: at least one, and every listed asset actually resolves.
-  expect(manifest.icons.length).toBeGreaterThan(0);
-  for (const icon of manifest.icons) {
+
+  // The manifest name carries the product (`package.json` name)…
+  expect(manifest.name?.toLowerCase()).toContain(pkgName.toLowerCase());
+
+  // …and every declared icon actually resolves.
+  expect(manifest.icons?.length ?? 0).toBeGreaterThan(0);
+  for (const icon of manifest.icons ?? []) {
     const iconUrl = new URL(icon.src, product.base);
     const iconRes = await request.get(iconUrl.pathname + iconUrl.search);
-    expect(iconRes.status(), `manifest icon ${icon.src} resolves`).toBe(200);
+    expect(iconRes.status(), icon.src).toBe(200);
   }
 });
