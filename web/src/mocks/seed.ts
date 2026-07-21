@@ -953,7 +953,11 @@ export const seedSessions: MeasurementSession[] = [
         name: "hip_width",
         value_cm: 36.8,
         source: "pipeline",
-        confidence: 0.88,
+        // Low confidence (<0.7) so the MeasurementCard low-confidence chip
+        // (B4 canvas exemplar "Low confidence · 0.62") is reachable from
+        // boot — audit 2026-07-20 found the variant unreachable from seed.
+        // Plausible: the older 2-D scan already scored hips at 0.64.
+        confidence: 0.62,
       },
     ],
     pipeline_meta: { model_version: "mp2d-v2.3", qc: "pass" },
