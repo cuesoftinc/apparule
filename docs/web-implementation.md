@@ -74,6 +74,9 @@
   local SVGs per the §8.1 icon note), and math/format utilities (d3-scale,
   date-fns, clsx). Fidelity is verified against the Figma file in the stage
   QA loops (screenshot comparison + token/geometry checks).
+- **Command palette**: Apparule ships none — per-product scope, not fleet
+  drift (parity review P12, 2026-07-21). The fleet ⌘K canon applies when
+  one exists.
 
 ## 2. Stage plan — W0 foundations → W3 dashboards
 
