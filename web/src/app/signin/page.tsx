@@ -25,11 +25,21 @@ export default function SignInPage() {
 
         <footer className="text-center text-micro text-text-2">
           By continuing you agree to our{" "}
-          <a href="/terms" className="text-link">
+          <a
+            href="https://terms.cuesoft.io"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-link"
+          >
             Terms
           </a>{" "}
           and{" "}
-          <a href="/privacy" className="text-link">
+          <a
+            href="https://privacy.cuesoft.io"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-link"
+          >
             Privacy Policy
           </a>
           .

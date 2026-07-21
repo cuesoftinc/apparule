@@ -484,7 +484,7 @@ feed at the base itself.
 | --- | --- | --- |
 | Part A (A1–A10 + A4b/A7b/A7c/A9b/A9c) | `/` | Public home page |
 | B2 permalink note | `/p/{post_id}` | Public post detail (MI-9 share target; request CTA for signed-in users) |
-| flows/auth.md §5 | `/signin` | Single auth screen — GoogleAuthButton + legal links **[Decided 2026-07-18, route canon]** |
+| flows/auth.md §5 | `/signin` | Single auth screen — GoogleAuthButton + legal links (Terms/Privacy open the canonical https://terms.cuesoft.io / https://privacy.cuesoft.io in a new tab) **[Decided 2026-07-18, route canon]** |
 | F0-8 / APP-004 | `/docs/api` | Public API reference — Scalar embed rendering `docs/api/openapi.yaml` (served at `/docs/api/openapi.yaml`); marketing nav chrome, minimal legal strip **[Ratified 2026-07-20]** |
 | B1 | `/dashboard` | Feed (story rail, PostCard column, freshness + suggestions) |
 | B2 | `/dashboard/explore` | Discover (masonry, filters, search-results state) |

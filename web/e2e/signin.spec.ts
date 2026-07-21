@@ -22,6 +22,19 @@ test.describe("TEST_MODE auth smoke", () => {
     );
   });
 
+  test("legal links point at the canonical Cuesoft policies", async ({
+    page,
+  }) => {
+    await page.goto("/signin");
+    await expect(page.getByRole("link", { name: "Terms" })).toHaveAttribute(
+      "href",
+      "https://terms.cuesoft.io",
+    );
+    await expect(
+      page.getByRole("link", { name: "Privacy Policy" }),
+    ).toHaveAttribute("href", "https://privacy.cuesoft.io");
+  });
+
   test("mock server serves the seeded feed", async ({ request }) => {
     const res = await request.get("/api/mock/v1/feed");
     expect(res.status()).toBe(200);
