@@ -47,6 +47,9 @@ app.*.map.json
 # Apparule additions (mobile-implementation.md §2; standards-research ledger).
 # Committed on purpose: .fvmrc, pubspec.lock, *.g.dart / *.freezed.dart.
 .fvm/
+# The root .gitignore ignores env/ repo-wide; re-include this one so the
+# committed README survives while the Doppler-generated JSONs stay out.
+!env/
 env/*.json
 lib/l10n/generated/
 **/failures/
