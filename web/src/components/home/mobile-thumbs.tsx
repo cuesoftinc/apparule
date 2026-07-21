@@ -5,6 +5,7 @@
 // screenshot slot exactly like the Figma thumbs (195:2/195:5/195:6309/
 // 195:6333). W2 adaptation per pages.md A4: composed component previews
 // stand in for exported Stage-4 raster thumbnails until W3.
+import Image from "next/image";
 import { AppBar } from "@/components/ui/AppBar";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
@@ -61,11 +62,13 @@ export function CaptureThumb() {
     <ThumbShell>
       <div className="flex h-full flex-col bg-black">
         <CaptureOverlay guide="searching">
-          {/* eslint-disable-next-line @next/next/no-img-element -- demo asset in a scaled preview */}
-          <img
+          {/* sizes = PHONE_W × SCALE — the 156px the thumb actually renders */}
+          <Image
             src="/demo/outfit-w05.jpg"
             alt=""
-            className="size-full object-cover"
+            fill
+            sizes="156px"
+            className="object-cover"
           />
         </CaptureOverlay>
       </div>

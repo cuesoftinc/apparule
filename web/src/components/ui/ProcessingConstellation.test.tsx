@@ -18,10 +18,10 @@ describe("ProcessingConstellation (§8.2b)", () => {
         imageSrc="/demo/outfit-w00.jpg"
       />,
     );
-    expect(screen.getByRole("img")).toHaveAttribute(
-      "src",
-      "/demo/outfit-w00.jpg",
-    );
+    // next/image src is loader-transformed (custom variant loader in the
+    // app, default loader under vitest) — assert the asset identity, not
+    // the exact pipeline URL.
+    expect(screen.getByRole("img").getAttribute("src")).toContain("outfit-w00");
     expect(screen.getAllByTestId("landmark").length).toBeGreaterThanOrEqual(13);
   });
 

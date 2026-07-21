@@ -7,6 +7,7 @@
 // (A2 interaction rule); scenes crossfade on the entrance duration.
 import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
+import Image from "next/image";
 import { Bell, Send } from "lucide-react";
 import { AppBar } from "@/components/ui/AppBar";
 import { CaptureOverlay } from "@/components/ui/CaptureOverlay";
@@ -26,6 +27,9 @@ const PHONE_W = 390;
 const PHONE_H = 844;
 const SCALE = 0.775;
 const SCENE_MS = 4000;
+// Rendered media width inside the scaled frame (PHONE_W × SCALE) — the
+// `sizes` hint that keeps srcset picks at mock scale, not viewport scale.
+const MOCK_SIZES = "302px";
 
 function StatusBar() {
   return (
@@ -59,9 +63,23 @@ function FeedScene() {
         ))}
       </div>
       {/* onRequest shows the "Request this outfit" CTA — decorative here
-          (the whole mock is pointer-inert) */}
-      <PostCard post={heroPosts[0]} onRequest={() => {}} className="shrink-0" />
-      <PostCard post={heroPosts[1]} onRequest={() => {}} className="shrink-0" />
+          (the whole mock is pointer-inert). The first post's media is the
+          audited mobile LCP element: it alone carries priority
+          (fetchpriority=high, eager); MOCK_SIZES = 390 × 0.775 scale ≈ the
+          302px the phone frame actually renders. */}
+      <PostCard
+        post={heroPosts[0]}
+        onRequest={() => {}}
+        className="shrink-0"
+        mediaPriority
+        mediaSizes={MOCK_SIZES}
+      />
+      <PostCard
+        post={heroPosts[1]}
+        onRequest={() => {}}
+        className="shrink-0"
+        mediaSizes={MOCK_SIZES}
+      />
       <TabBar
         activeKey="home"
         ordersBadge={3}
@@ -75,11 +93,12 @@ function CaptureScene() {
   return (
     <div className="flex h-full flex-col justify-center bg-black">
       <CaptureOverlay guide="searching">
-        {/* eslint-disable-next-line @next/next/no-img-element -- demo asset in the scaled mock */}
-        <img
+        <Image
           src="/demo/outfit-w05.jpg"
           alt=""
-          className="size-full object-cover"
+          fill
+          sizes={MOCK_SIZES}
+          className="object-cover"
         />
       </CaptureOverlay>
     </div>

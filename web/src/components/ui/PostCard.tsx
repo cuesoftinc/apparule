@@ -22,6 +22,14 @@ export interface PostCardProps {
   post?: Post;
   /** skeleton state renders the §3 placeholder anatomy (MI-19). */
   skeleton?: boolean;
+  /**
+   * Eager-load the media with fetchpriority=high — reserved for the one
+   * above-the-fold LCP candidate (the hero phone mock's first feed post,
+   * the audited mobile LCP element). Everything else stays lazy.
+   */
+  mediaPriority?: boolean;
+  /** next/image `sizes` override for scaled contexts (e.g. the hero mock). */
+  mediaSizes?: string;
   onToggleLike?: () => void;
   onToggleSave?: () => void;
   onRequest?: () => void;
@@ -34,6 +42,8 @@ export interface PostCardProps {
 export function PostCard({
   post,
   skeleton = false,
+  mediaPriority = false,
+  mediaSizes = "(max-width: 768px) 100vw, 630px",
   onToggleLike,
   onToggleSave,
   onRequest,
@@ -110,7 +120,11 @@ export function PostCard({
           src={media[Math.min(slide, media.length - 1)]?.url ?? ""}
           alt={media[Math.min(slide, media.length - 1)]?.alt_text ?? ""}
           fill
-          sizes="(max-width: 768px) 100vw, 630px"
+          priority={mediaPriority}
+          // Next 16 splits the props: `priority` alone de-lazies + preloads
+          // but no longer emits the img-level hint.
+          fetchPriority={mediaPriority ? "high" : undefined}
+          sizes={mediaSizes}
           className="object-cover"
         />
         {bigHeart ? (

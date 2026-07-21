@@ -729,4 +729,41 @@ test.describe("type contract — Figma Home frame roles", () => {
     });
     expect(weightsReal).toEqual([true, true, true]);
   });
+
+  // Perf canon (audit 2026-07-21, mobile LCP blocker): the hero mock's first
+  // feed photo is the LCP element — it alone is priority-loaded, and every
+  // demo-pool image serves a right-sized WebP variant through the custom
+  // loader (the deploy target has no runtime image optimizer).
+  test("LCP image is priority-loaded; demo imagery serves sized WebP", async ({
+    page,
+  }) => {
+    await page.goto("/");
+
+    // The audited LCP element: eager + fetchpriority=high, never lazy.
+    const lcp = page.locator(
+      'img[alt="Model in an ankara two-piece on the runway"]',
+    );
+    await expect(lcp).toHaveAttribute("fetchpriority", "high");
+    await expect(lcp).not.toHaveAttribute("loading", "lazy");
+
+    // Priority stays exclusive to the LCP candidate (A2 rule): exactly one
+    // priority-hinted image on the page.
+    expect(await page.locator('img[fetchpriority="high"]').count()).toBe(1);
+
+    // No raw oversized demo JPEGs: every /demo/ img resolves to a variant
+    // bucket WebP and carries a srcset (raw <img> regressions have neither).
+    const demoImgs = page.locator('img[src*="/demo/"]');
+    const count = await demoImgs.count();
+    expect(count).toBeGreaterThan(0);
+    for (let i = 0; i < count; i++) {
+      const img = demoImgs.nth(i);
+      const src = await img.getAttribute("src");
+      expect
+        .soft(src, `img[${i}] src is a sized WebP variant`)
+        .toMatch(/\/demo\/[\w-]+\.w(128|384|640|960)\.webp$/);
+      expect
+        .soft(await img.getAttribute("srcset"), `img[${i}] has a srcset`)
+        .toBeTruthy();
+    }
+  });
 });
