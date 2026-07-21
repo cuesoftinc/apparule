@@ -38,6 +38,8 @@
 | `link` | #00376B | #E0F1FF | usernames, links |
 | `like` | #ED4956 | #ED4956 | heart active |
 | `success/warn/error` | #2E7D32 / #B26A00 / #C62828 | brightened equivalents | order states, payment states |
+| `accent-text` | #DB2967 | #E73771 | AA text variant — readable text in the accent binds this (final-CTA pill on `on-accent`, active measure value); gradient fills/rings/icons keep `accent-start`/`accent-end`. Derived in OKLCH (L only) from `accent-start` to clear 4.5:1 on `bg`/`bg-elev` |
+| `success-text/warn-text/text-2-text` | #27772C / #985A02 / #696969 | #4ECB71 / #FFB020 / #A8A8A8 | AA text variants for the chip/pill recipe (`text-X` on `bg-X/14`) and plain status text — readable text binds the `-text` variant, fills/borders/icons keep the base hue. Light values darken the base in OKLCH until ≥4.5:1 on the hue's 14% tint; dark base values already clear it, so the dark variants alias them. `error` needs no variant (4.50 on its light tint) |
 | Afrocentric pattern | 4–6% opacity geometric line pattern | — | section backgrounds on home page + empty states only (PRD §2 nuance without noise) |
 
 ### Type

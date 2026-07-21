@@ -16,6 +16,10 @@ export function FinalCtaBand() {
   return (
     <section
       aria-labelledby="final-cta-heading"
+      // Fixed-light locale (§2 scoping): the band looks identical in both
+      // themes (gradient + on-accent white pills), so accent-as-text on the
+      // white pill re-binds the Light `accent-text` value under a dark root.
+      data-theme="light"
       className="bg-accent-gradient px-6 py-9"
     >
       {/* Canonical 1080 content column (design.md container canon) keeps
@@ -30,7 +34,7 @@ export function FinalCtaBand() {
         <div className="flex flex-wrap justify-center gap-4">
           <button
             type="button"
-            className={`${PILL_BASE} bg-on-accent text-accent-start`}
+            className={`${PILL_BASE} bg-on-accent text-accent-text`}
             onClick={() => {
               track("try_cloud_click", { section: "final-cta" });
               router.push("/signin");

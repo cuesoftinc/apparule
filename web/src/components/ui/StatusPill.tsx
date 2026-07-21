@@ -13,22 +13,24 @@ import type { Freshness } from "@/models";
 export type StatusPillValue = OrderStatus | Freshness;
 
 // Figma master (47:135): borderless pills — a 14% tint of the status token
-// behind a 12px semibold label. fresh strokes the accent gradient.
+// behind a 12px semibold label (labels bind the AA `-text` variants where
+// the base hue misses 4.5:1 on its own tint, §2). fresh strokes the accent
+// gradient.
 const TOKEN_CLASS: Record<StatusPillValue, string> = {
   quoted: "text-link bg-link/14",
   shipped: "text-link bg-link/14",
-  paid: "text-success bg-success/14",
-  delivered: "text-success bg-success/14",
-  in_progress: "text-warn bg-warn/14",
-  refunded: "text-warn bg-warn/14",
+  paid: "text-success-text bg-success/14",
+  delivered: "text-success-text bg-success/14",
+  in_progress: "text-warn-text bg-warn/14",
+  refunded: "text-warn-text bg-warn/14",
   declined: "text-error bg-error/14",
   disputed: "text-error bg-error/14",
-  requested: "text-text-2 bg-text-2/14",
-  cancelled: "text-text-2 bg-text-2/14",
+  requested: "text-text-2-text bg-text-2/14",
+  cancelled: "text-text-2-text bg-text-2/14",
   fresh:
     "bg-[linear-gradient(135deg,color-mix(in_srgb,var(--ap-accent-start)_14%,transparent),color-mix(in_srgb,var(--ap-accent-end)_14%,transparent))]",
-  aging: "text-warn bg-warn/14",
-  stale: "text-text-2 bg-text-2/14",
+  aging: "text-warn-text bg-warn/14",
+  stale: "text-text-2-text bg-text-2/14",
 };
 
 export interface StatusPillProps {

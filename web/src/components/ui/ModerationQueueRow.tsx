@@ -66,7 +66,7 @@ export function ModerationQueueRow({
             {report.reporter.username} · {formatAgoPhrase(report.created_at)}
           </p>
         </div>
-        <span className="shrink-0 rounded-pill bg-warn/14 px-2 py-0.5 text-micro font-semibold capitalize text-warn">
+        <span className="shrink-0 rounded-pill bg-warn/14 px-2 py-0.5 text-micro font-semibold capitalize text-warn-text">
           {report.reason}
         </span>
       </div>

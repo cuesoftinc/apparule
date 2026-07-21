@@ -65,7 +65,7 @@ export function MeasurementCard({
       {lowConfidence ? (
         <span
           data-testid="low-confidence"
-          className="flex h-5 w-fit items-center rounded-pill bg-warn/14 px-2 text-micro font-semibold text-warn"
+          className="flex h-5 w-fit items-center rounded-pill bg-warn/14 px-2 text-micro font-semibold text-warn-text"
         >
           Low confidence · {confidence!.toFixed(2)}
         </span>

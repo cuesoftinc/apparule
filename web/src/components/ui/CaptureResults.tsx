@@ -46,8 +46,8 @@ export function CaptureResults({
           className={clsx(
             "inline-flex h-6 items-center rounded-pill px-2 text-micro font-semibold",
             lowCount > 0
-              ? "bg-warn/14 text-warn"
-              : "bg-success/14 text-success",
+              ? "bg-warn/14 text-warn-text"
+              : "bg-success/14 text-success-text",
           )}
         >
           {lowCount > 0 ? `${lowCount} low confidence` : "High confidence"}

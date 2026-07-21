@@ -22,6 +22,12 @@
   --color-success: var(--ap-success);
   --color-warn: var(--ap-warn);
   --color-error: var(--ap-error);
+  /* AA text variants — readable text in a hue binds these; fills/borders/
+     icons keep the base hue (design.md §2) */
+  --color-accent-text: var(--ap-accent-text);
+  --color-success-text: var(--ap-success-text);
+  --color-warn-text: var(--ap-warn-text);
+  --color-text-2-text: var(--ap-text-2-text);
 
   /* Radii — 8px cards/sheets, full-round avatars/pills */
   --radius-card: var(--ap-radius-card);
@@ -313,7 +319,8 @@
     0 0 0 3px var(--ap-bg),
     0 0 0 5px var(--ap-accent-start);
 }
-/* active row: the numeric value reads in the accent (MI-13 master) */
+/* active row: the numeric value reads in the accent (MI-13 master) —
+   readable text, so it binds the AA `accent-text` variant (§2) */
 [data-state="active"] input[inputmode="decimal"] {
-  color: var(--ap-accent-start);
+  color: var(--ap-accent-text);
 }

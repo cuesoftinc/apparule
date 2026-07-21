@@ -31,6 +31,18 @@
   --ap-warn: #b26a00;
   --ap-error: #c62828;
 
+  /* ---- AA text variants (design.md §2) ----
+     Readable text in a hue binds the `-text` variant; fills/borders/icons
+     keep the base hue. Values are the base hue darkened in OKLCH (L only;
+     C/H preserved) until ≥4.5:1 against the hue's 14% tint composited on
+     `bg` — the chip/pill recipe (`text-X` on `bg-X/14`) and plain text both
+     clear WCAG AA with them. `error` needs no variant (base clears 4.5 on
+     its tint in both themes). */
+  --ap-accent-text: #db2967; /* 4.64 on bg */
+  --ap-success-text: #27772c; /* 4.64 on success/14 tint */
+  --ap-warn-text: #985a02; /* 4.64 on warn/14 tint */
+  --ap-text-2-text: #696969; /* 4.61 on text-2/14 tint */
+
   /* The "Apparule gradient" — story rings, primary CTAs, active states */
   --ap-accent-gradient: linear-gradient(
     135deg,
@@ -97,7 +109,42 @@
   --ap-warn: #ffb020;
   --ap-error: #ff6b6e;
 
+  /* AA text variants — dark. success/warn/text-2 base values already clear
+     4.5 on their /14 tints (7.10/7.90/6.28), so the variants alias them;
+     accent lightens (OKLCH L 0.605→0.621) to clear bg-elev (was 4.32). */
+  --ap-accent-text: #e73771; /* 4.62 on bg-elev */
+  --ap-success-text: #4ecb71;
+  --ap-warn-text: #ffb020;
+  --ap-text-2-text: #a8a8a8;
+
   color-scheme: dark;
+}
+
+/* Light re-declaration for nested scoping (same mechanics as the sibling
+   products): a fixed-light locale inside a dark page — the home final-CTA
+   band's on-accent (white) pills — re-binds the same §2 Light values so
+   accent-as-text stays AA on the white fill in both themes. Same
+   collection, no new tokens — scoping only. */
+[data-theme="light"] {
+  --ap-bg: #ffffff;
+  --ap-bg-elev: #ffffff;
+  --ap-border: #dbdbdb;
+  --ap-text: #111111;
+  --ap-text-2: #737373;
+  --ap-accent-start: #e1306c;
+  --ap-accent-end: #f77737;
+  --ap-on-accent: #ffffff;
+  --ap-link: #00376b;
+  --ap-like: #ed4956;
+  --ap-success: #2e7d32;
+  --ap-warn: #b26a00;
+  --ap-error: #c62828;
+  --ap-accent-text: #db2967;
+  --ap-success-text: #27772c;
+  --ap-warn-text: #985a02;
+  --ap-text-2-text: #696969;
+
+  color-scheme: light;
 }
 
 /* Dark mode — system default when no manual override is present.
@@ -117,6 +164,10 @@
     --ap-success: #4ecb71;
     --ap-warn: #ffb020;
     --ap-error: #ff6b6e;
+    --ap-accent-text: #e73771;
+    --ap-success-text: #4ecb71;
+    --ap-warn-text: #ffb020;
+    --ap-text-2-text: #a8a8a8;
 
     color-scheme: dark;
   }
