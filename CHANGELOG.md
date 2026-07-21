@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   parity with the sibling repos (#132).
 
 ### Fixed
+- Accessibility closeout: decorative phone mocks are now truly `inert`
+  (keyboard focus can no longer land in invisible mock UI), signin's legal
+  links gain underlines, nav landmarks carry distinct labels, and a
+  skip-to-content link fronts every route (#135).
 - Contrast-token canon: AA-compliant `-text` variants for the tinted-chip
   recipe (accent/success/warn/text-2) so tinted text clears 4.5:1 in both
   themes (#128).
