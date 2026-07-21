@@ -10,6 +10,13 @@ All images are derivatives of the Commons originals: resized to ≤900 px on
 the longest side and JPEG-recompressed for web weight (≤~200 KB);
 `outfit-w00.jpg` is additionally rotated to its upright orientation.
 
+Each `outfit-*.jpg` also ships pre-generated responsive WebP variants
+(`<base>.w128/.w384/.w640/.w960.webp`, from
+`web/scripts/generate-demo-image-variants.mjs`) that next/image serves via
+the custom loader — the deploy target disables runtime image optimization.
+Every variant is derived from its `.jpg` above and carries the same
+attribution and license.
+
 ## outfit-w00.jpg
 
 - "AFRICA FASHION WEEK (2023) - IMG 1962.jpg" by Bárbara Jadeh, CC BY-SA 4.0, via Wikimedia Commons
