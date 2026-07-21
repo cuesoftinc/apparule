@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- Mobile feature-first skeleton (restructure wave 3,
+- Mobile feature-first skeleton (restructure step 3,
   mobile-implementation.md §3–§7): `lib/src/{app,routing,core,features}`
   with the six ratified features (`auth`, `feed`, `measurements`, `orders`,
   `profile`, `earnings`), each seeded with a placeholder screen, a
