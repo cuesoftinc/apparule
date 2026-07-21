@@ -29,12 +29,14 @@ const TONE_ICON: Record<BannerTone, typeof Info> = {
   success: CheckCircle2,
 };
 
-// Action links bind to the tone token (Learn more=link, Re-verify=warn…).
+// Action links bind to the tone token (Learn more=link, Re-verify=warn…) —
+// readable text on the /10 tint, so warn/success bind their AA `-text`
+// variants (§2); link/error base values already clear 4.5 there.
 const TONE_ACTION: Record<BannerTone, string> = {
   info: "text-link",
-  warn: "text-warn",
+  warn: "text-warn-text",
   error: "text-error",
-  success: "text-success",
+  success: "text-success-text",
 };
 
 export function Banner({

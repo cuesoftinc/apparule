@@ -85,7 +85,7 @@ export function SessionRow({
         {context === "picker" && freshness !== "fresh" ? (
           <p
             data-testid="freshness-warning"
-            className="mt-1 text-micro text-warn"
+            className="mt-1 text-micro text-warn-text"
           >
             {freshness === "aging"
               ? "Measured over a month ago — consider retaking"

@@ -111,7 +111,7 @@ export function DateInput({
       {error ? (
         <span className="text-micro text-error">{error}</span>
       ) : showSoftWarning ? (
-        <span className="text-micro text-warn">{softWarning}</span>
+        <span className="text-micro text-warn-text">{softWarning}</span>
       ) : null}
     </div>
   );

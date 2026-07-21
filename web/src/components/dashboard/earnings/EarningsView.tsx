@@ -80,7 +80,7 @@ export function EarningsView() {
                       className={
                         payoutAccount.kyc_state === "verified"
                           ? "text-caption font-semibold text-success"
-                          : "text-caption font-semibold text-warn"
+                          : "text-caption font-semibold text-warn-text"
                       }
                     >
                       {payoutAccount.kyc_state === "verified"
