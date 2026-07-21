@@ -92,7 +92,7 @@ jobs:
           retention-days: 7
 
   mobile:
-    name: mobile · format + analyze + test
+    name: mobile · format + codegen + analyze + test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -110,19 +110,33 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # Scoped to the live code dirs: quarantined legacy/ trees sit outside
-      # the format/analyze gates (analysis_options excludes them too).
+      # Live-tree scope: the quarantined lib/legacy tree (§11) and generated
+      # code sit outside the format gate, mirroring the analysis excludes.
       - name: Format check
-        run: dart format --set-exit-if-changed lib test
+        run: |
+          find lib test tool -name '*.dart' \
+            -not -path 'lib/legacy/*' \
+            -not -path 'lib/l10n/generated/*' \
+            -not -name '*.g.dart' \
+            -not -name '*.freezed.dart' \
+            -print0 | xargs -0 dart format --set-exit-if-changed
 
-      # Infos are non-fatal while the §11 legacy surface awaits its rewrite —
-      # every current info-level lint lives in a file the salvage ledger
-      # registers as DROP/REWRITE, pending quarantine. Errors and warnings
-      # stay fatal. Steps up to `--fatal-infos` (+ very_good_analysis/
-      # custom_lint, the full mobile-implementation.md §8 gate) once the
-      # legacy surface is replaced.
+      # Committed codegen (.g.dart/.freezed.dart + the token classes) must
+      # match the builders' output exactly — generated code is reviewed like
+      # any other diff, never silently regenerated (§6/§8).
+      - name: Codegen-fresh check
+        run: |
+          dart run build_runner build
+          dart run tool/gen_tokens.dart
+          git diff --exit-code
+
+      # The full §8 static gate: very_good_analysis strictness at
+      # --fatal-infos; riverpod_lint rides along as a native analyzer
+      # plugin (analysis_options `plugins:`), so its diagnostics land here
+      # too. The coverage gate (very_good_coverage) joins with the feature
+      # waves, once there is non-placeholder logic to hold a floor against.
       - name: Analyze
-        run: flutter analyze --no-fatal-infos
+        run: flutter analyze --fatal-infos
 
       - name: Test
         run: flutter test

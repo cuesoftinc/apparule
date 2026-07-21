@@ -9,6 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Mobile feature-first skeleton (restructure wave 3,
+  mobile-implementation.md §3–§7): `lib/src/{app,routing,core,features}`
+  with the six ratified features (`auth`, `feed`, `measurements`, `orders`,
+  `profile`, `earnings`), each seeded with a placeholder screen, a
+  `@riverpod` ViewModel, a freezed domain model, and an abstract repository
+  + `*Fake` returning empty data; a typed go_router `StatefulShellRoute`
+  five-tab shell (Home · Explore · ➕ · Orders · Profile) with the auth
+  redirect stubbed always-allow until the auth wave; Riverpod 3 codegen DI
+  (provider overrides per environment across `main_dev` / `main_stg` /
+  `main.dart`); the `core/data` seams (configured Dio `api_client`,
+  secure-storage `persistence_service`); and `assets/seed/` documenting the
+  §6 narrative to come.
+- Design-token pipeline: `design/tokens/apparule.tokens.json` — the
+  37-variable `apparule/tokens` Figma collection (17 color roles in true
+  Light/Dark modes, spacing, radii, durations, z-layers), verified against
+  design.md §2 — generated into `lib/src/core/theme/tokens/` by
+  `tool/gen_tokens.dart`; Material 3 light + true-black dark `ThemeData`
+  built from the one token set through five `ThemeExtension`s
+  (color/spacing/radius/type/motion); Inter 400/600/700 bundled with its
+  OFL license (never fetched at runtime).
+- Android `dev`/`stg`/`prd` product flavors (`applicationIdSuffix`
+  `.dev`/`.stg`, per-flavor launcher label, pubspec `default-flavor: dev`),
+  paired with the three flavor entrypoints; iOS schemes/xcconfigs deferred
+  to an Xcode pass.
+- Mobile test suite (18 tests): a `pump_app` helper over the fake override
+  set, widget tests for all eight placeholder screens, theme unit tests
+  (tokens resolve; light/dark differ; true-black dark), a five-tab router
+  navigation test, and countdown/persistence/api-client unit tests.
 - Mobile CI lane: a `mobile · format + analyze + test` job in
   `build-and-test.yml` — Flutter pinned by `.fvmrc` via
   `subosito/flutter-action@v2`, gating `dart format`, `flutter analyze`, and
@@ -58,6 +86,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Mobile legacy quarantine, wave 2 (mobile-implementation.md §11): all of
+  `lib/src/**`, the superseded `main.dart`, and the old l10n surface
+  (`app_sq.arb` + committed generated localizations) moved
+  structure-preserved to `mobile/flutter/lib/legacy/` — excluded from
+  analysis, codegen, CI, and builds; `countdown.dart` salvaged live to
+  `src/core/ui/` per the §11 KEEP register (C6's 3-2-1 countdown).
+- Mobile pubspec adopts the ratified dependency set (Riverpod 3 + codegen,
+  go_router + go_router_builder, dio, freezed/json_serializable, Firebase
+  packages added but not initialized, flutter_secure_storage, mocktail/
+  alchemist/patrol), replacing the legacy `provider`/`sms_autofill` pair;
+  documented pin deviations where the ledger's set no longer co-resolves
+  (riverpod_lint is a native analyzer plugin now — custom_lint retired
+  upstream; build_runner ≤2.15.1; freezed 3.2.6-dev.1 as the analyzer-12
+  compatibility build; intl ^0.20.2 per the SDK's own pin).
+- Mobile CI lane steps up to the full mobile-implementation.md §8 static
+  gate: live-tree format scope, a codegen-fresh check (build_runner + token
+  generation must produce no diff), and `flutter analyze --fatal-infos`
+  over very_good_analysis + riverpod_lint. The coverage gate joins with the
+  feature waves, once there is non-placeholder logic to hold a floor
+  against.
+- Mobile l10n re-keyed en-only (mobile-implementation.md §1): a minimal new
+  `app_en.arb`; generated localizations now land in `lib/l10n/generated/`
+  (gitignored, `nullable-getter: false`) instead of being committed.
 - Regenerated `mobile/flutter/android/` on the Flutter 3.44.7 template
   (mobile-implementation.md §11, decisions.md M-4): AGP 9.0.1 + Gradle 9.1
   wrapper + Kotlin 2.3.20 on Java/Kotlin 17, declarative `plugins {}`
