@@ -297,7 +297,9 @@ approved gap implementations:
   hidden and its remote default fonts are disabled (self-host ethos).
   Scalar's developer toolbar is pinned off (`showDeveloperTools:
   "never"` — the `"localhost"` default surfaced author chrome on the
-  public reference in local/TEST_MODE runs).
+  public reference in local/TEST_MODE runs), and Agent Scalar is
+  disabled outright (`agent: { disabled: true }` — it auto-enables on
+  localhost-class hosts, the same leak class).
   Header construction: the sticky marketing nav (h-16) and Scalar's
   sticky layout coexist via `--scalar-custom-header-height: 64px` on the
   embed wrapper (offsets Scalar's sticky sidebar/mobile bar below the
@@ -307,13 +309,26 @@ approved gap implementations:
   pins route 200, a rendered operation from the spec, the served
   document, the footer handoff, the header/scroll sanity and the
   embed-theme sync.
-  Payload: Scalar is the app's heaviest dependency (~1MB encoded route
-  JS), so the page renders it through `ScalarApiReferenceLazy` — a
-  `next/dynamic` `ssr: false` boundary (fleet-uniform, perf audit
-  2026-07-21) whose placeholder reserves the embed's viewport slice
+  Payload: Scalar is the app's heaviest dependency, so the page renders
+  it through `ScalarApiReferenceLazy` — a `next/dynamic` `ssr: false`
+  boundary gated on USER INTENT (fleet-uniform, perf audit + payload
+  diet 2026-07-21). A `ssr: false` boundary alone only moves Scalar out
+  of the first-load chunks (the async group still downloads right after
+  hydration — settled /docs/api JS stayed ~1381K encoded / ~4787K
+  decoded, network-recorded on the TEST_MODE prod build), so the import
+  fires only on the first pointer/key/wheel/touch/scroll gesture or the
+  placeholder's explicit "Load the interactive API reference" button
+  (the screen-reader path). Settled pre-intent JS: 1381K → 223K encoded
+  (4787K → 714K decoded); bots, probes and bounces never pay for
+  Scalar, and any human interacting mounts it within their first
+  gesture. The placeholder reserves the embed's viewport slice
   (`100dvh − --scalar-custom-header-height`) so the swap-in shifts no
-  layout. /docs/api first-load JS 1222K → 204K encoded; the nav/footer
-  chrome stays SSR'd and interactive while the reference streams in.
+  layout; the nav/footer chrome stays SSR'd and interactive throughout.
+  `e2e/docs-api-payload.spec.ts` (byte-identical fleet spec, keyed by
+  package name — the seo.spec.ts pattern) locks the settled pre-intent
+  budget (measured + 20% headroom, CDP-recorded encoded transfer; CI
+  prod build only) AND that intent still mounts the full reference with
+  the spec fetch intact.
 
 **Design-convergence as-built notes (2026-07-20):** the code-side fixes
 from the Figma ↔ code divergence audit (seed-side details live in §6):
