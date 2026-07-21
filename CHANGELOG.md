@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Mobile implementation contract (`docs/mobile-implementation.md`): the
+  Flutter rebuild plan for `mobile/flutter` — feature-first MVVM+Repository
+  over Riverpod 3, a typed go_router tab shell, a mock-first data layer
+  seeded to the same designer/order narrative as the web dashboard, the
+  design-token pipeline, CI quality gates, and the legacy salvage/rewrite/
+  drop ledger. Docs only — restructure, design/components, and screens land
+  in following stages, with API wiring last.
 - Web app manifest at `/manifest.webmanifest`: product identity ("Apparule —
   Two photos. A perfect fit."), design-token colors, and the committed icon
   set — locked by the shared SEO spec's generic manifest assertion (#137).
