@@ -83,6 +83,7 @@ function FeedScene() {
       <TabBar
         activeKey="home"
         ordersBadge={3}
+        ariaLabel="Tabs (hero feed scene)"
         className="absolute inset-x-0 bottom-0"
       />
     </div>
@@ -131,7 +132,11 @@ function RequestScene() {
           quoteCents={4_500_000}
         />
       </div>
-      <TabBar activeKey="orders" className="absolute inset-x-0 bottom-0" />
+      <TabBar
+        activeKey="orders"
+        ariaLabel="Tabs (hero request scene)"
+        className="absolute inset-x-0 bottom-0"
+      />
     </div>
   );
 }

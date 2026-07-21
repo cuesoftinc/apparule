@@ -148,7 +148,11 @@ export function ExploreThumb() {
             <GridTile key={img.src} src={img.src} alt={img.alt} />
           ))}
         </div>
-        <TabBar activeKey="explore" className="absolute inset-x-0 bottom-0" />
+        <TabBar
+          activeKey="explore"
+          ariaLabel="Tabs (explore thumb)"
+          className="absolute inset-x-0 bottom-0"
+        />
       </div>
     </ThumbShell>
   );
@@ -176,6 +180,7 @@ export function OrdersThumb() {
         <TabBar
           activeKey="orders"
           ordersBadge={2}
+          ariaLabel="Tabs (orders thumb)"
           className="absolute inset-x-0 bottom-0"
         />
       </div>

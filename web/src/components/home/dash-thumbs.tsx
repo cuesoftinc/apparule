@@ -57,7 +57,14 @@ function DashShell({
       className="rounded-card border border-border bg-bg"
     >
       <div className="flex h-full bg-bg">
-        <NavRail expanded activeKey={activeKey} className="shrink-0" />
+        {/* Decorative thumb (inert MiniScreen), but landmark labels stay
+            distinct per instance for DOM-level landmark checks. */}
+        <NavRail
+          expanded
+          activeKey={activeKey}
+          ariaLabel={`Primary (${activeKey} thumb)`}
+          className="shrink-0"
+        />
         <div className="min-w-0 flex-1 px-24 py-8">{children}</div>
       </div>
     </MiniScreen>

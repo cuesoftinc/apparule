@@ -28,6 +28,15 @@ describe("TabBar (§8.2)", () => {
     },
   );
 
+  it("landmark label defaults to Tabs and is overridable (landmark rules)", () => {
+    const { rerender } = render(<TabBar activeKey="home" />);
+    expect(screen.getByRole("navigation", { name: "Tabs" })).toBeVisible();
+    rerender(<TabBar activeKey="home" ariaLabel="Tabs (explore thumb)" />);
+    expect(
+      screen.getByRole("navigation", { name: "Tabs (explore thumb)" }),
+    ).toBeVisible();
+  });
+
   it("Orders badge: none by default", () => {
     render(<TabBar activeKey="home" />);
     expect(screen.queryByTestId("tab-badge")).not.toBeInTheDocument();

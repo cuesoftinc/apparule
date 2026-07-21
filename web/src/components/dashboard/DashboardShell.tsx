@@ -81,8 +81,15 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   return (
     <ToastProvider>
       <div className="flex min-h-screen bg-bg">
+        {/* Only one rail is displayed per breakpoint, but both are in the
+            DOM — landmark labels stay distinct (landmark rules,
+            2026-07-21 audit: 2× "Primary"). */}
         <div className="sticky top-0 h-screen shrink-0 min-[1264px]:hidden">
-          <NavRail activeKey={activeKey} items={items} />
+          <NavRail
+            activeKey={activeKey}
+            items={items}
+            ariaLabel="Primary, compact"
+          />
         </div>
         <div className="sticky top-0 hidden h-screen shrink-0 min-[1264px]:block">
           <NavRail activeKey={activeKey} items={items} expanded />

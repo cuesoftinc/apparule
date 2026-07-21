@@ -594,8 +594,13 @@ export function ComponentGallery() {
 
       <Section title="NavRail">
         <div className="flex h-96 gap-6 overflow-hidden rounded-card border border-border">
-          <NavRail activeKey="home" />
-          <NavRail activeKey="orders" expanded items={undefined} />
+          <NavRail activeKey="home" ariaLabel="Primary (collapsed demo)" />
+          <NavRail
+            activeKey="orders"
+            expanded
+            items={undefined}
+            ariaLabel="Primary (expanded demo)"
+          />
         </div>
       </Section>
 

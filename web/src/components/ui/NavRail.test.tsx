@@ -30,6 +30,19 @@ describe("NavRail (§8.2b)", () => {
     );
   });
 
+  it("landmark label defaults to Primary and is overridable (landmark rules)", () => {
+    const { rerender } = renderRail();
+    expect(screen.getByRole("navigation", { name: "Primary" })).toBeVisible();
+    rerender(
+      <ThemeProvider>
+        <NavRail activeKey="home" ariaLabel="Primary, compact" />
+      </ThemeProvider>,
+    );
+    expect(
+      screen.getByRole("navigation", { name: "Primary, compact" }),
+    ).toBeVisible();
+  });
+
   it("collapsed 72 / expanded 244 widths", () => {
     const { rerender } = renderRail();
     expect(screen.getByRole("navigation")).toHaveAttribute(
