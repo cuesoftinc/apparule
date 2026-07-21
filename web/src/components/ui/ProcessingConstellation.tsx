@@ -6,6 +6,7 @@
 // On-media capture UI: raw white over the photo is the documented token
 // exception (web-implementation.md §3 note).
 import clsx from "clsx";
+import Image from "next/image";
 import { Check, X } from "lucide-react";
 
 export type ProcessingState = "processing" | "success" | "failed";
@@ -63,12 +64,24 @@ export function ProcessingConstellation({
     <div data-state={state} className={clsx("flex flex-col gap-2", className)}>
       <div className="relative aspect-[3/4] w-full overflow-hidden rounded-card bg-black">
         {imageSrc ? (
-          // eslint-disable-next-line @next/next/no-img-element -- mock/demo asset, unoptimized by design
-          <img
-            src={imageSrc}
-            alt={imageAlt}
-            className="absolute inset-0 size-full object-cover opacity-60"
-          />
+          imageSrc.startsWith("/") ? (
+            // Servable asset (the SMPL demo photo) — routed through the
+            // demo-image loader for a right-sized WebP variant.
+            <Image
+              src={imageSrc}
+              alt={imageAlt}
+              fill
+              sizes="280px"
+              className="object-cover opacity-60"
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element -- blob: capture preview (B4), not a servable asset
+            <img
+              src={imageSrc}
+              alt={imageAlt}
+              className="absolute inset-0 size-full object-cover opacity-60"
+            />
+          )
         ) : null}
 
         {/* Figma master (64:748): the landmark constellation strokes the

@@ -554,6 +554,23 @@ the designs:
 - Measurement snapshots frozen per request (vault edits after seed never
   mutate them — the data-model.md §5 rule holds in the mock too).
 
+**Demo imagery pipeline.** The CC pool lives in `web/public/demo/`
+(originals byte-stable — they are the attributed derivatives manifested in
+`ATTRIBUTIONS.md`) alongside pre-generated responsive WebP variants
+(`<base>.w128/.w384/.w640/.w960.webp`, from
+`web/scripts/generate-demo-image-variants.mjs`; rerun it when the pool
+changes). All demo imagery renders through `next/image` with a custom
+loader (`src/lib/demo-image-loader.ts`) that maps srcset widths onto those
+variant buckets — the deploy target (Firebase App Hosting adapter)
+disables Next's runtime optimizer, so `/_next/image` never exists in
+production and serve-time optimization can't be assumed. Config
+`deviceSizes`/`imageSizes` mirror the buckets 1:1. Priority discipline:
+exactly one `priority` image per route — on home it's the hero phone
+mock's first feed photo (the mobile LCP element); everything else stays
+lazy. Non-path srcs (`blob:` capture previews) stay raw `<img>` and pass
+through the loader untouched. Locked by the home e2e perf canon
+(`e2e/home.spec.ts`).
+
 ## 7. Test strategy
 
 | Layer | Tooling | Scope |
