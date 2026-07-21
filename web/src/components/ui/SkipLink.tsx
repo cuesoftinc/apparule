@@ -1,14 +1,17 @@
-// SkipLink — fleet a11y canon (P15): the first focusable element on every
-// route. Sits fixed above the viewport until focus lands on it, then slides
-// into the top-left as a token-styled pill; activating it moves focus to
-// the route's single <main id="main" tabIndex={-1}>.
-export function SkipLink() {
-  return (
-    <a
-      href="#main"
-      className="fixed left-3 top-3 z-50 -translate-y-[150%] rounded-card border border-border bg-bg-elev px-4 py-2 text-sm font-semibold text-text focus:translate-y-0"
-    >
-      Skip to content
-    </a>
-  );
-}
+// SkipLink — fleet canon (SKILL.md a11y closeout canons, 2026-07-21).
+// First focusable on every route; visually hidden until keyboard focus;
+// the pill appearing on :focus IS the focus indication. Byte-identical
+// across products (shared-files canon) — utility names only, no
+// product-specific tokens.
+import React from "react";
+
+const SkipLink: React.FC = () => (
+  <a
+    href="#main"
+    className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:block focus:rounded-md focus:border focus:border-border focus:bg-bg-elev focus:px-4 focus:py-2 focus:text-[13px] focus:font-medium focus:text-text"
+  >
+    Skip to content
+  </a>
+);
+
+export default SkipLink;
