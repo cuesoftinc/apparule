@@ -12,9 +12,14 @@ import { AuthProvider } from "@/controllers/auth/AuthContext";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
+  // Absolute base for og/twitter images, canonicals and other metadata
+  // URLs (SEO plumbing, fleet canon).
+  metadataBase: new URL("https://apparule.cuesoft.io"),
   title: "Apparule",
   description:
     "Precision measurement meets social fashion — capture your measurements, discover designers, commission outfits.",
+  // Every route's canonical is its own path, resolved against metadataBase.
+  alternates: { canonical: "./" },
 };
 
 export default function RootLayout({

@@ -5,6 +5,7 @@ import { GoogleAuthButton } from "@/components/ui/GoogleAuthButton";
 // (X-1: no username/password anywhere, product-wide).
 export const metadata: Metadata = {
   title: "Sign in — Apparule",
+  description: "Sign in to Apparule with Google",
 };
 
 export default function SignInPage() {
