@@ -34,7 +34,6 @@ services:
       # NEXT_PUBLIC_* are inlined into the standalone build, so pass them here.
       args:
         NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:8080}
-        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
     ports:
       - "3000:3000"
     depends_on:

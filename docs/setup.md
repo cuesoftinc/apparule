@@ -17,7 +17,6 @@ Configuration comes from the root `.env` (copy `.env.example`).
 | `GOOGLE_CLOUD_PROJECT` | `api/common` | GCP / Firebase project id (auth). |
 | `FIREBASE_CONFIG_PATH` | `api/common` | Optional path to a mounted Firebase service-account JSON. |
 | `NEXT_PUBLIC_BASE_URL` | `web` | Base URL of `api-common` as seen from the browser. |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | `web` | Google OAuth client id (optional locally). |
 
 ## Quick start (Docker)
 
