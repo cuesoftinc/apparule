@@ -6,7 +6,11 @@ import { Compass } from "lucide-react";
 
 export default function NotFound() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-bg px-6 text-center">
+    <main
+      id="main"
+      tabIndex={-1}
+      className="flex min-h-screen flex-col items-center justify-center gap-4 bg-bg px-6 text-center"
+    >
       <span className="bg-accent-gradient bg-clip-text text-title font-bold text-transparent">
         Apparule
       </span>

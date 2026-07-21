@@ -60,6 +60,9 @@ export interface NavRailProps {
   /** collapsed 72 / expanded 244; page shells expand at ≥1264px. */
   expanded?: boolean;
   supportHref?: string;
+  /** Landmark label — instances on one page must be distinct (landmark
+   * rules; 2026-07-21 audit: duplicate "Primary" landmarks). */
+  ariaLabel?: string;
   className?: string;
 }
 
@@ -68,6 +71,7 @@ export function NavRail({
   activeKey,
   expanded = false,
   supportHref = "https://clients.cuesoft.io",
+  ariaLabel = "Primary",
   className,
 }: NavRailProps) {
   const { preference, setPreference } = useTheme();
@@ -76,7 +80,7 @@ export function NavRail({
   return (
     <nav
       data-expanded={expanded}
-      aria-label="Primary"
+      aria-label={ariaLabel}
       className={clsx(
         "flex h-full flex-col border-r border-border bg-bg px-3 py-4",
         expanded ? "w-[244px]" : "w-[72px]",

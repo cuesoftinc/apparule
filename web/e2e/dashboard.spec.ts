@@ -54,7 +54,9 @@ test("semantic landmarks: every dashboard screen renders one <main> and the prim
       1,
     );
     await expect(
-      page.locator('nav[aria-label="Primary"]:visible'),
+      // Prefix match: rail labels are distinct per instance
+      // ("Primary" / "Primary, compact" — landmark rules).
+      page.locator('nav[aria-label^="Primary"]:visible'),
       `${route} shows the primary nav`,
     ).toHaveCount(1);
   }

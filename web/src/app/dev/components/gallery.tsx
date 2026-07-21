@@ -331,7 +331,11 @@ export function ComponentGallery() {
   const [payState, setPayState] = useState<PaymentBoxState>("quoted");
 
   return (
-    <main className="mx-auto flex max-w-4xl flex-col px-6 pb-24">
+    <main
+      id="main"
+      tabIndex={-1}
+      className="mx-auto flex max-w-4xl flex-col px-6 pb-24"
+    >
       <h1 className="pt-10 text-display font-bold text-text">
         Component gallery
       </h1>
@@ -594,8 +598,13 @@ export function ComponentGallery() {
 
       <Section title="NavRail">
         <div className="flex h-96 gap-6 overflow-hidden rounded-card border border-border">
-          <NavRail activeKey="home" />
-          <NavRail activeKey="orders" expanded items={undefined} />
+          <NavRail activeKey="home" ariaLabel="Primary (collapsed demo)" />
+          <NavRail
+            activeKey="orders"
+            expanded
+            items={undefined}
+            ariaLabel="Primary (expanded demo)"
+          />
         </div>
       </Section>
 

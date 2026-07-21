@@ -43,6 +43,9 @@ export interface TabBarProps {
   activeKey: string;
   /** MI-16: unread Orders count — none / count. */
   ordersBadge?: number;
+  /** Landmark label — instances on one page must be distinct (landmark
+   * rules; 2026-07-21 audit: 4× "Tabs" landmarks on home). */
+  ariaLabel?: string;
   className?: string;
 }
 
@@ -50,11 +53,12 @@ export function TabBar({
   items = DEFAULT_TAB_ITEMS,
   activeKey,
   ordersBadge,
+  ariaLabel = "Tabs",
   className,
 }: TabBarProps) {
   return (
     <nav
-      aria-label="Tabs"
+      aria-label={ariaLabel}
       className={clsx(
         "flex h-14 items-stretch border-t border-border bg-bg",
         className,

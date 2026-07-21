@@ -38,7 +38,11 @@ export function PostPermalink({ postId }: { postId: string }) {
           )
         }
       />
-      <main className="mx-auto w-full max-w-4xl px-4 py-6">
+      <main
+        id="main"
+        tabIndex={-1}
+        className="mx-auto w-full max-w-4xl px-4 py-6"
+      >
         <h1 className="sr-only">Post</h1>
         <PostDetailView
           postId={postId}

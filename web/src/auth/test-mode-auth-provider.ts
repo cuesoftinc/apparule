@@ -5,7 +5,8 @@
 import { accountRepo } from "@/models/repositories/account-repo";
 import type { AuthProviderAdapter, AuthSession, SignInResult } from "./types";
 
-const SESSION_FLAG = "apparule.testmode.signedin";
+// Fleet P16 key convention: `<product>.test-session`.
+const SESSION_FLAG = "apparule.test-session";
 
 export class TestModeAuthProvider implements AuthProviderAdapter {
   readonly name = "test-mode" as const;

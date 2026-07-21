@@ -51,8 +51,10 @@ async function settle(page: Page, route: string) {
   await page.waitForTimeout(400);
 }
 
+// Prefix match: the two rails carry distinct landmark labels
+// ("Primary" expanded / "Primary, compact" collapsed — landmark rules).
 const visibleRail = (page: Page) =>
-  page.locator('nav[aria-label="Primary"]:visible');
+  page.locator('nav[aria-label^="Primary"]:visible');
 
 const docOverflow = (page: Page) =>
   page.evaluate(
@@ -116,7 +118,7 @@ test("mobile 390: only the collapsed 72px rail exists — an expanded rail canno
     );
     // the expanded (244px) rail is display-hidden, not merely offscreen
     await expect(
-      page.locator('nav[aria-label="Primary"][data-expanded="true"]'),
+      page.locator('nav[aria-label^="Primary"][data-expanded="true"]'),
     ).toBeHidden();
     // main takes the rest of the viewport — content is never squeezed
     const mainBox = (await page.locator("main").boundingBox())!;
