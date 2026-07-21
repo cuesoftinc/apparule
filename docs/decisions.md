@@ -237,18 +237,23 @@ before public launch. Alternative: commission the brand pass first.
   `StatefulShellRoute` driving the Home·Explore·➕·Orders·Profile tab
   shell (pages.md Part C) with one top-level auth `redirect` off the
   session provider. ☑
-- **M-3 Legacy auth deletion — X-1 execution (RATIFIED 2026-07-21)**: the
-  entire legacy `lib/src/features/auth/` (9 files: password + phone/SMS +
-  email-OTP flows, the `sms_autofill` dependency, `form_provider`) is
-  **deleted, not migrated** — canon-violation CV-1 in the legacy audit
-  ledger. Replacement is the Google-only Firebase flow (§9 of
-  mobile-implementation.md); the exact screen-removal list already
-  ratified for the web auth surface applies here to its Flutter
-  equivalents, per **flows/auth.md §5**: `login_page` becomes the single
-  auth screen, and `sign_up_form`, `sign_up_screen`, `forgot_password`,
-  `reset_password`, `verify_email`, `sms_verification`, `verify_account`
-  are retired by name. `models/user.dart` (prefs-string identity, CV-2)
-  drops with it. ☑
+- **M-3 Legacy auth retirement — X-1 execution via the quarantine
+  pattern (RATIFIED 2026-07-21, revised same day per user directive)**:
+  the entire legacy `lib/src/features/auth/` (9 files: password +
+  phone/SMS + email-OTP flows, the `sms_autofill` dependency,
+  `form_provider`) is **quarantined into `lib/legacy/` at the auth
+  cutover, never migrated** — canon-violation CV-1 in the legacy audit
+  ledger — and actually removed only after the Google-only replacement
+  ships AND the user gives an explicit removal go (the web legacy
+  pattern: route-by-route replacement, end-of-program authorized
+  sweeps). Replacement is the Google-only Firebase flow (§9 of
+  mobile-implementation.md); the retirement list per **flows/auth.md
+  §5**: `login_page` becomes the single auth screen, and
+  `sign_up_form`, `sign_up_screen`, `forgot_password`, `reset_password`,
+  `verify_email`, `sms_verification`, `verify_account` are retired by
+  name. `models/user.dart` (prefs-string identity, CV-2) quarantines
+  with it. Quarantined code is excluded from assets, analysis, CI, and
+  builds (mobile-implementation.md §11). ☑
 - **M-4 Android API floor (RATIFIED 2026-07-21)**: **minSdkVersion 24**
   (the legacy value, confirmed against the ratified standard's floor) —
   carried forward, not raised. The Android project is regenerated to
