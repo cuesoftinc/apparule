@@ -344,7 +344,9 @@ export const designerEarningsDemo: {
         provider_ref: "PSK-8843763",
         created_at: daysAgo(4), // Jul 14 on the canvas
       },
-      label: "Payout to GTBank •••• 4521",
+      // "••• last4" is the one masked-account idiom (store display,
+      // EarningsView payout card, Figma A6/B9 rows) — was a stray "••••".
+      label: "Payout to GTBank ••• 4521",
     },
     {
       entry: {

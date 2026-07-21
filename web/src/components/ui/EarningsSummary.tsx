@@ -51,7 +51,7 @@ export interface TransactionRowProps {
   entry: EarningsEntry;
   /**
    * Optional label override — the enriched-landing instances (186:140/150)
-   * carry free-text first lines ("Payout to GTBank •••• 4521"); defaults to
+   * carry free-text first lines ("Payout to GTBank ••• 4521"); defaults to
    * the derived `{kind} · {order_number}` line.
    */
   label?: string;
