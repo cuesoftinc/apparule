@@ -6,7 +6,7 @@
 import type { Metadata } from "next";
 import { HomeNavBar } from "@/components/home/HomeNavBar";
 import { PageViewTracker } from "@/components/home/PageViewTracker";
-import { ScalarApiReference } from "@/components/docs/ScalarApiReference";
+import { ScalarApiReferenceLazy } from "@/components/docs/ScalarApiReferenceLazy";
 
 const DESCRIPTION =
   "Interactive reference for the Apparule API — every endpoint, schema and error envelope, rendered live from the repo's OpenAPI document.";
@@ -28,7 +28,7 @@ export default function ApiReferencePage() {
           viewport math to match (one coherent scroll). `isolate` opens a
           stacking context so no Scalar z-index can paint over the nav. */}
       <main className="isolate flex-1 [--scalar-custom-header-height:64px]">
-        <ScalarApiReference />
+        <ScalarApiReferenceLazy />
       </main>
       {/* Minimal footer strip — verbatim legal line only (parity canon). */}
       <footer className="border-t border-border px-6 py-4 text-caption text-text-2">

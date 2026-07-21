@@ -307,6 +307,13 @@ approved gap implementations:
   pins route 200, a rendered operation from the spec, the served
   document, the footer handoff, the header/scroll sanity and the
   embed-theme sync.
+  Payload: Scalar is the app's heaviest dependency (~1MB encoded route
+  JS), so the page renders it through `ScalarApiReferenceLazy` — a
+  `next/dynamic` `ssr: false` boundary (fleet-uniform, perf audit
+  2026-07-21) whose placeholder reserves the embed's viewport slice
+  (`100dvh − --scalar-custom-header-height`) so the swap-in shifts no
+  layout. /docs/api first-load JS 1222K → 204K encoded; the nav/footer
+  chrome stays SSR'd and interactive while the reference streams in.
 
 **Design-convergence as-built notes (2026-07-20):** the code-side fixes
 from the Figma ↔ code divergence audit (seed-side details live in §6):
