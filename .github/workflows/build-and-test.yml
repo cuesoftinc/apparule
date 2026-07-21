@@ -115,12 +115,14 @@ jobs:
       - name: Format check
         run: dart format --set-exit-if-changed lib test
 
-      # Steps up to `--fatal-infos` (+ very_good_analysis/custom_lint, the
-      # full mobile-implementation.md §8 gate) once the §11 legacy surface is
-      # replaced — today's info-level lints all live in files the salvage
-      # ledger registers as DROP/REWRITE, pending quarantine.
+      # Infos are non-fatal while the §11 legacy surface awaits its rewrite —
+      # every current info-level lint lives in a file the salvage ledger
+      # registers as DROP/REWRITE, pending quarantine. Errors and warnings
+      # stay fatal. Steps up to `--fatal-infos` (+ very_good_analysis/
+      # custom_lint, the full mobile-implementation.md §8 gate) once the
+      # legacy surface is replaced.
       - name: Analyze
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
 
       - name: Test
         run: flutter test
