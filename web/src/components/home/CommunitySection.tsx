@@ -19,7 +19,7 @@ export function CommunitySection() {
           <a
             href="https://cuesoft.gitbook.io/apparule/product/roadmap"
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noreferrer"
             className="text-body font-semibold text-link hover:underline"
           >
             Roadmap →

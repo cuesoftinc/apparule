@@ -35,7 +35,7 @@ export default function SignInPage() {
           <a
             href="https://terms.cuesoft.io"
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noreferrer"
             className="text-link underline underline-offset-2"
           >
             Terms
@@ -44,7 +44,7 @@ export default function SignInPage() {
           <a
             href="https://privacy.cuesoft.io"
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noreferrer"
             className="text-link underline underline-offset-2"
           >
             Privacy Policy

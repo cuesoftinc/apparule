@@ -145,7 +145,7 @@ export function MarketingNav({
           <a
             href={githubHref}
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noreferrer"
             data-testid="star-badge"
             aria-label={githubAriaLabel}
             onClick={onGithubClick}
@@ -212,7 +212,7 @@ export function MarketingNav({
           <a
             href={githubHref}
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noreferrer"
             aria-label={githubAriaLabel}
             onClick={() => {
               onGithubClick?.();

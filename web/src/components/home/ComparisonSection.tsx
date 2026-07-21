@@ -32,7 +32,7 @@ export function ComparisonSection() {
             window.open(
               "https://cuesoft.gitbook.io/apparule/system/deployment",
               "_blank",
-              "noopener",
+              "noreferrer",
             );
           }}
         />

@@ -200,7 +200,7 @@ describe("ComparisonSection (A9)", () => {
     expect(open).toHaveBeenCalledWith(
       "https://cuesoft.gitbook.io/apparule/system/deployment",
       "_blank",
-      "noopener",
+      "noreferrer",
     );
     open.mockRestore();
   });

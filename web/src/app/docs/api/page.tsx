@@ -42,7 +42,7 @@ export default function ApiReferencePage() {
             <a
               href="https://cuesoft.io"
               target="_blank"
-              rel="noopener noreferrer"
+              rel="noreferrer"
               className="hover:text-text"
             >
               Cuesoft Inc.
@@ -51,7 +51,7 @@ export default function ApiReferencePage() {
             <a
               href="https://cuelabs.cuesoft.io"
               target="_blank"
-              rel="noopener noreferrer"
+              rel="noreferrer"
               className="hover:text-text"
             >
               CueLABS™ Division
@@ -60,7 +60,7 @@ export default function ApiReferencePage() {
             <a
               href="https://github.com/cuesoftinc/apparule/blob/main/LICENSE"
               target="_blank"
-              rel="noopener noreferrer"
+              rel="noreferrer"
               className="hover:text-text"
             >
               MIT License

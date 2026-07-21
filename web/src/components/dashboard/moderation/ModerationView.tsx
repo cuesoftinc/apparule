@@ -28,7 +28,7 @@ export function ModerationView() {
             window.open(
               "https://cuesoft.gitbook.io/apparule/system/data-model",
               "_blank",
-              "noopener",
+              "noreferrer",
             )
           }
         >

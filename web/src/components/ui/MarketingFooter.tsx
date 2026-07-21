@@ -115,7 +115,7 @@ export function MarketingFooter({
           <a
             href="https://cuesoft.io"
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noreferrer"
             className="hover:text-text"
           >
             Cuesoft Inc.
@@ -124,7 +124,7 @@ export function MarketingFooter({
           <a
             href="https://cuelabs.cuesoft.io"
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noreferrer"
             className="hover:text-text"
           >
             CueLABS™ Division
@@ -133,7 +133,7 @@ export function MarketingFooter({
           <a
             href="https://github.com/cuesoftinc/apparule/blob/main/LICENSE"
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noreferrer"
             className="hover:text-text"
           >
             MIT License
@@ -147,7 +147,7 @@ export function MarketingFooter({
           <a
             href="https://github.com/cuesoftinc/apparule/blob/main/SECURITY.md"
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noreferrer"
             className="flex items-center gap-1 hover:text-text"
           >
             <ShieldCheck size={14} aria-hidden />

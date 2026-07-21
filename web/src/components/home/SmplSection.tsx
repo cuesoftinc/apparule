@@ -22,7 +22,7 @@ export function SmplSection() {
           <a
             href="https://cuesoft.gitbook.io/apparule/system/architecture"
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noreferrer"
             className="mt-6 inline-block text-body font-semibold text-link hover:underline"
           >
             Read the deep-dive on GitBook →

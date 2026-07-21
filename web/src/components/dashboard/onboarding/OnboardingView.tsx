@@ -274,7 +274,7 @@ export function OnboardingView() {
                     <a
                       href={SUPPORT_URL}
                       target="_blank"
-                      rel="noopener noreferrer"
+                      rel="noreferrer"
                       className="underline"
                     >
                       Contact support
