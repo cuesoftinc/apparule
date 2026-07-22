@@ -146,3 +146,35 @@ jobs:
       # text, so the images compare byte-identically on any host.
       - name: Golden tests
         run: flutter test test_goldens
+
+  mobile-ios:
+    name: mobile · iOS simulator build (dev flavor)
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: mobile/flutter
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Flutter (version pinned by .fvmrc)
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version-file: mobile/flutter/.fvmrc
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # The iOS lane the live-simulator defects slipped past: an unsigned
+      # dev-flavor simulator build proves the Xcode flavor wiring (dev/prod
+      # schemes + per-flavor configurations), the SwiftPM graph at the iOS 15
+      # floor, and that the flavored assets/seed/ entries bundle — a
+      # flavorless build ships EMPTY fakes (mobile-implementation.md §2).
+      - name: Build iOS (simulator, no signing)
+        run: flutter build ios --simulator --debug --flavor dev -t lib/main_dev.dart
+
+      - name: Assert seed assets bundled
+        run: |
+          seeds="build/ios/iphonesimulator/Runner.app/Frameworks/App.framework/flutter_assets/assets/seed/dev"
+          test -f "$seeds/posts.json" || { echo "::error::dev seed JSONs missing from the .app bundle"; exit 1; }

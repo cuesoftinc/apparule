@@ -4,6 +4,7 @@ import 'package:apparule/src/features/profile/presentation/account_data_screen.d
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../../helpers/notched.dart';
 import '../../../../helpers/pump_app.dart';
 
 /// B7 Account & data (207:7182) + the delete ladder (207:7204):
@@ -122,5 +123,13 @@ void main() {
       find.text("Export requested — we'll email a link within 24 hours."),
       findsOneWidget,
     );
+  });
+
+  testWidgets('keeps content clear of notch and status-bar top insets', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await pump(tester);
+    await expectContentClearOfTopInsets(tester);
   });
 }

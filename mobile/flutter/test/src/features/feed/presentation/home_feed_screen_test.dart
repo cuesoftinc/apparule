@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/boot_app.dart';
+import '../../../../helpers/notched.dart';
 
 /// C2 over the seeded fake — story rail + PostCard column, interactions
 /// mutating fake state. Runs at the 390px canvas width: any overflow
@@ -96,6 +97,13 @@ void main() {
 
     expect(find.byType(EmptyState), findsOneWidget);
     expect(find.text('Follow designers to fill your feed'), findsOneWidget);
+  });
+  testWidgets('keeps content clear of notch and status-bar top insets', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await bootToFeed(tester);
+    await expectContentClearOfTopInsets(tester);
   });
 }
 

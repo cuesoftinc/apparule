@@ -1,0 +1,5 @@
+// prod flavor layer (M-7): the bare canonical identity (CueLABS sandbox is
+// production). Included by the Debug-prod/Release-prod/Profile-prod build
+// configurations on top of their mode base.
+PRODUCT_BUNDLE_IDENTIFIER = io.cuesoft.apparule
+APP_DISPLAY_NAME = Apparule

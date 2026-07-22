@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 
+import '../../../../helpers/notched.dart';
 import '../../../../helpers/pump_app.dart';
 
 /// C9 own profile: the vault-ring header, graph-derived counts, the
@@ -93,5 +94,13 @@ void main() {
     await tester.pumpAndSettle();
     // Saved set seeds 2.
     expect(find.byType(Image), findsNWidgets(2));
+  });
+
+  testWidgets('keeps content clear of notch and status-bar top insets', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await pump(tester);
+    await expectContentClearOfTopInsets(tester);
   });
 }

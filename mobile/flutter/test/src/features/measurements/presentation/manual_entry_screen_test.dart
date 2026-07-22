@@ -6,6 +6,7 @@ import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/boot_app.dart';
+import '../../../../helpers/notched.dart';
 
 /// MI-13 manual entry: advisory ranges (never a hard block), save gated
 /// only on having a value, saved sessions land in the vault as
@@ -88,5 +89,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(VaultScreen), findsOneWidget);
     expect(find.text('90.0 cm'), findsOneWidget);
+  });
+
+  testWidgets('keeps content clear of notch and status-bar top insets', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await bootToManualEntry(tester);
+    await expectContentClearOfTopInsets(tester);
   });
 }

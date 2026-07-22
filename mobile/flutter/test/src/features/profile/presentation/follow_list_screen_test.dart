@@ -5,6 +5,7 @@ import 'package:apparule/src/features/profile/presentation/follow_list_view_mode
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../../helpers/notched.dart';
 import '../../../../helpers/pump_app.dart';
 
 /// C12 followers/following: count-titled tabs over UserRow lists, the
@@ -81,5 +82,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Following'), findsNothing);
     expect(find.text('Follow'), findsNWidgets(2));
+  });
+
+  testWidgets('keeps content clear of notch and status-bar top insets', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await pump(tester);
+    await expectContentClearOfTopInsets(tester);
   });
 }

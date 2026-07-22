@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/boot_app.dart';
+import '../../../../helpers/notched.dart';
 
 /// C11 over the seeded fake: CommentRow list, comment hearts, MI-18
 /// composer — count == list stays true through mutations. 390px width.
@@ -68,5 +69,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('5 likes   Reply'), findsOneWidget);
     expect(find.byIcon(Icons.favorite), findsOneWidget);
+  });
+
+  testWidgets('keeps content clear of notch and status-bar top insets', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await bootToComments(tester);
+    await expectContentClearOfTopInsets(tester);
   });
 }

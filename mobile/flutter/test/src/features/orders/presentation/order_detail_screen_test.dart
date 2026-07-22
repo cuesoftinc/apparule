@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/boot_app.dart';
+import '../../../../helpers/notched.dart';
 
 /// C8 detail over the seeded fake: timeline, frozen snapshot, MI-15
 /// payment box, danger-ladder actions, dispute/decline sheets, MI-17
@@ -184,5 +185,13 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('Got it — thanks!'), findsOneWidget);
+  });
+
+  testWidgets('keeps content clear of notch and status-bar top insets', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await bootToOrder(tester, 'req-apr-1042');
+    await expectContentClearOfTopInsets(tester);
   });
 }

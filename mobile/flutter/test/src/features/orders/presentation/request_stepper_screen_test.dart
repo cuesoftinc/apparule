@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/boot_app.dart';
+import '../../../../helpers/notched.dart';
 
 /// C5 over the seeded fakes: the vault snapshot picker (C6/C7
 /// integration), freshness warnings, §6.3 delivery pre-fill, review,
@@ -142,6 +143,13 @@ void main() {
       find.textContaining('You need a measurement session'),
       findsOneWidget,
     );
+  });
+  testWidgets('keeps content clear of notch and status-bar top insets', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await bootToStepper(tester);
+    await expectContentClearOfTopInsets(tester);
   });
 }
 

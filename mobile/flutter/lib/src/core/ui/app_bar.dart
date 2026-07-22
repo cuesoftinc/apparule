@@ -18,6 +18,11 @@ enum AppTopBarKind {
 /// AppTopBar — the Figma `AppBar` set (85:994; file name canonical, class
 /// renamed off Material's `AppBar`). Consumed by every C-frame except the
 /// full-bleed C6 camera/processing frames and C1/C1b.
+///
+/// Notch-aware like Material's `AppBar`: the surface (background or
+/// over-media scrim) extends up behind the status bar while the 56px
+/// content row insets below it — [preferredSize] stays the content
+/// height because `Scaffold` adds the top padding to the slot itself.
 class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   const AppTopBar({
     this.kind = AppTopBarKind.root,
@@ -83,9 +88,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
       );
     }
 
-    return Container(
-      height: preferredSize.height,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+    return DecoratedBox(
       decoration: overMedia
           ? const BoxDecoration(
               gradient: LinearGradient(
@@ -98,40 +101,53 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
               color: colors.bg,
               border: Border(bottom: BorderSide(color: colors.border)),
             ),
-      child: Row(
-        children: <Widget>[
-          if (kind != AppTopBarKind.root && onBack != null)
-            Semantics(
-              label: 'Back',
-              button: true,
-              child: InkResponse(
-                onTap: onBack,
-                radius: 22,
-                borderRadius: BorderRadius.circular(radii.pill),
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  margin: const EdgeInsets.only(right: 8),
-                  transform: Matrix4.translationValues(-8, 0, 0),
-                  alignment: Alignment.center,
-                  child: Icon(
-                    LucideIcons.chevronLeft,
-                    size: 24,
-                    color: contentColor,
+      child: SafeArea(
+        bottom: false,
+        child: Container(
+          height: preferredSize.height,
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            // The mode bar's row sits above its 1px bottom border — the
+            // decoration padding the pre-inset Container applied.
+            bottom: overMedia ? 0 : 1,
+          ),
+          child: Row(
+            children: <Widget>[
+              if (kind != AppTopBarKind.root && onBack != null)
+                Semantics(
+                  label: 'Back',
+                  button: true,
+                  child: InkResponse(
+                    onTap: onBack,
+                    radius: 22,
+                    borderRadius: BorderRadius.circular(radii.pill),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      margin: const EdgeInsets.only(right: 8),
+                      transform: Matrix4.translationValues(-8, 0, 0),
+                      alignment: Alignment.center,
+                      child: Icon(
+                        LucideIcons.chevronLeft,
+                        size: 24,
+                        color: contentColor,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-          Expanded(child: titleWidget),
-          if (trailing != null)
-            Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: IconTheme.merge(
-                data: IconThemeData(color: contentColor),
-                child: trailing!,
-              ),
-            ),
-        ],
+              Expanded(child: titleWidget),
+              if (trailing != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: IconTheme.merge(
+                    data: IconThemeData(color: contentColor),
+                    child: trailing!,
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }

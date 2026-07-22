@@ -58,7 +58,10 @@ unauthorized independent of this doc (roadmap.md).
   source of truth (CI reads it via `subosito/flutter-action@v2` with
   `cache: true`; no `v3` of that action exists yet), mirrored as a hard
   `environment: flutter:` pin in `pubspec.yaml`. Android floor **API
-  24**–37; iOS 13–26.
+  24**–37; iOS **15**–26 — Firebase iOS SDK 12 (`firebase_core` 4.x, §9)
+  requires iOS 15, so the deployment target is 15.0 across every build
+  configuration; the generated SwiftPM package inherits the floor from
+  the Xcode project on each `flutter build ios` (no hand-patching).
 - **SwiftPM is the iOS dependency default** at 3.44 — CocoaPods' registry
   goes read-only 2026-12-02, so no new CocoaPods dependency is added; the
   existing iOS shell (salvaged per §11) migrates its dependency graph to
@@ -69,9 +72,17 @@ unauthorized independent of this doc (roadmap.md).
   carries `applicationIdSuffix ".dev"` and rides the fake repositories;
   `prod` carries the bare `io.cuesoft.apparule` id and runs on
   `sandbox-e306a`. Two `main_<flavor>` entrypoints (`main.dart` =
-  `prod`, the default; `main_dev.dart` = fakes). A third flavor appears
-  only if a separate production environment is ever ratified — the bare
-  id already sits on `prod`, so identity would migrate cleanly.
+  `prod`, the default; `main_dev.dart` = fakes). On iOS the pair is the
+  `dev`/`prod` shared schemes over `Debug/Release/Profile-<flavor>`
+  build configurations (Flutter's flavor convention), each layering a
+  flavor xcconfig over its mode base — iOS has no suffix mechanism, so
+  `PRODUCT_BUNDLE_IDENTIFIER` is spelled per flavor
+  (`io.cuesoft.apparule.dev` / bare). Flavored builds are also what
+  scopes the dev-only `assets/seed/` bundle entries: a flavorless
+  `xcodebuild` produces an app whose fakes run EMPTY. A third flavor
+  appears only if a separate production environment is ever ratified —
+  the bare id already sits on `prod`, so identity would migrate
+  cleanly.
 - **Env from Doppler**: secrets reach the app via
   `--dart-define-from-file=env/<flavor>.json`, generated from the
   `apparule` Doppler project (X-5) and gitignored — `dev` reads the

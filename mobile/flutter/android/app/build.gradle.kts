@@ -41,8 +41,8 @@ android {
     // pair is `dev` (fakes/TEST_MODE, suffixed id) and `prod` (bare
     // canonical applicationId, Firebase sandbox-e306a). Both install side
     // by side; each pairs with its entrypoint (main.dart = prod,
-    // main_dev.dart = dev). iOS schemes/xcconfigs are deferred to an
-    // Xcode pass — tracked in the PR.
+    // main_dev.dart = dev). iOS mirrors the pair via dev/prod schemes
+    // over per-flavor build configurations (ios/Flutter/*.xcconfig).
     flavorDimensions += "env"
     productFlavors {
         create("dev") {

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../helpers/notched.dart';
 import '../../../../helpers/pump_app.dart';
 
 /// B7 settings root: identity block, creator rows off the earnings
@@ -110,5 +111,13 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('keeps content clear of notch and status-bar top insets', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await pump(tester);
+    await expectContentClearOfTopInsets(tester);
   });
 }

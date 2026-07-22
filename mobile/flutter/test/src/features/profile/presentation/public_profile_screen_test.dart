@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 
+import '../../../../helpers/notched.dart';
 import '../../../../helpers/pump_app.dart';
 
 /// C9 designer public profile: the B6 header off the graph, the MI-7
@@ -118,5 +119,13 @@ void main() {
       find.text("@nobody.here doesn't exist (or isn't visible)."),
       findsOneWidget,
     );
+  });
+
+  testWidgets('keeps content clear of notch and status-bar top insets', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await pump(tester, 'amara.designs');
+    await expectContentClearOfTopInsets(tester);
   });
 }

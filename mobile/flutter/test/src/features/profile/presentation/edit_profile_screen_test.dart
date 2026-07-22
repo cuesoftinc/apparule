@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/boot_app.dart';
+import '../../../../helpers/notched.dart';
 
 /// C9 edit profile: hydrates from the account, persists display
 /// fields + the optional location, pops back to the profile tab.
@@ -50,5 +51,21 @@ void main() {
     final me = await repository.me();
     expect(me!.bio, 'bridal & occasion wear');
     expect(me.location?.city, 'Lagos');
+  });
+
+  testWidgets('keeps content clear of notch and status-bar top insets', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await pumpBootedApp(
+      tester,
+      authRepository: AuthRepositoryFake(
+        initialSession: AuthRepositoryFake.seedSession,
+      ),
+      profileRepository: ProfileRepositoryFake(now: () => pinned),
+    );
+    routerOf(tester).go(const EditProfileRoute().location);
+    await tester.pumpAndSettle();
+    await expectContentClearOfTopInsets(tester);
   });
 }

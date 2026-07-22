@@ -4,6 +4,7 @@ import 'package:apparule/src/features/profile/presentation/notification_settings
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../../helpers/notched.dart';
 import '../../../../helpers/pump_app.dart';
 
 /// B7 Notifications sub-screen: the seven canvas toggles (207:2),
@@ -54,5 +55,17 @@ void main() {
     await tester.tap(find.byType(AppSwitch).at(6));
     await tester.pumpAndSettle();
     expect((await repository.me())!.notificationPrefs.emailDigest, isTrue);
+  });
+
+  testWidgets('keeps content clear of notch and status-bar top insets', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await tester.pumpApp(
+      const NotificationSettingsScreen(),
+      profileRepository: ProfileRepositoryFake(now: () => pinned),
+    );
+    await tester.pumpAndSettle();
+    await expectContentClearOfTopInsets(tester);
   });
 }

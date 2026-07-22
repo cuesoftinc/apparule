@@ -4,6 +4,7 @@ import 'package:apparule/src/features/profile/presentation/privacy_settings_scre
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../../helpers/notched.dart';
 import '../../../../helpers/pump_app.dart';
 
 /// B7 Privacy & consent sub-screen (207:7155): AI-processing + nearby
@@ -60,5 +61,17 @@ void main() {
     await tester.tap(find.byType(AppSwitch).first);
     await tester.pumpAndSettle();
     expect((await repository.me())!.privacyPrefs.aiProcessing, isFalse);
+  });
+
+  testWidgets('keeps content clear of notch and status-bar top insets', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await tester.pumpApp(
+      const PrivacySettingsScreen(),
+      profileRepository: ProfileRepositoryFake(now: () => pinned),
+    );
+    await tester.pumpAndSettle();
+    await expectContentClearOfTopInsets(tester);
   });
 }
