@@ -8,19 +8,19 @@ import '../../../helpers/pump_app.dart';
 /// INCREMENTS only, renders nothing at zero, and rests at exactly 1.0
 /// scale (golden stability).
 void main() {
-  double scaleOf(WidgetTester tester) => tester
-      .widget<ScaleTransition>(find.byType(ScaleTransition))
-      .scale
-      .value;
+  double scaleOf(WidgetTester tester) =>
+      tester.widget<ScaleTransition>(find.byType(ScaleTransition)).scale.value;
 
-  testWidgets('renders the formatted count; nothing at zero', //
-  (tester) async {
-    await tester.pumpApp(const SpringBadge(count: 3));
-    expect(find.text('3'), findsOneWidget);
+  testWidgets(
+    'renders the formatted count; nothing at zero', //
+    (tester) async {
+      await tester.pumpApp(const SpringBadge(count: 3));
+      expect(find.text('3'), findsOneWidget);
 
-    await tester.pumpApp(const SpringBadge(count: 0));
-    expect(find.text('0'), findsNothing);
-  });
+      await tester.pumpApp(const SpringBadge(count: 0));
+      expect(find.text('0'), findsNothing);
+    },
+  );
 
   testWidgets('an increment pops the springy scale, then settles back '
       'to 1', (tester) async {
@@ -35,11 +35,13 @@ void main() {
     expect(scaleOf(tester), 1);
   });
 
-  testWidgets('a decrement stays still (the pop announces news)', //
-  (tester) async {
-    await tester.pumpApp(const SpringBadge(count: 3));
-    await tester.pumpApp(const SpringBadge(count: 2));
-    await tester.pump(const Duration(milliseconds: 120));
-    expect(scaleOf(tester), 1);
-  });
+  testWidgets(
+    'a decrement stays still (the pop announces news)', //
+    (tester) async {
+      await tester.pumpApp(const SpringBadge(count: 3));
+      await tester.pumpApp(const SpringBadge(count: 2));
+      await tester.pump(const Duration(milliseconds: 120));
+      expect(scaleOf(tester), 1);
+    },
+  );
 }

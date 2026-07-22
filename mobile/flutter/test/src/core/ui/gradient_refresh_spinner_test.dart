@@ -80,44 +80,48 @@ void main() {
     expect(find.byType(GradientSpinnerIndicator), findsNothing);
   });
 
-  testWidgets('a sub-threshold pull springs back without triggering', //
-  (tester) async {
-    var refreshes = 0;
-    await tester.pumpApp(
-      host(
-        onRefresh: () async {
-          refreshes++;
-        },
-      ),
-    );
+  testWidgets(
+    'a sub-threshold pull springs back without triggering', //
+    (tester) async {
+      var refreshes = 0;
+      await tester.pumpApp(
+        host(
+          onRefresh: () async {
+            refreshes++;
+          },
+        ),
+      );
 
-    await tester.drag(find.byType(ListView), const Offset(0, 40));
-    await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView), const Offset(0, 40));
+      await tester.pumpAndSettle();
 
-    expect(refreshes, 0);
-    expect(haptics, isEmpty);
-    expect(find.byType(GradientSpinnerIndicator), findsNothing);
-  });
+      expect(refreshes, 0);
+      expect(haptics, isEmpty);
+      expect(find.byType(GradientSpinnerIndicator), findsNothing);
+    },
+  );
 
-  testWidgets('the indicator grows with the pull before the threshold', //
-  (tester) async {
-    await tester.pumpApp(host(onRefresh: () async {}));
+  testWidgets(
+    'the indicator grows with the pull before the threshold', //
+    (tester) async {
+      await tester.pumpApp(host(onRefresh: () async {}));
 
-    final gesture = await tester.startGesture(
-      tester.getCenter(find.byType(ListView)),
-    );
-    await gesture.moveBy(const Offset(0, 48));
-    await tester.pump();
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(ListView)),
+      );
+      await gesture.moveBy(const Offset(0, 48));
+      await tester.pump();
 
-    final indicator = tester.widget<GradientSpinnerIndicator>(
-      find.byType(GradientSpinnerIndicator),
-    );
-    expect(indicator.progress, greaterThan(0));
-    expect(indicator.progress, lessThan(1));
-    expect(indicator.spinning, isFalse);
+      final indicator = tester.widget<GradientSpinnerIndicator>(
+        find.byType(GradientSpinnerIndicator),
+      );
+      expect(indicator.progress, greaterThan(0));
+      expect(indicator.progress, lessThan(1));
+      expect(indicator.spinning, isFalse);
 
-    await gesture.up();
-    await tester.pumpAndSettle();
-    expect(find.byType(GradientSpinnerIndicator), findsNothing);
-  });
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(find.byType(GradientSpinnerIndicator), findsNothing);
+    },
+  );
 }

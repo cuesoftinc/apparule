@@ -12,8 +12,7 @@ void main() {
   themedGoldenTest(
     'TimelineConnector',
     fileName: 'timeline_connector',
-    pumpBeforeTest: (tester) =>
-        tester.pump(const Duration(milliseconds: 400)),
+    pumpBeforeTest: (tester) => tester.pump(const Duration(milliseconds: 400)),
     builder: () => GoldenTestGroup(
       columns: 4,
       children: <GoldenTestScenario>[

@@ -19,20 +19,22 @@ void main() {
     ),
   );
 
-  testWidgets('animates once and settles within the 800ms budget', //
-  (tester) async {
-    await tester.pumpApp(host());
-    expect(find.text('✓'), findsOneWidget);
+  testWidgets(
+    'animates once and settles within the 800ms budget', //
+    (tester) async {
+      await tester.pumpApp(host());
+      expect(find.text('✓'), findsOneWidget);
 
-    // Still animating mid-burst…
-    await tester.pump(const Duration(milliseconds: 400));
-    expect(tester.hasRunningAnimations, isTrue);
+      // Still animating mid-burst…
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(tester.hasRunningAnimations, isTrue);
 
-    // …settled by the budget — no repeating animation to wedge
-    // pumpAndSettle (the §4 "once per order" shape).
-    await tester.pump(const Duration(milliseconds: 450));
-    expect(tester.hasRunningAnimations, isFalse);
-  });
+      // …settled by the budget — no repeating animation to wedge
+      // pumpAndSettle (the §4 "once per order" shape).
+      await tester.pump(const Duration(milliseconds: 450));
+      expect(tester.hasRunningAnimations, isFalse);
+    },
+  );
 
   testWidgets('frozen renders the settled scatter with no animation '
       '(the golden-freeze flag)', (tester) async {

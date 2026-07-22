@@ -35,10 +35,12 @@ void main() {
     expect(find.text('in'), findsOneWidget);
   });
 
-  testWidgets('at rest the child renders flat (no residual rotation)', //
-  (tester) async {
-    await tester.pumpApp(host('cm'));
-    await tester.pumpAndSettle();
-    expect(find.text('cm'), findsOneWidget);
-  });
+  testWidgets(
+    'at rest the child renders flat (no residual rotation)', //
+    (tester) async {
+      await tester.pumpApp(host('cm'));
+      await tester.pumpAndSettle();
+      expect(find.text('cm'), findsOneWidget);
+    },
+  );
 }

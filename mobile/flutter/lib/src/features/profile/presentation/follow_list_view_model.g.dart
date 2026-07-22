@@ -113,36 +113,87 @@ final class FollowListFamily extends $Family
   String toString() => r'followListProvider';
 }
 
-/// The profile-surface MI-7 morph (C9 public header + C12 rows) — one
-/// mutation path into the social graph, then every derivation that
-/// renders follow state re-derives: the C12 lists, the C9 headers (own
-/// counts + public morph), and C3's sections (ViewModel-to-ViewModel
-/// invalidation is the ratified orchestration idiom — the repository
-/// stays the single source of truth). keepAlive for the same reason as
-/// ExploreFollowController: read-only orchestration must not unmount its
-/// Ref across the repository await.
+/// The MI-7 follow morph façade — optimistic by construction (the
+/// interaction audit's CLASS 1 + CLASS 2 locks): ONE mutation path into
+/// the social graph, and `ref.invalidate` on follow surfaces outside
+/// this façade is banned.
+///
+/// State is the viewer's local follow OVERLAY (`username → follows`):
+/// [setFollow] flips it SYNCHRONOUSLY — watching rows morph this frame,
+/// never after a round-trip (D18/D19/D58) — then reconciles with the
+/// repository. Failure rolls the overlay back and rethrows so callers
+/// toast via `runAction`. Surfaces render
+/// `overlay[username] ?? serverValue`.
+///
+/// DECLARED invalidation fan-out — follow/unfollow ⇒
+///   · [followListProvider] (C12 lists, whole family),
+///   · [publicProfileViewModelProvider] (C9 public headers),
+///   · [profileViewModelProvider] (C9 own counts),
+///   · [exploreViewModelProvider] (C3 sections),
+///   · [viewerFollowingSetProvider] (C10 rows),
+///   · [homeFeedViewModelProvider] (D02: the mounted Home branch must
+///     re-derive — new follows' posts/rings appear without a restart).
+/// The two-surface contract test pins this list; extending the fan-out
+/// means extending the test.
+///
+/// keepAlive: the overlay is session truth and the Ref must not unmount
+/// across the repository await.
 
 @ProviderFor(FollowGraphController)
 final followGraphControllerProvider = FollowGraphControllerProvider._();
 
-/// The profile-surface MI-7 morph (C9 public header + C12 rows) — one
-/// mutation path into the social graph, then every derivation that
-/// renders follow state re-derives: the C12 lists, the C9 headers (own
-/// counts + public morph), and C3's sections (ViewModel-to-ViewModel
-/// invalidation is the ratified orchestration idiom — the repository
-/// stays the single source of truth). keepAlive for the same reason as
-/// ExploreFollowController: read-only orchestration must not unmount its
-/// Ref across the repository await.
+/// The MI-7 follow morph façade — optimistic by construction (the
+/// interaction audit's CLASS 1 + CLASS 2 locks): ONE mutation path into
+/// the social graph, and `ref.invalidate` on follow surfaces outside
+/// this façade is banned.
+///
+/// State is the viewer's local follow OVERLAY (`username → follows`):
+/// [setFollow] flips it SYNCHRONOUSLY — watching rows morph this frame,
+/// never after a round-trip (D18/D19/D58) — then reconciles with the
+/// repository. Failure rolls the overlay back and rethrows so callers
+/// toast via `runAction`. Surfaces render
+/// `overlay[username] ?? serverValue`.
+///
+/// DECLARED invalidation fan-out — follow/unfollow ⇒
+///   · [followListProvider] (C12 lists, whole family),
+///   · [publicProfileViewModelProvider] (C9 public headers),
+///   · [profileViewModelProvider] (C9 own counts),
+///   · [exploreViewModelProvider] (C3 sections),
+///   · [viewerFollowingSetProvider] (C10 rows),
+///   · [homeFeedViewModelProvider] (D02: the mounted Home branch must
+///     re-derive — new follows' posts/rings appear without a restart).
+/// The two-surface contract test pins this list; extending the fan-out
+/// means extending the test.
+///
+/// keepAlive: the overlay is session truth and the Ref must not unmount
+/// across the repository await.
 final class FollowGraphControllerProvider
-    extends $NotifierProvider<FollowGraphController, void> {
-  /// The profile-surface MI-7 morph (C9 public header + C12 rows) — one
-  /// mutation path into the social graph, then every derivation that
-  /// renders follow state re-derives: the C12 lists, the C9 headers (own
-  /// counts + public morph), and C3's sections (ViewModel-to-ViewModel
-  /// invalidation is the ratified orchestration idiom — the repository
-  /// stays the single source of truth). keepAlive for the same reason as
-  /// ExploreFollowController: read-only orchestration must not unmount its
-  /// Ref across the repository await.
+    extends $NotifierProvider<FollowGraphController, Map<String, bool>> {
+  /// The MI-7 follow morph façade — optimistic by construction (the
+  /// interaction audit's CLASS 1 + CLASS 2 locks): ONE mutation path into
+  /// the social graph, and `ref.invalidate` on follow surfaces outside
+  /// this façade is banned.
+  ///
+  /// State is the viewer's local follow OVERLAY (`username → follows`):
+  /// [setFollow] flips it SYNCHRONOUSLY — watching rows morph this frame,
+  /// never after a round-trip (D18/D19/D58) — then reconciles with the
+  /// repository. Failure rolls the overlay back and rethrows so callers
+  /// toast via `runAction`. Surfaces render
+  /// `overlay[username] ?? serverValue`.
+  ///
+  /// DECLARED invalidation fan-out — follow/unfollow ⇒
+  ///   · [followListProvider] (C12 lists, whole family),
+  ///   · [publicProfileViewModelProvider] (C9 public headers),
+  ///   · [profileViewModelProvider] (C9 own counts),
+  ///   · [exploreViewModelProvider] (C3 sections),
+  ///   · [viewerFollowingSetProvider] (C10 rows),
+  ///   · [homeFeedViewModelProvider] (D02: the mounted Home branch must
+  ///     re-derive — new follows' posts/rings appear without a restart).
+  /// The two-surface contract test pins this list; extending the fan-out
+  /// means extending the test.
+  ///
+  /// keepAlive: the overlay is session truth and the Ref must not unmount
+  /// across the repository await.
   FollowGraphControllerProvider._()
     : super(
         from: null,
@@ -162,37 +213,54 @@ final class FollowGraphControllerProvider
   FollowGraphController create() => FollowGraphController();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(void value) {
+  Override overrideWithValue(Map<String, bool> value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<void>(value),
+      providerOverride: $SyncValueProvider<Map<String, bool>>(value),
     );
   }
 }
 
 String _$followGraphControllerHash() =>
-    r'50af046a490bd5860693f799aa09de76a877c235';
+    r'99b4ca30db8f506c47f12810856b66d1439fadbd';
 
-/// The profile-surface MI-7 morph (C9 public header + C12 rows) — one
-/// mutation path into the social graph, then every derivation that
-/// renders follow state re-derives: the C12 lists, the C9 headers (own
-/// counts + public morph), and C3's sections (ViewModel-to-ViewModel
-/// invalidation is the ratified orchestration idiom — the repository
-/// stays the single source of truth). keepAlive for the same reason as
-/// ExploreFollowController: read-only orchestration must not unmount its
-/// Ref across the repository await.
+/// The MI-7 follow morph façade — optimistic by construction (the
+/// interaction audit's CLASS 1 + CLASS 2 locks): ONE mutation path into
+/// the social graph, and `ref.invalidate` on follow surfaces outside
+/// this façade is banned.
+///
+/// State is the viewer's local follow OVERLAY (`username → follows`):
+/// [setFollow] flips it SYNCHRONOUSLY — watching rows morph this frame,
+/// never after a round-trip (D18/D19/D58) — then reconciles with the
+/// repository. Failure rolls the overlay back and rethrows so callers
+/// toast via `runAction`. Surfaces render
+/// `overlay[username] ?? serverValue`.
+///
+/// DECLARED invalidation fan-out — follow/unfollow ⇒
+///   · [followListProvider] (C12 lists, whole family),
+///   · [publicProfileViewModelProvider] (C9 public headers),
+///   · [profileViewModelProvider] (C9 own counts),
+///   · [exploreViewModelProvider] (C3 sections),
+///   · [viewerFollowingSetProvider] (C10 rows),
+///   · [homeFeedViewModelProvider] (D02: the mounted Home branch must
+///     re-derive — new follows' posts/rings appear without a restart).
+/// The two-surface contract test pins this list; extending the fan-out
+/// means extending the test.
+///
+/// keepAlive: the overlay is session truth and the Ref must not unmount
+/// across the repository await.
 
-abstract class _$FollowGraphController extends $Notifier<void> {
-  void build();
+abstract class _$FollowGraphController extends $Notifier<Map<String, bool>> {
+  Map<String, bool> build();
   @$mustCallSuper
   @override
   WhenComplete runBuild() {
-    final ref = this.ref as $Ref<void, void>;
+    final ref = this.ref as $Ref<Map<String, bool>, Map<String, bool>>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<void, void>,
-              void,
+              AnyNotifier<Map<String, bool>, Map<String, bool>>,
+              Map<String, bool>,
               Object?,
               Object?
             >;

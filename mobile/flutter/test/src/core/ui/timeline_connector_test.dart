@@ -36,20 +36,22 @@ void main() {
     expect(find.byType(FractionallySizedBox), findsNothing);
   });
 
-  testWidgets('the current dot pulses; the others rest still', //
-  (tester) async {
-    await tester.pumpApp(host(TimelineDotState.current, last: true));
-    await tester.pump(const Duration(milliseconds: 600));
-    final pulsing = tester
-        .widget<ScaleTransition>(find.byType(ScaleTransition))
-        .scale
-        .value;
-    expect(pulsing, greaterThan(1));
+  testWidgets(
+    'the current dot pulses; the others rest still', //
+    (tester) async {
+      await tester.pumpApp(host(TimelineDotState.current, last: true));
+      await tester.pump(const Duration(milliseconds: 600));
+      final pulsing = tester
+          .widget<ScaleTransition>(find.byType(ScaleTransition))
+          .scale
+          .value;
+      expect(pulsing, greaterThan(1));
 
-    await tester.pumpApp(host(TimelineDotState.done, last: true));
-    await tester.pump(const Duration(milliseconds: 600));
-    expect(find.byType(ScaleTransition), findsNothing);
-  });
+      await tester.pumpApp(host(TimelineDotState.done, last: true));
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(find.byType(ScaleTransition), findsNothing);
+    },
+  );
 
   testWidgets('every rung renders its dot — terminal error included '
       '(D41: no green ✓ on a dispute)', (tester) async {
