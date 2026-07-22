@@ -174,11 +174,20 @@ class PostRepositoryFake with FailNextSeam implements PostRepository {
 
   /// The persisted engagement overlay REPLACES the seed sets it covers —
   /// an unlike of a seed-liked post must stay unliked after a restart, so
-  /// a written set is the whole truth, not a union.
+  /// a written set is the whole truth, not a union. Best-effort: the
+  /// overlay is a convenience layer over the seed — a storage failure
+  /// (no plugin in a bare test scope) degrades to seed defaults, never
+  /// to a broken feed.
   Future<void> _applyPersistedEngagement() async {
     final persistence = _persistence;
     if (persistence == null) return;
-    final overlay = await persistence.readFakeEngagement();
+    final ({List<String>? liked, List<String>? saved, List<String>? follows})
+    overlay;
+    try {
+      overlay = await persistence.readFakeEngagement();
+    } on Object {
+      return;
+    }
     if (overlay.liked case final liked?) {
       _likedPostIds
         ..clear()
@@ -199,6 +208,22 @@ class PostRepositoryFake with FailNextSeam implements PostRepository {
       for (final username in follows) {
         _graphEdges.add((_viewerUsername, username));
       }
+    }
+  }
+
+  /// Best-effort write-through — same degradation contract as
+  /// [_applyPersistedEngagement]: a storage failure never fails the
+  /// mutation it rides on.
+  Future<void> _persist(
+    Future<void> Function(PersistenceService persistence) write,
+  ) async {
+    final persistence = _persistence;
+    if (persistence == null) return;
+    try {
+      await write(persistence);
+    } on Object {
+      // Seed-overlay convenience only — the in-memory truth already
+      // mutated.
     }
   }
 
@@ -397,7 +422,7 @@ class PostRepositoryFake with FailNextSeam implements PostRepository {
     }
     final updated = post.copyWith(likeCount: post.likeCount + delta);
     _posts[_posts.indexOf(post)] = updated;
-    await _persistence?.writeFakeLikedPostIds(_likedPostIds.toList());
+    await _persist((p) => p.writeFakeLikedPostIds(_likedPostIds.toList()));
     return _view(updated);
   }
 
@@ -407,7 +432,7 @@ class PostRepositoryFake with FailNextSeam implements PostRepository {
     maybeFailNext();
     final post = _postById(id);
     if (!_savedPostIds.add(id)) _savedPostIds.remove(id);
-    await _persistence?.writeFakeSavedPostIds(_savedPostIds.toList());
+    await _persist((p) => p.writeFakeSavedPostIds(_savedPostIds.toList()));
     return _view(post);
   }
 
@@ -423,7 +448,7 @@ class PostRepositoryFake with FailNextSeam implements PostRepository {
       _follows.remove(username);
       _graphEdges.remove(edge);
     }
-    await _persistence?.writeFakeFollows(_follows.toList());
+    await _persist((p) => p.writeFakeFollows(_follows.toList()));
   }
 
   @override

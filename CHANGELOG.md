@@ -9,6 +9,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Mobile Wave 0 interaction infrastructure (the interaction-audit CLASS
+  locks — everything the fix lanes build on):
+  - The MI primitive set in core/ui, each matching its design.md §4 spec
+    (durations/easings from tokens, §4 exact values where the spec names
+    one, reduced-motion fallbacks per §5): `MorphSwap` (MI-7 150ms),
+    `FlipUnitToggle` (MI-13 200ms rotateX), `SpringBadge` (MI-16 springy
+    pop — wired into the tab bar, replacing the static badge),
+    `EdgeResistPhysics` (MI-4), `GradientRefreshSpinner` (MI-5, 72px
+    threshold + haptic on trigger), `TypingBubble` (MI-17),
+    `TimelineConnector` (MI-14 400ms draw + current pulse +
+    terminal-error rung), animated `ConfettiBurst` (MI-10 ≤800ms behind
+    a golden-freeze flag — the C5 success view animates to the canvas
+    scatter), and `StepSlide` (MI-10 24px). Widget tests per primitive,
+    goldens for the visual ones, and an MI-registry conformance harness:
+    wired screens must instantiate the named primitive; lane-owned rows
+    register skipped as the visible wiring ledger.
+  - `AppHaptics` (MI-20 vocabulary: light/medium/error) replacing every
+    direct `HapticFeedback` call, and `runAction()` — the shared
+    mutation-failure seam (await → catch, `Error`s included → rollback →
+    toast; input clears only on success) with l10n failure copy.
+  - Mutation façades with DECLARED invalidation fan-outs, each pinned by
+    a two-surface contract test (one container, keep-alive listeners on
+    every declared derivation — the always-mounted-shell shape):
+    `EngagementActions` (like/save/comment ⇒ homeFeed + postDetail(id) +
+    profile), `FollowGraphController` rewritten optimistic-by-
+    construction (synchronous follow-overlay flip, reconcile, rollback +
+    rethrow; homeFeed joins the fan-out) and `VaultActions` (save/delete
+    ⇒ vault + profile freshness ring). Plus the pending-future morph
+    test helper (`expectMorphsWhilePending`/`expectNoSkeletons`) with a
+    live demonstration over a never-resolving repository gate.
+  - `failNext` throw-once seams on all six `*Fake` repositories, and
+    persisted fake engagement: the viewer's like/save sets and follow
+    list write through the key-value store and survive a relaunch
+    (di.dart binds the real service; test helpers stay hermetic).
+  - `parseAmount`/`parseAmountMinor` — one money parser (strip
+    `[^0-9.]`), adopted in the C5 budget field and the C8 quote sheet,
+    where the sheet's own "45,000" hint format used to permanently
+    disable the CTA.
+  - `notificationRoute()` — one exhaustive `NotificationKind → route`
+    switch wired through C10's row tap (payout ⇒ Earnings, never
+    OrderDetail), locked by an exhaustive per-kind route test.
 - Web B4 two-photo upload capture (M-10 + M-12): the vault measurement
   flow is the two-file upload per the dashboard canvas frame — labeled
   Front/Side dropzones with per-pose states (empty / uploaded thumbnail
@@ -36,6 +77,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Mobile core/ui enforces the null-handler prop-contract (CLASS 3: no
+  handler ⇒ no control — web hides unwired affordances, mobile was
+  rendering dead ones): `PostCard` hides the ⋯ overflow (spacer keeps
+  the header anatomy), `PaymentBox` renders a CTA only when its handler
+  exists (the paying spinner still renders — loading is state, not an
+  affordance) and `UserRow` drops the trailing morph without its
+  matching handler; per-component null-callback tests enforce it.
+- Mobile analyzer: `unawaited_futures` + `discarded_futures` at error
+  severity (CLASS 4 — a dropped future is a dropped failure path;
+  deliberate fire-and-forget sites declare `unawaited()`).
 - Web manual entry carries no height: `input_height_cm` is `null` for
   `method: manual` (nullable ruling; the fabricated 168 default is
   gone), out-of-range values prompt the flows/vault.md §2 "double-check"
