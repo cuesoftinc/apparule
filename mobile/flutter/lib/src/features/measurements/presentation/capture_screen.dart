@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/app_bar.dart';
+import 'package:apparule/src/core/ui/app_haptics.dart';
 import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/capture_overlay.dart';
 import 'package:apparule/src/core/ui/capture_results.dart';
@@ -48,7 +49,7 @@ class CaptureScreen extends ConsumerWidget {
       if (next.step == CaptureStep.qcFail &&
           previous?.step != CaptureStep.qcFail) {
         // MI-20: error buzz on capture failed.
-        unawaited(HapticFeedback.vibrate());
+        AppHaptics.error();
       }
       // Auto-capture a11y (QA-convergence ruling: no shutter exists) —
       // announce the 3-2-1 arming and the capture firing; the ring's

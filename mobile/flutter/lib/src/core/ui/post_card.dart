@@ -2,13 +2,13 @@ import 'dart:async' show unawaited;
 
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/action_row.dart';
+import 'package:apparule/src/core/ui/app_haptics.dart';
 import 'package:apparule/src/core/ui/avatar.dart';
 import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/skeleton.dart';
 import 'package:flutter/gestures.dart' show TapGestureRecognizer;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show RenderProxyBox;
-import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// PostCard — the Figma `PostCard` set (52:462); web sibling
@@ -96,7 +96,7 @@ class _PostCardState extends State<PostCard> {
     // a gesture zone, not a control).
     if (!widget.liked) {
       widget.onToggleLike?.call();
-      unawaited(HapticFeedback.lightImpact());
+      AppHaptics.light();
     }
     setState(() => _bigHeart = true);
     Future<void>.delayed(const Duration(milliseconds: 700), () {
