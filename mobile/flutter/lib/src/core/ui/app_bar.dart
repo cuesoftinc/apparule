@@ -105,7 +105,13 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
         bottom: false,
         child: Container(
           height: preferredSize.height,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            // The mode bar's row sits above its 1px bottom border — the
+            // decoration padding the pre-inset Container applied.
+            bottom: overMedia ? 0 : 1,
+          ),
           child: Row(
             children: <Widget>[
               if (kind != AppTopBarKind.root && onBack != null)
