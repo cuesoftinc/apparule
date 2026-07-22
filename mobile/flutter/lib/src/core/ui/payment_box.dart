@@ -119,16 +119,24 @@ class PaymentBox extends StatelessWidget {
                 fontFeatures: tnum,
               ),
             ),
-            if (shape.cta != null) ...<Widget>[
+            // Prop-contract (CLASS 3): a CTA renders only when its
+            // handler exists — an enabled button that does nothing is a
+            // dead affordance (D06/D42). The pay CTA's loading variant
+            // is state feedback, not an affordance, so `paying` renders
+            // regardless.
+            if (shape.cta case final cta?
+                when cta.kind == ButtonKind.gradientPrimary
+                    ? (onPay != null || cta.loading)
+                    : onAction != null) ...<Widget>[
               const SizedBox(height: 8),
               Button(
-                label: shape.cta!.label,
-                kind: shape.cta!.kind,
-                loading: shape.cta!.loading,
+                label: cta.label,
+                kind: cta.kind,
+                loading: cta.loading,
                 expand: true,
-                onPressed: shape.cta!.kind == ButtonKind.gradientPrimary
+                onPressed: cta.kind == ButtonKind.gradientPrimary
                     ? onPay
-                    : () => onAction?.call(shape.cta!.label),
+                    : () => onAction!(cta.label),
               ),
             ],
             if (showEscrowExplainer) ...<Widget>[

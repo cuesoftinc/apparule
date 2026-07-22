@@ -52,5 +52,28 @@ void main() {
       await tester.tap(find.text('amara.designs'));
       expect(opened, 1);
     });
+
+    group('prop-contract (CLASS 3): null handler ⇒ no control', () {
+      testWidgets(
+        'a trailing axis without its handler renders no '
+        'button (a Follow that cannot follow is a dead affordance)', //
+        (tester) async {
+          await tester.pumpApp(
+            const Column(
+              children: <Widget>[
+                UserRow(username: 'tunde.o', trailing: UserRowTrailing.follow),
+                UserRow(
+                  username: 'amara.designs',
+                  trailing: UserRowTrailing.following,
+                ),
+              ],
+            ),
+          );
+
+          expect(find.text('Follow'), findsNothing);
+          expect(find.text('Following'), findsNothing);
+        },
+      );
+    });
   });
 }

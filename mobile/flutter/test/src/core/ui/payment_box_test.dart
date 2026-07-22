@@ -1,3 +1,4 @@
+import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/payment_box.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -78,6 +79,7 @@ void main() {
         box(
           state: PaymentBoxState.disputeFrozen,
           role: PaymentRole.customer,
+          onAction: (_) {},
         ),
       );
       expect(find.text('View dispute'), findsOneWidget);
@@ -86,9 +88,63 @@ void main() {
         box(
           state: PaymentBoxState.disputeFrozen,
           role: PaymentRole.designer,
+          onAction: (_) {},
         ),
       );
       expect(find.text('Respond to dispute'), findsOneWidget);
+    });
+
+    group('prop-contract (CLASS 3): null handler ⇒ no control', () {
+      testWidgets(
+        'quiet CTAs hide without onAction — no dead Edit '
+        'quote / View payout / dispute buttons (D06/D42)', //
+        (tester) async {
+          for (final (state, role, label)
+              in <(PaymentBoxState, PaymentRole, String)>[
+                (PaymentBoxState.quoted, PaymentRole.designer, 'Edit quote'),
+                (PaymentBoxState.released, PaymentRole.designer, 'View payout'),
+                (
+                  PaymentBoxState.disputeFrozen,
+                  PaymentRole.customer,
+                  'View dispute',
+                ),
+                (
+                  PaymentBoxState.disputeFrozen,
+                  PaymentRole.designer,
+                  'Respond to dispute',
+                ),
+              ]) {
+            await tester.pumpApp(box(state: state, role: role));
+            expect(
+              find.text(label),
+              findsNothing,
+              reason: '$state × $role must hide its CTA without onAction',
+            );
+          }
+        },
+      );
+
+      testWidgets('the pay CTA hides without onPay…', (tester) async {
+        await tester.pumpApp(
+          box(state: PaymentBoxState.quoted, role: PaymentRole.customer),
+        );
+        expect(find.text('Pay ₦45,000'), findsNothing);
+      });
+
+      testWidgets('…but the paying spinner renders regardless — loading '
+          'is state, not an affordance (D07)', (tester) async {
+        await tester.pumpApp(
+          box(state: PaymentBoxState.paying, role: PaymentRole.customer),
+        );
+        // The loading Button swaps its label for the spinner; the
+        // semantics label still announces it.
+        expect(
+          find.byWidgetPredicate(
+            (widget) => widget is Button && widget.label == 'Paying',
+          ),
+          findsOneWidget,
+        );
+      });
     });
 
     testWidgets('escrow explainer expands on first payment (MI-15)', (

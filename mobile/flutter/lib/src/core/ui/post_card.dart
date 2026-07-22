@@ -138,23 +138,30 @@ class _PostCardState extends State<PostCard> {
                       onTap: widget.onProfileTap,
                     ),
                   ),
-                  Semantics(
-                    label: 'More options',
-                    button: true,
-                    child: InkResponse(
-                      onTap: widget.onOverflow,
-                      radius: 18,
-                      child: SizedBox(
-                        width: 36,
-                        height: 36,
-                        child: Icon(
-                          LucideIcons.ellipsis,
-                          size: 24,
-                          color: colors.text,
+                  // Prop-contract (CLASS 3): no handler ⇒ no control —
+                  // a labeled ⋯ that does nothing is a dead affordance
+                  // (D23). The 36px box stays as a spacer so the header
+                  // anatomy holds either way.
+                  if (widget.onOverflow == null)
+                    const SizedBox(width: 36, height: 36)
+                  else
+                    Semantics(
+                      label: 'More options',
+                      button: true,
+                      child: InkResponse(
+                        onTap: widget.onOverflow,
+                        radius: 18,
+                        child: SizedBox(
+                          width: 36,
+                          height: 36,
+                          child: Icon(
+                            LucideIcons.ellipsis,
+                            size: 24,
+                            color: colors.text,
+                          ),
                         ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),

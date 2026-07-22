@@ -30,6 +30,7 @@ void main() {
       VoidCallback? onComment,
       VoidCallback? onRequest,
       VoidCallback? onProfileTap,
+      VoidCallback? onOverflow,
     }) {
       return SingleChildScrollView(
         child: SizedBox(
@@ -48,6 +49,7 @@ void main() {
             onComment: onComment,
             onRequest: onRequest,
             onProfileTap: onProfileTap,
+            onOverflow: onOverflow,
           ),
         ),
       );
@@ -198,6 +200,29 @@ void main() {
 
       expect(find.byType(Skeleton), findsOneWidget);
       expect(find.text('x'), findsNothing);
+    });
+
+    group('prop-contract (CLASS 3): null handler ⇒ no control', () {
+      testWidgets('no onOverflow ⇒ no ⋯ control announced or tappable '
+          '(D23)', (tester) async {
+        await tester.pumpApp(card());
+        await tester.pump(const Duration(milliseconds: 50));
+        expect(find.bySemanticsLabel('More options'), findsNothing);
+      });
+
+      testWidgets(
+        'with onOverflow the ⋯ control renders and routes', //
+        (tester) async {
+          var opened = 0;
+          await tester.pumpApp(card(onOverflow: () => opened++));
+          await tester.pump(const Duration(milliseconds: 50));
+
+          final overflow = find.bySemanticsLabel('More options');
+          expect(overflow, findsOneWidget);
+          await tester.tap(overflow);
+          expect(opened, 1);
+        },
+      );
     });
   });
 }
