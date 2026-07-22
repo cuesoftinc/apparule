@@ -1,5 +1,4 @@
 import 'package:apparule/src/app/di.dart';
-import 'package:apparule/src/features/feed/data/post_repository.dart';
 import 'package:apparule/src/features/feed/data/post_repository_fake.dart';
 import 'package:apparule/src/features/feed/presentation/explore_view_model.dart';
 import 'package:apparule/src/features/feed/presentation/home_feed_view_model.dart';
