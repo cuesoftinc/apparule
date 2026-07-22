@@ -134,7 +134,7 @@ mobile/flutter/
   assets/
     images/ icons/ fonts/
     seed/                     # §6 — dev/stg-flavor-scoped narrative JSON
-  android/ ios/                # INSIDE the flutter project root (legacy had them outside — §11)
+  android/ ios/                # INSIDE the flutter project root (outer mobile/android, mobile/ios are reserved native-app placeholders — §11)
   lib/
     main.dart                  # prod entrypoint (sandbox = CueLABS production, M-7)
     main_dev.dart               # fakes wired by default
@@ -227,11 +227,20 @@ the auth screen itself, replacing the legacy's push-only Navigator 1.0
 chains (CV-7 in the audit ledger — back-at-root pushing again, "Log Out"
 pushing Home without clearing the stack).
 
+The router mounts only after the **C0 boot gate** settles the session
+(§9): cold start runs the silent restore behind the branded `BootScreen`
+(C0 — gradient wordmark on the token `bg`, continuing the native splash),
+so a signed-in relaunch never flashes C1 and a signed-out boot lands on C1
+with the answer known. C0 precedes the router — it has no route of its
+own.
+
 Tab shell per pages.md Part C: **Home · Explore · ➕ · Orders · Profile**
-(design.md §3). The centre `➕` tab is the create/request entry — for a
-regular user it opens Explore→Request (C5 stepper reached from a post, not
-a blank compose screen); for a designer it opens the post composer, mirroring
-web's B5 creator-upsell branch. Deep links (App Links/Universal Links, per
+(design.md §3). The centre `➕` tab opens the **two-option create
+chooser** (M-11, both platforms): "Take measurements" pushes the
+`/capture` flow (§10); "Post an outfit" is designer-gated — designers
+open the post composer (`/create/post`, pending C15), non-designers route
+to become-a-designer (`/designer/onboarding`). Until C15 ships, the
+chooser offers capture + become-a-designer only. Deep links (App Links/Universal Links, per
 the standard cookbook) are on by default — a post permalink
 (`apparule.cuesoft.io/p/{post_id}`, web-implementation.md §4) opens the C4
 post-detail screen in-app when the app is installed.
@@ -245,22 +254,24 @@ post-detail screen in-app when the app is installed.
 | `/post/{id}` | Post detail | C4 |
 | `/post/{id}/comments` | Comments sheet (full) | C11 |
 | `/request/{postId}` | Request stepper | C5 |
-| `/capture` (➕ tab, customer branch) | Measurement capture | C6 |
+| `/capture` (via the ➕ chooser, M-11) | Measurement capture | C6 |
 | `/vault` | Measurement vault | C7 |
 | `/orders` (Orders tab) · `/orders/{id}` | Orders list + detail | C8 |
 | `/profile` (Profile tab) · `/profile/{username}` | Own / other profile | C9 |
-| `/profile/edit` | Edit profile (display name · bio · X-10 location) | C9 |
+| `/profile/edit` | Edit profile (display name · bio — designer-scoped, hidden for non-designers (pages.md C9) · X-10 location) | C9 |
 | `/notifications` | Notifications sheet | C10 |
 | `/profile/{username}/followers` · `/following` | Followers/following | C12 |
 | `/settings` · `/settings/{notifications,privacy,account}` | Settings root + the B7-mobile sub-screens (canvas 207:*) — account & data carries the export-first delete ladder | pages.md B7 |
 | `/designer/onboarding` | Designer onboarding & KYC | C13 |
 | `/designer/onboarding/payout` | Payout banking form (Paystack states) — a sibling under the prefix, not a child (the capture-guide precedent: re-verification entries must not stack a stale intro) | C13 |
 | `/earnings` | Earnings & payouts | C14 |
+| `/create/post` | Post composer (designer) — **pending C15 [Designing]**; the route arrives with C15's ratified frames | C15 |
 
-The ➕ tab is an entry **gesture**, not a branch: the customer path
-pushes the `/capture` flow (§10); the designer composer (pages.md B5
-parity) arrives designed-first with its own canvas frames — no
-placeholder route stands in for it (canvas-first ruling 2026-07-22).
+The ➕ tab is an entry **gesture**, not a shell branch: it opens the
+M-11 chooser sheet over the current tab ("Take measurements" →
+`/capture`, §10; "Post an outfit" — designer-gated). The composer route
+(`/create/post`) arrives with C15's ratified frames — no placeholder
+route stands in for it (M-8).
 
 ## 6. Data layer & mock-first (TEST_MODE parity)
 
@@ -369,6 +380,12 @@ substance — mobile has no "email stub" to delete because it never had a
 production backend; the legacy screen surface implementing the forbidden
 methods was quarantined at the cutover and removed 2026-07-22 (§11).
 
+**Auth posture [Decided 2026-07-22, user]**: the TEST_MODE-parity fakes
+are the **ratified state until phase 4** — both flavors ride
+`AuthRepositoryFake` over the real session lifecycle (§6). The Firebase
+wiring below stays documented but **gated**: no Firebase auth wiring
+lands before the explicit phase-4 go (§1).
+
 - `firebase_core` + `firebase_auth` + `google_sign_in` (7.x): the sign-in
   call sequence is `GoogleSignIn.instance.initialize(serverClientId)` →
   `.authenticate()` → `GoogleAuthProvider.credential(idToken)` →
@@ -403,25 +420,34 @@ methods was quarantined at the cutover and removed 2026-07-22 (§11).
 
 ## 10. Measurement capture contract (C6)
 
-Canon: **one frontal photo + height** (api.md `POST /measure`;
-capture-qc.md; flows/vault.md §1) — the legacy guide's two-pose flow (front
-+ side, `guide_screen.dart`) is the divergence the audit found, not an
-alternate canon to preserve.
+Canon: **two photos — front + side (right profile) — plus height** (M-10,
+decisions.md; api.md `POST /measure`; capture-qc.md; flows/vault.md §1).
+The pose progress renders as a centered over-media bar title ("Pose 1 of
+2" / "Pose 2 of 2", M-9).
 
-- **Flow**: instructional guide (existing copy/art salvaged, collapsed from
-  five page-classes to one pose) → camera screen with a **silhouette
-  overlay** (frame the subject against a body outline) and a **3-2-1
-  countdown** (the legacy `countdown.dart` `AnimatedWidget` is salvaged
-  as-is per §11) → capture → upload → processing state → results.
+- **Flow**: 5-step guide (intro · get ready · phone setup · front pose ·
+  side pose — the canvas-first frames own copy and art, M-8; the ARB
+  re-keys to the canvas strings) → front capture with the front
+  **silhouette overlay** (frame the subject against a body outline) and a
+  **3-2-1 countdown** (the legacy `countdown.dart` `AnimatedWidget` is
+  salvaged as-is per §11) → side capture with the right-profile silhouette
+  (arms relaxed) and its own countdown → height step (when not on file) →
+  upload (`image_front` + `image_side` + height, one request) →
+  processing state → results.
 - **Height input**: collected once per session (`user_height_cm`, api.md
   `POST /measure` form field), feeding the `scale = (user_height_cm × 0.93)
-  / body_height_px` correction (capture-qc.md §3, `method: mediapipe_2d_v2`).
-- **QC fail codes**: the capture screen surfaces capture-qc.md §1/§2's
-  codes (`undecodable_image`, `low_resolution`, `poor_lighting`, `blurry`,
-  `no_body`, `multiple_bodies`, `partial_body`, `not_frontal`,
-  `camera_tilt`, `arms_position`, `too_far`) with their guidance copy,
-  **first-failure-only** — one actionable retake instruction, never a
-  stacked list, matching the doc's own reporting rule.
+  / body_height_px` correction from the front image (capture-qc.md §3,
+  `method: mediapipe_2d_v2`); girths estimate from the two views — the
+  **[Directive: measurement pipeline recalibration needed]** marker lives
+  in capture-qc.md §3 and lands with the backend phase.
+- **QC fail codes**: **per pose, first-failure-only** (capture-qc.md
+  §1/§2). The front pose surfaces `undecodable_image`, `low_resolution`,
+  `poor_lighting`, `blurry`, `no_body`, `multiple_bodies`, `partial_body`,
+  `not_frontal`, `camera_tilt`, `arms_position`, `too_far`; the side pose
+  adds `not_side_profile` and swaps `arms_position` to the arms-relaxed
+  rule with its side-pose copy. A failing pose re-enters its own camera —
+  an accepted pose is never discarded, and a retry never advances the pose
+  counter. One actionable retake instruction, never a stacked list.
 - **Results**: measurement cards stagger in with per-measurement
   `confidence` (capture-qc.md §4; values under 0.7 render a "low
   confidence — consider retaking" chip); "Save to vault" is primary,
@@ -429,10 +455,11 @@ alternate canon to preserve.
   clears. Saved results route into the `measurements` feature's vault
   screen (C7) — the same vault a request's measurement-snapshot picker
   (C5) reads from.
-- What does **not** exist yet: the SMPL/girth pipeline (roadmap Phase 3) —
-  capture ships against the current 2-D MediaPipe method only; the
-  response schema's `method`/`confidence`/`qc` fields are additive, so C6
-  requires no rework when Phase 3 lands.
+- What does **not** exist yet: the SMPL/girth pipeline (roadmap Phase 3)
+  and the recalibrated two-view girth estimation — capture ships against
+  the current 2-D MediaPipe method only; the response schema's
+  `method`/`confidence`/`qc` fields are additive, so C6 requires no rework
+  when either lands.
 
 ## 11. Legacy disposition
 
@@ -454,8 +481,8 @@ modern `AppDelegate`/`SceneDelegate`, bundle `io.cuesoft.apparule`).
 are dropped for Riverpod + the theme system, §4/§7); `splash_screen.dart`
 (routes on Firebase auth state, not a hardcoded destination — fixes
 critical finding #4); `home_screen.dart` → becomes C1's Google CTA screen;
-`guide_screen.dart` → becomes C6's single-pose flow (instructional copy
-kept, five page-classes collapsed to one); the localization core (re-keyed
+`guide_screen.dart` → becomes C6's canvas-first 5-step guide (front + side
+poses, M-8/M-10; copy re-keyed to the canvas strings); the localization core (re-keyed
 en-only, `sq`/Albanian dropped — see DROP); `persistence.dart` (narrowed to
 a theme-preference flag only — the PII-as-session pattern is deleted, not
 migrated, CV-2); `app_text_field.dart` (retokened against design.md §2);
@@ -493,9 +520,11 @@ identity model, CV-2); the `sq` locale + `Language` class (dead — no
 picker UI ever called `MyApp.setLocale`, CV-6); the tracked
 `flutter/web/` scaffold (platform de-registered in `.metadata`); and
 the assets `Blur`, `image2`, `apparule.png`, `howToMeasure`,
-`takeMeasure`, `measurement.jpg`, `arrow.png`, `check.svg`. The only
-true deletions: the outer `mobile/android/.gitkeep` and
-`mobile/ios/.gitkeep` placeholder stubs (empty markers, not code).
+`takeMeasure`, `measurement.jpg`, `arrow.png`, `check.svg`. The outer
+`mobile/android/` and `mobile/ios/` directories are **reserved
+placeholders for possible future native (non-Flutter) apps** (user
+directive 2026-07-22, `.gitkeep`-held) — the Flutter app's platform
+dirs live inside `mobile/flutter/`.
 
 **Toolchain findings folded into the restructure phase (§1)**: Dart
 constraint `>=3.1.2` (Sept 2023) raised to the ratified floor; `.metadata`
@@ -512,14 +541,16 @@ exact `0.20.2` pin to the ratified `^0.20.3` range.
 
 - [ ] Mobile CI lane green (format, codegen-fresh, analyze --fatal-infos +
       custom_lint, test --coverage gate) before any feature PR merges
-- [ ] `flutter/android`/`flutter/ios` are the only platform directories;
-      outer `mobile/android`, `mobile/ios` stubs and `flutter/web/` are gone
+- [ ] `flutter/android`/`flutter/ios` are the Flutter app's platform
+      directories and `flutter/web/` is gone; the outer `mobile/android`,
+      `mobile/ios` placeholders stay reserved for future native apps (§11)
 - [ ] Every repository is abstract with `*Remote` + `*Fake`; `dev`/`stg`
       entrypoints run entirely on fakes seeded from §6's narrative
 - [ ] Zero password/phone/OTP auth surface remains; Google sign-in is the
       only CTA (flows/auth.md §5 parity verified)
-- [ ] C6 capture produces a `mediapipe_2d_v2` result with per-measurement
-      confidence and first-failure QC codes, saving into the vault (C7)
+- [ ] C6 two-pose capture produces a `mediapipe_2d_v2` result with
+      per-measurement confidence and per-pose first-failure QC codes,
+      saving into the vault (C7)
 - [ ] Every `core/ui` module has goldens across its Figma variant axes,
       both themes
 - [ ] API wiring (phase 4) changes zero ViewModel or screen code — only

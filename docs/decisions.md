@@ -278,8 +278,15 @@ before public launch. Alternative: commission the brand pass first.
   designer/order/vault personas** as the web mock server's seed
   (web-implementation.md §6) so both clients tell one coherent demo.
   API wiring is the **last** migration step, behind unchanged repository
-  interfaces — no ViewModel or screen changes at that step. ☑
-- **M-6 Single-photo measurement reaffirmation (RATIFIED 2026-07-21)**:
+  interfaces — no ViewModel or screen changes at that step.
+  **Addendum — auth posture (user, 2026-07-22)**: the TEST_MODE-parity
+  fakes (both flavors riding `AuthRepositoryFake` over the real
+  session-lifecycle seam) are the **ratified state until phase 4** —
+  the Firebase wiring steps stay documented
+  (mobile-implementation.md §9) but gated behind an explicit
+  phase-4 go. ☑
+- **M-6 Single-photo measurement reaffirmation (RATIFIED 2026-07-21 —
+  REVERSED by M-10, 2026-07-22; kept for the audit trail)**:
   the **one frontal photo + height** canon (api.md `POST /measure`;
   capture-qc.md; flows/vault.md §1) is unchanged by the mobile rebuild —
   the legacy two-pose `guide_screen.dart` (front + side) is **rewritten**
@@ -299,3 +306,66 @@ before public launch. Alternative: commission the brand pass first.
   appears only if a separate production environment is ratified;
   the bare application id already rides `prod` so identity migrates
   cleanly. ☑
+- **M-8 Canvas-first rule (RATIFIED 2026-07-22, user directive — org
+  canon, `oss-engineering-standards` SKILL #127)**: every shipped screen
+  has a Figma frame; a frameless screen is **designed first or dropped**.
+  Applied same-day, both ways: the mobile `/create` composer placeholder
+  was **dropped** (no frame — the designer composer arrives
+  designed-first with its own canvas frames), and the C6 guide — where
+  "existing guide screens restyled" had resolved to frameless 2023
+  legacy art — was **designed first** (six GuidePage frames landed
+  before the rebuild lane touched the screen). The canvas leads;
+  pages.md rows may not point at unframed screens. ☑
+- **M-9 Centered header-bar titles (RATIFIED 2026-07-22, user
+  directive)**: sub and over-media app-bar titles center on the **full
+  bar width** — an absolute, full-width, center-aligned text layer over
+  the bar, never an in-flow element between the slots (in-flow titles
+  grow into hidden trailing slots and skew off-center). Leading/trailing
+  slots stay in-flow at the edges; the title's horizontal padding
+  reserves the widest slot. `root` bars (brand wordmark/username, left)
+  are exempt. **Chrome-scoped**: the rule governs header bars only —
+  in-content page titles (the dashboard's h1s, IG-desktop idiom) stay
+  left-aligned; never center page-body titles. Spec: design.md §8.2b
+  AppBar row. ☑
+- **M-10 Two-photo capture (RATIFIED 2026-07-22, user directive —
+  REVERSES M-6)**: the product mechanic is **two photos — front + side
+  (right profile) — plus height**. The reversal chain, honestly: M-6 was
+  ratified from the docs' one-photo contracts as they then stood (api.md
+  `POST /measure`, capture-qc.md, flows/vault.md §1); the user ruled that
+  the web marketing copy ("Two photos. A perfect fit.") was the true
+  product intent all along — the **docs, not the copy, had drifted**.
+  The contracts now carry the two-photo canon: api.md `POST /measure`
+  takes multipart `image_front` + `image_side` + `user_height_cm`;
+  capture-qc.md defines **per-pose QC** (the front pose keeps the
+  frontality table; the side pose gets a profile-orientation check —
+  `not_side_profile` — and an arms-relaxed check in place of the front
+  pose's arms rule; first-failure-only **per pose**, and a pose-2 failure
+  never discards an accepted pose 1); flows/vault.md §1 runs the
+  two-capture sequence (front → side → processing; a QC retry re-enters
+  the failing pose, never advances the pose counter); pages.md C6 and
+  mobile-implementation.md §10 describe the two-pose flow with the 5-step
+  guide (side pose included); the `mediapipe_2d_v2` formula gains the
+  side-pose contribution — girth estimation from two views — marked
+  **[Directive: measurement pipeline recalibration needed]** for the
+  backend phase. ☑
+- **M-11 Unified create semantics (RATIFIED 2026-07-22, user
+  directive)**: the ➕/Create action opens a **two-option chooser on
+  both platforms** — "Take measurements" (capture) and "Post an outfit"
+  (designer-gated: non-designers route to become-a-designer). Supersedes
+  the divergence where web Create was composer-only and mobile ➕ was
+  capture-only — each client was per its contract; the **contracts** had
+  diverged. The mobile composer (**C15**) is **authorized design-first**
+  (M-8): canvas frames come next, mirroring the web B5 composer, and the
+  build follows once the frames ratify; until C15 ships, mobile's
+  chooser offers capture + become-a-designer only. ☑
+- **M-12 Web measurement capture is upload-only (RATIFIED 2026-07-22,
+  user directive)**: web users **upload** the two photos — front + side
+  files into the same endpoint and per-pose QC pipeline (M-10). The
+  webcam capture flow is **removed** from web: full-body webcam capture
+  is rejected UX (desk-height lens; no way to frame yourself and reach
+  the controls). The web vault entry surfaces a "best experience: guided
+  capture on the mobile app" hint; mobile keeps the live guided camera.
+  The composer create flow is upload/import on **both** platforms
+  (already the web idiom; C15 mobile uses the device picker) — no live
+  camera enters the composer. api.md is unchanged beyond M-10: the
+  endpoint takes two images regardless of source. ☑

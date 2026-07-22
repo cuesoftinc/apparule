@@ -549,7 +549,7 @@ with full CRUD; contract types shared with `src/models/`.
 | Payments | `POST /requests/{id}/pay` (resolves synchronously to `held` — the mock stands in for the provider round-trip + webhook) · `/confirm-delivery` · `/dispute` |
 | Designer | `POST /designer-profile` (incl. scripted Paystack account-resolution states: resolving → resolved / mismatch, pages.md B8) · `GET /designer/earnings` · `POST /designer/payout-account` |
 | Notifications | `GET /notifications` · `POST /notifications/read` |
-| Capture (webcam path, B4) | `POST /me/sessions` with multipart image — returns seeded measurement results incl. per-measurement `confidence` and `qc` verdicts (api.md §2 v2 schema); QC-failure codes reproducible via designated fixture images |
+| Capture (B4) | `POST /me/sessions` with multipart image — returns seeded measurement results incl. per-measurement `confidence` and `qc` verdicts (api.md §2 v2 schema); QC-failure codes reproducible via designated fixture images. **Ratified contract (M-10/M-12)**: web capture is **upload-only** — two files (`image_front` + `image_side`), per-pose QC, no webcam flow, with a "best experience: guided capture on the mobile app" hint; the mock's single-image webcam shape is the code as it stands before that build lane |
 
 **Seed narrative — the docs-coherent Figma dataset.** The store seeds the
 same mock content the Figma screens render, so a TEST_MODE boot looks like

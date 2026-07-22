@@ -91,7 +91,13 @@ toggle, support (`clients.cuesoft.io`).
 
 ### B4 `/app/vault` — Measurement vault
 - Header: freshness ring avatar (MI-11) + "Retake" CTA → capture options
-  (webcam upload / manual entry MI-13; phone hand-off QR was CUT from scope — mobile capture covers it **[Decided]**).
+  (photo upload / manual entry MI-13). Web capture is **upload-only
+  [Decided 2026-07-22, M-12]**: two files (front + side) into the same
+  per-pose QC pipeline — no webcam flow (full-body webcam capture is
+  rejected UX: desk-height lens, unreachable controls); the options sheet
+  carries a "best experience: guided capture on the mobile app" hint.
+  Phone hand-off QR was CUT from scope — mobile capture covers it
+  **[Decided]**.
 - `MeasurementCard` grid (shoulder, hip, +SMPL girths when available) with
   history sparklines; tap → history sheet (sessions list, method chips,
   delete session).
@@ -99,6 +105,10 @@ toggle, support (`clients.cuesoft.io`).
   "Delete all" links (rights parity with expendit **[Proposed]**).
 
 ### B5 `/app/create` — Post an outfit (designer)
+- Entry **[Decided 2026-07-22, M-11]**: the rail's Create action opens the
+  two-option chooser — "Take measurements" (→ B4 capture options) +
+  "Post an outfit" (here; designer-gated — non-creators land on the
+  upsell below).
 - Dropzone (≤10 media, reorder by drag; MI-4 preview) → details form
   (caption, style tags, base price or "quote on request", turnaround days,
   fabric notes) → publish. Media limits **[Decided]**: images only in v1 (video
@@ -158,20 +168,22 @@ Existing screens (splash/welcome/auth/capture) remain the entry path.
 | # | Screen | Spec |
 | --- | --- | --- |
 | C1 | Onboarding | Google-only sign-in (flows/auth.md §5 — one CTA screen; password/verification screens retired); first sign-in hands off to C1b |
-| C1b | Post-signup interstitial | "Take your first measurement" (→C6) or "Explore outfits" (→C3) — skippable; split out of the C1 row 2026-07-18 (the QA loop built it as its own screen) |
+| C1b | Post-signup interstitial | "Take your first measurement" (→C6) or "Explore outfits" (→C3) — skippable; split out of the C1 row 2026-07-18 (the QA loop built it as its own screen). **Mobile-only [Decided 2026-07-22]**: web has no interstitial — the web first-run lands on B1's empty state + the right-column freshness card |
 | C2 | Home feed | = B1 minus right column; story rail on top; MI-1/2/3/4/5/6/16/18/20 all active |
 | C3 | Explore | search + 3-col grid; long-press peek preview (scale 0.97 + dim, MI haptic light); pull-to-refresh MI-5; search-results state = B2 **[Directive 2026-07-18]** |
 | C4 | Post detail | full-bleed carousel; action row; caption; comments sheet (swipe-up); Request CTA pinned bottom (safe-area) |
 | C5 | Request stepper | MI-10 sheet: Step 1 pick measurement set (vault snapshot picker, freshness warnings); Step 2 notes + budget + delivery (pre-fills from most recent order — no saved address book in v1, data-model.md §6.3); Step 3 review → submit; success: confetti + "view order" |
-| C6 | Capture | existing guide screens restyled: silhouette overlay + countdown (MI-12); processing constellation; results screen: measurement cards stagger-in, "Save to vault" primary, "Retake" quiet; manual-entry fallback (MI-13) |
+| C6 | Capture | two-pose flow (M-10): 5-step guide (intro · get ready · phone setup · front pose · side pose — canvas-first frames, M-8) → front capture "Pose 1 of 2" then right-profile side capture "Pose 2 of 2", silhouette overlay + 3-2-1 countdown per pose (MI-12; centered over-media pose bar, M-9) → height step → processing constellation; results screen: measurement cards stagger-in, "Save to vault" primary, "Retake" quiet; QC failures re-enter the failing pose only (retry never advances the pose counter, capture-qc.md §2); manual-entry fallback (MI-13) |
 | C7 | Vault | = B4 adapted; entry from Profile tab header ring |
 | C8 | Orders | = B3 list + detail, incl. the dispute flow and designer decline sheet **[Directive 2026-07-18]**; push notifications drive re-entry (badge MI-16) |
-| C9 | Profile | own: vault ring header, grid of liked/saved, settings gear; others: designer profile = B6 |
+| C9 | Profile | own: vault ring header, grid of liked/saved, settings gear; others: designer profile = B6. Bio is **designer-scoped** (follows web — `DESIGNER_PROFILE.bio`, data-model.md §5): the edit-profile screen hides the bio field for non-designers **[Decided 2026-07-22]** |
 | C10 | Notifications sheet | activity list (likes, follows, quotes, status changes); grouped by day; swipe-to-clear |
 | C11 | Comments sheet (full) **[Directive 2026-07-18]** | C4's swipe-up sheet expanded to full height: CommentRow list (reply indent, like hearts), composer pinned above keyboard, optimistic post MI-18 |
 | C12 | Followers/following **[Directive 2026-07-18]** | = B6 lists; UserRow + Follow morph (MI-7), tabs Followers / Following |
 | C13 | Designer onboarding & KYC **[Directive 2026-07-18]** | = B8: intro → banking form (Paystack resolution states: resolving / resolved-name confirm / mismatch error) → done; KYC-lapse banner state |
 | C14 | Earnings & payouts **[Directive 2026-07-18]** | = B9: EarningsSummary + TransactionRow list; payout push notifications deep-link here |
+| ➕ | Create chooser **[Decided 2026-07-22, M-11]** | tapping the centre tab opens a two-option chooser sheet (both platforms): "Take measurements" → C6 · "Post an outfit" (designer-gated) → C15 for designers, become-a-designer (C13) for non-designers; until C15 ships, the chooser offers capture + become-a-designer only |
+| C15 | Post composer **[Designing — M-11]** | = B5 composer mirrored to mobile (media picker ≤10, caption, style tags, base price / quote-on-request, turnaround, fabric notes, alt text); authorized design-first (M-8) — canvas frames next, built after the frames ratify |
 
 Push notifications **[Proposed]**: quote received, payment confirmed, status
 changes, delivery confirm reminder (customer), new request (designer).

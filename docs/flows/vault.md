@@ -8,19 +8,32 @@
 
 ## 1. Capture flow (camera → pipeline → save)
 
+A capture is **two photos — front, then side (right profile) — plus
+height** (M-10, decisions.md). **Platform split (M-12)**: mobile runs the
+guided two-pose camera below; web is **upload-only** — a two-file upload
+(front + side) into the same `POST` and per-pose QC pipeline, with a
+"best experience: guided capture on the mobile app" hint (no webcam flow
+— full-body webcam capture is rejected UX: desk-height lens, unreachable
+controls). On mobile the pose progress renders as a centered over-media
+bar title ("Pose 1 of 2" / "Pose 2 of 2"); a QC retry re-enters the
+failing pose only and never advances the pose counter (web: re-pick the
+failing pose's file).
+
 ```mermaid
 flowchart TD
-    S[Start: vault Retake / onboarding CTA] --> H{height on file?}
+    S[Start: vault Retake / onboarding CTA] --> GUIDE[guide, 5 steps: intro · get ready · phone setup · front pose · side pose]
+    GUIDE --> CAM1[front capture — Pose 1 of 2: silhouette overlay + 3-2-1 countdown MI-12]
+    CAM1 --> CAM2[side capture — Pose 2 of 2: right-profile silhouette, arms relaxed + countdown]
+    CAM2 --> H{height on file?}
     H -->|no| HEIGHT[height input, 100–230 cm, unit toggle]
-    H -->|yes| GUIDE
-    HEIGHT --> GUIDE[guide screen: silhouette, lighting, distance tips]
-    GUIDE --> CAM[camera, silhouette overlay + 3-2-1 countdown MI-12]
-    CAM --> UP[upload session: POST customers/me/sessions]
-    UP --> QC{server QC}
-    QC -->|no body detected| E1[422 guidance: full body, better light → retake]
-    QC -->|multiple bodies| E2[422: make sure you are alone in frame]
-    QC -->|cut off / partial| E3[422: include head to ankles]
+    H -->|yes| UP
+    HEIGHT --> UP[upload session: POST customers/me/sessions — image_front + image_side + height]
+    UP --> QC{server QC, per pose}
+    QC -->|pose 1 fails| R1[422 guidance → retake front only]
+    QC -->|pose 2 fails| R2[422 guidance → retake side only, pose 1 kept]
     QC -->|pass| RESULTS[results: measurement cards stagger-in]
+    R1 --> CAM1
+    R2 --> CAM2
     RESULTS --> SAVE[Save to vault]
     RESULTS --> RETAKE[Retake — discards session]
     SAVE --> DONE[vault updated, freshness ring resets MI-11]
@@ -31,16 +44,17 @@ flowchart TD
 | Step | Contract |
 | --- | --- |
 | Height input | 100–230 cm (39–91 in); stored per account, editable in vault; changing height NEVER retro-scales old sessions (they froze their `input_height_cm`) |
-| Upload | multipart image ≤ 10 MB, JPEG/PNG/HEIC; client compresses to ≤2048px long edge before upload; `Idempotency-Key` header (UUID per capture attempt) — retries on flaky mobile MUST NOT create duplicate sessions |
-| QC failures | always `422 {error:{code, message, guidance}}`; full code set from capture-qc.md §1–2 with retake copy: `no_body` "Make sure your whole body is visible" · `multiple_bodies` "Make sure you're alone in frame" · `partial_body` "Include head to ankles" · `undecodable_image` "That image couldn't be read — try another photo" · `low_resolution` "Move closer or use a higher-quality camera" · `poor_lighting` "Find better lighting — avoid strong backlight" · `blurry` "Hold steady and retake" · `not_frontal` "Face the camera straight on" · `camera_tilt` "Hold the phone upright" · `arms_position` "Keep arms slightly away from your body" · `too_far` "Move closer — fill more of the frame" |
+| Upload | multipart `image_front` + `image_side`, each ≤ 10 MB, JPEG/PNG/HEIC; client compresses each to ≤2048px long edge before upload; both images ride one request with one `Idempotency-Key` header (UUID per capture attempt) — retries on flaky mobile MUST NOT create duplicate sessions |
+| QC failures | always `422 {error:{code, message, guidance, pose}}` — QC is **per pose** (capture-qc.md §2): the error names the failing pose, first-failure-only within it; the client re-enters that pose's camera (mobile) / re-picks that pose's file (web, M-12) — an accepted pose is never discarded; a retry never advances the pose counter. Full code set from capture-qc.md §1–2 with retake copy: `no_body` "Make sure your whole body is visible" · `multiple_bodies` "Make sure you're alone in frame" · `partial_body` "Include head to ankles" · `undecodable_image` "That image couldn't be read — try another photo" · `low_resolution` "Move closer or use a higher-quality camera" · `poor_lighting` "Find better lighting — avoid strong backlight" · `blurry` "Hold steady and retake" · `not_frontal` "Face the camera straight on" · `camera_tilt` "Hold the phone upright" · `arms_position` (front) "Keep arms slightly away from your body" / (side) "Let your arms hang relaxed at your sides" · `too_far` "Move closer — fill more of the frame" · `not_side_profile` "Turn your right side to the camera" |
 | Unsaved results | server session rows created with `status: pending_save`; auto-purged after 24h unsaved **[Decided default]**; "Retake" purges immediately |
-| Save | flips `status: complete`; capture image begins its 30-day `retention_until` clock; measurements persist indefinitely |
+| Save | flips `status: complete`; both capture images begin their 30-day `retention_until` clock; measurements persist indefinitely |
 
 ### Edge cases
 
 | Case | Behaviour |
 | --- | --- |
-| Network dies mid-upload | client retries ×3 w/ backoff (same idempotency key); then "Saved to drafts — retry from vault" (draft = local image + height, encrypted via the platform keystore — Keychain / Android Keystore through `flutter_secure_storage`) |
+| Network dies mid-upload | client retries ×3 w/ backoff (same idempotency key); then "Saved to drafts — retry from vault" (draft = local images + height, encrypted via the platform keystore — Keychain / Android Keystore through `flutter_secure_storage`) |
+| App killed between poses | the front image persists in the local draft; re-entry resumes at Pose 2 (an accepted pose is never re-shot) |
 | App killed after capture, before save | draft persists locally; vault shows "1 unsaved capture" chip on next open |
 | Pipeline timeout (>30s) | `503 pipeline_busy`; client offers retry; session row marked `failed` |
 | User with no vault opens request flow | redirected here with "You need measurements first" (flows/request.md §2) |
@@ -51,9 +65,23 @@ flowchart TD
 
 - Manual entry (MI-13): any measurement from the open vocabulary
   (`shoulder_width`, `hip_width`, `chest_girth`, …) as `method: manual`
-  sessions; values validated 10–200 cm per measure with per-measure sanity
-  ranges (server-side table, e.g. shoulder 25–75 cm) — out-of-range prompts
-  "double-check" confirm, not a hard block (bodies vary).
+  sessions; values validated 10–200 cm per measure with the advisory
+  ranges below — out-of-range prompts a "double-check" confirm, not a
+  hard block (bodies vary). Manual sessions carry **no height** —
+  `input_height_cm` is null for `method: manual` (data-model.md §2;
+  height is a capture-pipeline input, not a property of tape values).
+
+  | Measure | Advisory range (cm) |
+  | --- | --- |
+  | `shoulder_width` | 25–75 |
+  | `hip_width` | 20–70 |
+  | `chest_girth` | 50–160 |
+  | `waist_girth` | 40–150 |
+
+  The table is canonical for both clients **[Decided 2026-07-22 —
+  parity adjudication: the clients diverged at `waist_girth` (web 160
+  vs mobile/canvas 150); settled at the mobile/canvas value 150]**; the
+  open vocabulary grows server-side, one advisory row per new measure.
 - Corrections on pipeline sessions append `source: manual_correction` rows;
   original pipeline values are never mutated (audit trail, data-model.md §2).
 - Unit display cm/in is a view preference; storage is always cm.
@@ -71,13 +99,16 @@ flowchart TD
 
 ## 4. Instrumentation
 
-`vault_capture_started`, `vault_qc_failed{code}`, `vault_session_saved{method}`,
-`vault_manual_entry` — counters only, never values.
+`vault_capture_started`, `vault_qc_failed{code, pose}`,
+`vault_session_saved{method}`, `vault_manual_entry` — counters only, never
+values.
 
 ## 5. Acceptance checklist
 
-- [ ] Full capture→save on Flutter + webcam path on dashboard
-- [ ] Each QC code produces its specific guidance copy
+- [ ] Full two-pose capture→save on Flutter + the two-file upload path on
+      dashboard (upload-only, M-12)
+- [ ] Each QC code produces its specific guidance copy; a pose-2 failure
+      re-enters the side capture with pose 1 kept
 - [ ] Duplicate-session impossible under retry storms (idempotency verified)
 - [ ] Unsaved sessions purge at 24h; drafts survive app kill
 - [ ] Corrections append, never overwrite; unit toggle pure-view

@@ -394,6 +394,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Docs ratify the 2026-07-22 user rulings (contracts only — builds
+  follow in their own lanes). **M-10 two-photo capture (reverses
+  M-6)**: the product mechanic is two photos — front + side (right
+  profile) — plus height; api.md `POST /measure` becomes `image_front`
+  + `image_side` + `user_height_cm`, capture-qc.md defines per-pose QC
+  (side pose: `not_side_profile` + arms-relaxed; first-failure-only per
+  pose, pose-2 failures never discard pose 1), flows/vault.md §1 runs
+  the two-capture sequence (QC retry never advances the pose), pages.md
+  C6 and mobile-implementation.md §10 carry the two-pose flow with the
+  5-step guide, and the `mediapipe_2d_v2` formula gains the two-view
+  girth note ([Directive: measurement pipeline recalibration needed]).
+  **M-8 canvas-first**: every shipped screen has a Figma frame —
+  frameless is designed first or dropped. **M-9 centered header-bar
+  titles**: true bar-width centering, chrome-scoped (design.md §8.2b
+  AppBar spec; page-body titles stay left-aligned). **M-11 unified
+  create semantics**: ➕/Create opens a two-option chooser on both
+  platforms — "Take measurements" + "Post an outfit" (designer-gated;
+  non-designers route to become-a-designer); the mobile composer (C15)
+  is authorized design-first, and until it ships mobile's chooser
+  offers capture + become-a-designer only. **M-12 web capture is
+  upload-only**: web users upload the two photos (front + side files,
+  same per-pose QC pipeline); the webcam capture flow is removed
+  (rejected UX — desk-height lens, unreachable controls) and the vault
+  entry hints "best experience: guided capture on the mobile app";
+  mobile keeps the live guided camera; the composer create flow is
+  upload/import on both platforms. **Auth posture**:
+  TEST_MODE-parity fakes are the ratified state until phase 4; Firebase
+  wiring stays documented but gated. **Bio scope**: designer-scoped —
+  C9 edit-profile hides bio for non-designers. **Parity-audit items**:
+  design.md Button `quiet-danger` + the danger-ladder row-rung rule and
+  the entity-navigation rule; pages.md C1b marked mobile-only (web
+  first-run = B1 empty state + freshness card); flows/auth.md §2
+  platform-neutral session-restore ruling; flows/vault.md §2 advisory
+  ranges canonized (waist_girth settled at 150); data-model.md
+  `input_height_cm` nullable for `method: manual` (the web 168
+  fabrication ends); capture-qc.md §6 records the `height_suspect` hint
+  as deferred (unimplemented on both clients).
+
 - Mobile C14 empty-ledger CTA falls back to the module-canonical
   "Discover designers" → Explore (the C8-empty precedent): its previous
   "Create a post" target was the dropped `/create` placeholder; web
@@ -534,11 +572,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   bar and remains the capture entry gesture over four shell branches;
   the designer composer arrives designed-first.
 
-- Outer `mobile/android/` and `mobile/ios/` `.gitkeep` stubs (empty
-  placeholders — real platform dirs live inside `mobile/flutter/`), the iOS
-  LaunchImage placeholder README, and the dead ARCore/Sceneform native
-  dependencies from the Android build (§11 ledger; the pre-regeneration
-  build files are preserved under `legacy/android-agp7/`).
+- The iOS LaunchImage placeholder README and the dead ARCore/Sceneform
+  native dependencies from the Android build (§11 ledger; the
+  pre-regeneration build files are preserved under `legacy/android-agp7/`).
+  The outer `mobile/android/` and `mobile/ios/` `.gitkeep` placeholders
+  remain — reserved for possible future native (non-Flutter) apps (user
+  directive 2026-07-22); the Flutter app's platform dirs live inside
+  `mobile/flutter/`.
 
 - The legacy quarantine directory (`src/legacy/`), retired now that the
   system QA gate has passed.

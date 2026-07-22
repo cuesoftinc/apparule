@@ -28,6 +28,10 @@ currently *requires* a token — there is nothing to protect yet.
 `MeasurementResponse`: `body_height_px`, `scale_factor`, `shoulder_width_px`,
 `shoulder_width_cm`, `hip_width_px`, `hip_width_cm`.
 
+The one-image surface above is the code as it stands before the backend
+phase; the ratified contract is **two photos** (M-10) — the §2 evolution
+table carries it.
+
 FastAPI serves `/openapi.json` + `/docs` out of the box — the seed of APP-004.
 
 ## 2. Target surface **[Proposed]** — `/api/v1`, all on api/common unless noted
@@ -54,7 +58,7 @@ request.
 | --- | --- |
 | `GET /api/v1/customers` · `POST /api/v1/customers` | list/create customers in the caller's workspace |
 | `GET /api/v1/customers/{id}` · `PATCH` · `DELETE` | manage one customer (soft delete; purge per retention policy) |
-| `POST /api/v1/customers/{id}/sessions` | create a measurement session: multipart image + `input_height_cm`; api/common stores the asset, calls api/measure internally, persists results |
+| `POST /api/v1/customers/{id}/sessions` | create a measurement session: multipart `image_front` + `image_side` (two-photo capture, M-10) + `input_height_cm`; api/common stores both assets, calls api/measure internally, persists results |
 | `GET /api/v1/customers/{id}/sessions` | measurement history for a customer |
 | `GET /api/v1/sessions/{id}` | session detail incl. measurements + pipeline metadata |
 | `PATCH /api/v1/sessions/{id}/measurements` | append manual corrections (`source: manual_correction`) |
@@ -78,6 +82,7 @@ server-side by api/common to the same API.
 
 | Change | Why |
 | --- | --- |
+| `POST /measure` becomes two-image multipart: `image_front` + `image_side` (right profile) + `user_height_cm`; QC verdicts report **per pose**; girths estimate from the two views | Two-photo canon (M-10, decisions.md); per-pose QC in capture-qc.md §2; **[Directive: measurement pipeline recalibration needed]** (capture-qc.md §3) |
 | `POST /measure` gains `method` selection + per-measurement `confidence`, `qc` block in the response (v2 schema, additive) | SMPL pipeline (PLAT-005) returns girths + confidence; 2-D method reports its QC verdicts |
 | Service becomes internal-only in cloud topology (ClusterIP, called by api/common) | api/common is the single writer; self-hosters may still expose it directly |
 

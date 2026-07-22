@@ -106,10 +106,16 @@ ecosystem change, PR'd to all three design.md files together.
 | `RequestCard` | outfit thumb · status pill · designer/customer · price · next-action button | states in §4.4 |
 | `MeasurementCard` | metric name · value + unit (tabular) · source chip (scan/manual) · sparkline of history | tap → history sheet |
 | `Sheet` | bottom sheet mobile / centered modal desktop | all secondary flows live in sheets |
-| `TabBar` | Home · Explore · ➕ Create · Orders · Profile | Create is a raised gradient FAB-in-bar |
+| `TabBar` | Home · Explore · ➕ Create · Orders · Profile | Create is a raised gradient FAB-in-bar; it opens the two-option create chooser — "Take measurements" + "Post an outfit" (designer-gated), same semantics as web's rail Create **[Decided 2026-07-22, M-11]** |
 | `Toast` | icon + text, bottom, auto-dismiss 3s | optimistic-action failures re-toast with Retry |
 | `EmptyState` | pattern-bg illustration + one-line + one CTA | every list defines one |
 | `Skeleton` | shimmer blocks matching final layout | feed: header line + square + action row |
+
+**Entity-navigation rule [Decided 2026-07-22]**: every avatar/username
+rendered on a social surface navigates to its canonical page (profile;
+post thumbs to their post) — an identity you can see is an identity you
+can visit, on both clients. Exemptions: confirm dialogs, chat bubbles
+(order-thread messages), marketing mocks, and staff moderation queues.
 
 ## 4. Microinteraction catalog
 
@@ -262,7 +268,7 @@ canonical scheme. The single auth CTA component (X-1) is named
 
 | Component | Variants × states |
 | --- | --- |
-| Button | kind: gradient-primary / quiet / destructive / link · size: md 44 / sm 36 · state: default / pressed / disabled / loading · theme ×2 |
+| Button | kind: gradient-primary / quiet / destructive / link / quiet-danger · size: md 44 / sm 36 · state: default / pressed / disabled / loading · theme ×2 · **row rung (danger ladder) [Decided 2026-07-22]**: row-level destructive actions render `quiet-danger` (quiet chrome, error-toned text); the filled `destructive` kind is reserved for armed/confirm surfaces (delete-confirm sheet, dispute/decline sheets) — never both rungs on one surface |
 | Input | text / numeric+unit-toggle (cm-in) / search · state: default / focus / error / disabled · theme ×2 |
 | Avatar | size: 32 / 44 / 56 / 96 · ring: none / gradient (fresh) / amber / gray · badge: none / designer-verified |
 | Chip | kind: default / selected / removable — the §8.1 "Pill/Chip" atom *(as built 2026-07-17)* |
@@ -278,13 +284,13 @@ canonical scheme. The single auth CTA component (X-1) is named
 | EmptyState | feed / vault / orders / explore / notifications (5 illustrated) |
 | Toast | success / error+retry / neutral |
 | Skeleton | kind: line / avatar / media / card (§3 anatomy; MI-19 shimmer) *(as built 2026-07-17)* |
-| CaptureOverlay | guide: searching (silhouette pulses) / aligned (guide turns success) / countdown / qc-hint (chip slot) — dashed silhouette vector over camera viewport (MI-12) |
+| CaptureOverlay | guide: searching (silhouette pulses) / aligned (guide turns success) / countdown / qc-hint (chip slot) · pose: front / side (M-10 — the side pose swaps in the right-profile silhouette, arms relaxed) — dashed silhouette vector over camera viewport (MI-12) |
 | CountdownRing | 3 / 2 / 1 (ring progress + numeral) |
-| QCHintChip | code ×11: no_body / multiple_bodies / partial_body / undecodable_image / low_resolution / poor_lighting / blurry / not_frontal / camera_tilt / arms_position / too_far — one actionable guidance line each (fail codes [capture-qc.md](capture-qc.md) §1–2; canonical copy [flows/vault.md](flows/vault.md) QC-failures row) |
+| QCHintChip | code ×12: no_body / multiple_bodies / partial_body / undecodable_image / low_resolution / poor_lighting / blurry / not_frontal / camera_tilt / arms_position / too_far / not_side_profile (side pose, M-10) — one actionable guidance line each, `arms_position` copy per pose (fail codes [capture-qc.md](capture-qc.md) §1–2; canonical copy [flows/vault.md](flows/vault.md) QC-failures row) |
 | ProcessingConstellation | state: processing (landmark constellation over photo) / success / failed — the "AI is working" moment (MI-12) |
 | CaptureResults chrome | header (confidence summary) + MeasurementCard stagger list slot + "Save to vault" gradient / "Retake" quiet (pages.md C6) |
 | ManualMeasureRow | tape-measure slider + numeric field + cm/in toggle · state: default / active / error (MI-13) |
-| CaptureOptionCard | mode: webcam-upload / manual-entry (vault "Retake" options, pages.md B: vault header) |
+| CaptureOptionCard | mode: photo-upload / manual-entry (vault "Retake" options, pages.md B4 — web upload-only per M-12, front + side files; the sheet carries the "best experience: guided capture on the mobile app" hint) |
 | FormRow | label + control + helper/error · state: default/focus/error/disabled (profile & settings editors) |
 | AddressFieldset | context: delivery (request stepper — frozen per order) / profile location (city + state + country · "near me" explainer, X-10 tier 1) · NG-state select · prefill-from-last-order |
 
@@ -304,7 +310,7 @@ Stage 5 and non-blocking; everything else feeds Stages 1–4.
 | Component | Variants × states |
 | --- | --- |
 | NavRail | width: collapsed 72 / expanded 244 (≥1264px) · item ×7 (Home / Explore / Create / Orders / Vault / Profile / Settings) × state: default / active / hover · footer slot: theme toggle + support link · theme ×2 · **as built (2026-07-17):** decomposed into `NavRail` (width ×2) + child set `NavRailItem` (expanded ×2 × state ×3) |
-| AppBar | kind: root (title/logo + action slot) / sub (chevron-left + title + trailing action) / over-media (transparent) · theme ×2 |
+| AppBar | kind: root (title/logo + action slot) / sub (chevron-left + title + trailing action) / over-media (transparent) · theme ×2 · **row alignment (M-9)**: sub/over-media titles center on the full bar width — the title is an absolute, full-width, center-aligned text layer over the bar; leading/trailing slots lay out in-flow at the edges (space-between) and the title's horizontal padding reserves the widest slot, so a hidden trailing slot never skews the title (Flutter AppTopBar: Stack-based, same anatomy). `root` is the brand bar (left wordmark/username), exempt. **Scope — chrome only**: in-content page titles (dashboard h1s, IG-desktop idiom) stay left-aligned; never center page-body titles |
 | Tabs | kind: text ×2 items ("As customer / As designer") / icon (grid · saved) · state: active / inactive · underline indicator · theme ×2 · **as built (2026-07-17):** `active: first / second` (which item is active) × `kind: text / icon` — semantically the same states, different property shape; the grid glyph moves from an interim inline vector to `icon/grid-3x3` (§8.1) |
 
 **Form & overlay primitives**

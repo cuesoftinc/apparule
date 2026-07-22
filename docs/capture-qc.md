@@ -6,8 +6,12 @@
 > `visibility` score 0–1). Thresholds are **[Decided defaults]** — tuneable
 > constants in one config block, revisited against the accuracy benchmark
 > (roadmap Phase 5 harness), never scattered magic numbers.
+> A capture is **two photos** — front + side (right profile) — plus height
+> (M-10, decisions.md); QC runs and reports **per pose**.
 
 ## 1. Image pre-checks (before pose detection)
+
+Run **per image** — each pose's photo passes the same table.
 
 | Check | Threshold | Fail code |
 | --- | --- | --- |
@@ -21,6 +25,8 @@
 Let `vis(i)` = landmark i visibility. Key sets: HEAD = {nose}, SHOULDERS =
 {11,12}, HIPS = {23,24}, ANKLES = {27,28}.
 
+### Pose 1 — front
+
 | Check | Rule | Fail code |
 | --- | --- | --- |
 | Body present | detector returns ≥1 pose | `no_body` |
@@ -32,9 +38,23 @@ Let `vis(i)` = landmark i visibility. Key sets: HEAD = {nose}, SHOULDERS =
 | Arms clearance | wrist landmarks ≥ 5% image-width away from hip landmarks horizontally (arms slightly out, not fused to torso) | `arms_position` (new code) |
 | Scale sanity | body_height_px ≥ 40% of image height | `too_far` (new code) |
 
+### Pose 2 — side (right profile) deltas
+
+The side pose runs the same §1 pre-checks (lighting/blur/resolution) and
+the body-present / single-subject / full-body / in-frame / upright /
+scale-sanity rows unchanged; two rows swap:
+
+| Check | Rule | Fail code |
+| --- | --- | --- |
+| Profile orientation | the frontality rule inverted: shoulders' z-delta ≥ 0.15 (near/far shoulder depth separation) AND shoulder-width\_px ÷ hip-width\_px < 0.9 (foreshortened shoulders) — the subject is side-on, right shoulder to camera | `not_side_profile` (new code) |
+| Arms relaxed | wrist landmarks within 5% image-width of hip landmarks horizontally (arms hanging at the sides) — replaces the front pose's arms-clearance rule; sits at the arms row's position in the table order | `arms_position` (side-pose guidance copy) |
+
 Each code carries guidance copy (flows/vault.md table extends with the new
-codes). Multiple failures report the **first by the table order above** —
-one actionable instruction beats a list.
+codes; `arms_position` copy is per pose). Multiple failures report the
+**first by the table order above** — one actionable instruction beats a
+list — and reporting is **per pose**: the error names the failing pose,
+and an accepted pose is never discarded by the other pose's failure
+(flows/vault.md §1 — the client re-enters the failing pose's camera only).
 
 ## 3. Height-scale plausibility
 
@@ -48,6 +68,15 @@ height when cross-checked against torso proportions (shoulder-to-hip ÷
 stature expected ≈ 0.25±0.08), flag `pipeline_meta.qc.height_suspect = true`
 (session still saves; UI shows "double-check your height" hint).
 
+**Side-pose contribution (M-10)**: girth measures estimate from the two
+views — front width + side depth per landmark pair, combined via an
+elliptical-circumference approximation; the front image alone keeps owning
+the height scale (the nose→ankle axis is most stable in the frontal view).
+The v2 constants (the 0.93 stature correction, the plausibility band, and
+the ellipse-eccentricity defaults for two-view girths) must be
+re-benchmarked for the two-view method — **[Directive: measurement
+pipeline recalibration needed — backend phase]**.
+
 ## 4. Per-measurement confidence (2-D method)
 
 ```
@@ -58,7 +87,11 @@ confidence(m) = clamp01( mean_vis(m) × frontality_factor × sharpness_factor )
 ```
 
 Stored per `MEASUREMENT` row; UI renders <0.7 with a "low confidence —
-consider retaking" chip. Manual entries have `confidence = null` (human
+consider retaking" chip. Two-view girths (M-10) span both images:
+`mean_vis(m)` covers the landmarks of both contributing views, and the
+orientation factor applies per view (frontality on the front image, profile
+orientation on the side) — exact factors settle with the recalibration
+directive (§3). Manual entries have `confidence = null` (human
 truth isn't scored). SMPL-era confidences (Phase 5) replace this formula
 per-method — the field is method-agnostic by design.
 
@@ -71,9 +104,14 @@ remain interpretable after tuning.
 
 ## 6. Acceptance
 
-- [ ] Golden image set: ≥1 fixture per fail code + 5 passing fixtures; CI-run
+- [ ] Golden image set: ≥1 fixture per fail code + 5 passing fixtures per
+      pose; CI-run
 - [ ] Threshold changes bump `thresholds_version`; old sessions untouched
-- [ ] First-failure-only reporting verified (multi-fault fixture)
+- [ ] First-failure-only reporting verified per pose (multi-fault fixture);
+      a pose-2 failure leaves the accepted pose-1 image undisturbed
 - [ ] Confidence values populate and render; manual rows null
 - [ ] Height correction ships behind `pipeline_meta.method` rev with the
       benchmark harness comparing before/after against tape measurements
+- [ ] `height_suspect` hint ("double-check your height", §3) — **deferred
+      [Decided 2026-07-22]**: implemented by neither client; it ships
+      with the backend phase's pipeline work, not before
