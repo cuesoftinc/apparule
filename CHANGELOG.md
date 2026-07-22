@@ -9,6 +9,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Mobile feed + orders wave (screens phase 3, mobile-implementation.md
+  §5/§6; pages.md C2–C5, C8, C10, C11; order-lifecycle.md): the
+  dev-flavor app now carries the full social + commerce journey over
+  fakes. The §6 seed narrative extends with the web mock's story
+  VERBATIM (`assets/seed/dev/{me,designers,posts,orders,
+  notifications}.json` — same personas `kiki.adeyemi`/`amara.designs`/
+  `tunde.o`/`maisonbisi`/`eniola.stitches`, same 11 posts + 33 comments
+  with count==list invariants, the same ten-lifecycle-state order book
+  `#APR-1005…#APR-1058` incl. the frozen child-size snapshot on
+  #APR-1058 and the PR #102 event/thread cadence, the same notification
+  set part-unread) plus the CC-licensed demo photography pool
+  (byte-identical to `web/public/demo`, attributions carried,
+  dev-flavor-scoped) — a person QA-ing web and mobile sees ONE story.
+  Screens: C2 home feed (story rail with MI-8 seen-state, PostCard
+  column, MI-1/2/3 like/save as REAL fake-state mutations, MI-5
+  pull-to-refresh, MI-6 caught-up divider, MI-9 permalink share, loading
+  skeletons/empty/error states), C3 explore (search + 3-col grid, tag
+  chips, near-me proximity RE-RANKING city>state>country — never a hard
+  gate, B2-parity sectioned search results with the MI-7 follow morph
+  mutating the graph, per-section empties), C4 post detail (carousel
+  anatomy, comments entry, pinned Request CTA → C5), C11 full-height
+  comments sheet over the dimmed post (CommentRow hearts, MI-18
+  composer keeping count==list), C10 notifications (day-grouped, unread
+  tint+dot for the visit with read-state persisting to the repository,
+  swipe-to-clear, order/post deep links, MI-16 Orders-tab badge wired
+  end-to-end — opening the sheet clears it), C5 request stepper (vault
+  snapshot picker off the C6/C7 sessions with the freshness ladder +
+  stale warning, notes/budget/need-by, §6.3 delivery pre-fill from the
+  most recent order, review, submit freezing the snapshot per
+  order-lifecycle.md §1, confetti success → view order), and C8 orders
+  (list with all ten state chips + contextual actions, B3 role tabs
+  only when a designer side exists; detail with MI-14 event timeline,
+  MI-15 PaymentBox mapping incl. escrow-held/released/refunded/
+  dispute-frozen, the immutable snapshot card, MI-17 thread with the
+  scripted counterparty reply, and the danger ladder: quiet-danger
+  Withdraw/Decline rows arming filled-destructive dispute/decline
+  sheets per the canvas). Repositories: `PostRepository`,
+  `OrderRepository`, `NotificationRepository` grow their full abstract
+  interfaces with seed-backed fakes applying the web store's SEMANTICS —
+  engagement toggles move counts, comment counts mirror lists, the
+  follow graph re-derives feed/rail, and every order mutation passes
+  the order-lifecycle.md §1 transition table + §2 permissions matrix
+  (illegal moves throw, never no-op); the order fake's `viewer` seam
+  walks the designer surfaces (quote/decline) over the same seed.
+  Typed routes `/post/{id}`, `/post/{id}/comments`, `/request/{postId}`,
+  `/orders/{id}`, `/notifications` join the §5 map (post permalinks and
+  order pushes deep-link in). A `clockProvider` pins screen-side
+  relative-time/freshness reads for byte-stable goldens. 95 new tests
+  (repository semantics incl. the transition table edge-for-edge,
+  role-gated actions, snapshot freeze, scripted thread reply; widget
+  states per screen at the 390px canvas width; router deep links) plus
+  16 Linux-authored screen goldens (both themes). No new dependencies.
 - Mobile C6 capture wave (screens phase 3 opener, mobile-implementation.md
   §10; pages.md C6/C7; capture-qc.md): the dev-flavor app completes the
   core product journey — one frontal photo + height → measurements → the
@@ -320,6 +372,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Mobile golden tooling: `tool/update_goldens.sh` pinned a nonexistent
+  `ghcr.io/cirruslabs/flutter:3.44.7` image (upstream's newest 3.44.x
+  tag is 3.44.0) — the script now runs a two-stage pin: the fixed
+  `:3.44.0` base image plus an in-container git checkout of the exact
+  `.fvmrc` release tag, staying in lockstep with the version CI asserts.
+- Mobile C1 boot-surface overflow at ~390px (the C6-lane note): the
+  GoogleAuthButton label now clamps with an ellipsis instead of
+  overflowing its row; the feed/orders widget suites run at the 390px
+  canvas width so any regression fails tests.
+- Mobile AppTabBar badge semantics: the MI-16 count rides the tab node's
+  semantics `value` ("3 new") instead of merging into its label, keeping
+  the named-control contract ("Orders" stays "Orders").
 - Accessibility closeout: decorative phone mocks are now truly `inert`
   (keyboard focus can no longer land in invisible mock UI), signin's legal
   links gain underlines, nav landmarks carry distinct labels, and a
