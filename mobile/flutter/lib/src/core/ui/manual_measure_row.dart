@@ -227,6 +227,10 @@ class _ValueFieldState extends State<_ValueField> {
             ),
           ),
           Semantics(
+            // Own node; the visible cm/in text is presentational — the
+            // label names the action (named-control canon).
+            container: true,
+            excludeSemantics: true,
             label: 'Switch to ${nextUnit == MeasureUnit.cm ? 'cm' : 'in'}',
             button: true,
             child: InkResponse(

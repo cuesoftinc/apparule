@@ -117,6 +117,9 @@ class _AppBannerState extends State<AppBanner> {
               Padding(
                 padding: const EdgeInsets.only(left: 12),
                 child: Semantics(
+                  // Own node — assistive tech activates it separately
+                  // from the banner copy (named-control canon).
+                  container: true,
                   label: 'Dismiss',
                   button: true,
                   child: InkResponse(

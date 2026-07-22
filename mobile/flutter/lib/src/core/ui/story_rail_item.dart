@@ -58,6 +58,9 @@ class StoryRailItem extends StatelessWidget {
     }
 
     return Semantics(
+      // One node announcing the username once (ring + caption are visual).
+      container: true,
+      excludeSemantics: true,
       label: username,
       button: true,
       child: GestureDetector(

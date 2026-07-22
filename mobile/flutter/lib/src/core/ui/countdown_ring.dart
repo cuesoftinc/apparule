@@ -44,8 +44,11 @@ class CountdownRing extends StatelessWidget {
     const onMediaWhite = Color(0xFFFFFFFF);
 
     return Semantics(
+      container: true,
       liveRegion: true,
       label: 'Capturing in ${count.value}',
+      // The numeral/ring are presentational — the label carries the tick.
+      excludeSemantics: true,
       child: SizedBox(
         width: size,
         height: size,

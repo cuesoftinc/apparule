@@ -105,10 +105,13 @@ class Avatar extends StatelessWidget {
             ? null
             : DecorationImage(image: image!, fit: BoxFit.cover),
       ),
+      // Presentational — the enclosing Semantics announces [name].
       child: image == null
-          ? Text(
-              _initials(name),
-              style: initialsStyle.copyWith(color: colors.text2),
+          ? ExcludeSemantics(
+              child: Text(
+                _initials(name),
+                style: initialsStyle.copyWith(color: colors.text2),
+              ),
             )
           : null,
     );
@@ -159,6 +162,8 @@ class Avatar extends StatelessWidget {
             right: 0,
             bottom: 0,
             child: Semantics(
+              // Own node — never merged into the name announcement.
+              container: true,
               label: 'Verified designer',
               child: Container(
                 width: disc,
@@ -182,6 +187,7 @@ class Avatar extends StatelessWidget {
     }
 
     return Semantics(
+      container: true,
       label: name,
       image: image != null,
       child: SizedBox(width: dimension, height: dimension, child: photo),

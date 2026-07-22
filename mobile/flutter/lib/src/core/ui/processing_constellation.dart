@@ -88,9 +88,12 @@ class ProcessingConstellation extends StatelessWidget {
                   padding: const EdgeInsets.only(right: 4),
                   child: Icon(icon, size: 14, color: statusColor),
                 ),
-              Text(
-                status,
-                style: typography.caption13.copyWith(color: statusColor),
+              Flexible(
+                child: Text(
+                  status,
+                  textAlign: TextAlign.center,
+                  style: typography.caption13.copyWith(color: statusColor),
+                ),
               ),
             ],
           ),

@@ -32,7 +32,10 @@ extension PumpApp on WidgetTester {
           themeMode: themeMode,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: widget,
+          // Bare core/ui modules use ink responses; the transparent
+          // Material supplies the required ancestor without changing
+          // screen tests (screens bring their own Scaffold).
+          home: Material(type: MaterialType.transparency, child: widget),
         ),
       ),
     );
