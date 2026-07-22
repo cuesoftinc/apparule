@@ -104,6 +104,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Web profile counts derive from the follow graph (user-reported live
+  bug): completing become-a-designer onboarding zeroed the profile
+  header's follower/following counts — `enableDesigner` created the
+  DESIGNER_PROFILE with stored zero counts and the B6 header switched
+  to reading them, while the graph-backed followers/following sheets
+  kept the real lists. The mock store now derives
+  `followers_count`/`following_count`/`posts_count` from the follow
+  graph and post list at every read through the same helpers that back
+  the sheets (header-vs-sheet disagreement is structurally impossible;
+  the stored-tick era's missing `posts_count` decrement on post delete
+  is fixed by the same move). Locked by store unit tests
+  (create-designer-profile preserves counts; follow/unfollow moves both
+  sides; posts_count through create+delete — parity with mobile's
+  unit-gated invariant) and an e2e assertion that onboarding preserves
+  the pre-onboarding counts; documented as the pages.md B6
+  derived-counts rule.
 - Web author links (entity-navigation rule; the web sibling of the
   user-found mobile PostCard bug): PostCard header avatar+username and
   the caption's leading username link to the designer profile

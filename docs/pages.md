@@ -128,6 +128,9 @@ toggle, support (`clients.cuesoft.io`).
 - Followers/following lists **[Directive 2026-07-18]**: tapping either count
   opens a UserRow list sheet (Follow/Following morph MI-7; tabs switch the
   two lists).
+- Counts derive from the FOLLOW graph / post list at read time — never from
+  stored per-profile fields — so a header count and its list sheet can never
+  disagree, and creating a designer profile preserves the account's counts.
 
 ### B7a `/dashboard/admin/moderation` (staff only)
 - Moderation queue (A-6): open reports with subject preview, reporter
