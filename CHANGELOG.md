@@ -369,6 +369,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- The iOS SwiftPM lockfile (`Runner.xcworkspace` `Package.resolved`) is
+  committed for reproducible native resolution; the Xcode project-internal
+  duplicate is gitignored (#154).
+
 - Mobile C6 capture drops the explicit shutter button — the QA-convergence
   CONTESTED item ruled for canvas+docs (pages.md C6 "silhouette overlay +
   countdown"; the canvas capture frames 173:574/266:8419 carry no control
