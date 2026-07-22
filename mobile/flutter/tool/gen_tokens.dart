@@ -10,7 +10,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-const _defaultTokensPath = '../../design/tokens/apparule.tokens.json';
+const _defaultTokensPath = 'design/tokens/apparule.tokens.json';
 const _outDir = 'lib/src/core/theme/tokens';
 
 void main(List<String> args) {
