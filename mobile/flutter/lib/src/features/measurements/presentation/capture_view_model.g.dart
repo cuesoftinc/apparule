@@ -47,7 +47,7 @@ final class CaptureViewModelProvider
   }
 }
 
-String _$captureViewModelHash() => r'e31c0c5e8ac8a7a77c41ddd9dccc705a1eb9a5f4';
+String _$captureViewModelHash() => r'5e68c21a85c52ff5d07af8eb8bd1b9b7ddd44881';
 
 /// C6's ViewModel (1:1 with `CaptureScreen`) — owns the capture session
 /// flow; navigation stays the View's job.

@@ -26,7 +26,7 @@ abstract class CameraService {
   /// [CameraPermissionDeniedException] when access is denied.
   Future<void> initialize();
 
-  /// Whether [initialize] completed and the preview/shutter are usable.
+  /// Whether [initialize] completed and the preview/capture are usable.
   bool get isReady;
 
   /// The live viewfinder — fills the CaptureOverlay's 9:16 viewport slot.
