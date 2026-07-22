@@ -1,6 +1,5 @@
 import 'package:alchemist/alchemist.dart';
 import 'package:apparule/src/core/ui/app_switch.dart';
-import 'package:flutter/material.dart';
 
 import '../../helpers/golden_themes.dart';
 

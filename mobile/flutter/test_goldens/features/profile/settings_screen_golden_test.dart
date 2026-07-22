@@ -11,7 +11,9 @@ import '../../helpers/screen_frame.dart';
 /// sub-screen rows, legal links, both themes.
 void main() {
   final pinned = DateTime.utc(2026, 7, 22, 12);
-  // The theme controller hydrates through the persistence seam.
+  // The theme controller hydrates through the persistence seam; goldens
+  // run outside test/, so the analyzer can't see this is still a test.
+  // ignore: invalid_use_of_visible_for_testing_member
   SharedPreferences.setMockInitialValues(<String, Object>{});
 
   themedGoldenTest(
