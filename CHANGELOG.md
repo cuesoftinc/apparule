@@ -9,6 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Mobile iOS flavor pass (M-7 completes on iOS): `dev`/`prod` shared
+  schemes over `Debug/Release/Profile-{dev,prod}` build configurations
+  per Flutter's flavor convention, each layering a flavor xcconfig
+  (`ios/Flutter/{dev,prod}.xcconfig`) over its mode base — iOS has no
+  `applicationIdSuffix` mechanism, so `PRODUCT_BUNDLE_IDENTIFIER` is
+  spelled per flavor (`io.cuesoft.apparule.dev` on dev, bare on prod),
+  alongside the per-flavor display name (Apparule Dev / Apparule).
+  `flutter build ios --simulator --debug --flavor dev -t
+  lib/main_dev.dart` now bundles the dev-scoped `assets/seed/` entries
+  (verified in the built `.app`) — the flavorless raw-`xcodebuild` path
+  shipped fakes with EMPTY seed. iOS deployment target 13.0 → 15.0
+  (Firebase iOS SDK 12 requires iOS 15; docs §2 + M-1 amended); the
+  generated `FlutterGeneratedPluginSwiftPackage` inherits the floor from
+  the project on every `flutter build ios`
+  (`SwiftPackageManager.updateMinimumDeployment`), so no generated file
+  is hand-patched. CI grows a `mobile-ios` lane (macos runner, unsigned
+  dev-flavor simulator build + a bundled-seed assertion) so iOS breakage
+  surfaces at PR time.
+- Mobile notched-device regression harness: `test/helpers/notched.dart`
+  reshapes the test view like the iPhone 17 Pro (59px top inset, 34px
+  home indicator) and `expectNoContentInTopInset` fails any suite whose
+  text/icons/tappables render inside the top inset — wired into all 24
+  screen widget-test suites (the C6 suite asserts the sub-bar height
+  step AND the immersive viewfinder). One notched golden per shell
+  chrome kind (root bar · sub bar · immersive over-media) pins the
+  inset rendering instead of duplicating every screen golden.
+
 - Mobile QA convergence (screens phase 3 closer — the Figma↔code audit
   loop applied to the complete C-series app; canvas file
   `34GbYXm8TpxMMUaAGGuwMM` Mobile page vs main, parity-first). Code-side
@@ -471,6 +498,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `docs/devops` planning docs, and a generated pose-detector artifact.
 
 ### Fixed
+
+- Mobile top chrome under the notch (live-simulator defect, 2026-07-22):
+  `AppTopBar` was a fixed 56px bar, so every screen's header rendered
+  into the iPhone status-bar/Dynamic-Island region. The bar is now
+  inset-aware at the chrome altitude — its surface (or the C6 over-media
+  scrim) still extends behind the status bar while the 56px content row
+  sits below the inset; no per-screen workarounds. The bottom tab bar
+  already handled the home-indicator inset; body-`SafeArea` screens
+  (C1/C1b/C3 comments/explore) were already correct.
 
 - Mobile golden tooling: `tool/update_goldens.sh` pinned a nonexistent
   `ghcr.io/cirruslabs/flutter:3.44.7` image (upstream's newest 3.44.x

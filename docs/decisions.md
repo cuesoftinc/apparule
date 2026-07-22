@@ -220,7 +220,9 @@ before public launch. Alternative: commission the brand pass first.
   `mobile/flutter`; mobile-implementation.md carries the full contract.
   Toolchain: **Flutter 3.44.7 / Dart 3.12**, pinned via **FVM**
   (`.fvmrc` is the source of truth, mirrored in `pubspec.yaml`); Android
-  floor **API 24**, iOS floor 13; **SwiftPM** is the iOS dependency
+  floor **API 24**, iOS floor 15 (Firebase iOS SDK 12's minimum — the
+  original floor-13 ratification predated the §9 auth wiring); **SwiftPM**
+  is the iOS dependency
   default (CocoaPods' registry goes read-only 2026-12-02, so no new
   CocoaPods dependency is added — the salvaged iOS shell migrates to
   SwiftPM in the restructure phase). ☑
