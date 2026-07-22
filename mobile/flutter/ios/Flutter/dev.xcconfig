@@ -1,0 +1,6 @@
+// dev flavor layer (M-7): the suffixed identity that installs side by side
+// with prod — iOS has no applicationIdSuffix mechanism, so the suffix is
+// spelled out per flavor here. Included by the Debug-dev/Release-dev/
+// Profile-dev build configurations on top of their mode base.
+PRODUCT_BUNDLE_IDENTIFIER = io.cuesoft.apparule.dev
+APP_DISPLAY_NAME = Apparule Dev
