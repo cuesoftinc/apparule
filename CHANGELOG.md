@@ -9,6 +9,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Mobile C6 two-pose capture wave (M-10/M-11 — the 2023 guide screens
+  die here):
+  - Canvas-first guide rebuild: ONE parameterized `GuidePage` module
+    (Figma 526:33) rendering five token-bound CustomPaint illustration
+    steps — intro (accent measure lines + height arrow), get ready
+    (callout chips), phone setup (phone/sightline/light diagram), front
+    pose (45° arm rays) and the NEW side pose (right-profile silhouette
+    + turn arrow) — over the canvas-re-keyed ARB copy, including the new
+    step-3 lighting bullet that teaches the `poor_lighting`/`blurry` QC
+    checks up front. The legacy 2023 navy photo art
+    (`guide1`/`guide3`/`guide4`/`guide5`/`step2`) is deleted; Skip
+    renders on revisits only.
+  - The M-10 two-pose capture flow: front "Pose 1 of 2" → side "Pose 2
+    of 2" (centered over-media pose bar, M-9) → height step only when no
+    height is on file → one-request submit (`image_front` +
+    `image_side` + height) → processing → results. `CaptureOverlay`
+    gains the Figma `pose` axis (539:2 right-profile silhouette, per-pose
+    hints cleared below the pose bar); `QCHintChip` gains
+    `not_side_profile` and pose-contextual `arms_position` copy (front
+    "slightly away" / side "relaxed at your sides", centered regardless
+    of code length). QC is per pose and first-failure-only: a retry
+    re-enters the failing pose's camera only, never advances the pose
+    counter, and a pose-2 failure keeps pose 1's accepted frame for the
+    resubmit.
+  - The honest fake, per pose: capture-qc.md's side-table deltas run in
+    contract order (profile orientation at the frontality row, the
+    inverted arms-relaxed rule at the arms row), the front table first;
+    unknown/live side frames evaluate against side-passing defaults; the
+    fake camera serves front + side sample frames (the side feed is the
+    canvas's neutral dark frame) and the dev QC selector groups
+    scenarios per pose so every side code is reproducible on demand. A
+    per-session CSV export seam (`exportSessionCsv`, F2-9) joins the
+    repository.
+  - The ➕ unified create chooser (M-11 interim, canvas 548:2725): the
+    centre tab opens a two-option sheet on the new `ChoiceCard` module —
+    "Take measurements" (primary accent border; the guide-first-run
+    logic survives behind it) and "Post an outfit" (designer-gated
+    subtitle; routes to C13 become-a-designer for everyone until the
+    C15 composer ships).
+
+### Fixed
+
+- Mobile capture/vault interaction defects (the audit's Lane C
+  capture-vault cluster): the empty-vault CTA now opens the
+  capture-options sheet so manual entry is reachable from an empty vault
+  (D17); the vault load error renders recovery copy + Retry instead of
+  raw error text (D47); per-session delete routes through `VaultActions`
+  + `runAction` with a "Session deleted" toast and rollback-on-failure
+  (D48/D16 — capture and manual-entry saves now ride the same façade, so
+  the C9 freshness ring re-derives after every vault mutation); history
+  rows gain the CSV export action with a toast (D50); the MI-13 unit
+  toggle actually flips through the shared `FlipUnitToggle` (D49,
+  MI-registry row un-skipped); the tape slider is assistive-technology
+  operable via increase/decrease steps (D51); manual-entry rows preview
+  the metric's vault history as a sparkline that animates on value
+  change (D66); the C1b measurement exit `go()`es home before pushing
+  capture so backing out never lands on the dismissed interstitial
+  (D72); `CaptureOptionCard`'s axis renamed `photo-upload` with the
+  two-photo subtitle (M-12), and the C1b/processing/height copy swept to
+  the two-photo canon.
+
 - Mobile Wave 0 interaction infrastructure (the interaction-audit CLASS
   locks — everything the fix lanes build on):
   - The MI primitive set in core/ui, each matching its design.md §4 spec
