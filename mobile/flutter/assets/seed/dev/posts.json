@@ -1,0 +1,206 @@
+{
+  "_comment": "§6 posts seed — the published-post narrative verbatim from the web mock seed (web/src/mocks/seed.ts seedPosts/seedComments): same ids, captions, tags, NGN price bands, engagement counts, and CC-sourced photography pool (design.md §8.3; local copies under assets/seed/dev/demo/). created_days_ago mirrors the web seed's daysAgo() computed-at-load rule so recency states (story ring <48h, explore ordering) never age out. Comment counts match the comment lists exactly (the web store's unit-gated invariant, carried here and asserted by the fake's tests).",
+  "posts": [
+    {
+      "id": "post-atelier-abuja",
+      "designer": { "id": "des-eniola", "username": "eniola.stitches", "display_name": "Eniola Stitches", "avatar_url": "/demo/outfit-w18.jpg", "verified": true },
+      "caption": "Cutting for the September calendar at the Abuja atelier — corporate and occasion pieces, made to your vault numbers.",
+      "style_tags": ["bespoke", "workwear"],
+      "base_price_cents": 3800000,
+      "currency": "NGN",
+      "turnaround_days": 10,
+      "media": [
+        { "url": "/demo/outfit-w18.jpg", "alt_text": "Tailor at the sewing machine working a bold print in the atelier" }
+      ],
+      "like_count": 9,
+      "comment_count": 1,
+      "created_days_ago": 0.3
+    },
+    {
+      "id": "post-ankara-gown",
+      "designer": { "id": "des-amara", "username": "amara.designs", "display_name": "Amara Designs", "avatar_url": null, "verified": true },
+      "caption": "Ankara maxi skirt with structured waistband — made to your exact measurements. DM slots open for June.",
+      "style_tags": ["ankara", "skirt", "occasion"],
+      "base_price_cents": 4500000,
+      "currency": "NGN",
+      "turnaround_days": 14,
+      "media": [
+        { "url": "/demo/outfit-w01.jpg", "alt_text": "Model in an ankara maxi skirt on the runway" }
+      ],
+      "like_count": 34,
+      "comment_count": 3,
+      "created_days_ago": 2
+    },
+    {
+      "id": "post-asooke-set",
+      "designer": { "id": "des-bisi", "username": "maisonbisi", "display_name": "Maison Bisi", "avatar_url": null, "verified": true },
+      "caption": "Little senator — ceremonial set for the youngest guest. Aso-oke trim, custom-sized, hand-finished.",
+      "style_tags": ["senator", "kids", "traditional"],
+      "base_price_cents": 6200000,
+      "currency": "NGN",
+      "turnaround_days": 21,
+      "media": [
+        { "url": "/demo/outfit-w13.jpg", "alt_text": "Boy in a royal blue senator outfit with white piping" }
+      ],
+      "like_count": 41,
+      "comment_count": 5,
+      "created_days_ago": 4
+    },
+    {
+      "id": "post-bridal-gown",
+      "designer": { "id": "des-bisi", "username": "maisonbisi", "display_name": "Maison Bisi", "avatar_url": null, "verified": true },
+      "caption": "Bridal second-look dress — blush layered organza, hand-finished. Booked per season, two fittings included.",
+      "style_tags": ["bridal", "gown", "wedding"],
+      "base_price_cents": 15000000,
+      "currency": "NGN",
+      "turnaround_days": 30,
+      "media": [
+        { "url": "/demo/outfit-w00.jpg", "alt_text": "Model in a blush layered organza dress with voluminous sleeves" }
+      ],
+      "like_count": 38,
+      "comment_count": 4,
+      "created_days_ago": 9
+    },
+    {
+      "id": "post-print-couple",
+      "designer": { "id": "des-amara", "username": "amara.designs", "display_name": "Amara Designs", "avatar_url": null, "verified": true },
+      "caption": "Matching African print set for two — coordination without the costume feel.",
+      "style_tags": ["print", "couple", "casual"],
+      "base_price_cents": 3800000,
+      "currency": "NGN",
+      "turnaround_days": 10,
+      "media": [
+        { "url": "/demo/outfit-w16.jpg", "alt_text": "Couple wearing matching African print outfits" }
+      ],
+      "like_count": 18,
+      "comment_count": 2,
+      "created_days_ago": 1
+    },
+    {
+      "id": "post-agbada",
+      "designer": { "id": "des-tunde", "username": "tunde.o", "display_name": "Tunde Okonkwo", "avatar_url": "/demo/outfit-w15.jpg", "verified": true },
+      "caption": "Ceremonial robe set — traditional cut, made for movement. Ceremony-ready in three weeks.",
+      "style_tags": ["ceremonial", "menswear", "traditional"],
+      "base_price_cents": 5500000,
+      "currency": "NGN",
+      "turnaround_days": 21,
+      "media": [
+        { "url": "/demo/outfit-w17.jpg", "alt_text": "Man in an embroidered sky-blue agbada with a matching cap" }
+      ],
+      "like_count": 27,
+      "comment_count": 4,
+      "created_days_ago": 6
+    },
+    {
+      "id": "post-print-brothers",
+      "designer": { "id": "des-tunde", "username": "tunde.o", "display_name": "Tunde Okonkwo", "avatar_url": "/demo/outfit-w15.jpg", "verified": true },
+      "caption": "African print shirts — brothers edition. Casual fit, sharp collars.",
+      "style_tags": ["print", "menswear", "casual"],
+      "base_price_cents": 2200000,
+      "currency": "NGN",
+      "turnaround_days": 7,
+      "media": [
+        { "url": "/demo/outfit-w15.jpg", "alt_text": "Two men in matching African print shirts" }
+      ],
+      "like_count": 12,
+      "comment_count": 1,
+      "created_days_ago": 8
+    },
+    {
+      "id": "post-runway-orange",
+      "designer": { "id": "des-bisi", "username": "maisonbisi", "display_name": "Maison Bisi", "avatar_url": null, "verified": true },
+      "caption": "Resort one-piece from the new capsule — palm print, runway sample available made-to-measure.",
+      "style_tags": ["resort", "runway", "swim"],
+      "base_price_cents": null,
+      "currency": "NGN",
+      "turnaround_days": 18,
+      "media": [
+        { "url": "/demo/outfit-w05.jpg", "alt_text": "Runway model in a palm-print one-piece swimsuit" }
+      ],
+      "like_count": 46,
+      "comment_count": 6,
+      "created_days_ago": 11
+    },
+    {
+      "id": "post-fabric-drop",
+      "designer": { "id": "des-amara", "username": "amara.designs", "display_name": "Amara Designs", "avatar_url": null, "verified": true },
+      "caption": "New fabric drop — bring your vault measurements and pick a silhouette.",
+      "style_tags": ["fabric", "ankara"],
+      "base_price_cents": null,
+      "currency": "NGN",
+      "turnaround_days": 14,
+      "media": [
+        { "url": "/demo/outfit-w14.jpg", "alt_text": "African print fabrics on display" },
+        { "url": "/demo/outfit-w10.jpg", "alt_text": "Designer cutting cloth at a work table" }
+      ],
+      "like_count": 14,
+      "comment_count": 2,
+      "created_days_ago": 15
+    },
+    {
+      "id": "post-evening-gown",
+      "designer": { "id": "des-bisi", "username": "maisonbisi", "display_name": "Maison Bisi", "avatar_url": null, "verified": true },
+      "caption": "Statement eveningwear commission from last season — silhouettes like this start at ₦80k.",
+      "style_tags": ["evening", "occasion"],
+      "base_price_cents": 8000000,
+      "currency": "NGN",
+      "turnaround_days": 28,
+      "media": [
+        { "url": "/demo/outfit-w19.jpg", "alt_text": "Model in a draped bronze satin evening gown on the runway" }
+      ],
+      "like_count": 22,
+      "comment_count": 3,
+      "created_days_ago": 20
+    },
+    {
+      "id": "post-dance-troupe",
+      "designer": { "id": "des-tunde", "username": "tunde.o", "display_name": "Tunde Okonkwo", "avatar_url": "/demo/outfit-w15.jpg", "verified": true },
+      "caption": "Costume set delivered for a university culture showcase — 12 pieces, one week.",
+      "style_tags": ["traditional", "group"],
+      "base_price_cents": null,
+      "currency": "NGN",
+      "turnaround_days": 7,
+      "media": [
+        { "url": "/demo/outfit-w06.jpg", "alt_text": "Dancers performing in traditional dress" }
+      ],
+      "like_count": 19,
+      "comment_count": 2,
+      "created_days_ago": 26
+    }
+  ],
+  "comments": [
+    { "id": "cmt-33", "post_id": "post-atelier-abuja", "author": { "id": "acc-zainab", "username": "zainab.k", "avatar_url": null }, "body": "An atelier this side of Abuja at last — booking for December.", "like_count": 1, "created_days_ago": 0.15 },
+    { "id": "cmt-1", "post_id": "post-ankara-gown", "author": { "id": "acc-kiki", "username": "kiki.adeyemi", "avatar_url": null }, "body": "Obsessed with this print 😍", "like_count": 4, "created_days_ago": 1.5 },
+    { "id": "cmt-2", "post_id": "post-ankara-gown", "author": { "id": "acc-bisi", "username": "maisonbisi", "avatar_url": null }, "body": "Beautiful work as always, Amara.", "like_count": 2, "created_days_ago": 1.2 },
+    { "id": "cmt-3", "post_id": "post-ankara-gown", "author": { "id": "acc-funmi", "username": "funmi.b", "avatar_url": null }, "body": "Do you have this in a longer length? Asking for a wedding guest look.", "like_count": 0, "created_days_ago": 0.8 },
+    { "id": "cmt-4", "post_id": "post-asooke-set", "author": { "id": "acc-kiki", "username": "kiki.adeyemi", "avatar_url": null }, "body": "Commissioned one of these — the finish is even better in person.", "like_count": 6, "created_days_ago": 3 },
+    { "id": "cmt-5", "post_id": "post-asooke-set", "author": { "id": "acc-bisi", "username": "maisonbisi", "avatar_url": null }, "body": "@kiki.adeyemi thank you! Your little senator came out so well — one of my favourites this year.", "like_count": 3, "created_days_ago": 2.8 },
+    { "id": "cmt-6", "post_id": "post-asooke-set", "author": { "id": "acc-ada", "username": "ada.eze", "avatar_url": null }, "body": "The texture on this is unreal.", "like_count": 1, "created_days_ago": 2.5 },
+    { "id": "cmt-7", "post_id": "post-asooke-set", "author": { "id": "acc-tunde", "username": "tunde.o", "avatar_url": "/demo/outfit-w15.jpg" }, "body": "Clean finishing as usual, Bisi. 🔥", "like_count": 2, "created_days_ago": 2 },
+    { "id": "cmt-8", "post_id": "post-asooke-set", "author": { "id": "acc-zainab", "username": "zainab.k", "avatar_url": null }, "body": "Could you do a lighter fabric version for Abuja heat?", "like_count": 0, "created_days_ago": 1 },
+    { "id": "cmt-9", "post_id": "post-bridal-gown", "author": { "id": "acc-kiki", "username": "kiki.adeyemi", "avatar_url": null }, "body": "Sending this to my cousin immediately.", "like_count": 3, "created_days_ago": 2.5 },
+    { "id": "cmt-10", "post_id": "post-bridal-gown", "author": { "id": "acc-funmi", "username": "funmi.b", "avatar_url": null }, "body": "Those sleeves 😭😭", "like_count": 2, "created_days_ago": 2 },
+    { "id": "cmt-11", "post_id": "post-bridal-gown", "author": { "id": "acc-ada", "username": "ada.eze", "avatar_url": null }, "body": "How far in advance should a bride book?", "like_count": 1, "created_days_ago": 1.5 },
+    { "id": "cmt-12", "post_id": "post-bridal-gown", "author": { "id": "acc-tunde", "username": "tunde.o", "avatar_url": "/demo/outfit-w15.jpg" }, "body": "Season's best, easily.", "like_count": 2, "created_days_ago": 1 },
+    { "id": "cmt-13", "post_id": "post-print-couple", "author": { "id": "acc-chidi", "username": "chidi.n", "avatar_url": null }, "body": "My fiancée just tagged me. I know what that means.", "like_count": 2, "created_days_ago": 0.7 },
+    { "id": "cmt-14", "post_id": "post-print-couple", "author": { "id": "acc-funmi", "username": "funmi.b", "avatar_url": null }, "body": "Coordination without the costume feel — exactly right.", "like_count": 0, "created_days_ago": 0.4 },
+    { "id": "cmt-15", "post_id": "post-agbada", "author": { "id": "acc-emeka", "username": "emeka.u", "avatar_url": null }, "body": "That drape — exactly what ceremony wear needed.", "like_count": 3, "created_days_ago": 5 },
+    { "id": "cmt-16", "post_id": "post-agbada", "author": { "id": "acc-ada", "username": "ada.eze", "avatar_url": null }, "body": "My dad would love this.", "like_count": 0, "created_days_ago": 3 },
+    { "id": "cmt-17", "post_id": "post-agbada", "author": { "id": "acc-tola", "username": "tola.mak", "avatar_url": null }, "body": "Ceremony-ready indeed. Sharp.", "like_count": 1, "created_days_ago": 2 },
+    { "id": "cmt-18", "post_id": "post-agbada", "author": { "id": "acc-kiki", "username": "kiki.adeyemi", "avatar_url": null }, "body": "Just sent a request for my brother's wedding — fingers crossed! 🤞", "like_count": 2, "created_days_ago": 1 },
+    { "id": "cmt-19", "post_id": "post-print-brothers", "author": { "id": "acc-chidi", "username": "chidi.n", "avatar_url": null }, "body": "Need this for my brother and me. Those collars!", "like_count": 1, "created_days_ago": 6 },
+    { "id": "cmt-20", "post_id": "post-runway-orange", "author": { "id": "acc-funmi", "username": "funmi.b", "avatar_url": null }, "body": "Resort season starts here.", "like_count": 4, "created_days_ago": 10 },
+    { "id": "cmt-21", "post_id": "post-runway-orange", "author": { "id": "acc-ada", "username": "ada.eze", "avatar_url": null }, "body": "Saw this on the runway — stunned it's available made-to-measure.", "like_count": 2, "created_days_ago": 9.5 },
+    { "id": "cmt-22", "post_id": "post-runway-orange", "author": { "id": "acc-zainab", "username": "zainab.k", "avatar_url": null }, "body": "This silhouette would be perfect for a December event.", "like_count": 0, "created_days_ago": 9 },
+    { "id": "cmt-23", "post_id": "post-runway-orange", "author": { "id": "acc-emeka", "username": "emeka.u", "avatar_url": null }, "body": "Vacation booked just for this.", "like_count": 1, "created_days_ago": 8 },
+    { "id": "cmt-24", "post_id": "post-runway-orange", "author": { "id": "acc-kiki", "username": "kiki.adeyemi", "avatar_url": null }, "body": "This print 😍", "like_count": 2, "created_days_ago": 7 },
+    { "id": "cmt-25", "post_id": "post-runway-orange", "author": { "id": "acc-tola", "username": "tola.mak", "avatar_url": null }, "body": "Bisi never misses.", "like_count": 1, "created_days_ago": 5 },
+    { "id": "cmt-26", "post_id": "post-fabric-drop", "author": { "id": "acc-funmi", "username": "funmi.b", "avatar_url": null }, "body": "That second print — reserving a silhouette this week.", "like_count": 1, "created_days_ago": 14 },
+    { "id": "cmt-27", "post_id": "post-fabric-drop", "author": { "id": "acc-kiki", "username": "kiki.adeyemi", "avatar_url": null }, "body": "Coming through with my vault numbers!", "like_count": 1, "created_days_ago": 13 },
+    { "id": "cmt-28", "post_id": "post-evening-gown", "author": { "id": "acc-ada", "username": "ada.eze", "avatar_url": null }, "body": "Statement is an understatement.", "like_count": 2, "created_days_ago": 19 },
+    { "id": "cmt-29", "post_id": "post-evening-gown", "author": { "id": "acc-zainab", "username": "zainab.k", "avatar_url": null }, "body": "The drape on this — beautiful.", "like_count": 0, "created_days_ago": 18 },
+    { "id": "cmt-30", "post_id": "post-evening-gown", "author": { "id": "acc-chidi", "username": "chidi.n", "avatar_url": null }, "body": "Saving this for my sister.", "like_count": 1, "created_days_ago": 17 },
+    { "id": "cmt-31", "post_id": "post-dance-troupe", "author": { "id": "acc-emeka", "username": "emeka.u", "avatar_url": null }, "body": "12 pieces in a week is wild. Respect.", "like_count": 3, "created_days_ago": 25 },
+    { "id": "cmt-32", "post_id": "post-dance-troupe", "author": { "id": "acc-tola", "username": "tola.mak", "avatar_url": null }, "body": "The showcase was amazing — costumes made it.", "like_count": 1, "created_days_ago": 24 }
+  ]
+}

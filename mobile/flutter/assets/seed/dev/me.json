@@ -1,0 +1,12 @@
+{
+  "_comment": "§6 me seed — the signed-in test user (web/src/mocks/seed.ts acc-kiki): non-designer, Lagos, follows amara+bisi (tunde is the suggested designer), and carries real engagement history (seedLikes/seedSaves verbatim) so action rows reflect a lived-in account, not a fresh one.",
+  "id": "acc-kiki",
+  "username": "kiki.adeyemi",
+  "display_name": "Kiki Adeyemi",
+  "avatar_url": null,
+  "profile_location": { "city": "Lagos", "state": "Lagos", "country": "NG" },
+  "designer": { "enabled": false, "kyc_complete": false },
+  "follows": ["amara.designs", "maisonbisi"],
+  "liked_post_ids": ["post-asooke-set", "post-runway-orange", "post-bridal-gown"],
+  "saved_post_ids": ["post-bridal-gown", "post-evening-gown"]
+}

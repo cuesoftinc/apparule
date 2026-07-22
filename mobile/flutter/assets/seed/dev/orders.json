@@ -1,0 +1,344 @@
+{
+  "_comment": "§6 orders seed — all ten order-lifecycle states verbatim from the web mock seed (web/src/mocks/seed.ts seedOrders/seedThreadMessages): same order numbers, quotes, events, snapshots (frozen at requested — #APR-1058 keeps the nephew's manual numbers though kiki's vault never held them), payments (10% fee, A-1) and thread cadence (PR #102 rule: events/messages spread across real-looking hours via created_time; same-day fractional offsets stay relative to boot). due_in_days counts FORWARD from boot (negative = overdue).",
+  "orders": [
+    {
+      "id": "req-apr-1042",
+      "order_number": "APR-1042",
+      "post": { "id": "post-ankara-gown", "caption": "Ankara maxi skirt with structured waistband", "thumb_url": "/demo/outfit-w01.jpg" },
+      "customer": { "id": "acc-kiki", "username": "kiki.adeyemi", "avatar_url": null },
+      "designer": { "id": "des-amara", "username": "amara.designs", "avatar_url": null },
+      "status": "in_progress",
+      "notes": "Ankle length please, with a small side slit — easier to dance in. Event is July 26.",
+      "budget_cents": 5000000,
+      "quote_cents": 4500000,
+      "currency": "NGN",
+      "due_in_days": 10,
+      "tracking": null,
+      "decline_reason": null,
+      "dispute": null,
+      "delivery": { "recipient_name": "Kiki Adeyemi", "phone": "+2348012345678", "line1": "14 Adeola Odeku St", "city": "Lagos", "state": "Lagos", "country": "NG" },
+      "snapshot": {
+        "method": "mediapipe_2d_v2",
+        "measured_days_ago": 12,
+        "measurements": [
+          { "name": "shoulder_width", "value_cm": 42.5 },
+          { "name": "hip_width", "value_cm": 36.8 }
+        ]
+      },
+      "events": [
+        { "kind": "requested", "actor": "customer", "days_ago": 8, "time": "09:14" },
+        { "kind": "quoted", "actor": "designer", "days_ago": 7, "time": "14:02" },
+        { "kind": "paid", "actor": "customer", "days_ago": 6, "time": "10:26" },
+        { "kind": "in_progress", "actor": "designer", "days_ago": 5, "time": "09:40" }
+      ],
+      "payment": { "state": "held", "amount_cents": 4500000, "platform_fee_cents": 450000 }
+    },
+    {
+      "id": "req-apr-1058",
+      "order_number": "APR-1058",
+      "post": { "id": "post-asooke-set", "caption": "Little senator", "thumb_url": "/demo/outfit-w13.jpg" },
+      "customer": { "id": "acc-kiki", "username": "kiki.adeyemi", "avatar_url": null },
+      "designer": { "id": "des-bisi", "username": "maisonbisi", "avatar_url": null },
+      "status": "delivered",
+      "notes": "Gift for my nephew Tobi (age 6) — family wedding. Colour scheme in thread; his measurements are tape-measured, entered by hand.",
+      "budget_cents": null,
+      "quote_cents": 6200000,
+      "currency": "NGN",
+      "due_in_days": -9,
+      "tracking": "GIG-4411-LAG",
+      "decline_reason": null,
+      "dispute": null,
+      "delivery": { "recipient_name": "Kiki Adeyemi", "phone": "+2348012345678", "line1": "14 Adeola Odeku St", "city": "Lagos", "state": "Lagos", "country": "NG" },
+      "snapshot": {
+        "method": "manual",
+        "measured_days_ago": 41,
+        "measurements": [
+          { "name": "shoulder_width", "value_cm": 28.0 },
+          { "name": "hip_width", "value_cm": 25.5 },
+          { "name": "chest_girth", "value_cm": 60.5 },
+          { "name": "waist_girth", "value_cm": 55.0 }
+        ]
+      },
+      "events": [
+        { "kind": "requested", "actor": "customer", "days_ago": 40, "time": "11:05" },
+        { "kind": "quoted", "actor": "designer", "days_ago": 38, "time": "16:40" },
+        { "kind": "paid", "actor": "customer", "days_ago": 36, "time": "08:57" },
+        { "kind": "in_progress", "actor": "designer", "days_ago": 30, "time": "09:18" },
+        { "kind": "shipped", "actor": "designer", "days_ago": 10, "time": "17:25" },
+        { "kind": "delivered", "actor": "customer", "days_ago": 7, "time": "13:44" }
+      ],
+      "payment": { "state": "released", "amount_cents": 6200000, "platform_fee_cents": 620000 }
+    },
+    {
+      "id": "req-apr-1031",
+      "order_number": "APR-1031",
+      "post": { "id": "post-agbada", "caption": "Ceremonial robe set", "thumb_url": "/demo/outfit-w17.jpg" },
+      "customer": { "id": "acc-kiki", "username": "kiki.adeyemi", "avatar_url": null },
+      "designer": { "id": "des-tunde", "username": "tunde.o", "avatar_url": "/demo/outfit-w15.jpg" },
+      "status": "requested",
+      "notes": "Need it for my brother's wedding in August.",
+      "budget_cents": 6000000,
+      "quote_cents": null,
+      "currency": "NGN",
+      "due_in_days": null,
+      "tracking": null,
+      "decline_reason": null,
+      "dispute": null,
+      "delivery": { "recipient_name": "Kiki Adeyemi", "phone": "+2348012345678", "line1": "14 Adeola Odeku St", "city": "Lagos", "state": "Lagos", "country": "NG" },
+      "snapshot": {
+        "method": "mediapipe_2d_v2",
+        "measured_days_ago": 12,
+        "measurements": [
+          { "name": "shoulder_width", "value_cm": 42.5 },
+          { "name": "hip_width", "value_cm": 36.8 }
+        ]
+      },
+      "events": [
+        { "kind": "requested", "actor": "customer", "days_ago": 1, "time": "18:32" }
+      ],
+      "payment": null
+    },
+    {
+      "id": "req-apr-1033",
+      "order_number": "APR-1033",
+      "post": { "id": "post-print-couple", "caption": "Matching African print set for two", "thumb_url": "/demo/outfit-w16.jpg" },
+      "customer": { "id": "acc-kiki", "username": "kiki.adeyemi", "avatar_url": null },
+      "designer": { "id": "des-amara", "username": "amara.designs", "avatar_url": null },
+      "status": "quoted",
+      "notes": "Two-piece for an engagement shoot.",
+      "budget_cents": 4500000,
+      "quote_cents": 4000000,
+      "currency": "NGN",
+      "due_in_days": 12,
+      "tracking": null,
+      "decline_reason": null,
+      "dispute": null,
+      "delivery": { "recipient_name": "Kiki Adeyemi", "phone": "+2348012345678", "line1": "14 Adeola Odeku St", "city": "Lagos", "state": "Lagos", "country": "NG" },
+      "snapshot": {
+        "method": "mediapipe_2d_v2",
+        "measured_days_ago": 12,
+        "measurements": [
+          { "name": "shoulder_width", "value_cm": 42.5 },
+          { "name": "hip_width", "value_cm": 36.8 }
+        ]
+      },
+      "events": [
+        { "kind": "requested", "actor": "customer", "days_ago": 3, "time": "12:47" },
+        { "kind": "quoted", "actor": "designer", "days_ago": 0.25 }
+      ],
+      "payment": null
+    },
+    {
+      "id": "req-apr-1036",
+      "order_number": "APR-1036",
+      "post": { "id": "post-runway-orange", "caption": "Resort one-piece from the new capsule", "thumb_url": "/demo/outfit-w05.jpg" },
+      "customer": { "id": "acc-kiki", "username": "kiki.adeyemi", "avatar_url": null },
+      "designer": { "id": "des-bisi", "username": "maisonbisi", "avatar_url": null },
+      "status": "paid",
+      "notes": "",
+      "budget_cents": null,
+      "quote_cents": 3500000,
+      "currency": "NGN",
+      "due_in_days": 21,
+      "tracking": null,
+      "decline_reason": null,
+      "dispute": null,
+      "delivery": { "recipient_name": "Kiki Adeyemi", "phone": "+2348012345678", "line1": "14 Adeola Odeku St", "city": "Lagos", "state": "Lagos", "country": "NG" },
+      "snapshot": {
+        "method": "mediapipe_2d_v2",
+        "measured_days_ago": 12,
+        "measurements": [
+          { "name": "shoulder_width", "value_cm": 42.5 },
+          { "name": "hip_width", "value_cm": 36.8 }
+        ]
+      },
+      "events": [
+        { "kind": "requested", "actor": "customer", "days_ago": 6, "time": "09:05" },
+        { "kind": "quoted", "actor": "designer", "days_ago": 5, "time": "15:22" },
+        { "kind": "paid", "actor": "customer", "days_ago": 4, "time": "19:48" }
+      ],
+      "payment": { "state": "held", "amount_cents": 3500000, "platform_fee_cents": 350000 }
+    },
+    {
+      "id": "req-apr-1044",
+      "order_number": "APR-1044",
+      "post": { "id": "post-print-brothers", "caption": "African print shirts", "thumb_url": "/demo/outfit-w15.jpg" },
+      "customer": { "id": "acc-kiki", "username": "kiki.adeyemi", "avatar_url": null },
+      "designer": { "id": "des-tunde", "username": "tunde.o", "avatar_url": "/demo/outfit-w15.jpg" },
+      "status": "shipped",
+      "notes": "",
+      "budget_cents": null,
+      "quote_cents": 2200000,
+      "currency": "NGN",
+      "due_in_days": -2,
+      "tracking": "GIG-5567-LAG",
+      "decline_reason": null,
+      "dispute": null,
+      "delivery": { "recipient_name": "Kiki Adeyemi", "phone": "+2348012345678", "line1": "14 Adeola Odeku St", "city": "Lagos", "state": "Lagos", "country": "NG" },
+      "snapshot": {
+        "method": "manual",
+        "measured_days_ago": 58,
+        "measurements": [
+          { "name": "shoulder_width", "value_cm": 42.0 },
+          { "name": "hip_width", "value_cm": 37.2 },
+          { "name": "chest_girth", "value_cm": 92.0 },
+          { "name": "waist_girth", "value_cm": 78.5 }
+        ]
+      },
+      "events": [
+        { "kind": "requested", "actor": "customer", "days_ago": 20, "time": "10:12" },
+        { "kind": "quoted", "actor": "designer", "days_ago": 19, "time": "13:37" },
+        { "kind": "paid", "actor": "customer", "days_ago": 18, "time": "08:26" },
+        { "kind": "in_progress", "actor": "designer", "days_ago": 15, "time": "11:54" },
+        { "kind": "shipped", "actor": "designer", "days_ago": 3, "time": "16:09" }
+      ],
+      "payment": { "state": "held", "amount_cents": 2200000, "platform_fee_cents": 220000 }
+    },
+    {
+      "id": "req-apr-1018",
+      "order_number": "APR-1018",
+      "post": { "id": "post-dance-troupe", "caption": "Costume set delivered for a university culture showcase", "thumb_url": "/demo/outfit-w06.jpg" },
+      "customer": { "id": "acc-kiki", "username": "kiki.adeyemi", "avatar_url": null },
+      "designer": { "id": "des-tunde", "username": "tunde.o", "avatar_url": "/demo/outfit-w15.jpg" },
+      "status": "disputed",
+      "notes": "",
+      "budget_cents": null,
+      "quote_cents": 3000000,
+      "currency": "NGN",
+      "due_in_days": null,
+      "tracking": null,
+      "decline_reason": null,
+      "dispute": { "reason": "not_as_described", "detail": "Colours differ from the reference photos." },
+      "delivery": { "recipient_name": "Kiki Adeyemi", "phone": "+2348012345678", "line1": "14 Adeola Odeku St", "city": "Lagos", "state": "Lagos", "country": "NG" },
+      "snapshot": {
+        "method": "manual",
+        "measured_days_ago": 58,
+        "measurements": [
+          { "name": "shoulder_width", "value_cm": 42.0 },
+          { "name": "hip_width", "value_cm": 37.2 },
+          { "name": "chest_girth", "value_cm": 92.0 },
+          { "name": "waist_girth", "value_cm": 78.5 }
+        ]
+      },
+      "events": [
+        { "kind": "requested", "actor": "customer", "days_ago": 25, "time": "14:31" },
+        { "kind": "quoted", "actor": "designer", "days_ago": 24, "time": "10:58" },
+        { "kind": "paid", "actor": "customer", "days_ago": 22, "time": "20:15" },
+        { "kind": "in_progress", "actor": "designer", "days_ago": 20, "time": "09:47" },
+        { "kind": "disputed", "actor": "customer", "days_ago": 2, "time": "18:03" }
+      ],
+      "payment": { "state": "held", "amount_cents": 3000000, "platform_fee_cents": 300000 }
+    },
+    {
+      "id": "req-apr-1012",
+      "order_number": "APR-1012",
+      "post": { "id": "post-fabric-drop", "caption": "New fabric drop", "thumb_url": "/demo/outfit-w14.jpg" },
+      "customer": { "id": "acc-kiki", "username": "kiki.adeyemi", "avatar_url": null },
+      "designer": { "id": "des-amara", "username": "amara.designs", "avatar_url": null },
+      "status": "declined",
+      "notes": "",
+      "budget_cents": null,
+      "quote_cents": null,
+      "currency": "NGN",
+      "due_in_days": null,
+      "tracking": null,
+      "decline_reason": "workload",
+      "dispute": null,
+      "delivery": { "recipient_name": "Kiki Adeyemi", "phone": "+2348012345678", "line1": "14 Adeola Odeku St", "city": "Lagos", "state": "Lagos", "country": "NG" },
+      "snapshot": {
+        "method": "manual",
+        "measured_days_ago": 58,
+        "measurements": [
+          { "name": "shoulder_width", "value_cm": 42.0 },
+          { "name": "hip_width", "value_cm": 37.2 },
+          { "name": "chest_girth", "value_cm": 92.0 },
+          { "name": "waist_girth", "value_cm": 78.5 }
+        ]
+      },
+      "events": [
+        { "kind": "requested", "actor": "customer", "days_ago": 30, "time": "13:20" },
+        { "kind": "declined", "actor": "designer", "days_ago": 29, "time": "09:36" }
+      ],
+      "payment": null
+    },
+    {
+      "id": "req-apr-1009",
+      "order_number": "APR-1009",
+      "post": { "id": "post-ankara-gown", "caption": "Ankara maxi skirt with structured waistband", "thumb_url": "/demo/outfit-w01.jpg" },
+      "customer": { "id": "acc-kiki", "username": "kiki.adeyemi", "avatar_url": null },
+      "designer": { "id": "des-amara", "username": "amara.designs", "avatar_url": null },
+      "status": "refunded",
+      "notes": "",
+      "budget_cents": null,
+      "quote_cents": 4200000,
+      "currency": "NGN",
+      "due_in_days": null,
+      "tracking": null,
+      "decline_reason": null,
+      "dispute": null,
+      "delivery": { "recipient_name": "Kiki Adeyemi", "phone": "+2348012345678", "line1": "14 Adeola Odeku St", "city": "Lagos", "state": "Lagos", "country": "NG" },
+      "snapshot": {
+        "method": "mediapipe_2d",
+        "measured_days_ago": 140,
+        "measurements": [
+          { "name": "shoulder_width", "value_cm": 41.8 },
+          { "name": "hip_width", "value_cm": 37.0 }
+        ]
+      },
+      "events": [
+        { "kind": "requested", "actor": "customer", "days_ago": 60, "time": "11:41" },
+        { "kind": "quoted", "actor": "designer", "days_ago": 58, "time": "15:07" },
+        { "kind": "paid", "actor": "customer", "days_ago": 55, "time": "10:33" },
+        { "kind": "refunded", "actor": "system", "days_ago": 41, "time": "09:02" }
+      ],
+      "payment": { "state": "refunded", "amount_cents": 4200000, "platform_fee_cents": 420000 }
+    },
+    {
+      "id": "req-apr-1005",
+      "order_number": "APR-1005",
+      "post": { "id": "post-evening-gown", "caption": "Statement eveningwear commission from last season", "thumb_url": "/demo/outfit-w19.jpg" },
+      "customer": { "id": "acc-kiki", "username": "kiki.adeyemi", "avatar_url": null },
+      "designer": { "id": "des-bisi", "username": "maisonbisi", "avatar_url": null },
+      "status": "cancelled",
+      "notes": "",
+      "budget_cents": null,
+      "quote_cents": null,
+      "currency": "NGN",
+      "due_in_days": null,
+      "tracking": null,
+      "decline_reason": null,
+      "dispute": null,
+      "delivery": { "recipient_name": "Kiki Adeyemi", "phone": "+2348012345678", "line1": "14 Adeola Odeku St", "city": "Lagos", "state": "Lagos", "country": "NG" },
+      "snapshot": {
+        "method": "manual",
+        "measured_days_ago": 58,
+        "measurements": [
+          { "name": "shoulder_width", "value_cm": 42.0 },
+          { "name": "hip_width", "value_cm": 37.2 },
+          { "name": "chest_girth", "value_cm": 92.0 },
+          { "name": "waist_girth", "value_cm": 78.5 }
+        ]
+      },
+      "events": [
+        { "kind": "requested", "actor": "customer", "days_ago": 45, "time": "17:29" },
+        { "kind": "cancelled", "actor": "customer", "days_ago": 44, "time": "08:44" }
+      ],
+      "payment": null
+    }
+  ],
+  "messages": [
+    { "id": "msg-1042-1", "request_id": "req-apr-1042", "author_id": "acc-kiki", "body": "Hi Amara! Excited about this one — here's my inspiration.", "image_url": "/demo/outfit-w01.jpg", "days_ago": 8, "time": "09:31" },
+    { "id": "msg-1042-2", "request_id": "req-apr-1042", "author_id": "des-amara", "body": "Love it. Quote sent — I can have it ready two weeks after payment.", "image_url": null, "days_ago": 7, "time": "14:05" },
+    { "id": "msg-1042-3", "request_id": "req-apr-1042", "author_id": "des-amara", "body": "Fabric cut today — progress shot attached.", "image_url": "/demo/outfit-w10.jpg", "days_ago": 2, "time": "16:12" },
+    { "id": "msg-1058-1", "request_id": "req-apr-1058", "author_id": "acc-kiki", "body": "Colour scheme: royal blue and white, please — same as the post.", "image_url": null, "days_ago": 39, "time": "10:20" },
+    { "id": "msg-1058-2", "request_id": "req-apr-1058", "author_id": "des-bisi", "body": "Delivered via GIG — enjoy the wedding!", "image_url": null, "days_ago": 10, "time": "17:31" },
+    { "id": "msg-1031-1", "request_id": "req-apr-1031", "author_id": "acc-kiki", "body": "Sent the request — it's for my brother's wedding on Aug 22. Can you match the fabric in your post?", "image_url": null, "days_ago": 1, "time": "18:41" },
+    { "id": "msg-1033-1", "request_id": "req-apr-1033", "author_id": "acc-kiki", "body": "The engagement shoot is in three weeks — is that doable?", "image_url": null, "days_ago": 2.5 },
+    { "id": "msg-1033-2", "request_id": "req-apr-1033", "author_id": "des-amara", "body": "Just quoted ₦40,000 — three weeks is fine if payment lands this week.", "image_url": null, "days_ago": 0.24 },
+    { "id": "msg-1036-1", "request_id": "req-apr-1036", "author_id": "des-bisi", "body": "Payment received — sourcing the print lycra this week. Will share swatches here.", "image_url": null, "days_ago": 3.5 },
+    { "id": "msg-1044-1", "request_id": "req-apr-1044", "author_id": "des-tunde", "body": "Shipped via GIG — tracking GIG-5567-LAG. Apologies for the two-day slip, the collars took longer than planned.", "image_url": null, "days_ago": 3, "time": "16:14" },
+    { "id": "msg-1018-1", "request_id": "req-apr-1018", "author_id": "acc-kiki", "body": "The colours are quite different from the reference photos — can we talk about this?", "image_url": null, "days_ago": 2.5 },
+    { "id": "msg-1018-2", "request_id": "req-apr-1018", "author_id": "des-tunde", "body": "I see it — the dye lot shifted between samples. Happy to redo the top piece once support weighs in.", "image_url": null, "days_ago": 1.8 },
+    { "id": "msg-1012-1", "request_id": "req-apr-1012", "author_id": "des-tunde", "body": "Fully booked until September, so I have to decline — sorry! maisonbisi does beautiful work in this style.", "image_url": null, "days_ago": 29, "time": "09:41" }
+  ]
+}
