@@ -1,6 +1,5 @@
 import 'package:alchemist/alchemist.dart';
 import 'package:apparule/src/app/boot_screen.dart';
-import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/golden_themes.dart';
 import '../helpers/screen_frame.dart';

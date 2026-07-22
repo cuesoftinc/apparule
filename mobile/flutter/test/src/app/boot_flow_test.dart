@@ -169,7 +169,8 @@ class _PendingRestoreAuthRepository implements AuthRepository {
   Future<AuthSession?> restoreSession() => _restore.future;
 
   @override
-  Future<AuthSession> signInWithGoogle() async => AuthRepositoryFake.seedSession;
+  Future<AuthSession> signInWithGoogle() async =>
+      AuthRepositoryFake.seedSession;
 
   @override
   Future<void> signOut() async {}
