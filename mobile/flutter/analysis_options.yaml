@@ -10,6 +10,13 @@ plugins:
   riverpod_lint: ^3.1.4
 
 analyzer:
+  errors:
+    # The silent-failure class (interaction audit CLASS 4): a dropped
+    # future IS a dropped failure path on device — fakes never throw, so
+    # these only surface live. Error severity; deliberate fire-and-forget
+    # sites say so with an explicit `unawaited()`.
+    unawaited_futures: error
+    discarded_futures: error
   language:
     strict-casts: true
     strict-inference: true

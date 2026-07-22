@@ -59,6 +59,12 @@ class UserRow extends StatelessWidget {
   /// (MI-7: unfollow is never a blind toggle).
   final VoidCallback? onFollowingTap;
 
+  VoidCallback? get _trailingHandler => switch (trailing) {
+    UserRowTrailing.follow => onFollow,
+    UserRowTrailing.following => onFollowingTap,
+    UserRowTrailing.none => null,
+  };
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -97,7 +103,11 @@ class UserRow extends StatelessWidget {
             ],
           ),
         ),
-        if (trailing != UserRowTrailing.none) ...<Widget>[
+        // Prop-contract (CLASS 3): the trailing morph renders only when
+        // its handler exists — a Follow button that cannot follow is a
+        // dead affordance.
+        if (trailing != UserRowTrailing.none &&
+            _trailingHandler != null) ...<Widget>[
           const SizedBox(width: 12),
           Button(
             label: trailing == UserRowTrailing.follow ? 'Follow' : 'Following',
@@ -105,9 +115,7 @@ class UserRow extends StatelessWidget {
                 ? ButtonKind.gradientPrimary
                 : ButtonKind.quiet,
             size: ButtonSize.sm,
-            onPressed: trailing == UserRowTrailing.follow
-                ? onFollow
-                : onFollowingTap,
+            onPressed: _trailingHandler,
           ),
         ],
       ],

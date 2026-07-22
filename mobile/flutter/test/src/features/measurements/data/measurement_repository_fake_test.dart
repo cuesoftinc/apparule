@@ -264,6 +264,21 @@ void main() {
       expect(session.status, SessionStatus.pendingSave);
     });
   });
+
+  test('failNext arms a throw-once failure on the next mutation '
+      '(CLASS 4 seam)', () async {
+    final repo = repository()..failNext = Exception('server 500');
+
+    await expectLater(
+      repo.deleteSession('sess-scan-fresh'),
+      throwsException,
+    );
+
+    // Disarmed: the vault still holds three sessions and the retry lands.
+    expect(await repo.vaultSessions(), hasLength(3));
+    await repo.deleteSession((await repo.vaultSessions()).first.id);
+    expect(await repo.vaultSessions(), hasLength(2));
+  });
 }
 
 /// Simulates a prod bundle: every seed lookup is a missing asset.

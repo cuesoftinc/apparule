@@ -1,3 +1,4 @@
+import 'package:apparule/src/core/data/fail_next_seam.dart';
 import 'package:apparule/src/core/data/seed_json.dart';
 import 'package:apparule/src/features/profile/data/notification_repository.dart';
 import 'package:apparule/src/features/profile/domain/app_notification.dart';
@@ -9,7 +10,9 @@ import 'package:flutter/services.dart';
 /// (an account sees its `acc-*` rows; a designer additionally their
 /// `des-*` rows). Read/clear are real mutations that persist for the
 /// provider's keepAlive lifetime.
-class NotificationRepositoryFake implements NotificationRepository {
+class NotificationRepositoryFake
+    with FailNextSeam
+    implements NotificationRepository {
   /// [audienceIds] scopes the seed to a viewer — defaults to the §6 test
   /// user; tests pass `{'des-tunde'}` to walk the designer-side rows.
   NotificationRepositoryFake({
@@ -82,6 +85,7 @@ class NotificationRepositoryFake implements NotificationRepository {
   @override
   Future<void> markAllRead() async {
     await _ensureLoaded();
+    maybeFailNext();
     final now = _now();
     for (var i = 0; i < _notifications.length; i++) {
       if (_notifications[i].unread) {
@@ -93,6 +97,7 @@ class NotificationRepositoryFake implements NotificationRepository {
   @override
   Future<void> remove(String id) async {
     await _ensureLoaded();
+    maybeFailNext();
     _notifications.removeWhere((notification) => notification.id == id);
   }
 

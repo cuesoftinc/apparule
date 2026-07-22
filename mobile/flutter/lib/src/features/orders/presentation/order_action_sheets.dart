@@ -8,6 +8,7 @@ import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/sheet.dart';
+import 'package:apparule/src/core/utils/parse_amount.dart';
 import 'package:apparule/src/features/orders/domain/order.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -398,7 +399,9 @@ class _QuoteFormState extends State<_QuoteForm> {
     final theme = Theme.of(context);
     final colors = theme.extension<AppColors>()!;
     final typography = theme.extension<AppTypography>()!;
-    final naira = int.tryParse(_price.text.trim());
+    // CLASS 8/D05: the shared parser — the sheet's own "45,000" hint
+    // format must never disable the CTA.
+    final kobo = parseAmountMinor(_price.text);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -430,9 +433,9 @@ class _QuoteFormState extends State<_QuoteForm> {
         Button(
           label: l10n.quoteSubmit,
           expand: true,
-          onPressed: naira == null || naira <= 0
+          onPressed: kobo == null || kobo <= 0
               ? null
-              : () => Navigator.of(context).pop((naira * 100, _dueAt)),
+              : () => Navigator.of(context).pop((kobo, _dueAt)),
         ),
         const SizedBox(height: 12),
         Text(

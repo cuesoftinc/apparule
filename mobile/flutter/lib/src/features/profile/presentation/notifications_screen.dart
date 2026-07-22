@@ -13,6 +13,7 @@ import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/core/utils/seed_media.dart';
 import 'package:apparule/src/features/profile/domain/app_notification.dart';
 import 'package:apparule/src/features/profile/presentation/follow_list_view_model.dart';
+import 'package:apparule/src/features/profile/presentation/notification_route.dart';
 import 'package:apparule/src/features/profile/presentation/notifications_view_model.dart';
 import 'package:apparule/src/features/profile/presentation/unfollow_confirm_sheet.dart';
 import 'package:apparule/src/routing/routes.dart';
@@ -178,22 +179,9 @@ class _NotificationRow extends ConsumerWidget {
   final DateTime now;
 
   void _open(BuildContext context) {
-    if (notification.kind.isOrderKind) {
-      unawaited(
-        OrderDetailRoute(id: notification.payloadRef).push<void>(context),
-      );
-    } else if (notification.kind == NotificationKind.follow) {
-      // Follow rows link to the follower's C9 profile.
-      unawaited(
-        PublicProfileRoute(
-          username: notification.actorUsername,
-        ).push<void>(context),
-      );
-    } else if (notification.payloadRef.startsWith('post-')) {
-      unawaited(
-        PostDetailRoute(id: notification.payloadRef).push<void>(context),
-      );
-    }
+    // CLASS 7: one exhaustive kind→route mapping — payout can never
+    // silently ride a grouping getter into OrderDetail again (D21).
+    unawaited(notificationRoute(notification).push<void>(context));
   }
 
   @override

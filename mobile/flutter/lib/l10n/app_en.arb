@@ -1,6 +1,10 @@
 {
   "@@locale": "en",
   "appTitle": "Apparule",
+  "actionFailedToast": "Something went wrong — try again.",
+  "@actionFailedToast": {
+    "description": "runAction's default failure SnackBar (CLASS 4 lock): shown after a mutation fails and rolls back; the user's input is preserved."
+  },
   "tabHome": "Home",
   "tabExplore": "Explore",
   "tabOrders": "Orders",
