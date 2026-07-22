@@ -423,5 +423,250 @@
   "quotePriceLabel": "Price (NGN)",
   "quoteDueLabel": "Delivery date",
   "quoteSubmit": "Send quote",
-  "quoteFooter": "You receive the quote minus the 10% platform fee once the customer confirms delivery."
+  "quoteFooter": "You receive the quote minus the 10% platform fee once the customer confirms delivery.",
+  "profileNotifications": "Notifications",
+  "@profileNotifications": {
+    "description": "C9 app-bar bell tooltip — C10's profile-tab entry (mobile-implementation.md §3)."
+  },
+  "profileSignedOut": "Signed out",
+  "@profileSignedOut": {
+    "description": "Unreachable-by-design fallback: the router redirect owns the signed-out case."
+  },
+  "profileVaultPrivate": "vault is private",
+  "@profileVaultPrivate": {
+    "description": "C9 own meta-line tail (canvas 174:964) — APP-005: measurements are never public."
+  },
+  "profileVaultRing": "Open your measurement vault",
+  "@profileVaultRing": {
+    "description": "Semantic label on the MI-11 ringed header avatar — the C7 entry (pages.md C7)."
+  },
+  "profilePosts": "posts",
+  "profileFollowers": "followers",
+  "profileFollowingLabel": "following",
+  "profileEditProfile": "Edit profile",
+  "profileMeasurementVault": "Measurement vault",
+  "profileTabPosts": "Posts",
+  "@profileTabPosts": {
+    "description": "Semantic label for the C9 grid tab when a designer side exists."
+  },
+  "profileTabLiked": "Liked outfits",
+  "@profileTabLiked": {
+    "description": "Semantic label for the C9 grid tab on a regular account (pages.md C9: grid of liked/saved)."
+  },
+  "profileTabSaved": "Saved looks",
+  "profileLikedEmpty": "Outfits you like will collect here.",
+  "profilePostsEmpty": "Publish your first outfit and it will show here.",
+  "profileSavedEmpty": "Save outfits you love and they'll collect here.",
+  "@profileSavedEmpty": {
+    "description": "Web ProfileView saved-tab empty copy, verbatim."
+  },
+  "profileNotFound": "@{username} doesn't exist (or isn't visible).",
+  "@profileNotFound": {
+    "description": "C9 public profile miss — web ProfileView copy.",
+    "placeholders": {
+      "username": { "type": "String" }
+    }
+  },
+  "profileMeasurementsPrivate": "Measurements are private — shared only inside a request.",
+  "@profileMeasurementsPrivate": {
+    "description": "Regular-user profile lock line (web ProfileView; APP-005 story)."
+  },
+  "profileRequestOutfit": "Request an outfit",
+  "unfollowTitle": "Unfollow?",
+  "unfollowBody": "Their new outfits will stop showing in your feed.",
+  "unfollowConfirm": "Unfollow @{username}",
+  "@unfollowConfirm": {
+    "placeholders": {
+      "username": { "type": "String" }
+    }
+  },
+  "unfollowCancel": "Cancel",
+  "followListFollowersTab": "{count} followers",
+  "@followListFollowersTab": {
+    "description": "C12 tab title (canvas 205:7203).",
+    "placeholders": {
+      "count": { "type": "String" }
+    }
+  },
+  "followListFollowingTab": "{count} following",
+  "@followListFollowingTab": {
+    "placeholders": {
+      "count": { "type": "String" }
+    }
+  },
+  "followListNoFollowers": "No followers yet.",
+  "followListNoFollowing": "Not following anyone.",
+  "followListDesignerMeta": "{displayName} · designer",
+  "@followListDesignerMeta": {
+    "description": "C12 row meta for designer accounts (canvas 205:7203).",
+    "placeholders": {
+      "displayName": { "type": "String" }
+    }
+  },
+  "editProfileDisplayName": "Display name",
+  "editProfileDisplayNameHelper": "Shown on your posts and profile",
+  "editProfileBio": "Bio",
+  "editProfileBioHint": "A line about your style",
+  "editProfileBioHelper": "Appears under your name on your profile",
+  "editProfileCity": "City",
+  "editProfileState": "State",
+  "editProfileLocationHelper": "Optional — used to recommend nearby designers.",
+  "@editProfileLocationHelper": {
+    "description": "X-10 tier-1 explainer, pages.md B7 verbatim."
+  },
+  "editProfileSave": "Save changes",
+  "settingsTitle": "Settings",
+  "settingsDeletionPendingBanner": "Account deletion requested — your data will be removed after the 30-day grace period.",
+  "@settingsDeletionPendingBanner": {
+    "description": "Web SettingsView banner copy, verbatim."
+  },
+  "settingsAccountSection": "Account",
+  "settingsGoogleIdentity": "{email} (Google)",
+  "@settingsGoogleIdentity": {
+    "description": "X-1: Google is the only identity — the email renders as fact, not editable.",
+    "placeholders": {
+      "email": { "type": "String" }
+    }
+  },
+  "settingsCreatorSection": "Creator profile",
+  "settingsBecomeDesigner": "Become a designer",
+  "settingsBecomeDesignerMeta": "Post outfits, get commissioned, get paid",
+  "settingsDesignerActive": "Designer profile active",
+  "settingsPayoutVerifiedMeta": "Payouts verified with Paystack",
+  "settingsPayoutLapsedMeta": "Payout verification lapsed — re-verify",
+  "settingsPayoutPendingMeta": "Finish verification to accept requests",
+  "settingsEarningsMeta": "Balance, escrow, payout history",
+  "settingsAppearanceSection": "Appearance & language",
+  "settingsTheme": "Theme",
+  "settingsThemeSystem": "System",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
+  "settingsLanguage": "Language",
+  "settingsLanguageEnglish": "English",
+  "settingsNotificationsRow": "Notifications",
+  "settingsNotificationsRowMeta": "Quotes, order status, social, payouts",
+  "settingsPrivacyRow": "Privacy & consent",
+  "settingsPrivacyRowMeta": "Consent history, capture-data retention",
+  "settingsAccountDataRow": "Account & data",
+  "settingsAccountDataRowMeta": "Download my data · Delete all",
+  "notifPrefQuotesOrderStatus": "Quotes & order status",
+  "notifPrefNewRequests": "New requests (designers)",
+  "notifPrefLikesComments": "Likes & comments",
+  "notifPrefNewFollowers": "New followers",
+  "notifPrefFreshOutfits": "Fresh outfits from people you follow",
+  "notifPrefFreshnessReminders": "Measurement freshness reminders",
+  "notifPrefEmailDigest": "Email digest",
+  "notifPrefAlwaysSent": "Payment receipts and delivery confirmations are always sent.",
+  "@notifPrefAlwaysSent": {
+    "description": "B7-mobile Notifications footer (canvas 207:2) — no toggle by design."
+  },
+  "privacyAiSection": "AI processing",
+  "privacyAiToggle": "Process my photos to estimate measurements",
+  "privacyAiHelper": "Required for camera capture. Manual entry stays available if you turn this off.",
+  "privacyRetentionSection": "Photo retention",
+  "privacyRetentionBody": "Capture photos are deleted automatically 30 days after a session is saved. Your measurements are kept until you delete them.",
+  "@privacyRetentionBody": {
+    "description": "data-model.md §4 retention story (canvas 207:7155 verbatim)."
+  },
+  "privacyNearbyToggle": "Use my city for nearby recommendations",
+  "privacyNearbyHelper": "Used only to recommend nearby designers — never shown on your posts.",
+  "privacyConsentSection": "Consent history",
+  "privacyConsentLine": "{document} — accepted {date}",
+  "@privacyConsentLine": {
+    "placeholders": {
+      "document": { "type": "String" },
+      "date": { "type": "String" }
+    }
+  },
+  "privacyConsentTos": "Terms of service",
+  "privacyConsentPrivacy": "Privacy policy",
+  "privacyReadPolicy": "Read the privacy policy →",
+  "accountDataSignedInWithGoogle": "Signed in with Google",
+  "accountDataYourData": "Your data",
+  "accountDataDownload": "Download my data",
+  "accountDataDownloadHelper": "Measurements, sessions, posts and orders as JSON — we'll email a link within 24 hours.",
+  "accountDataExportQueued": "Export requested — we'll email a link within 24 hours.",
+  "accountDataDangerZone": "Danger zone",
+  "accountDataDelete": "Delete account & all data",
+  "accountDataDeleteHelper": "Removes your measurements, photos, posts and order history. Open orders must finish or cancel first.",
+  "accountDataDeletionRequested": "Deletion requested",
+  "accountDataLogOut": "Log out",
+  "deleteSheetTitle": "Delete your account?",
+  "deleteSheetBody": "This permanently removes your measurements, capture photos, posts, comments and order history. There is no undo. Type DELETE to confirm.",
+  "@deleteSheetBody": {
+    "description": "The typed-confirm rung of the danger ladder (canvas 207:7204 verbatim)."
+  },
+  "deleteSheetTypeDelete": "DELETE",
+  "deleteSheetConfirm": "Permanently delete everything",
+  "deleteSheetExportFirst": "Export everything first",
+  "@deleteSheetExportFirst": {
+    "description": "The export escape hatch inside the delete sheet — rights-first (data-model.md §4)."
+  },
+  "deleteSheetCancel": "Cancel",
+  "designerOnboardingTitle": "Become a designer",
+  "designerOnboardingHeadline": "Post outfits. Get commissioned. Get paid.",
+  "designerOnboardingBulletFeed": "Your work in a feed customers browse daily",
+  "designerOnboardingBulletRequests": "Requests arrive with measurements attached",
+  "designerOnboardingBulletPayouts": "Escrow payouts straight to your bank",
+  "designerOnboardingUsername": "Username",
+  "designerOnboardingUsernameHelper": "Your page: apparule.cuesoft.io/{username}",
+  "@designerOnboardingUsernameHelper": {
+    "placeholders": {
+      "username": { "type": "String" }
+    }
+  },
+  "designerOnboardingDisplayName": "Display name",
+  "designerOnboardingDisplayNameHelper": "Shown on your posts and profile",
+  "designerOnboardingBio": "Bio",
+  "designerOnboardingBioHint": "Ankara & aso-oke, made to measure",
+  "designerOnboardingBioHelper": "A line about what you sew",
+  "designerOnboardingCreate": "Create designer profile",
+  "designerOnboardingFooter": "Post right away — add banking details when you're ready to accept requests.",
+  "payoutTitle": "Payout account",
+  "payoutIntro": "Requests pay out to this account. We confirm it with your bank through Paystack.",
+  "payoutBankLabel": "Bank",
+  "payoutBankHint": "Select your bank",
+  "payoutAccountNumberLabel": "Account number",
+  "payoutAccountNumberHint": "0123456789",
+  "payoutResolving": "Checking with your bank…",
+  "payoutResolvedHelper": "Account name matches your profile",
+  "payoutSave": "Save payout account",
+  "payoutFailedTitle": "We couldn't verify that account",
+  "payoutFailedHelper": "Check the bank and account number, then try again.",
+  "payoutRetry": "Retry verification",
+  "payoutContactSupport": "Still stuck after a few tries? Contact support",
+  "payoutFooter": "Verification is handled by Paystack. Apparule never stores your BVN.",
+  "payoutSavedToast": "Payout account saved",
+  "payoutStateVerified": "Verified",
+  "payoutStateLapsed": "Lapsed",
+  "payoutStatePending": "Pending",
+  "kycLapsedBanner": "Your payout details lapsed — re-verify to keep receiving payments.",
+  "@kycLapsedBanner": {
+    "description": "The C13 KYC-lapse banner (canvas 205:6614 verbatim): posts stop accepting requests, payouts queue until re-verification."
+  },
+  "kycLapsedReverify": "Re-verify",
+  "earningsExplainer": "Balance is released payouts. Pending is escrow held on open orders — it releases when delivery is confirmed.",
+  "@earningsExplainer": {
+    "description": "Web EarningsView explainer, verbatim."
+  },
+  "earningsRecentActivity": "Recent activity",
+  "earningsBecomeDesignerLine": "Earnings are for designer profiles — become a designer to start earning.",
+  "earningsChangeAccount": "Change →",
+  "earningsAddAccount": "Add account →",
+  "earningsNoAccount": "No payout account yet — requests stay locked until one is verified.",
+  "earningsEmptyLedger": "Payouts and escrow holds will itemize here — publish outfits to get commissioned.",
+  "earningsEmptyLedgerCta": "Create a post",
+  "earningsProcessing": "Processing",
+  "@earningsProcessing": {
+    "description": "Ledger meta for a just-requested payout — pending until the provider settles."
+  },
+  "earningsRequestPayoutTitle": "Request payout",
+  "earningsRequestPayoutBody": "Move {amount} to your bank account now? Standard payouts release automatically when deliveries confirm.",
+  "@earningsRequestPayoutBody": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "earningsRequestPayoutConfirm": "Request payout",
+  "earningsRequestPayoutCancel": "Cancel"
 }

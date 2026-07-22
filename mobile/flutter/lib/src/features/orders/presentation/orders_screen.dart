@@ -1,12 +1,15 @@
 import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/app_bar.dart';
+import 'package:apparule/src/core/ui/banner.dart';
 import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/empty_state.dart';
 import 'package:apparule/src/core/ui/skeleton.dart';
 import 'package:apparule/src/core/ui/status_pill.dart';
 import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/core/utils/seed_media.dart';
+import 'package:apparule/src/features/earnings/domain/payout.dart';
+import 'package:apparule/src/features/earnings/presentation/earnings_view_model.dart';
 import 'package:apparule/src/features/orders/domain/order.dart';
 import 'package:apparule/src/features/orders/presentation/orders_view_model.dart';
 import 'package:apparule/src/routing/routes.dart';
@@ -95,6 +98,7 @@ class _OrdersBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     // Role tabs render only when a designer side exists (pages.md B3:
     // "designer tab only when creator profile enabled" — the seeded §6
     // user is customer-only, so she sees the plain list).
@@ -105,9 +109,23 @@ class _OrdersBody extends ConsumerWidget {
       for (final order in orders)
         if (!hasDesignerSide || order.viewerRole == role) order,
     ];
+    // The C13 KYC-lapse banner (canvas 205:6614): persistent until the
+    // payout account re-verifies — posts stop accepting requests and
+    // payouts queue meanwhile (pages.md B8).
+    final kycLapsed =
+        hasDesignerSide &&
+        ref.watch(designerStatusProvider).value?.payoutAccount?.kycState ==
+            KycState.lapsed;
 
     return Column(
       children: <Widget>[
+        if (kycLapsed)
+          AppBanner(
+            tone: BannerTone.warn,
+            message: l10n.kycLapsedBanner,
+            actionLabel: l10n.kycLapsedReverify,
+            onAction: () => const PayoutAccountRoute().push<void>(context),
+          ),
         if (hasDesignerSide) _RoleTabs(role: role, onRole: onRole),
         Expanded(
           child: visible.isEmpty
