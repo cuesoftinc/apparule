@@ -15,13 +15,6 @@ name: mobile-goldens
 
 on:
   workflow_dispatch:
-  # Bootstrap trigger — workflow_dispatch only registers once this file
-  # reaches the default branch, so the component-wave branch self-runs
-  # once to produce the first Linux-authored golden set. Removed when the
-  # artifact is committed.
-  push:
-    branches: [feat/mobile-components]
-    paths: ['.github/workflows/mobile-goldens.yml']
 
 permissions:
   contents: read
