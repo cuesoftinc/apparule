@@ -1,0 +1,57 @@
+{
+  "_comment": "§6 designer cast — the four Nigerian designer personas verbatim from the web mock seed (web/src/mocks/seed.ts seedDesigners), incl. eniola.stitches (Abuja) — the non-Lagos contrast that makes explore's near-me proximity ranking visible. Avatars follow the web audit rule: each designer fronts their OWN published work (initials-only reads as broken beside the canvas); media URLs use the web /demo/* form and resolve to assets/seed/dev/demo/*.",
+  "designers": [
+    {
+      "id": "des-amara",
+      "account_id": "acc-amara",
+      "username": "amara.designs",
+      "display_name": "Amara Designs",
+      "bio": "Ankara & contemporary tailoring. Lagos. Made-to-measure only.",
+      "avatar_url": null,
+      "verified": true,
+      "location": { "city": "Lagos", "state": "Lagos", "country": "NG" },
+      "followers_count": 8,
+      "following_count": 2,
+      "posts_count": 3
+    },
+    {
+      "id": "des-tunde",
+      "account_id": "acc-tunde",
+      "username": "tunde.o",
+      "display_name": "Tunde Okonkwo",
+      "bio": "Agbada, senator suits, and sharp menswear.",
+      "avatar_url": "/demo/outfit-w15.jpg",
+      "verified": true,
+      "location": { "city": "Lagos", "state": "Lagos", "country": "NG" },
+      "followers_count": 4,
+      "following_count": 1,
+      "posts_count": 3
+    },
+    {
+      "id": "des-bisi",
+      "account_id": "acc-bisi",
+      "username": "maisonbisi",
+      "display_name": "Maison Bisi",
+      "bio": "Aso-oke ceremonial wear — weddings, chieftaincy, statement pieces.",
+      "avatar_url": null,
+      "verified": true,
+      "location": { "city": "Lagos", "state": "Lagos", "country": "NG" },
+      "followers_count": 6,
+      "following_count": 1,
+      "posts_count": 4
+    },
+    {
+      "id": "des-eniola",
+      "account_id": "acc-eniola",
+      "username": "eniola.stitches",
+      "display_name": "Eniola Stitches",
+      "bio": "Bespoke womenswear from the Abuja atelier — corporate and occasion.",
+      "avatar_url": "/demo/outfit-w18.jpg",
+      "verified": true,
+      "location": { "city": "Abuja", "state": "FCT", "country": "NG" },
+      "followers_count": 1,
+      "following_count": 1,
+      "posts_count": 1
+    }
+  ]
+}

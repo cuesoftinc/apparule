@@ -2,7 +2,10 @@ import 'package:apparule/l10n/generated/app_localizations.dart';
 import 'package:apparule/src/app/di.dart';
 import 'package:apparule/src/core/theme/app_theme.dart';
 import 'package:apparule/src/features/auth/data/auth_repository.dart';
+import 'package:apparule/src/features/feed/data/post_repository.dart';
 import 'package:apparule/src/features/measurements/data/camera_service.dart';
+import 'package:apparule/src/features/orders/data/order_repository.dart';
+import 'package:apparule/src/features/profile/data/notification_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,13 +17,19 @@ import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 ///
 /// [authRepository] swaps the auth fake (seeded / recording / throwing)
 /// and [cameraService] the camera fake (permission-denied / recording)
-/// without duplicating their provider overrides.
+/// without duplicating their provider overrides;
+/// [postRepository]/[orderRepository]/[notificationRepository] likewise
+/// swap the feed/orders wave's fakes (pinned clock, empty bundle,
+/// role-switched viewer).
 extension PumpApp on WidgetTester {
   Future<void> pumpApp(
     Widget widget, {
     List<Override> overrides = const <Override>[],
     AuthRepository? authRepository,
     CameraService? cameraService,
+    PostRepository? postRepository,
+    OrderRepository? orderRepository,
+    NotificationRepository? notificationRepository,
     ThemeMode themeMode = ThemeMode.light,
   }) {
     return pumpWidget(
@@ -29,6 +38,9 @@ extension PumpApp on WidgetTester {
           ...fakeRepositoryOverrides(
             authRepository: authRepository,
             cameraService: cameraService,
+            postRepository: postRepository,
+            orderRepository: orderRepository,
+            notificationRepository: notificationRepository,
           ),
           ...overrides,
         ],

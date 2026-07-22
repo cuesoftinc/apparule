@@ -13,6 +13,8 @@ import 'package:apparule/src/features/measurements/data/measurement_repository.d
 import 'package:apparule/src/features/measurements/data/measurement_repository_fake.dart';
 import 'package:apparule/src/features/orders/data/order_repository.dart';
 import 'package:apparule/src/features/orders/data/order_repository_fake.dart';
+import 'package:apparule/src/features/profile/data/notification_repository.dart';
+import 'package:apparule/src/features/profile/data/notification_repository_fake.dart';
 import 'package:apparule/src/features/profile/data/profile_repository.dart';
 import 'package:apparule/src/features/profile/data/profile_repository_fake.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -48,11 +50,17 @@ AppFlavor appFlavor(Ref ref) => throw UnimplementedError(
 /// while its measurements still ride this fake set (a provider must not
 /// be overridden twice in one scope, hence the parameter rather than a
 /// second override). [measurementRepository] likewise lets tests seed the
-/// measurement fake differently (empty vault, zero processing delay).
+/// measurement fake differently (empty vault, zero processing delay);
+/// [postRepository]/[orderRepository]/[notificationRepository] let tests
+/// pin the fake's clock, empty its bundle, or switch the seeded viewer
+/// role (the feed/orders wave's seams).
 List<Override> fakeRepositoryOverrides({
   AuthRepository? authRepository,
   CameraService? cameraService,
   MeasurementRepository? measurementRepository,
+  PostRepository? postRepository,
+  OrderRepository? orderRepository,
+  NotificationRepository? notificationRepository,
 }) => <Override>[
   authRepositoryProvider.overrideWith(
     (ref) => authRepository ?? AuthRepositoryFake(),
@@ -60,11 +68,18 @@ List<Override> fakeRepositoryOverrides({
   cameraServiceProvider.overrideWith(
     (ref) => cameraService ?? CameraServiceFake(),
   ),
-  postRepositoryProvider.overrideWith((ref) => PostRepositoryFake()),
+  postRepositoryProvider.overrideWith(
+    (ref) => postRepository ?? PostRepositoryFake(),
+  ),
   measurementRepositoryProvider.overrideWith(
     (ref) => measurementRepository ?? MeasurementRepositoryFake(),
   ),
-  orderRepositoryProvider.overrideWith((ref) => OrderRepositoryFake()),
+  orderRepositoryProvider.overrideWith(
+    (ref) => orderRepository ?? OrderRepositoryFake(),
+  ),
+  notificationRepositoryProvider.overrideWith(
+    (ref) => notificationRepository ?? NotificationRepositoryFake(),
+  ),
   profileRepositoryProvider.overrideWith(
     (ref) => ProfileRepositoryFake(),
   ),

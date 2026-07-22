@@ -8,18 +8,18 @@ part of 'orders_view_model.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// C8 placeholder ViewModel — watches the abstract order repository;
-/// flavor overrides supply the fake.
+/// C8's list ViewModel — the viewer's orders, both roles, newest
+/// activity first (the fake orders by last event).
 
 @ProviderFor(OrdersViewModel)
 final ordersViewModelProvider = OrdersViewModelProvider._();
 
-/// C8 placeholder ViewModel — watches the abstract order repository;
-/// flavor overrides supply the fake.
+/// C8's list ViewModel — the viewer's orders, both roles, newest
+/// activity first (the fake orders by last event).
 final class OrdersViewModelProvider
     extends $AsyncNotifierProvider<OrdersViewModel, List<Order>> {
-  /// C8 placeholder ViewModel — watches the abstract order repository;
-  /// flavor overrides supply the fake.
+  /// C8's list ViewModel — the viewer's orders, both roles, newest
+  /// activity first (the fake orders by last event).
   OrdersViewModelProvider._()
     : super(
         from: null,
@@ -39,10 +39,10 @@ final class OrdersViewModelProvider
   OrdersViewModel create() => OrdersViewModel();
 }
 
-String _$ordersViewModelHash() => r'caef7f92d330533af59dca523577d5a67c1c6a03';
+String _$ordersViewModelHash() => r'6401e5e93e6a868f7185efc404d09c814554b816';
 
-/// C8 placeholder ViewModel — watches the abstract order repository;
-/// flavor overrides supply the fake.
+/// C8's list ViewModel — the viewer's orders, both roles, newest
+/// activity first (the fake orders by last event).
 
 abstract class _$OrdersViewModel extends $AsyncNotifier<List<Order>> {
   FutureOr<List<Order>> build();

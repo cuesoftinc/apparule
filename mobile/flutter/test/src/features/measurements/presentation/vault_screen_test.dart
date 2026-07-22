@@ -35,9 +35,7 @@ void main() {
 
   testWidgets('lists the seeded §6 sessions with values, confidences and '
       'freshness labels', (tester) async {
-    // Tall surface: the ListView virtualizes below the default 600px
-    // (default width kept — narrower widths trip a pre-existing
-    // placeholder-screen overflow during boot, outside this wave).
+    // Tall surface: the ListView virtualizes below the default 600px.
     tester.view.physicalSize = const Size(800, 1700);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);

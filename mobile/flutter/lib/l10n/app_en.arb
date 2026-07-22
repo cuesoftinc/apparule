@@ -147,5 +147,281 @@
   "placeholderBody": "Placeholder screen — the real surface lands with its feature wave.",
   "@placeholderBody": {
     "description": "Body copy shown on every skeleton-wave placeholder screen."
-  }
+  },
+  "feedNotificationsLabel": "Notifications",
+  "@feedNotificationsLabel": {
+    "description": "C2 top-bar bell semantics label (icon-only control) → C10."
+  },
+  "feedMessagesLabel": "Messages",
+  "@feedMessagesLabel": {
+    "description": "C2 top-bar send-plane semantics label — order threads are the only messaging surface (SOC-010: full DMs are Later), so it lands on the Orders tab."
+  },
+  "feedStoriesLabel": "Fresh outfits",
+  "@feedStoriesLabel": {
+    "description": "C2 story-rail section semantics (MI-8; web aria-label parity)."
+  },
+  "feedShareCopied": "Link copied",
+  "@feedShareCopied": {
+    "description": "MI-9 share confirmation after the post permalink lands on the clipboard."
+  },
+  "feedErrorLine": "The feed couldn't load — try again.",
+  "feedRetry": "Retry",
+  "exploreSearchHint": "Search designers, styles, tags...",
+  "exploreNearMe": "Near me",
+  "@exploreNearMe": {
+    "description": "C3 proximity re-rank chip (pages.md B2: ranking, not a hard filter)."
+  },
+  "exploreDesignersSection": "Designers",
+  "exploreOutfitsSection": "Outfits · {count} results",
+  "@exploreOutfitsSection": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "exploreFollow": "Follow",
+  "exploreFollowing": "Following",
+  "exploreNoResults": "No results for \"{query}\"",
+  "@exploreNoResults": {
+    "placeholders": {
+      "query": { "type": "String" }
+    }
+  },
+  "exploreClearSearch": "Clear search",
+  "exploreNoFilterResults": "Nothing matches that filter",
+  "exploreNoDesigners": "No designers match \"{query}\"",
+  "@exploreNoDesigners": {
+    "placeholders": {
+      "query": { "type": "String" }
+    }
+  },
+  "postDetailTitle": "Post",
+  "postRequestCta": "Request this outfit",
+  "@postRequestCta": {
+    "description": "C4 pinned bottom CTA → the C5 stepper (same copy as the PostCard module's cta axis)."
+  },
+  "postAddComment": "Add a comment...",
+  "commentsTitle": "Comments · {count}",
+  "@commentsTitle": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "commentsLikeLabel": "Like comment",
+  "commentsUnlikeLabel": "Unlike comment",
+  "commentsLikeCount": "{count} likes",
+  "@commentsLikeCount": {
+    "description": "Comment meta segment; the count renders per the social idiom (1 like reads '1 likes' on web too — parity over grammar until the shared copy pass).",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "commentsReply": "Reply",
+  "commentsSendLabel": "Post comment",
+  "@commentsSendLabel": {
+    "description": "C11 composer send semantics label (icon-only control)."
+  },
+  "notificationsTitle": "Notifications",
+  "notificationsToday": "Today",
+  "notificationsYesterday": "Yesterday",
+  "notificationsEarlier": "Earlier",
+  "@notificationsEarlier": {
+    "description": "C10 day-group header for rows older than yesterday."
+  },
+  "notificationsClearLabel": "Clear notification",
+  "@notificationsClearLabel": {
+    "description": "C10 swipe-to-clear semantics label."
+  },
+  "requestStepTitle": "New request · {step} of {total}",
+  "@requestStepTitle": {
+    "description": "C5 stepper top-bar title.",
+    "placeholders": {
+      "step": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "requestStep1Heading": "Pick a measurement snapshot",
+  "requestSnapshotMeta": "{count} measurements · {preview}",
+  "@requestSnapshotMeta": {
+    "description": "C5 snapshot-row meta line, e.g. '2 measurements · shoulder 42.5 · hip 36.8'.",
+    "placeholders": {
+      "count": { "type": "int" },
+      "preview": { "type": "String" }
+    }
+  },
+  "requestStaleWarning": "This snapshot is over 90 days old — a fresh scan gives a better fit.",
+  "@requestStaleWarning": {
+    "description": "C5 step-1 freshness warning (Banner warn) on selecting a stale snapshot."
+  },
+  "requestSnapshotFrozen": "The values you pick are frozen into the order — later vault changes never touch it.",
+  "@requestSnapshotFrozen": {
+    "description": "C5 step-1 footer explainer (order-lifecycle.md §1 snapshot freeze)."
+  },
+  "requestEmptyVaultLine": "You need a measurement session before requesting — take your first scan.",
+  "@requestEmptyVaultLine": {
+    "description": "C5 step-1 empty-vault line; the CTA routes into C6."
+  },
+  "requestContinue": "Continue",
+  "requestNotesLabel": "Notes for the designer",
+  "requestNotesHint": "Notes for the designer...",
+  "requestBudgetLabel": "Budget",
+  "requestNeedByLabel": "Need it by",
+  "requestNeedByHint": "Optional",
+  "requestDeliveryHeading": "Delivery — pre-filled from your last order",
+  "@requestDeliveryHeading": {
+    "description": "C5 step-2 delivery section (data-model.md §6.3: no saved address book in v1)."
+  },
+  "requestAddressLine1": "Address line 1",
+  "requestCity": "City",
+  "requestState": "State",
+  "requestCountry": "Country",
+  "requestPhone": "Phone",
+  "requestDeliveryFooter": "Saved with this order — address changes never touch past orders.",
+  "requestStep3Heading": "Review your request",
+  "requestReviewOutfit": "Outfit",
+  "requestReviewSnapshot": "Snapshot",
+  "requestReviewDelivery": "Delivery",
+  "requestReviewNeedBy": "Need by",
+  "requestReviewNotes": "Notes",
+  "requestReviewBudget": "Budget · {amount}",
+  "@requestReviewBudget": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "requestBudgetExplainer": "Optional — the designer quotes after reviewing your request",
+  "requestOutfitByDesigner": "{caption} — {designer}",
+  "@requestOutfitByDesigner": {
+    "description": "C5 review 'Outfit' row value.",
+    "placeholders": {
+      "caption": { "type": "String" },
+      "designer": { "type": "String" }
+    }
+  },
+  "requestSnapshotSummary": "{date} {method} · {count} measurements",
+  "@requestSnapshotSummary": {
+    "description": "C5 review 'Snapshot' row value, e.g. 'Jul 12 scan · 2 measurements'.",
+    "placeholders": {
+      "date": { "type": "String" },
+      "method": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
+  "requestSubmit": "Submit request",
+  "requestSuccessTitle": "Request sent",
+  "requestSuccessBody": "{designer} usually replies with a quote within a day. We'll notify you the moment it lands.",
+  "@requestSuccessBody": {
+    "placeholders": {
+      "designer": { "type": "String" }
+    }
+  },
+  "requestViewOrder": "View order",
+  "requestBackToFeed": "Back to feed",
+  "ordersAsCustomer": "As customer",
+  "ordersAsDesigner": "As designer",
+  "ordersDesignerLine": "Designer · {name}",
+  "@ordersDesignerLine": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "ordersCustomerLine": "Customer · {name}",
+  "@ordersCustomerLine": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "ordersPayCta": "Pay {amount}",
+  "@ordersPayCta": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "ordersConfirmDelivery": "Confirm delivery",
+  "ordersViewOrder": "View order",
+  "ordersViewUpdates": "View updates",
+  "ordersSendQuote": "Send quote",
+  "orderSnapshotHeading": "Measurement snapshot",
+  "orderSnapshotFrozen": "Frozen {date} — vault changes never modify an order.",
+  "@orderSnapshotFrozen": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "orderSomethingWrong": "Something wrong?",
+  "@orderSomethingWrong": {
+    "description": "C8 dispute entry link (paid/in_progress/shipped, order-lifecycle.md §1 dispute window)."
+  },
+  "orderWithdraw": "Withdraw request",
+  "@orderWithdraw": {
+    "description": "Customer cancel action (requested/quoted) — quiet-danger rung of the danger ladder."
+  },
+  "orderStartWork": "Start work",
+  "orderMarkShipped": "Mark shipped",
+  "orderThreadHint": "Message {username}...",
+  "@orderThreadHint": {
+    "placeholders": {
+      "username": { "type": "String" }
+    }
+  },
+  "orderThreadSendLabel": "Send message",
+  "timelineRequested": "Requested",
+  "timelineQuoted": "Quote sent · {amount}",
+  "@timelineQuoted": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "timelineQuotedPending": "Quote sent",
+  "@timelineQuotedPending": {
+    "description": "Timeline label for the not-yet-reached quoted step."
+  },
+  "timelinePaid": "Payment held in escrow",
+  "timelineInProgress": "In progress — work started",
+  "timelineShipped": "Shipped",
+  "timelineShippedTracking": "Shipped · {tracking}",
+  "@timelineShippedTracking": {
+    "placeholders": {
+      "tracking": { "type": "String" }
+    }
+  },
+  "timelineDelivered": "Delivered",
+  "timelineDisputed": "Dispute opened",
+  "timelineDeclined": "Declined",
+  "timelineRefunded": "Refunded",
+  "timelineCancelled": "Cancelled",
+  "timelinePending": "Pending",
+  "disputeTitle": "Something wrong?",
+  "disputeReasonLabel": "What happened?",
+  "disputeDetailLabel": "Tell us more",
+  "disputeDetailCounter": "{count}/500",
+  "@disputeDetailCounter": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "disputeEvidenceLabel": "Evidence (photos)",
+  "disputeEvidenceDrop": "Drag photos here or browse",
+  "disputeEvidenceMeta": "Up to 10 photos · JPEG/PNG/WebP · 10 MB each",
+  "disputeSubmit": "Open dispute",
+  "disputeFooter": "Payout is frozen while we review. For size disputes, the measurement snapshot from this order is attached automatically.",
+  "disputeReasonNotReceived": "Never arrived",
+  "disputeReasonNotAsDescribed": "Not as described",
+  "disputeReasonSizeWrong": "Size doesn't fit",
+  "disputeReasonOther": "Something else",
+  "declineTitle": "Decline this request",
+  "declineReasonLabel": "Reason",
+  "declineNoteLabel": "Add a note (optional)",
+  "declineNoteHint": "Thanks for the interest — I can't take this on before your date.",
+  "declineSubmit": "Decline request",
+  "declineFooter": "The customer is notified right away, and their measurement snapshot is removed from your view.",
+  "declineReasonWorkload": "Fully booked this month",
+  "declineReasonOutOfSpecialty": "Outside my specialty",
+  "declineReasonBudgetTooLow": "Budget too low",
+  "declineReasonTimelineTooTight": "Timeline too tight",
+  "declineReasonOther": "Something else",
+  "quoteSheetTitle": "Send a quote",
+  "quotePriceLabel": "Price (NGN)",
+  "quoteDueLabel": "Delivery date",
+  "quoteSubmit": "Send quote",
+  "quoteFooter": "You receive the quote minus the 10% platform fee once the customer confirms delivery."
 }

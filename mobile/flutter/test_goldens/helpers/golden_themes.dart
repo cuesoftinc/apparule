@@ -48,6 +48,15 @@ Future<void> pumpFrame(WidgetTester tester) async {
   await tester.pump(const Duration(milliseconds: 50));
 }
 
+/// Settles the scenario BEFORE precaching — for seeded SCREEN goldens
+/// whose ViewModels load asynchronously: the Image widgets only exist
+/// once the data state renders, so a bare [precacheThenFrame] would scan
+/// the loading skeleton and cache nothing.
+Future<void> settleThenPrecache(WidgetTester tester) async {
+  await tester.pumpAndSettle();
+  await precacheThenFrame(tester);
+}
+
 /// Alchemist's [precacheImages] with a bounded final pump instead of its
 /// trailing `pumpAndSettle` — for image-bearing scenarios that also host
 /// repeating animations (PostCard shimmer siblings, the processing

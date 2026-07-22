@@ -99,6 +99,12 @@ flutter:
     - path: assets/seed/dev/
       flavors:
         - dev
+    # The §6 CC-licensed photography pool (byte-identical to the web mock's
+    # web/public/demo — attributions inside): asset directory entries don't
+    # recurse, so the subdirectory is declared separately, same flavor scope.
+    - path: assets/seed/dev/demo/
+      flavors:
+        - dev
 
   # Inter is bundled, never fetched at runtime (mobile-implementation.md §7).
   # Weights per design.md §2: 400 / 600 / 700. License: assets/fonts/OFL.txt.

@@ -1,15 +1,21 @@
 import 'package:apparule/src/core/ui/app_shell.dart';
 import 'package:apparule/src/features/auth/presentation/sign_in_screen.dart';
 import 'package:apparule/src/features/earnings/presentation/earnings_screen.dart';
+import 'package:apparule/src/features/feed/presentation/comments_screen.dart';
 import 'package:apparule/src/features/feed/presentation/create_screen.dart';
 import 'package:apparule/src/features/feed/presentation/explore_screen.dart';
 import 'package:apparule/src/features/feed/presentation/home_feed_screen.dart';
+import 'package:apparule/src/features/feed/presentation/post_detail_screen.dart';
 import 'package:apparule/src/features/measurements/presentation/capture_launcher.dart';
 import 'package:apparule/src/features/measurements/presentation/capture_screen.dart';
 import 'package:apparule/src/features/measurements/presentation/guide_screen.dart';
 import 'package:apparule/src/features/measurements/presentation/manual_entry_screen.dart';
 import 'package:apparule/src/features/measurements/presentation/vault_screen.dart';
+import 'package:apparule/src/features/orders/presentation/order_detail_screen.dart';
 import 'package:apparule/src/features/orders/presentation/orders_screen.dart';
+import 'package:apparule/src/features/orders/presentation/request_stepper_screen.dart';
+import 'package:apparule/src/features/profile/presentation/notifications_screen.dart';
+import 'package:apparule/src/features/profile/presentation/notifications_view_model.dart';
 import 'package:apparule/src/features/profile/presentation/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,9 +24,10 @@ import 'package:go_router/go_router.dart';
 part 'routes.g.dart';
 
 // Typed route classes (go_router_builder, mobile-implementation.md §5).
-// This wave carries the five tab branches, the routed feature
-// placeholders, and the C6 capture flow; the remaining §5 route map
-// (post/{id}, request/{postId}, notifications, …) lands with its screens.
+// The tab shell carries the five branches; the feed/orders wave adds the
+// §5 social+commerce routes (post/{id} + comments, request/{postId},
+// orders/{id}, notifications) as full-screen top-level routes — their
+// canvases render without the tab bar (C4/C5/C8-detail/C10/C11).
 
 /// The persistent tab shell — Home · Explore · ➕ · Orders · Profile
 /// (pages.md Part C).
@@ -63,6 +70,9 @@ class AppShellRoute extends StatefulShellRouteData {
     return Consumer(
       builder: (context, ref, _) => AppShell(
         navigationShell: navigationShell,
+        // MI-16: unread order-kind notifications badge the Orders tab;
+        // opening C10 marks them read and clears it.
+        ordersBadge: ref.watch(ordersTabBadgeProvider).value,
         // ➕ = the capture entry (§5: `/capture` is the ➕ tab's customer
         // branch): guide on first run, camera once the persisted flag is
         // set (§10). The seeded §6 user is a non-designer; the designer
@@ -198,4 +208,85 @@ class EarningsRoute extends GoRouteData with $EarningsRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       const EarningsScreen();
+}
+
+/// C4 — post detail, full-screen over the shell; the app-link target for
+/// `apparule.cuesoft.io/p/{post_id}` permalinks (§5). C11's comments
+/// route nests beneath so a comments deep link stacks the post under it.
+@TypedGoRoute<PostDetailRoute>(
+  path: '/post/:id',
+  routes: <TypedRoute<RouteData>>[
+    TypedGoRoute<PostCommentsRoute>(path: 'comments'),
+  ],
+)
+class PostDetailRoute extends GoRouteData with $PostDetailRoute {
+  const PostDetailRoute({required this.id});
+
+  final String id;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      PostDetailScreen(postId: id);
+}
+
+/// C11 — the full-height comments sheet over the dimmed post (pages.md
+/// [Directive 2026-07-18]): a transparent page, so C4 stays visible
+/// beneath the scrim.
+class PostCommentsRoute extends GoRouteData with $PostCommentsRoute {
+  const PostCommentsRoute({required this.id});
+
+  final String id;
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    return CustomTransitionPage<void>(
+      key: state.pageKey,
+      opaque: false,
+      barrierColor: const Color(0x80000000),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+          SlideTransition(
+            position: animation.drive(
+              Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero),
+            ),
+            child: child,
+          ),
+      child: CommentsScreen(postId: id),
+    );
+  }
+}
+
+/// C5 — the request stepper (MI-10), reached from a post's Request CTA,
+/// never a blank compose surface (§5 ➕ note).
+@TypedGoRoute<RequestRoute>(path: '/request/:postId')
+class RequestRoute extends GoRouteData with $RequestRoute {
+  const RequestRoute({required this.postId});
+
+  final String postId;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      RequestStepperScreen(postId: postId);
+}
+
+/// C8 detail — push notifications deep-link here (pages.md C8).
+@TypedGoRoute<OrderDetailRoute>(path: '/orders/:id')
+class OrderDetailRoute extends GoRouteData with $OrderDetailRoute {
+  const OrderDetailRoute({required this.id});
+
+  final String id;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      OrderDetailScreen(orderId: id);
+}
+
+/// C10 — the activity sheet (profile feature, §3: its entry points are
+/// the C2 top-bar bell and the profile tab's bell affordance).
+@TypedGoRoute<NotificationsRoute>(path: '/notifications')
+class NotificationsRoute extends GoRouteData with $NotificationsRoute {
+  const NotificationsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const NotificationsScreen();
 }
