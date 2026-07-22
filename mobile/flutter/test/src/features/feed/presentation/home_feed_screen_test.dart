@@ -6,6 +6,7 @@ import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/features/feed/data/post_repository_fake.dart';
 import 'package:apparule/src/features/profile/presentation/notifications_screen.dart';
 import 'package:apparule/src/features/profile/presentation/public_profile_screen.dart';
+import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -64,6 +65,56 @@ void main() {
     final post = await repository.post('post-print-couple');
     expect(post.liked, isTrue);
     expect(post.likeCount, 19);
+  });
+
+  testWidgets('the save toggle mutates fake state and shows the MI-3 '
+      'first-save toast exactly once per install', (tester) async {
+    final repository = PostRepositoryFake();
+    await bootToFeed(tester, postRepository: repository);
+
+    await tester.tap(find.bySemanticsLabel('Save').first);
+    await tester.pumpAndSettle();
+
+    // Repository truth mutated…
+    final post = await repository.post('post-print-couple');
+    expect(post.saved, isTrue);
+    // …and the first-ever save announces itself (web first-save.ts
+    // parity), with the View action into the profile.
+    expect(find.text('Saved to your looks'), findsOneWidget);
+
+    // Dismiss the snack (with semantics enabled — always, in tests —
+    // action-bearing snacks persist for accessible navigation), then
+    // unsave and save again: no re-toast (persisted install-level gate;
+    // un-save itself never toasts).
+    await tester.drag(find.text('Saved to your looks'), const Offset(0, 80));
+    await tester.pumpAndSettle();
+    expect(find.text('Saved to your looks'), findsNothing);
+    await tester.tap(find.bySemanticsLabel('Remove from saved').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Save').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Saved to your looks'), findsNothing);
+  });
+
+  testWidgets('a C2 like reads back on the C9 liked-outfits grid', (
+    tester,
+  ) async {
+    await bootToFeed(tester);
+
+    // post-print-couple is NOT seeded liked — like it on the feed.
+    await tester.tap(find.bySemanticsLabel('Like').first);
+    await tester.pumpAndSettle();
+
+    routerOf(tester).go(const ProfileRoute().location);
+    await tester.pumpAndSettle();
+
+    // The non-designer profile's first tab IS the liked grid — the tile
+    // appears without any manual refresh (live-QA: engagement reads
+    // back on every surface).
+    expect(
+      find.bySemanticsLabel('Couple wearing matching African print outfits'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('scrolling to the end lands on the MI-6 caught-up divider', (

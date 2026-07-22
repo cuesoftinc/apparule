@@ -241,6 +241,14 @@
     "description": "C2 story-rail section semantics (MI-8; web aria-label parity)."
   },
   "feedShareCopied": "Link copied",
+  "feedFirstSaveToast": "Saved to your looks",
+  "@feedFirstSaveToast": {
+    "description": "MI-3 first-ever-save toast (web first-save.ts parity)."
+  },
+  "feedFirstSaveView": "View",
+  "@feedFirstSaveView": {
+    "description": "MI-3 toast action — opens the profile's saved looks."
+  },
   "@feedShareCopied": {
     "description": "MI-9 share confirmation after the post permalink lands on the clipboard."
   },

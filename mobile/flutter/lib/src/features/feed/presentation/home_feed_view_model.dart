@@ -1,6 +1,7 @@
 import 'package:apparule/src/features/feed/data/post_repository.dart';
 import 'package:apparule/src/features/feed/domain/post.dart';
 import 'package:apparule/src/features/feed/domain/story_rail_entry.dart';
+import 'package:apparule/src/features/profile/presentation/profile_view_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'home_feed_view_model.g.dart';
@@ -31,11 +32,16 @@ class HomeFeedViewModel extends _$HomeFeedViewModel {
   Future<void> toggleLike(String postId) async {
     final updated = await ref.read(postRepositoryProvider).toggleLike(postId);
     _replacePost(updated);
+    // The C9 liked-outfits grid re-derives (live-QA: engagement must
+    // read back on every surface, web-store parity).
+    ref.invalidate(profileViewModelProvider);
   }
 
   Future<void> toggleSave(String postId) async {
     final updated = await ref.read(postRepositoryProvider).toggleSave(postId);
     _replacePost(updated);
+    // The C9 saved-looks grid re-derives.
+    ref.invalidate(profileViewModelProvider);
   }
 
   /// MI-8: opening a story dims its ring for the session.

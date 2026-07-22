@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/utils/formats.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -105,9 +106,12 @@ class _ActionRowState extends State<ActionRow> with TickerProviderStateMixin {
           semanticLabel: widget.liked ? 'Unlike' : 'Like',
           toggled: widget.liked,
           onTap: () {
-            if (!widget.liked && !_reducedMotion) {
-              // MI-2: animate on like only (IG asymmetry).
-              unawaited(_likeBurst.forward(from: 0));
+            if (!widget.liked) {
+              // MI-2: animate on like only (IG asymmetry); MI-20 pairs
+              // the light haptic with it (mobile Instagram-feel — the
+              // live-QA "get to the level of the web" pass).
+              if (!_reducedMotion) unawaited(_likeBurst.forward(from: 0));
+              unawaited(HapticFeedback.lightImpact());
             }
             widget.onToggleLike();
           },
@@ -148,6 +152,9 @@ class _ActionRowState extends State<ActionRow> with TickerProviderStateMixin {
           toggled: widget.saved,
           onTap: () {
             if (!_reducedMotion) unawaited(_saveDip.forward(from: 0));
+            // MI-20: light haptic on save (set only — the un-action
+            // stays quiet, the MI-2 asymmetry).
+            if (!widget.saved) unawaited(HapticFeedback.lightImpact());
             widget.onToggleSave();
           },
           child: AnimatedBuilder(
