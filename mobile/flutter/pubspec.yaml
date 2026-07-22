@@ -34,6 +34,10 @@ dependencies:
   # 0.20.2 exactly — ^0.20.2 is the widest range the SDK admits.
   intl: ^0.20.2
   json_annotation: ^4.9.0
+  # Pin-ledger addition (component wave): the design system's iconography
+  # is Lucide (design.md §2; c-series inventory `icon/*` set) — icon-font
+  # package, glyphs referenced as `LucideIcons.*`.
+  lucide_icons_flutter: ^3.1.15
   riverpod_annotation: ^4.0.3
   shared_preferences: ^2.5.5
   # Pin-ledger addition (auth cutover): C1's legal links open the

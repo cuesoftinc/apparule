@@ -140,3 +140,9 @@ jobs:
 
       - name: Test
         run: flutter test
+
+      # Golden gate (mobile-implementation.md §7/§8): every core/ui module's
+      # committed CI goldens must still match. Alchemist's CI variant blocks
+      # text, so the images compare byte-identically on any host.
+      - name: Golden tests
+        run: flutter test test_goldens

@@ -2,13 +2,13 @@ import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-/// GoogleAuthButton — the single auth CTA (X-1), the mobile counterpart
-/// of web's `GoogleAuthButton` (design.md §8.2b contract): Google 'G'
-/// mark + label · default / pressed / loading / disabled · token-true
-/// through the theme extensions. 48px tall, card radius, hairline
-/// border, elevated surface; loading keeps the G and swaps the label
-/// for a spinner. Exact Figma-master fidelity (83:887) lands with the
-/// design wave's golden pass.
+/// GoogleAuthButton — the single auth CTA (X-1), the Figma set 83:887;
+/// web sibling `GoogleAuthButton.tsx` (design.md §8.2b contract): Google
+/// 'G' mark + label · state default / pressed / loading / disabled ·
+/// token-true through the theme extensions. 48px tall, card radius,
+/// hairline border, elevated surface; loading keeps the G and swaps the
+/// label for a spinner; pressed tints the surface (the web sibling's 18%
+/// gray active recipe); disabled dims to 40%.
 class GoogleAuthButton extends StatelessWidget {
   const GoogleAuthButton({
     required this.label,
@@ -30,18 +30,27 @@ class GoogleAuthButton extends StatelessWidget {
     final typography = theme.extension<AppTypography>()!;
     return OutlinedButton(
       onPressed: loading ? null : onPressed,
-      style: OutlinedButton.styleFrom(
-        minimumSize: const Size.fromHeight(48),
-        padding: EdgeInsets.symmetric(horizontal: spacing.s6),
-        backgroundColor: colors.bgElev,
-        foregroundColor: colors.text,
-        disabledForegroundColor: colors.text.withValues(alpha: 0.4),
-        side: BorderSide(color: colors.border),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(radii.card),
-        ),
-        textStyle: typography.body16SemiBold,
-      ),
+      style:
+          OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+            padding: EdgeInsets.symmetric(horizontal: spacing.s6),
+            backgroundColor: colors.bgElev,
+            foregroundColor: colors.text,
+            disabledForegroundColor: colors.text.withValues(alpha: 0.4),
+            side: BorderSide(color: colors.border),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(radii.card),
+            ),
+            textStyle: typography.body16SemiBold,
+          ).copyWith(
+            // Pressed state (Figma 83:887): the web sibling's
+            // rgba(128,128,128,0.18) surface tint.
+            overlayColor: WidgetStateProperty.resolveWith(
+              (states) => states.contains(WidgetState.pressed)
+                  ? const Color(0xFF808080).withValues(alpha: 0.18)
+                  : null,
+            ),
+          ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
