@@ -679,6 +679,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   centering in leftover flow space, which skewed every back-only title
   right and let long titles run under the slots. The root brand bar
   keeps its left wordmark, exempt per the ruling.
+- Mobile like/save to web level (user-reported live-QA): MI-20/MI-1
+  light haptics on like+save set (un-actions quiet, the MI-2
+  asymmetry), the MI-3 "Saved to your looks" first-save toast (once per
+  install, persisted gate, View action into the profile), and
+  cross-surface read-back — C2/C4 like+save invalidate the C9 profile
+  grids, which previously never refreshed while the tab branch stayed
+  alive.
 - Mobile C9 edit profile scopes the Bio field to designer accounts
   ("follow web" ruling: web has no account-level bio edit) —
   non-designer sessions hide the field and persist their existing bio
