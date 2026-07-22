@@ -75,11 +75,11 @@ void main() {
     expect(find.text('New request · 1 of 3'), findsOneWidget);
   });
 
-  testWidgets('keeps content clear of the notched top inset', (
+  testWidgets('keeps content clear of notch and status-bar top insets', (
     tester,
   ) async {
     applyNotchedView(tester);
     await bootToPost(tester);
-    expectNoContentInTopInset(tester);
+    await expectContentClearOfTopInsets(tester);
   });
 }

@@ -34,12 +34,12 @@ void main() {
         GoldenTestScenario(
           name: 'root bar — surface behind the notch, wordmark below it',
           child: notched(
-            Scaffold(
+            const Scaffold(
               appBar: AppTopBar(
                 title: 'Apparule',
-                trailing: const Icon(LucideIcons.bell, size: 24),
+                trailing: Icon(LucideIcons.bell, size: 24),
               ),
-              body: const SizedBox.expand(),
+              body: SizedBox.expand(),
             ),
           ),
         ),

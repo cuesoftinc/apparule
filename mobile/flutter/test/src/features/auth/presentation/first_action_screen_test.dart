@@ -80,11 +80,11 @@ void main() {
     expect(find.byType(HomeFeedScreen), findsOneWidget);
   });
 
-  testWidgets('keeps content clear of the notched top inset', (
+  testWidgets('keeps content clear of notch and status-bar top insets', (
     tester,
   ) async {
     applyNotchedView(tester);
     await bootToFirstAction(tester);
-    expectNoContentInTopInset(tester);
+    await expectContentClearOfTopInsets(tester);
   });
 }

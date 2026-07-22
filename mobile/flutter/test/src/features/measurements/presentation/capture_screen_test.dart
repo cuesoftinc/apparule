@@ -335,16 +335,16 @@ void main() {
     });
   });
 
-  testWidgets('keeps content clear of the notched top inset (height '
-      'step + immersive viewfinder)', (tester) async {
+  testWidgets('keeps content clear of notch and status-bar top insets '
+      '(height step + immersive viewfinder)', (tester) async {
     applyNotchedView(tester);
     await bootToCapture(tester);
     // Height step — the sub bar.
-    expectNoContentInTopInset(tester);
+    await expectContentClearOfTopInsets(tester);
 
     // Viewfinder — the immersive over-media bar: full-bleed is
     // intentional, but the chrome CONTENT must still clear the notch.
     await continueToViewfinder(tester);
-    expectNoContentInTopInset(tester);
+    await expectContentClearOfTopInsets(tester);
   });
 }

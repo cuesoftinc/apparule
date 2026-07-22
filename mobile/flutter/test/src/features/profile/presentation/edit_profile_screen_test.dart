@@ -53,7 +53,7 @@ void main() {
     expect(me.location?.city, 'Lagos');
   });
 
-  testWidgets('keeps content clear of the notched top inset', (
+  testWidgets('keeps content clear of notch and status-bar top insets', (
     tester,
   ) async {
     applyNotchedView(tester);
@@ -66,6 +66,6 @@ void main() {
     );
     routerOf(tester).go(const EditProfileRoute().location);
     await tester.pumpAndSettle();
-    expectNoContentInTopInset(tester);
+    await expectContentClearOfTopInsets(tester);
   });
 }

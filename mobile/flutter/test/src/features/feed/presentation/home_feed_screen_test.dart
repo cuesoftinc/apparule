@@ -98,12 +98,12 @@ void main() {
     expect(find.byType(EmptyState), findsOneWidget);
     expect(find.text('Follow designers to fill your feed'), findsOneWidget);
   });
-  testWidgets('keeps content clear of the notched top inset', (
+  testWidgets('keeps content clear of notch and status-bar top insets', (
     tester,
   ) async {
     applyNotchedView(tester);
     await bootToFeed(tester);
-    expectNoContentInTopInset(tester);
+    await expectContentClearOfTopInsets(tester);
   });
 }
 

@@ -176,13 +176,13 @@ void main() {
     expect(find.byType(EmptyState), findsOneWidget);
     expect(find.text('Back to feed'), findsOneWidget);
   });
-  testWidgets('keeps content clear of the notched top inset', (
+  testWidgets('keeps content clear of notch and status-bar top insets', (
     tester,
   ) async {
     applyNotchedView(tester);
     await boot(tester);
     await openNotifications(tester);
-    expectNoContentInTopInset(tester);
+    await expectContentClearOfTopInsets(tester);
   });
 }
 

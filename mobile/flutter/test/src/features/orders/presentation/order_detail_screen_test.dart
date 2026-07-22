@@ -187,11 +187,11 @@ void main() {
     expect(find.textContaining('Got it — thanks!'), findsOneWidget);
   });
 
-  testWidgets('keeps content clear of the notched top inset', (
+  testWidgets('keeps content clear of notch and status-bar top insets', (
     tester,
   ) async {
     applyNotchedView(tester);
     await bootToOrder(tester, 'req-apr-1042');
-    expectNoContentInTopInset(tester);
+    await expectContentClearOfTopInsets(tester);
   });
 }

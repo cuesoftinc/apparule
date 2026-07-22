@@ -27,10 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   is hand-patched. CI grows a `mobile-ios` lane (macos runner, unsigned
   dev-flavor simulator build + a bundled-seed assertion) so iOS breakage
   surfaces at PR time.
-- Mobile notched-device regression harness: `test/helpers/notched.dart`
-  reshapes the test view like the iPhone 17 Pro (59px top inset, 34px
-  home indicator) and `expectNoContentInTopInset` fails any suite whose
-  text/icons/tappables render inside the top inset — wired into all 24
+- Mobile display-cutout regression harness: `test/helpers/notched.dart`
+  reshapes the test view like the live devices and
+  `expectContentClearOfTopInsets` asserts under BOTH platform inset
+  profiles — the iPhone 17 Pro notch (59px, 34px home indicator) and an
+  Android punch-hole status bar (39px) — failing any suite whose
+  text/icons/tappables render inside the top inset. Wired into all 24
   screen widget-test suites (the C6 suite asserts the sub-bar height
   step AND the immersive viewfinder). One notched golden per shell
   chrome kind (root bar · sub bar · immersive over-media) pins the
@@ -499,9 +501,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
-- Mobile top chrome under the notch (live-simulator defect, 2026-07-22):
-  `AppTopBar` was a fixed 56px bar, so every screen's header rendered
-  into the iPhone status-bar/Dynamic-Island region. The bar is now
+- Mobile top chrome under the display cutout (live-device defect,
+  2026-07-22 — reproduced on the iPhone 17 Pro simulator AND a Galaxy
+  S24 Ultra): `AppTopBar` was a fixed 56px bar that ignored
+  `MediaQuery.viewPadding`, so every screen's header rendered into the
+  status-bar/notch/punch-hole region on both platforms. The bar is now
   inset-aware at the chrome altitude — its surface (or the C6 over-media
   scrim) still extends behind the status bar while the 56px content row
   sits below the inset; no per-screen workarounds. The bottom tab bar

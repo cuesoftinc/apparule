@@ -141,12 +141,12 @@ void main() {
     // above the empty state.
     expect(find.byType(CaptureOptionCard), findsNothing);
   });
-  testWidgets('keeps content clear of the notched top inset', (
+  testWidgets('keeps content clear of notch and status-bar top insets', (
     tester,
   ) async {
     applyNotchedView(tester);
     await bootToVault(tester);
-    expectNoContentInTopInset(tester);
+    await expectContentClearOfTopInsets(tester);
   });
 }
 

@@ -5,9 +5,9 @@ import 'package:apparule/src/features/auth/presentation/sign_in_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../../helpers/notched.dart';
 import '../../../../helpers/pump_app.dart';
 import '../../../../helpers/throwing_auth_repository.dart';
-import '../../../../helpers/notched.dart';
 
 void main() {
   group('SignInScreen (C1)', () {
@@ -121,11 +121,11 @@ void main() {
     });
   });
 
-  testWidgets('keeps content clear of the notched top inset', (
+  testWidgets('keeps content clear of notch and status-bar top insets', (
     tester,
   ) async {
     applyNotchedView(tester);
     await tester.pumpApp(const SignInScreen());
-    expectNoContentInTopInset(tester);
+    await expectContentClearOfTopInsets(tester);
   });
 }
