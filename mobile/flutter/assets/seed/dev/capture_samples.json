@@ -1,0 +1,75 @@
+{
+  "_comment": "The fake camera's sample-frame catalog (mobile-implementation.md §10; capture-qc.md §1–2). Every entry renders the same bundled frontal frame — what varies is the simulated pipeline analysis: `metrics` overrides the passing-frame defaults (capture_qc.dart CaptureFrameMetrics), and MeasurementRepositoryFake runs the REAL capture-qc.md threshold table over them, so each fail code is reproduced by its documented rule (first failure in table order), never by a hardcoded verdict. Pick a scenario from the capture screen's dev-flavor QC selector.",
+  "image": "assets/seed/dev/sample_frontal.png",
+  "samples": [
+    {
+      "id": "pass_frontal",
+      "label": "Pass — frontal, well lit",
+      "metrics": {}
+    },
+    {
+      "id": "qc_undecodable_image",
+      "label": "QC fail — undecodable image",
+      "metrics": { "decodable": false }
+    },
+    {
+      "id": "qc_low_resolution",
+      "label": "QC fail — low resolution (short edge 320px < 480px)",
+      "metrics": { "short_edge_px": 320 }
+    },
+    {
+      "id": "qc_poor_lighting",
+      "label": "QC fail — poor lighting (mean luma 24 outside [40, 215])",
+      "metrics": { "mean_luma": 24 }
+    },
+    {
+      "id": "qc_blurry",
+      "label": "QC fail — blurry (Laplacian variance 32 < 60)",
+      "metrics": { "laplacian_variance": 32 }
+    },
+    {
+      "id": "qc_no_body",
+      "label": "QC fail — no body detected",
+      "metrics": { "poses_detected": 0 }
+    },
+    {
+      "id": "qc_multiple_bodies",
+      "label": "QC fail — two bodies in frame",
+      "metrics": { "poses_detected": 2 }
+    },
+    {
+      "id": "qc_partial_body",
+      "label": "QC fail — partial body (key visibility 0.31 < 0.5)",
+      "metrics": { "min_key_visibility": 0.31 }
+    },
+    {
+      "id": "qc_not_frontal",
+      "label": "QC fail — side pose (shoulder/hip ratio 0.72 outside [0.9, 2.2])",
+      "metrics": { "shoulder_hip_ratio": 0.72 }
+    },
+    {
+      "id": "qc_camera_tilt",
+      "label": "QC fail — tilted phone (24° > 15°)",
+      "metrics": { "tilt_degrees": 24 }
+    },
+    {
+      "id": "qc_arms_position",
+      "label": "QC fail — arms fused to torso (clearance 2% < 5%)",
+      "metrics": { "wrist_hip_clearance_pct": 2.0 }
+    },
+    {
+      "id": "qc_too_far",
+      "label": "QC fail — too far (body 28% of frame < 40%)",
+      "metrics": { "body_height_fraction": 0.28 }
+    },
+    {
+      "id": "multi_fault",
+      "label": "Multi-fault — dark + blurry + far (reports poor_lighting only)",
+      "metrics": {
+        "mean_luma": 24,
+        "laplacian_variance": 32,
+        "body_height_fraction": 0.28
+      }
+    }
+  ]
+}

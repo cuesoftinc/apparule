@@ -7,9 +7,15 @@ import 'package:go_router/go_router.dart';
 /// branch navigators over the C-series AppTabBar module (49:384; the
 /// design wave's replacement for the Material-icon stand-in).
 class AppShell extends StatelessWidget {
-  const AppShell({required this.navigationShell, super.key});
+  const AppShell({required this.navigationShell, this.onCreate, super.key});
 
   final StatefulNavigationShell navigationShell;
+
+  /// ➕ tab interception — the create tab is an entry GESTURE, not a
+  /// branch switch, when the router supplies this (pages.md Part C: the
+  /// customer branch pushes the full-screen C6 capture flow over the
+  /// shell). `null` falls back to activating the branch.
+  final VoidCallback? onCreate;
 
   @override
   Widget build(BuildContext context) {
@@ -17,12 +23,18 @@ class AppShell extends StatelessWidget {
       body: navigationShell,
       bottomNavigationBar: AppTabBar(
         active: AppTab.values[navigationShell.currentIndex],
-        onSelect: (tab) => navigationShell.goBranch(
-          tab.index,
-          // Re-tapping the active tab pops that branch back to its root —
-          // the fix for the legacy back-at-root re-push chains (CV-7).
-          initialLocation: tab.index == navigationShell.currentIndex,
-        ),
+        onSelect: (tab) {
+          if (tab == AppTab.create && onCreate != null) {
+            onCreate!();
+            return;
+          }
+          navigationShell.goBranch(
+            tab.index,
+            // Re-tapping the active tab pops that branch back to its root
+            // — the fix for the legacy back-at-root re-push chains (CV-7).
+            initialLocation: tab.index == navigationShell.currentIndex,
+          );
+        },
       ),
     );
   }

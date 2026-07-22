@@ -1,5 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- C6 capture (mobile-implementation.md §10/§11: newly required,
+         the legacy manifest never carried it): one frontal photo drives
+         the measurement pipeline. Declared explicitly rather than
+         inherited from the camera plugin's manifest merge. -->
+    <uses-permission android:name="android.permission.CAMERA"/>
     <application
         android:label="@string/app_name"
         android:name="${applicationName}"

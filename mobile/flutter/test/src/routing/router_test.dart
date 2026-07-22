@@ -1,34 +1,22 @@
-import 'package:apparule/src/app/app.dart';
-import 'package:apparule/src/app/di.dart';
 import 'package:apparule/src/core/ui/app_shell.dart';
 import 'package:apparule/src/core/ui/tab_bar.dart';
-import 'package:apparule/src/features/auth/data/auth_repository.dart';
 import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/features/auth/presentation/sign_in_screen.dart';
-import 'package:apparule/src/features/feed/presentation/create_screen.dart';
 import 'package:apparule/src/features/feed/presentation/explore_screen.dart';
 import 'package:apparule/src/features/feed/presentation/home_feed_screen.dart';
+import 'package:apparule/src/features/measurements/presentation/capture_screen.dart';
+import 'package:apparule/src/features/measurements/presentation/guide_screen.dart';
+import 'package:apparule/src/features/measurements/presentation/manual_entry_screen.dart';
+import 'package:apparule/src/features/measurements/presentation/vault_screen.dart';
 import 'package:apparule/src/features/orders/presentation/orders_screen.dart';
 import 'package:apparule/src/features/profile/presentation/profile_screen.dart';
-import 'package:apparule/src/routing/router.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// Boots the full app (router included) over the fake set, optionally
-/// seeded — mirrors the entrypoints' composition.
-Future<void> pumpBootedApp(
-  WidgetTester tester, {
-  AuthRepository? authRepository,
-}) async {
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: fakeRepositoryOverrides(authRepository: authRepository),
-      child: const ApparuleApp(),
-    ),
-  );
-  await tester.pumpAndSettle();
-}
+import '../../helpers/boot_app.dart';
+
+AuthRepositoryFake _signedIn() =>
+    AuthRepositoryFake(initialSession: AuthRepositoryFake.seedSession);
 
 void main() {
   group('auth redirect (mobile-implementation.md §5, live at the cutover)', () {
@@ -54,29 +42,16 @@ void main() {
     });
 
     testWidgets('an authenticated boot lands on the home feed', (tester) async {
-      await pumpBootedApp(
-        tester,
-        authRepository: AuthRepositoryFake(
-          initialSession: AuthRepositoryFake.seedSession,
-        ),
-      );
+      await pumpBootedApp(tester, authRepository: _signedIn());
 
       expect(find.byType(HomeFeedScreen), findsOneWidget);
       expect(find.byType(SignInScreen), findsNothing);
     });
 
     testWidgets('a signed-in user never sees /signin', (tester) async {
-      await pumpBootedApp(
-        tester,
-        authRepository: AuthRepositoryFake(
-          initialSession: AuthRepositoryFake.seedSession,
-        ),
-      );
+      await pumpBootedApp(tester, authRepository: _signedIn());
 
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(ApparuleApp)),
-      );
-      container.read(routerProvider).go(const SignInRoute().location);
+      routerOf(tester).go(const SignInRoute().location);
       await tester.pumpAndSettle();
 
       expect(find.byType(HomeFeedScreen), findsOneWidget);
@@ -86,9 +61,7 @@ void main() {
     testWidgets('sign-out re-evaluates the redirect back to /signin', (
       tester,
     ) async {
-      final repository = AuthRepositoryFake(
-        initialSession: AuthRepositoryFake.seedSession,
-      );
+      final repository = _signedIn();
       await pumpBootedApp(tester, authRepository: repository);
       expect(find.byType(HomeFeedScreen), findsOneWidget);
 
@@ -105,9 +78,9 @@ void main() {
   ) async {
     await pumpBootedApp(
       tester,
-      authRepository: AuthRepositoryFake(
-        initialSession: AuthRepositoryFake.seedSession,
-      ),
+      authRepository: _signedIn(),
+      // Past the guide's first completion — ➕ goes straight to capture.
+      preferences: <String, Object>{'capture_guide_seen': true},
     );
 
     // Home is the initial branch.
@@ -124,9 +97,17 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(ExploreScreen), findsOneWidget);
 
+    // ➕ is an entry gesture, not a branch switch (§5 customer branch):
+    // it pushes the full-screen capture flow over the shell.
     await tester.tap(tab('Create'));
+    // Bounded pumps: the viewfinder silhouette pulses (MI-12), so
+    // pumpAndSettle would never settle on the capture screen.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byType(CaptureScreen), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('Back'));
     await tester.pumpAndSettle();
-    expect(find.byType(CreateScreen), findsOneWidget);
+    expect(find.byType(ExploreScreen), findsOneWidget);
 
     await tester.tap(tab('Orders'));
     await tester.pumpAndSettle();
@@ -139,5 +120,52 @@ void main() {
     await tester.tap(tab('Home'));
     await tester.pumpAndSettle();
     expect(find.byType(HomeFeedScreen), findsOneWidget);
+  });
+
+  group('C6 capture routing (mobile-implementation.md §10)', () {
+    testWidgets('➕ opens the guide on first run (no persisted flag)', (
+      tester,
+    ) async {
+      await pumpBootedApp(tester, authRepository: _signedIn());
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AppTabBar),
+          matching: find.bySemanticsLabel('Create'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CaptureGuideScreen), findsOneWidget);
+      expect(find.byType(CaptureScreen), findsNothing);
+    });
+
+    testWidgets('/capture, /capture/guide, /capture/manual and /vault '
+        'deep links resolve their screens', (tester) async {
+      await pumpBootedApp(tester, authRepository: _signedIn());
+      final router = routerOf(tester)..go(const CaptureRoute().location);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(CaptureScreen), findsOneWidget);
+
+      router.go(const CaptureGuideRoute().location);
+      await tester.pumpAndSettle();
+      expect(find.byType(CaptureGuideScreen), findsOneWidget);
+
+      router.go(const ManualEntryRoute().location);
+      await tester.pumpAndSettle();
+      expect(find.byType(ManualEntryScreen), findsOneWidget);
+
+      router.go(const VaultRoute().location);
+      await tester.pumpAndSettle();
+      expect(find.byType(VaultScreen), findsOneWidget);
+    });
+
+    testWidgets('typed capture routes carry the §5 paths', (tester) async {
+      expect(const CaptureRoute().location, '/capture');
+      expect(const CaptureGuideRoute().location, '/capture/guide');
+      expect(const ManualEntryRoute().location, '/capture/manual');
+      expect(const VaultRoute().location, '/vault');
+    });
   });
 }

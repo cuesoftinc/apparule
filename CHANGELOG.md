@@ -9,6 +9,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Mobile C6 capture wave (screens phase 3 opener, mobile-implementation.md
+  §10; pages.md C6/C7; capture-qc.md): the dev-flavor app completes the
+  core product journey — one frontal photo + height → measurements → the
+  vault — entirely over fakes. The instructional guide is rebuilt
+  single-pose from the §11 salvage (kept artwork `guide1/step2/guide3/
+  guide4`, tightened legacy copy; the five copy-pasted `Page1..Page5`
+  classes collapse into ONE parameterized page widget; the fifth
+  side-pose page stays retired — one frontal photo is the canon),
+  skippable only after a first completion (persisted flag), and the ➕
+  tab becomes the capture entry gesture (guide on first run, camera
+  after; the designer/composer branch joins with the composer wave). The
+  capture screen runs height (collected once per session, 100–230 cm
+  hard gate with the cm/in display toggle) → viewfinder (Capture Kit
+  `CaptureOverlay` silhouette + 3-2-1 `CountdownRing` + shutter, MI-20
+  error buzz on QC fail) → `ProcessingConstellation` → `CaptureResults`
+  stagger with per-measurement capture-qc.md §4 confidence (<0.7 renders
+  the low chip). The camera rides an abstract `CameraService`:
+  `CameraServiceLive` (new `camera` plugin, front lens) for prod's real
+  viewfinder, `CameraServiceFake` (bundled sample frontal frame) so
+  simulators, CI, and `main_dev` need no hardware. `MeasurementRepository`
+  grows the session flow (`submitCapture` → `pending_save` →
+  `saveSession`/`discardSession`, `saveManualEntry`), and the fake
+  implements capture-qc.md HONESTLY: `capture_qc.dart` executes the
+  §1/§2 threshold table in table order (a `QcThresholds` single config
+  block), the §3 `(height × 0.93) / body_height_px` scale
+  (`mediapipe_2d_v2`), and the §4 confidence formula over simulated
+  per-sample pipeline metrics (`assets/seed/dev/capture_samples.json`) —
+  the seeded happy path and all 11 fail codes reproduce BY RULE through
+  the capture screen's dev-only QC scenario selector (rides the fake
+  camera, absent over the live one), surfaced first-failure-only with
+  QCHintChip codes mapped 1:1. "Save to vault" persists into the seeded
+  vault store (`assets/seed/dev/vault_sessions.json` — the web mock's
+  three sessions verbatim, dev-flavor-scoped assets so seeds stay out of
+  prod bundles) and C7 lists it on arrival; the vault placeholder grows
+  into the real C7 surface (capture/manual `CaptureOptionCard` pair +
+  seeded session groups over `MeasurementCard`); MI-13 manual entry
+  (four-measure v1 vocabulary, advisory out-of-range double-checks,
+  never a hard block, `confidence: null`) is the fallback wired from the
+  camera-permission EmptyState and the QC dead end. Typed deep-linkable
+  routes `/capture`, `/capture/guide`, `/capture/manual` join `/vault`;
+  Android gains the `CAMERA` permission and iOS
+  `NSCameraUsageDescription` with the retention-policy copy. 63 new
+  tests (the QC table rule-by-rule incl. every fail code and
+  first-failure ordering over a multi-fault frame, the repository
+  session flow, guide/capture/manual/vault widget states over the fake
+  camera, the router matrix) plus 18 Linux-authored screen-level goldens
+  (both themes). Pin-ledger addition: `camera ^0.12.0` (CameraX/
+  AVFoundation via SwiftPM — no CocoaPods). Known infra note: the
+  `tool/update_goldens.sh` docker image has no 3.44.7 tag upstream yet —
+  goldens author via the `mobile-goldens` workflow_dispatch fallback the
+  script documents.
 - Mobile core/ui component wave (design phase 2, mobile-implementation.md
   §7 — one Flutter module per Figma C-series component set, golden-tested
   before any screen consumes it, the web W1 discipline): 23 new modules

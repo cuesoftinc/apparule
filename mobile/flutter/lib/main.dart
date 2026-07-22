@@ -1,6 +1,7 @@
 import 'package:apparule/src/app/bootstrap.dart';
 import 'package:apparule/src/app/di.dart';
 import 'package:apparule/src/core/utils/app_flavor.dart';
+import 'package:apparule/src/features/measurements/data/camera_service_live.dart';
 
 /// prod entrypoint (the default) — CueLABS production runs on the sandbox
 /// account (org environment ruling, user directive 2026-07-22): bare
@@ -27,5 +28,8 @@ import 'package:apparule/src/core/utils/app_flavor.dart';
 /// the API wave (§1 phase 4) the same way.
 Future<void> main() => bootstrap(
   flavor: AppFlavor.prod,
-  overrides: fakeRepositoryOverrides(),
+  // The real C6 viewfinder (hardware isn't env-gated the way `*Remote`
+  // repositories are); measurements still ride the fake set until the
+  // API wave.
+  overrides: fakeRepositoryOverrides(cameraService: CameraServiceLive()),
 );

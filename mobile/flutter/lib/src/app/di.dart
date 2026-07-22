@@ -7,6 +7,8 @@ import 'package:apparule/src/features/earnings/data/earnings_repository.dart';
 import 'package:apparule/src/features/earnings/data/earnings_repository_fake.dart';
 import 'package:apparule/src/features/feed/data/post_repository.dart';
 import 'package:apparule/src/features/feed/data/post_repository_fake.dart';
+import 'package:apparule/src/features/measurements/data/camera_service.dart';
+import 'package:apparule/src/features/measurements/data/camera_service_fake.dart';
 import 'package:apparule/src/features/measurements/data/measurement_repository.dart';
 import 'package:apparule/src/features/measurements/data/measurement_repository_fake.dart';
 import 'package:apparule/src/features/orders/data/order_repository.dart';
@@ -39,23 +41,37 @@ AppFlavor appFlavor(Ref ref) => throw UnimplementedError(
 /// [authRepository] lets an entrypoint (or test) supply a differently
 /// seeded auth fake — `main_dev` boots signed in as the §6 test user;
 /// everything else starts signed out at C1.
-List<Override> fakeRepositoryOverrides({AuthRepository? authRepository}) =>
-    <Override>[
-      authRepositoryProvider.overrideWith(
-        (ref) => authRepository ?? AuthRepositoryFake(),
-      ),
-      postRepositoryProvider.overrideWith((ref) => PostRepositoryFake()),
-      measurementRepositoryProvider.overrideWith(
-        (ref) => MeasurementRepositoryFake(),
-      ),
-      orderRepositoryProvider.overrideWith((ref) => OrderRepositoryFake()),
-      profileRepositoryProvider.overrideWith(
-        (ref) => ProfileRepositoryFake(),
-      ),
-      earningsRepositoryProvider.overrideWith(
-        (ref) => EarningsRepositoryFake(),
-      ),
-    ];
+///
+/// [cameraService] swaps the C6 camera seam (§10): the set defaults to
+/// `CameraServiceFake` (bundled sample frame — simulators/CI/dev need no
+/// hardware); prod passes `CameraServiceLive` for the real viewfinder
+/// while its measurements still ride this fake set (a provider must not
+/// be overridden twice in one scope, hence the parameter rather than a
+/// second override). [measurementRepository] likewise lets tests seed the
+/// measurement fake differently (empty vault, zero processing delay).
+List<Override> fakeRepositoryOverrides({
+  AuthRepository? authRepository,
+  CameraService? cameraService,
+  MeasurementRepository? measurementRepository,
+}) => <Override>[
+  authRepositoryProvider.overrideWith(
+    (ref) => authRepository ?? AuthRepositoryFake(),
+  ),
+  cameraServiceProvider.overrideWith(
+    (ref) => cameraService ?? CameraServiceFake(),
+  ),
+  postRepositoryProvider.overrideWith((ref) => PostRepositoryFake()),
+  measurementRepositoryProvider.overrideWith(
+    (ref) => measurementRepository ?? MeasurementRepositoryFake(),
+  ),
+  orderRepositoryProvider.overrideWith((ref) => OrderRepositoryFake()),
+  profileRepositoryProvider.overrideWith(
+    (ref) => ProfileRepositoryFake(),
+  ),
+  earningsRepositoryProvider.overrideWith(
+    (ref) => EarningsRepositoryFake(),
+  ),
+];
 
 /// The real auth override (§9) — google_sign_in 7 into Firebase Auth on
 /// `sandbox-e306a`, tokens at rest via the persistence seam. An

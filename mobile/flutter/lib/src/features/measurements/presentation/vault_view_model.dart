@@ -4,8 +4,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'vault_view_model.g.dart';
 
-/// C7 placeholder ViewModel — watches the abstract measurement
-/// repository; flavor overrides supply the fake.
+/// C7's ViewModel — the saved sessions, newest first (the capture and
+/// manual-entry flows invalidate this after a save so the vault lists
+/// the new session on arrival).
 @riverpod
 class VaultViewModel extends _$VaultViewModel {
   @override

@@ -9,6 +9,9 @@ part of 'routes.dart';
 List<RouteBase> get $appRoutes => [
   $appShellRoute,
   $signInRoute,
+  $captureRoute,
+  $captureGuideRoute,
+  $manualEntryRoute,
   $vaultRoute,
   $earningsRoute,
 ];
@@ -179,6 +182,86 @@ mixin $SignInRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/signin');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $captureRoute => GoRouteData.$route(
+  path: '/capture',
+  hasOverriddenOnExit: false,
+  factory: $CaptureRoute._fromState,
+);
+
+mixin $CaptureRoute on GoRouteData {
+  static CaptureRoute _fromState(GoRouterState state) => const CaptureRoute();
+
+  @override
+  String get location => GoRouteData.$location('/capture');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $captureGuideRoute => GoRouteData.$route(
+  path: '/capture/guide',
+  hasOverriddenOnExit: false,
+  factory: $CaptureGuideRoute._fromState,
+);
+
+mixin $CaptureGuideRoute on GoRouteData {
+  static CaptureGuideRoute _fromState(GoRouterState state) =>
+      const CaptureGuideRoute();
+
+  @override
+  String get location => GoRouteData.$location('/capture/guide');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $manualEntryRoute => GoRouteData.$route(
+  path: '/capture/manual',
+  hasOverriddenOnExit: false,
+  factory: $ManualEntryRoute._fromState,
+);
+
+mixin $ManualEntryRoute on GoRouteData {
+  static ManualEntryRoute _fromState(GoRouterState state) =>
+      const ManualEntryRoute();
+
+  @override
+  String get location => GoRouteData.$location('/capture/manual');
 
   @override
   void go(BuildContext context) => context.go(location);
