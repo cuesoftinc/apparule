@@ -102,9 +102,11 @@ unauthorized independent of this doc (roadmap.md).
   mobile sibling of web's `generate-brand-assets.mjs`) into
   `assets/brand/` with sha256 provenance; the launcher icon ships
   adaptive on Android (gradient background + white-A foreground +
-  13+ monochrome) and full-bleed on iOS, and the splash centers the
-  tile on the token `bg` (light/dark; Android 12+ splash API uses the
-  gradient-disc variant). Both flavors share the mark — the per-flavor
+  13+ monochrome) and full-bleed on iOS, and the splash is the ratified
+  C0 frame (canvas 534:9096): the white A centered on the FULL-BLEED
+  accent gradient (mode-invariant; Android 12+ splash API can't paint a
+  background image, so 12+ keeps token `bg` + the gradient-disc
+  variant). Both flavors share the mark — the per-flavor
   display name distinguishes side-by-side installs. Version stamp
   `x.y.z+build` — humans own `x.y.z`, CI stamps the build number from
   `GITHUB_RUN_NUMBER`.

@@ -1,19 +1,24 @@
 # Native splash (flutter_native_splash, ratified dev-dependency) — the
-# design.md §2 brand construction: the white-A gradient tile centered on
-# the token background (`bg`: #FFFFFF light / #000000 true-black dark —
-# the same frame the in-app BootScreen continues while the session
-# restore runs). Sources are generated from tokens by
+# ratified C0 splash frame (canvas 534:9096; design.md §2 brand
+# construction): the white Inter-Bold "A" centered on the FULL-BLEED
+# accent gradient. The in-app BootScreen then continues on the token
+# `bg` with the gradient wordmark (C0 boot frames 534:9098/9100) while
+# the session restore runs. Sources are generated from tokens by
 # tool/gen_brand_assets.mjs; regenerate the platform files with
 #   dart run flutter_native_splash:create
 # Both flavors share the construction (main-source-set resources; the
 # dev mark is not badged — flavor display names distinguish installs).
 flutter_native_splash:
-  color: "#FFFFFF" # bg (light)
-  color_dark: "#000000" # bg (dark)
+  # Full-bleed gradient (aspect-filled) — mode-invariant, so light and
+  # dark share the image.
+  background_image: assets/brand/splash_bg.png
+  background_image_dark: assets/brand/splash_bg.png
   image: assets/brand/splash_tile.png
 
-  # Android 12+ splash API: icon-in-circle — the gradient disc variant so
-  # the OS crop never clips a tile corner.
+  # Android 12+ splash API: icon-in-circle on a solid ground — the
+  # platform can't paint a full-bleed background image, so 12+ keeps
+  # the token bg + gradient-disc variant (documented deviation from
+  # the C0 frame).
   android_12:
     color: "#FFFFFF" # bg (light)
     color_dark: "#000000" # bg (dark)

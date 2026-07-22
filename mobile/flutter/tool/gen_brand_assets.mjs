@@ -16,10 +16,16 @@
  *   icon_adaptive_fg.png      1024×1024 white A inside the 72/108 safe
  *                             zone (adaptive foreground)
  *   icon_adaptive_mono.png    same geometry, for Android 13+ themed icons
- *   splash_tile.png           512×512 rounded tile (pre-12 Android + iOS
- *                             splash center image; 4x/xxxhdpi source)
+ *   splash_bg.png             1024×1024 accent gradient — the full-bleed
+ *                             splash background (ratified C0 frame
+ *                             534:9096; aspect-filled per screen)
+ *   splash_tile.png           512×512 white A alone on transparent —
+ *                             the splash center mark (Inter Bold 96dp at
+ *                             the 4x/xxxhdpi source scale)
  *   splash_android12.png      1152×1152, gradient disc in the API's
- *                             768px icon circle (Android 12+ splash API)
+ *                             768px icon circle (Android 12+ splash API
+ *                             — the platform can't render a full-bleed
+ *                             background image, so 12+ keeps bg + disc)
  *
  * Run manually from mobile/flutter/ (assets are committed, not built):
  *   node tool/gen_brand_assets.mjs
@@ -135,9 +141,13 @@ async function main() {
   // Android 13+ themed icons recolor a single-alpha glyph — same layer.
   await shoot("icon_adaptive_mono", markOnlyBody(1024, adaptiveFont), 1024);
 
-  // Splash center image (pre-12 Android drawables + the iOS storyboard):
-  // the tile at 512 (flutter_native_splash treats the source as 4x).
-  await shoot("splash_tile", tileBody(512, Math.round(512 * 0.2)), 512);
+  // Splash (pre-12 Android drawables + the iOS storyboard) — the
+  // ratified C0 frame (534:9096): full-bleed accent gradient with the
+  // white A centered. Background: a gradient square the platforms
+  // aspect-fill; mark: the A alone at Inter Bold 96dp (the source is
+  // 4x, so 384px on a 512 canvas).
+  await shoot("splash_bg", bgBody(1024), 1024);
+  await shoot("splash_tile", markOnlyBody(512, 384), 512);
 
   // Android 12+ splash API: 1152×1152 with the icon inside the 768px
   // circle — a gradient disc so the OS circle crop never clips a corner.
@@ -151,6 +161,7 @@ async function main() {
     "icon_adaptive_bg",
     "icon_adaptive_fg",
     "icon_adaptive_mono",
+    "splash_bg",
     "splash_tile",
     "splash_android12",
   ]) {
