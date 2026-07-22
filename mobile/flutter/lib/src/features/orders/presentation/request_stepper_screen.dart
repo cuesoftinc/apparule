@@ -8,6 +8,7 @@ import 'package:apparule/src/core/ui/empty_state.dart';
 import 'package:apparule/src/core/ui/status_pill.dart';
 import 'package:apparule/src/core/utils/clock.dart';
 import 'package:apparule/src/core/utils/formats.dart';
+import 'package:apparule/src/core/utils/parse_amount.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_session.dart';
 import 'package:apparule/src/features/measurements/presentation/capture_launcher.dart';
 import 'package:apparule/src/features/orders/domain/order.dart';
@@ -89,9 +90,6 @@ class _RequestStepperScreenState extends ConsumerState<RequestStepperScreen> {
     if (session == null || _submitting) return;
     setState(() => _submitting = true);
     try {
-      final budgetNaira = int.tryParse(
-        _budget.text.replaceAll(',', '').trim(),
-      );
       final order = await ref
           .read(requestViewModelProvider(widget.postId).notifier)
           .submit(
@@ -108,7 +106,9 @@ class _RequestStepperScreenState extends ConsumerState<RequestStepperScreen> {
               country: _country.text.trim(),
             ),
             notes: _notes.text.trim(),
-            budgetCents: budgetNaira == null ? null : budgetNaira * 100,
+            // CLASS 8: the one shared money parser (with the C8 quote
+            // sheet) — grouping/symbols never invalidate a budget.
+            budgetCents: parseAmountMinor(_budget.text),
             targetDate: _needBy,
           );
       setState(() => _submitted = order);
@@ -671,7 +671,7 @@ class _ReviewStep extends StatelessWidget {
     final radii = theme.extension<AppRadii>()!;
     final typography = theme.extension<AppTypography>()!;
     final post = requestContext.post;
-    final budgetNaira = int.tryParse(budget.replaceAll(',', '').trim());
+    final budgetKobo = parseAmountMinor(budget);
 
     Widget reviewRow(String label, String value) => Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -760,7 +760,7 @@ class _ReviewStep extends StatelessWidget {
             children: <Widget>[
               Text(
                 l10n.requestReviewBudget(
-                  budgetNaira == null ? '—' : formatNaira(budgetNaira * 100),
+                  budgetKobo == null ? '—' : formatNaira(budgetKobo),
                 ),
                 style: typography.body16SemiBold.copyWith(
                   color: colors.text,

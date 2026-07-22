@@ -1,7 +1,6 @@
 import 'package:alchemist/alchemist.dart';
 import 'package:apparule/src/core/ui/timeline_connector.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/golden_themes.dart';
 
