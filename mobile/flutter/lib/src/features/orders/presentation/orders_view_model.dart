@@ -5,7 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'orders_view_model.g.dart';
 
 /// C8 placeholder ViewModel — watches the abstract order repository;
-/// dev/stg overrides supply the fake.
+/// flavor overrides supply the fake.
 @riverpod
 class OrdersViewModel extends _$OrdersViewModel {
   @override

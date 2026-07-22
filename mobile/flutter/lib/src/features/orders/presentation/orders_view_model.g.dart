@@ -9,17 +9,17 @@ part of 'orders_view_model.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// C8 placeholder ViewModel — watches the abstract order repository;
-/// dev/stg overrides supply the fake.
+/// flavor overrides supply the fake.
 
 @ProviderFor(OrdersViewModel)
 final ordersViewModelProvider = OrdersViewModelProvider._();
 
 /// C8 placeholder ViewModel — watches the abstract order repository;
-/// dev/stg overrides supply the fake.
+/// flavor overrides supply the fake.
 final class OrdersViewModelProvider
     extends $AsyncNotifierProvider<OrdersViewModel, List<Order>> {
   /// C8 placeholder ViewModel — watches the abstract order repository;
-  /// dev/stg overrides supply the fake.
+  /// flavor overrides supply the fake.
   OrdersViewModelProvider._()
     : super(
         from: null,
@@ -42,7 +42,7 @@ final class OrdersViewModelProvider
 String _$ordersViewModelHash() => r'caef7f92d330533af59dca523577d5a67c1c6a03';
 
 /// C8 placeholder ViewModel — watches the abstract order repository;
-/// dev/stg overrides supply the fake.
+/// flavor overrides supply the fake.
 
 abstract class _$OrdersViewModel extends $AsyncNotifier<List<Order>> {
   FutureOr<List<Order>> build();

@@ -1,6 +1,7 @@
 import 'package:apparule/src/app/app.dart';
 import 'package:apparule/src/app/di.dart';
 import 'package:apparule/src/core/ui/app_shell.dart';
+import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/features/feed/presentation/home_feed_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,10 +12,15 @@ void main() {
     tester,
   ) async {
     // Mirrors main_dev.dart's composition (bootstrap itself calls runApp,
-    // so the test pumps the identical ProviderScope by hand).
+    // so the test pumps the identical ProviderScope by hand) — signed in
+    // as the seeded §6 test user, like dev boots since the auth cutover.
     await tester.pumpWidget(
       ProviderScope(
-        overrides: fakeRepositoryOverrides(),
+        overrides: fakeRepositoryOverrides(
+          authRepository: AuthRepositoryFake(
+            initialSession: AuthRepositoryFake.seedSession,
+          ),
+        ),
         child: const ApparuleApp(),
       ),
     );

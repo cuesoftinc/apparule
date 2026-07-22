@@ -8,18 +8,24 @@ part of 'sign_in_view_model.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// C1 placeholder ViewModel — exercises the View → ViewModel →
-/// repository layering end to end over the fake session restore.
+/// C1's ViewModel (1:1 with `SignInScreen`) — owns the CTA action state:
+/// idle → loading → idle/error. Navigation is not its job: the router's
+/// auth redirect reacts to the session provider once the repository
+/// lands a session.
 
 @ProviderFor(SignInViewModel)
 final signInViewModelProvider = SignInViewModelProvider._();
 
-/// C1 placeholder ViewModel — exercises the View → ViewModel →
-/// repository layering end to end over the fake session restore.
+/// C1's ViewModel (1:1 with `SignInScreen`) — owns the CTA action state:
+/// idle → loading → idle/error. Navigation is not its job: the router's
+/// auth redirect reacts to the session provider once the repository
+/// lands a session.
 final class SignInViewModelProvider
-    extends $AsyncNotifierProvider<SignInViewModel, AuthSession?> {
-  /// C1 placeholder ViewModel — exercises the View → ViewModel →
-  /// repository layering end to end over the fake session restore.
+    extends $AsyncNotifierProvider<SignInViewModel, void> {
+  /// C1's ViewModel (1:1 with `SignInScreen`) — owns the CTA action state:
+  /// idle → loading → idle/error. Navigation is not its job: the router's
+  /// auth redirect reacts to the session provider once the repository
+  /// lands a session.
   SignInViewModelProvider._()
     : super(
         from: null,
@@ -39,22 +45,24 @@ final class SignInViewModelProvider
   SignInViewModel create() => SignInViewModel();
 }
 
-String _$signInViewModelHash() => r'05bc4d5abecf0a911570e08315731dd6eda73de6';
+String _$signInViewModelHash() => r'567f5cf11c447aabccd7117c988990b9c5cc1db7';
 
-/// C1 placeholder ViewModel — exercises the View → ViewModel →
-/// repository layering end to end over the fake session restore.
+/// C1's ViewModel (1:1 with `SignInScreen`) — owns the CTA action state:
+/// idle → loading → idle/error. Navigation is not its job: the router's
+/// auth redirect reacts to the session provider once the repository
+/// lands a session.
 
-abstract class _$SignInViewModel extends $AsyncNotifier<AuthSession?> {
-  FutureOr<AuthSession?> build();
+abstract class _$SignInViewModel extends $AsyncNotifier<void> {
+  FutureOr<void> build();
   @$mustCallSuper
   @override
   WhenComplete runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<AuthSession?>, AuthSession?>;
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<AuthSession?>, AuthSession?>,
-              AsyncValue<AuthSession?>,
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
               Object?,
               Object?
             >;

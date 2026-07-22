@@ -11,10 +11,11 @@ part of 'router.dart';
 /// The app router (mobile-implementation.md §5): typed routes, a
 /// StatefulShellRoute tab shell, and one top-level auth redirect.
 ///
-/// The redirect is STUBBED to always-allow this wave — the auth wave binds
-/// it to the session provider (via `refreshListenable`) so every route
-/// except `/signin` gates behind sign-in, replacing the legacy push-only
-/// Navigator 1.0 chains (CV-7).
+/// The redirect is LIVE (auth cutover): every route except `/signin`
+/// gates behind sign-in, and a signed-in user never sees `/signin` —
+/// replacing the legacy push-only Navigator 1.0 chains (CV-7).
+/// `refreshListenable` is bound to the session provider, so sign-in and
+/// sign-out re-evaluate the redirect without manual navigation.
 
 @ProviderFor(router)
 final routerProvider = RouterProvider._();
@@ -22,10 +23,11 @@ final routerProvider = RouterProvider._();
 /// The app router (mobile-implementation.md §5): typed routes, a
 /// StatefulShellRoute tab shell, and one top-level auth redirect.
 ///
-/// The redirect is STUBBED to always-allow this wave — the auth wave binds
-/// it to the session provider (via `refreshListenable`) so every route
-/// except `/signin` gates behind sign-in, replacing the legacy push-only
-/// Navigator 1.0 chains (CV-7).
+/// The redirect is LIVE (auth cutover): every route except `/signin`
+/// gates behind sign-in, and a signed-in user never sees `/signin` —
+/// replacing the legacy push-only Navigator 1.0 chains (CV-7).
+/// `refreshListenable` is bound to the session provider, so sign-in and
+/// sign-out re-evaluate the redirect without manual navigation.
 
 final class RouterProvider
     extends $FunctionalProvider<GoRouter, GoRouter, GoRouter>
@@ -33,10 +35,11 @@ final class RouterProvider
   /// The app router (mobile-implementation.md §5): typed routes, a
   /// StatefulShellRoute tab shell, and one top-level auth redirect.
   ///
-  /// The redirect is STUBBED to always-allow this wave — the auth wave binds
-  /// it to the session provider (via `refreshListenable`) so every route
-  /// except `/signin` gates behind sign-in, replacing the legacy push-only
-  /// Navigator 1.0 chains (CV-7).
+  /// The redirect is LIVE (auth cutover): every route except `/signin`
+  /// gates behind sign-in, and a signed-in user never sees `/signin` —
+  /// replacing the legacy push-only Navigator 1.0 chains (CV-7).
+  /// `refreshListenable` is bound to the session provider, so sign-in and
+  /// sign-out re-evaluate the redirect without manual navigation.
   RouterProvider._()
     : super(
         from: null,
@@ -70,4 +73,4 @@ final class RouterProvider
   }
 }
 
-String _$routerHash() => r'bc64e2574112e4bf6485af925cde5ac7bbbd24bd';
+String _$routerHash() => r'582d813f3de678c0ab7fbba4bfbd7c45feadffe5';

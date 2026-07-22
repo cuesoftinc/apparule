@@ -9,17 +9,17 @@ part of 'home_feed_view_model.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// C2 placeholder ViewModel — watches the abstract post repository;
-/// dev/stg overrides supply the fake.
+/// flavor overrides supply the fake.
 
 @ProviderFor(HomeFeedViewModel)
 final homeFeedViewModelProvider = HomeFeedViewModelProvider._();
 
 /// C2 placeholder ViewModel — watches the abstract post repository;
-/// dev/stg overrides supply the fake.
+/// flavor overrides supply the fake.
 final class HomeFeedViewModelProvider
     extends $AsyncNotifierProvider<HomeFeedViewModel, List<Post>> {
   /// C2 placeholder ViewModel — watches the abstract post repository;
-  /// dev/stg overrides supply the fake.
+  /// flavor overrides supply the fake.
   HomeFeedViewModelProvider._()
     : super(
         from: null,
@@ -42,7 +42,7 @@ final class HomeFeedViewModelProvider
 String _$homeFeedViewModelHash() => r'f4056cc02738de5c22ddb1023b248b02cb3a6758';
 
 /// C2 placeholder ViewModel — watches the abstract post repository;
-/// dev/stg overrides supply the fake.
+/// flavor overrides supply the fake.
 
 abstract class _$HomeFeedViewModel extends $AsyncNotifier<List<Post>> {
   FutureOr<List<Post>> build();

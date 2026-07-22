@@ -9,17 +9,17 @@ part of 'earnings_view_model.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// C14 placeholder ViewModel — watches the abstract earnings
-/// repository; dev/stg overrides supply the fake.
+/// repository; flavor overrides supply the fake.
 
 @ProviderFor(EarningsViewModel)
 final earningsViewModelProvider = EarningsViewModelProvider._();
 
 /// C14 placeholder ViewModel — watches the abstract earnings
-/// repository; dev/stg overrides supply the fake.
+/// repository; flavor overrides supply the fake.
 final class EarningsViewModelProvider
     extends $AsyncNotifierProvider<EarningsViewModel, List<Payout>> {
   /// C14 placeholder ViewModel — watches the abstract earnings
-  /// repository; dev/stg overrides supply the fake.
+  /// repository; flavor overrides supply the fake.
   EarningsViewModelProvider._()
     : super(
         from: null,
@@ -42,7 +42,7 @@ final class EarningsViewModelProvider
 String _$earningsViewModelHash() => r'cbd9a678e840e204bf578cdd25ae7476e5d97921';
 
 /// C14 placeholder ViewModel — watches the abstract earnings
-/// repository; dev/stg overrides supply the fake.
+/// repository; flavor overrides supply the fake.
 
 abstract class _$EarningsViewModel extends $AsyncNotifier<List<Payout>> {
   FutureOr<List<Payout>> build();

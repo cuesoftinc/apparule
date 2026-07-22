@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AuthSession {
 
- String get uid;
+ String get uid; String? get email; String? get displayName; String? get photoUrl;
 /// Create a copy of AuthSession
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $AuthSessionCopyWith<AuthSession> get copyWith => _$AuthSessionCopyWithImpl<Auth
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthSession&&(identical(other.uid, uid) || other.uid == uid));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthSession&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,uid);
+int get hashCode => Object.hash(runtimeType,uid,email,displayName,photoUrl);
 
 @override
 String toString() {
-  return 'AuthSession(uid: $uid)';
+  return 'AuthSession(uid: $uid, email: $email, displayName: $displayName, photoUrl: $photoUrl)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $AuthSessionCopyWith<$Res>  {
   factory $AuthSessionCopyWith(AuthSession value, $Res Function(AuthSession) _then) = _$AuthSessionCopyWithImpl;
 @useResult
 $Res call({
- String uid
+ String uid, String? email, String? displayName, String? photoUrl
 });
 
 
@@ -62,10 +62,13 @@ class _$AuthSessionCopyWithImpl<$Res>
 
 /// Create a copy of AuthSession
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? uid = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? uid = null,Object? email = freezed,Object? displayName = freezed,Object? photoUrl = freezed,}) {
   return _then(_self.copyWith(
 uid: null == uid ? _self.uid : uid // ignore: cast_nullable_to_non_nullable
-as String,
+as String,email: freezed == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as String?,displayName: freezed == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
+as String?,photoUrl: freezed == photoUrl ? _self.photoUrl : photoUrl // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -150,10 +153,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String uid)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String uid,  String? email,  String? displayName,  String? photoUrl)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AuthSession() when $default != null:
-return $default(_that.uid);case _:
+return $default(_that.uid,_that.email,_that.displayName,_that.photoUrl);case _:
   return orElse();
 
 }
@@ -171,10 +174,10 @@ return $default(_that.uid);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String uid)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String uid,  String? email,  String? displayName,  String? photoUrl)  $default,) {final _that = this;
 switch (_that) {
 case _AuthSession():
-return $default(_that.uid);case _:
+return $default(_that.uid,_that.email,_that.displayName,_that.photoUrl);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -191,10 +194,10 @@ return $default(_that.uid);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String uid)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String uid,  String? email,  String? displayName,  String? photoUrl)?  $default,) {final _that = this;
 switch (_that) {
 case _AuthSession() when $default != null:
-return $default(_that.uid);case _:
+return $default(_that.uid,_that.email,_that.displayName,_that.photoUrl);case _:
   return null;
 
 }
@@ -206,10 +209,13 @@ return $default(_that.uid);case _:
 
 
 class _AuthSession implements AuthSession {
-  const _AuthSession({required this.uid});
+  const _AuthSession({required this.uid, this.email, this.displayName, this.photoUrl});
   
 
 @override final  String uid;
+@override final  String? email;
+@override final  String? displayName;
+@override final  String? photoUrl;
 
 /// Create a copy of AuthSession
 /// with the given fields replaced by the non-null parameter values.
@@ -221,16 +227,16 @@ _$AuthSessionCopyWith<_AuthSession> get copyWith => __$AuthSessionCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthSession&&(identical(other.uid, uid) || other.uid == uid));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthSession&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,uid);
+int get hashCode => Object.hash(runtimeType,uid,email,displayName,photoUrl);
 
 @override
 String toString() {
-  return 'AuthSession(uid: $uid)';
+  return 'AuthSession(uid: $uid, email: $email, displayName: $displayName, photoUrl: $photoUrl)';
 }
 
 
@@ -241,7 +247,7 @@ abstract mixin class _$AuthSessionCopyWith<$Res> implements $AuthSessionCopyWith
   factory _$AuthSessionCopyWith(_AuthSession value, $Res Function(_AuthSession) _then) = __$AuthSessionCopyWithImpl;
 @override @useResult
 $Res call({
- String uid
+ String uid, String? email, String? displayName, String? photoUrl
 });
 
 
@@ -258,10 +264,13 @@ class __$AuthSessionCopyWithImpl<$Res>
 
 /// Create a copy of AuthSession
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? uid = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? uid = null,Object? email = freezed,Object? displayName = freezed,Object? photoUrl = freezed,}) {
   return _then(_AuthSession(
 uid: null == uid ? _self.uid : uid // ignore: cast_nullable_to_non_nullable
-as String,
+as String,email: freezed == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as String?,displayName: freezed == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
+as String?,photoUrl: freezed == photoUrl ? _self.photoUrl : photoUrl // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
