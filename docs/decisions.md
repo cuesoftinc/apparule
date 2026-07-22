@@ -255,7 +255,13 @@ before public launch. Alternative: commission the brand pass first.
   `verify_email`, `sms_verification`, `verify_account` are retired by
   name. `models/user.dart` (prefs-string identity, CV-2) quarantines
   with it. Quarantined code is excluded from assets, analysis, CI, and
-  builds (mobile-implementation.md §11). ☑
+  builds (mobile-implementation.md §11). *Executed 2026-07-22*: both
+  removal conditions met — the Google-only replacement shipped (C1 at
+  the auth cutover; QA-convergence ledger all-PASS/FIXED) and the user
+  gave the explicit removal go (directive 2026-07-22) — the quarantine
+  (`lib/legacy/`, `assets/legacy/`, `legacy/web-scaffold/`,
+  `legacy/android-agp7/`) was deleted with its excludes;
+  mobile-implementation.md §11 carries the removed register. ☑
 - **M-4 Android API floor (RATIFIED 2026-07-21)**: **minSdkVersion 24**
   (the legacy value, confirmed against the ratified standard's floor) —
   carried forward, not raised. The Android project is regenerated to

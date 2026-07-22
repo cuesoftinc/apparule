@@ -12,8 +12,8 @@ void main() {
     tester,
   ) async {
     // Mirrors main_dev.dart's composition (bootstrap itself calls runApp,
-    // so the test pumps the identical ProviderScope by hand) — signed in
-    // as the seeded §6 test user, like dev boots since the auth cutover.
+    // so the test pumps the identical ProviderScope by hand) — seeded
+    // signed in as the §6 test user, the restored-session boot path.
     await tester.pumpWidget(
       ProviderScope(
         overrides: fakeRepositoryOverrides(

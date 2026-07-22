@@ -9,6 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Mobile real boot flow over fakes (user directive 2026-07-22, web
+  TEST_MODE parity): cold start → native splash → session-restore gate →
+  C1 when no session / straight into the tab shell when one persisted;
+  sign-out (B7 Account & data) purges it back to C1.
+  `AuthRepositoryFake` persists a labeled session marker through the
+  same secure-storage seam the Firebase implementation uses for tokens
+  at rest; `main_dev` no longer seeds a signed-in session — a first-ever
+  dev launch lands on C1 and the instant fake "Continue with Google"
+  survives relaunches. The restore runs behind a branded in-app
+  `BootScreen` (gradient wordmark on the token `bg`; quiet spinner only
+  past ~300ms) so the router mounts with a settled session — never a C1
+  flash. Boot-flow suite + boot-frame goldens + notched coverage.
+- Mobile brand splash + launcher icons from the design.md §2 token
+  construction (white Inter-Bold "A" on the accent gradient — the web
+  favicon adjudication): `tool/gen_brand_assets.mjs` (web
+  `generate-brand-assets.mjs` sibling; bundled Inter, sha256 provenance)
+  renders the committed `assets/brand/` sources;
+  `flutter_native_splash` (first configuration) centers the tile on the
+  token `bg` light/dark incl. the Android 12+ splash API
+  (gradient-disc icon), and `flutter_launcher_icons` ships the adaptive
+  Android icon (gradient background + white-A foreground + Android 13
+  monochrome), the rounded tile for pre-26 launchers, and the
+  full-bleed iOS set — replacing the 2023-era launcher icons. Both
+  flavors share the mark; display names distinguish installs.
+
 - Mobile iOS flavor pass (M-7 completes on iOS): `dev`/`prod` shared
   schemes over `Debug/Release/Profile-{dev,prod}` build configurations
   per Flutter's flavor convention, each layering a flavor xcconfig
@@ -369,6 +394,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Mobile C14 empty-ledger CTA falls back to the module-canonical
+  "Discover designers" → Explore (the C8-empty precedent): its previous
+  "Create a post" target was the dropped `/create` placeholder; web
+  B9's CTA targets the B5 composer, which mobile ships designed-first.
+
 - The iOS SwiftPM lockfile (`Runner.xcworkspace` `Package.resolved`) is
   committed for reproducible native resolution; the Xcode project-internal
   duplicate is gitignored (#154).
@@ -486,6 +516,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   structure; run commands use `make up` / `go run ./cmd/server`.
 
 ### Removed
+
+- The mobile legacy quarantine (M-3 staged removal, both conditions met
+  2026-07-22: every replacement shipped per the QA-convergence ledger +
+  the explicit user removal go): `lib/legacy/` (password/phone/OTP auth
+  screens, welcome screen, legacy themes/l10n/persistence/user model),
+  `assets/legacy/` (8 superseded assets), `legacy/web-scaffold/`,
+  `legacy/android-agp7/`, and their analysis/codegen/CI excludes
+  (incl. `build.yaml`, which existed solely for the exclusion). The
+  salvaged countdown widget and promoted guide art were already live
+  outside the quarantine. Also dropped: the unreferenced
+  Flutter-template `ic_launcher.png` mipmaps (the manifest binds
+  `@mipmap/launcher_icon`).
+- The mobile `/create` placeholder route + screen (canvas-first ruling
+  2026-07-22: frameless screens are designed first or dropped — no
+  pages.md spec, no canvas frame). The ➕ tab keeps its five-slot canvas
+  bar and remains the capture entry gesture over four shell branches;
+  the designer composer arrives designed-first.
 
 - Outer `mobile/android/` and `mobile/ios/` `.gitkeep` stubs (empty
   placeholders — real platform dirs live inside `mobile/flutter/`), the iOS

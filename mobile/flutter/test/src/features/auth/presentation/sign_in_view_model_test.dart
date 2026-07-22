@@ -14,7 +14,12 @@ void main() {
       'continueWithGoogle lands the seeded session on the session stream',
       () async {
         final container = ProviderContainer(
-          overrides: fakeRepositoryOverrides(),
+          // An explicit in-memory fake: the default binds the secure-
+          // storage persistence seam, which has no plugin in pure Dart
+          // tests.
+          overrides: fakeRepositoryOverrides(
+            authRepository: AuthRepositoryFake(),
+          ),
         );
         addTearDown(container.dispose);
         final session = container.listen(authSessionProvider, (_, _) {});

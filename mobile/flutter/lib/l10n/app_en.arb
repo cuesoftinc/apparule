@@ -3,7 +3,6 @@
   "appTitle": "Apparule",
   "tabHome": "Home",
   "tabExplore": "Explore",
-  "tabCreate": "Create",
   "tabOrders": "Orders",
   "tabProfile": "Profile",
   "signInTitle": "Sign in",
@@ -740,7 +739,6 @@
   "earningsAddAccount": "Add account →",
   "earningsNoAccount": "No payout account yet — requests stay locked until one is verified.",
   "earningsEmptyLedger": "Payouts and escrow holds will itemize here — publish outfits to get commissioned.",
-  "earningsEmptyLedgerCta": "Create a post",
   "earningsProcessing": "Processing",
   "@earningsProcessing": {
     "description": "Ledger meta for a just-requested payout — pending until the provider settles."

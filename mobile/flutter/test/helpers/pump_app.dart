@@ -1,5 +1,6 @@
 import 'package:apparule/l10n/generated/app_localizations.dart';
 import 'package:apparule/src/app/di.dart';
+import 'package:apparule/src/core/data/persistence_service.dart';
 import 'package:apparule/src/core/theme/app_theme.dart';
 import 'package:apparule/src/features/auth/data/auth_repository.dart';
 import 'package:apparule/src/features/earnings/data/earnings_repository.dart';
@@ -13,6 +14,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
+
+import 'in_memory_persistence.dart';
 
 /// Pumps [widget] inside the chrome every screen expects: a ProviderScope
 /// over the `*Fake` repositories (mobile-implementation.md §6), the token
@@ -36,6 +39,7 @@ extension PumpApp on WidgetTester {
     NotificationRepository? notificationRepository,
     ProfileRepository? profileRepository,
     EarningsRepository? earningsRepository,
+    PersistenceService? persistenceService,
     ThemeMode themeMode = ThemeMode.light,
   }) {
     return pumpWidget(
@@ -43,6 +47,10 @@ extension PumpApp on WidgetTester {
         overrides: <Override>[
           ...fakeRepositoryOverrides(
             authRepository: authRepository,
+            // The secure-storage seam has no plugin in widget tests — the
+            // in-memory stand-in keeps the fake auth lifecycle hermetic.
+            persistenceService:
+                persistenceService ?? InMemoryPersistenceService(),
             cameraService: cameraService,
             measurementRepository: measurementRepository,
             postRepository: postRepository,

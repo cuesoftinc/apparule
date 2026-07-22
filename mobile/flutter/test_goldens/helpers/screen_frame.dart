@@ -12,6 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 
+import 'in_memory_persistence.dart';
+
 /// Frames a SCREEN for a golden scenario: phone-sized box, the fake
 /// provider set, and the l10n delegates (alchemist's harness supplies the
 /// MaterialApp + theme around this).
@@ -31,6 +33,9 @@ Widget screenFrame(
     overrides: <Override>[
       ...fakeRepositoryOverrides(
         authRepository: authRepository,
+        // The secure-storage seam has no plugin in golden runs — the
+        // in-memory stand-in keeps the fake auth lifecycle hermetic.
+        persistenceService: InMemoryPersistenceService(),
         cameraService: cameraService,
         measurementRepository: measurementRepository,
         postRepository: postRepository,

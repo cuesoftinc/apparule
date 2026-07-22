@@ -5,7 +5,6 @@ import 'package:apparule/src/features/earnings/presentation/designer_onboarding_
 import 'package:apparule/src/features/earnings/presentation/earnings_screen.dart';
 import 'package:apparule/src/features/earnings/presentation/payout_account_screen.dart';
 import 'package:apparule/src/features/feed/presentation/comments_screen.dart';
-import 'package:apparule/src/features/feed/presentation/create_screen.dart';
 import 'package:apparule/src/features/feed/presentation/explore_screen.dart';
 import 'package:apparule/src/features/feed/presentation/home_feed_screen.dart';
 import 'package:apparule/src/features/feed/presentation/post_detail_screen.dart';
@@ -41,7 +40,10 @@ part 'routes.g.dart';
 // canvases render without the tab bar (C4/C5/C8-detail/C10/C11).
 
 /// The persistent tab shell — Home · Explore · ➕ · Orders · Profile
-/// (pages.md Part C).
+/// (pages.md Part C). Four branches behind the five slots: ➕ is an
+/// entry gesture, not a branch (canvas-first ruling 2026-07-22 — the
+/// `/create` placeholder had no pages.md spec and no canvas frame; the
+/// designer composer arrives designed-first with its own frames).
 @TypedStatefulShellRoute<AppShellRoute>(
   branches: <TypedStatefulShellBranch<StatefulShellBranchData>>[
     TypedStatefulShellBranch<HomeBranch>(
@@ -50,11 +52,6 @@ part 'routes.g.dart';
     TypedStatefulShellBranch<ExploreBranch>(
       routes: <TypedRoute<RouteData>>[
         TypedGoRoute<ExploreRoute>(path: '/explore'),
-      ],
-    ),
-    TypedStatefulShellBranch<CreateBranch>(
-      routes: <TypedRoute<RouteData>>[
-        TypedGoRoute<CreateRoute>(path: '/create'),
       ],
     ),
     TypedStatefulShellBranch<OrdersBranch>(
@@ -87,8 +84,7 @@ class AppShellRoute extends StatefulShellRouteData {
         // ➕ = the capture entry (§5: `/capture` is the ➕ tab's customer
         // branch): guide on first run, camera once the persisted flag is
         // set (§10). The seeded §6 user is a non-designer; the designer
-        // branch (post composer, `/create`) activates with the composer
-        // wave's role check.
+        // composer joins designed-first (canvas-first ruling 2026-07-22).
         onCreate: () => launchCaptureFlow(context, ref),
       ),
     );
@@ -117,18 +113,6 @@ class ExploreRoute extends GoRouteData with $ExploreRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       const ExploreScreen();
-}
-
-class CreateBranch extends StatefulShellBranchData {
-  const CreateBranch();
-}
-
-class CreateRoute extends GoRouteData with $CreateRoute {
-  const CreateRoute();
-
-  @override
-  Widget build(BuildContext context, GoRouterState state) =>
-      const CreateScreen();
 }
 
 class OrdersBranch extends StatefulShellBranchData {

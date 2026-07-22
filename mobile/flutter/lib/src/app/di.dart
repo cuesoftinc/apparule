@@ -40,9 +40,16 @@ AppFlavor appFlavor(Ref ref) => throw UnimplementedError(
 /// implementations (Firebase auth behind the options files, `*Remote`
 /// at §1 phase 4).
 ///
-/// [authRepository] lets an entrypoint (or test) supply a differently
-/// seeded auth fake — `main_dev` boots signed in as the §6 test user;
-/// everything else starts signed out at C1.
+/// [authRepository] lets a test supply a differently seeded auth fake
+/// (in-memory, pre-signed-in, throwing). The default fake binds the
+/// persistence seam, so both entrypoints run the REAL session lifecycle
+/// over mock identity (boot-flow directive 2026-07-22): first-ever
+/// launch boots to C1, a sign-in persists across relaunches, sign-out
+/// purges it — web TEST_MODE parity.
+///
+/// [persistenceService] swaps the persistence seam — tests pass an
+/// in-memory service (secure storage has no plugin in widget tests);
+/// the default is the real service, so entrypoints persist for real.
 ///
 /// [cameraService] swaps the C6 camera seam (§10): the set defaults to
 /// `CameraServiceFake` (bundled sample frame — simulators/CI/dev need no
@@ -56,6 +63,7 @@ AppFlavor appFlavor(Ref ref) => throw UnimplementedError(
 /// role (the feed/orders wave's seams).
 List<Override> fakeRepositoryOverrides({
   AuthRepository? authRepository,
+  PersistenceService? persistenceService,
   CameraService? cameraService,
   MeasurementRepository? measurementRepository,
   PostRepository? postRepository,
@@ -64,8 +72,15 @@ List<Override> fakeRepositoryOverrides({
   ProfileRepository? profileRepository,
   EarningsRepository? earningsRepository,
 }) => <Override>[
+  persistenceServiceProvider.overrideWith(
+    (ref) => persistenceService ?? PersistenceService(),
+  ),
   authRepositoryProvider.overrideWith(
-    (ref) => authRepository ?? AuthRepositoryFake(),
+    (ref) =>
+        authRepository ??
+        AuthRepositoryFake(
+          persistenceService: ref.watch(persistenceServiceProvider),
+        ),
   ),
   cameraServiceProvider.overrideWith(
     (ref) => cameraService ?? CameraServiceFake(),

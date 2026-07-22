@@ -95,9 +95,19 @@ unauthorized independent of this doc (roadmap.md).
   `firebase_options_dev.dart` + `firebase_options.dart` (prod)
   (committed; no secrets live in these files beyond the public API key
   model Firebase already ships with).
-- Icons/splash: `flutter_launcher_icons` + `flutter_native_splash`, one
-  config block per flavor. Version stamp `x.y.z+build` — humans own
-  `x.y.z`, CI stamps the build number from `GITHUB_RUN_NUMBER`.
+- Icons/splash: `flutter_launcher_icons` + `flutter_native_splash`,
+  configured from the design.md §2 brand construction (white Inter-Bold
+  "A" on the accent gradient — the web favicon adjudication): source
+  PNGs are generated from tokens by `tool/gen_brand_assets.mjs` (the
+  mobile sibling of web's `generate-brand-assets.mjs`) into
+  `assets/brand/` with sha256 provenance; the launcher icon ships
+  adaptive on Android (gradient background + white-A foreground +
+  13+ monochrome) and full-bleed on iOS, and the splash centers the
+  tile on the token `bg` (light/dark; Android 12+ splash API uses the
+  gradient-disc variant). Both flavors share the mark — the per-flavor
+  display name distinguishes side-by-side installs. Version stamp
+  `x.y.z+build` — humans own `x.y.z`, CI stamps the build number from
+  `GITHUB_RUN_NUMBER`.
 
 ## 3. Architecture
 
@@ -246,7 +256,11 @@ post-detail screen in-app when the app is installed.
 | `/designer/onboarding` | Designer onboarding & KYC | C13 |
 | `/designer/onboarding/payout` | Payout banking form (Paystack states) — a sibling under the prefix, not a child (the capture-guide precedent: re-verification entries must not stack a stale intro) | C13 |
 | `/earnings` | Earnings & payouts | C14 |
-| `/create` (➕ tab, designer branch) | Post composer | pages.md B5 parity |
+
+The ➕ tab is an entry **gesture**, not a branch: the customer path
+pushes the `/capture` flow (§10); the designer composer (pages.md B5
+parity) arrives designed-first with its own canvas frames — no
+placeholder route stands in for it (canvas-first ruling 2026-07-22).
 
 ## 6. Data layer & mock-first (TEST_MODE parity)
 
@@ -260,6 +274,14 @@ active. This is the mobile analogue of web's `TEST_MODE` seam
 today; `main.dart` (prod) is where `*Remote` is introduced when API
 wiring lands (§1 phase 4). No `if (kDebugMode)` branching inside
 feature code.
+
+The fakes run the **real session lifecycle** (user directive
+2026-07-22): `AuthRepositoryFake` persists a labeled session marker
+through the same secure-storage seam the Firebase implementation uses
+for tokens at rest, so a first-ever launch boots signed out to C1, the
+instant fake "Continue with Google" survives relaunches, and sign-out
+purges it back to C1 — exactly web TEST_MODE's session behavior, over
+the same boot gate prod will use (§9).
 
 `*Fake` repositories read seeded JSON from `assets/seed/` — the
 dev-flavor asset scope keeps seed data out of prod bundles. Seed files, one per domain (mirrors the mock server's grouping,
@@ -344,8 +366,8 @@ mobile CI lane today):
 
 Google sign-in **only**, carried from X-1/flows/auth.md unchanged in
 substance — mobile has no "email stub" to delete because it never had a
-production backend, but it does have a legacy screen surface implementing
-the forbidden methods (§11).
+production backend; the legacy screen surface implementing the forbidden
+methods was quarantined at the cutover and removed 2026-07-22 (§11).
 
 - `firebase_core` + `firebase_auth` + `google_sign_in` (7.x): the sign-in
   call sequence is `GoogleSignIn.instance.initialize(serverClientId)` →
@@ -355,8 +377,16 @@ the forbidden methods (§11).
   splash-screen logic that could route a returning user back to
   `EmailVerificationPage` forever (audit ledger critical finding #4).
 - `flutterfire configure` is run once per flavor against `sandbox-e306a`
-  (§2) — three app registrations, three `firebase_options_<env>.dart`
-  files, matching the flavor `applicationIdSuffix`/scheme.
+  (§2) — two app registrations, two options files
+  (`firebase_options_dev.dart` + `firebase_options.dart`), matching the
+  flavor `applicationIdSuffix`/scheme.
+- **Boot gate**: cold start runs the silent restore behind the branded
+  in-app boot frame (`BootScreen` — gradient wordmark on the token `bg`,
+  continuing the native splash; a quiet spinner only past ~300ms). The
+  router mounts only once the session value settles, so a signed-in
+  relaunch never flashes C1 and a signed-out boot lands on C1 with the
+  answer known. The dev fake persists its session through the same seam
+  (§6), so both flavors exercise this exact flow.
 - Session tokens live in `flutter_secure_storage` — never
   `SharedPreferences` (the legacy app's session model: plaintext PII as the
   session itself, audit ledger critical finding #3 / CV-2).
@@ -437,14 +467,20 @@ DEBUG-key config); `README.md`/`.metadata`/`.gitignore` (the committed
 this project's).
 
 **QUARANTINE → staged removal (the web legacy pattern, user directive
-2026-07-21)** — superseded code is never deleted up front: it moves
-structure-preserved into `mobile/flutter/lib/legacy/` (assets into
-`assets/legacy/`, the old Android tree into `legacy/android-agp7/`, the
-unused web scaffold into `legacy/web-scaffold/`), excluded from
-`pubspec` assets, analysis, CI scope, and builds. A quarantined unit is
-actually removed only when BOTH hold: its replacement has shipped and
-the user gives an explicit removal go (mirroring web's route-by-route
-replacement and end-of-program authorized sweeps). The quarantine set:
+2026-07-21) — REMOVED 2026-07-22**: superseded code was never deleted up
+front — it moved structure-preserved into `mobile/flutter/lib/legacy/`
+(assets into `assets/legacy/`, the old Android tree into
+`legacy/android-agp7/`, the unused web scaffold into
+`legacy/web-scaffold/`), excluded from `pubspec` assets, analysis, CI
+scope, and builds, to be removed only when BOTH held: replacement
+shipped AND an explicit user removal go. Both conditions were met
+2026-07-22 (QA-convergence ledger: every C-series screen PASS/FIXED;
+user removal go, directive 2026-07-22) and the entire quarantine — the
+register below, verbatim — was **deleted**, along with its
+analysis/codegen/CI excludes. The two salvages had already left the
+tree live: `countdown.dart` (now `src/core/ui/countdown.dart`) and the
+promoted guide artwork in `assets/images/` (owned by the C6 guide's
+canvas-first rebuild lane). The removed register:
 `welcome_screen.dart` (no-op icons, superseded by the C1 flow); all 9
 files under `lib/src/features/auth/` plus `form_provider`
 (password/phone/OTP auth — X-1 violation, CV-1; retired **by name** per

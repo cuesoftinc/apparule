@@ -110,12 +110,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # Live-tree scope: the quarantined lib/legacy tree (§11) and generated
-      # code sit outside the format gate, mirroring the analysis excludes.
+      # Generated code sits outside the format gate, mirroring the
+      # analysis excludes.
       - name: Format check
         run: |
-          find lib test tool -name '*.dart' \
-            -not -path 'lib/legacy/*' \
+          find lib test test_goldens tool -name '*.dart' \
             -not -path 'lib/l10n/generated/*' \
             -not -name '*.g.dart' \
             -not -name '*.freezed.dart' \

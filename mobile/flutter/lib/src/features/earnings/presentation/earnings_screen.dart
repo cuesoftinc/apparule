@@ -205,8 +205,11 @@ class _EarningsBody extends ConsumerWidget {
             child: EmptyState(
               kind: EmptyStateKind.orders,
               line: l10n.earningsEmptyLedger,
-              ctaLabel: l10n.earningsEmptyLedgerCta,
-              onCta: () => const CreateRoute().go(context),
+              // Module-canonical CTA → Explore: the C8-empty precedent
+              // for composer-less designers (web B9's "Create a post"
+              // targets the B5 composer, which mobile ships designed-
+              // first — canvas-first ruling 2026-07-22).
+              onCta: () => const ExploreRoute().go(context),
             ),
           )
         else

@@ -7,7 +7,7 @@ part 'persistence_service.g.dart';
 /// Stateless persistence wrapper (mobile-implementation.md §3 services).
 ///
 /// Session tokens live in [FlutterSecureStorage] — never SharedPreferences
-/// (§9; the legacy PII-as-session pattern is quarantined, not migrated —
+/// (§9; the legacy PII-as-session pattern was retired, never migrated —
 /// CV-2). SharedPreferences carries only non-secret UI flags: the theme
 /// preference (§11 REWRITE of `persistence.dart`) and the C6
 /// guide-completion flag (§10 — the guide turns skippable once completed).

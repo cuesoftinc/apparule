@@ -50,15 +50,6 @@ RouteBase get $appShellRoute => StatefulShellRouteData.$route(
     StatefulShellBranchData.$branch(
       routes: [
         GoRouteData.$route(
-          path: '/create',
-          hasOverriddenOnExit: false,
-          factory: $CreateRoute._fromState,
-        ),
-      ],
-    ),
-    StatefulShellBranchData.$branch(
-      routes: [
-        GoRouteData.$route(
           path: '/orders',
           hasOverriddenOnExit: false,
           factory: $OrdersRoute._fromState,
@@ -106,26 +97,6 @@ mixin $ExploreRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/explore');
-
-  @override
-  void go(BuildContext context) => context.go(location);
-
-  @override
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
-
-  @override
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
-
-  @override
-  void replace(BuildContext context) => context.replace(location);
-}
-
-mixin $CreateRoute on GoRouteData {
-  static CreateRoute _fromState(GoRouterState state) => const CreateRoute();
-
-  @override
-  String get location => GoRouteData.$location('/create');
 
   @override
   void go(BuildContext context) => context.go(location);

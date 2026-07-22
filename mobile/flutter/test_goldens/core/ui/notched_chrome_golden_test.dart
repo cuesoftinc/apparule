@@ -57,7 +57,8 @@ void main() {
           ),
         ),
         GoldenTestScenario(
-          name: 'immersive — full-bleed media, scrim into the notch, '
+          name:
+              'immersive — full-bleed media, scrim into the notch, '
               'chrome content below it',
           child: notched(
             Scaffold(
