@@ -44,4 +44,11 @@ docker run --rm --platform linux/amd64 \
     flutter pub get
     flutter test --update-goldens test_goldens'
 
+# The container's `pub get` rewrote .dart_tool/package_config.json with
+# container paths — restore the host resolution so the next local
+# analyze/test run doesn't see a broken package graph.
+if command -v flutter >/dev/null 2>&1; then
+  flutter pub get >/dev/null
+fi
+
 echo "Done — review with: git diff --stat -- test_goldens"
