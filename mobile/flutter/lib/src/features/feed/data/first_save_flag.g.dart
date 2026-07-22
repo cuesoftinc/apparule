@@ -48,7 +48,7 @@ final class FirstSaveFlagProvider
   FirstSaveFlag create() => FirstSaveFlag();
 }
 
-String _$firstSaveFlagHash() => r'c65e8fe2e48e416255b664e52f7123c736bc38fa';
+String _$firstSaveFlagHash() => r'cac6691b17b418c0ffd47ce068790c0889675650';
 
 /// Whether the MI-3 first-save toast has ever shown (design.md §4:
 /// "first-ever save shows 'Saved to your looks' toast with link" — once
