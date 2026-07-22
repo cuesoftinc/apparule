@@ -134,7 +134,7 @@ mobile/flutter/
   assets/
     images/ icons/ fonts/
     seed/                     # §6 — dev/stg-flavor-scoped narrative JSON
-  android/ ios/                # INSIDE the flutter project root (legacy had them outside — §11)
+  android/ ios/                # INSIDE the flutter project root (outer mobile/android, mobile/ios are reserved native-app placeholders — §11)
   lib/
     main.dart                  # prod entrypoint (sandbox = CueLABS production, M-7)
     main_dev.dart               # fakes wired by default
@@ -516,9 +516,11 @@ identity model, CV-2); the `sq` locale + `Language` class (dead — no
 picker UI ever called `MyApp.setLocale`, CV-6); the tracked
 `flutter/web/` scaffold (platform de-registered in `.metadata`); and
 the assets `Blur`, `image2`, `apparule.png`, `howToMeasure`,
-`takeMeasure`, `measurement.jpg`, `arrow.png`, `check.svg`. The only
-true deletions: the outer `mobile/android/.gitkeep` and
-`mobile/ios/.gitkeep` placeholder stubs (empty markers, not code).
+`takeMeasure`, `measurement.jpg`, `arrow.png`, `check.svg`. The outer
+`mobile/android/` and `mobile/ios/` directories are **reserved
+placeholders for possible future native (non-Flutter) apps** (user
+directive 2026-07-22, `.gitkeep`-held) — the Flutter app's platform
+dirs live inside `mobile/flutter/`.
 
 **Toolchain findings folded into the restructure phase (§1)**: Dart
 constraint `>=3.1.2` (Sept 2023) raised to the ratified floor; `.metadata`
@@ -535,8 +537,9 @@ exact `0.20.2` pin to the ratified `^0.20.3` range.
 
 - [ ] Mobile CI lane green (format, codegen-fresh, analyze --fatal-infos +
       custom_lint, test --coverage gate) before any feature PR merges
-- [ ] `flutter/android`/`flutter/ios` are the only platform directories;
-      outer `mobile/android`, `mobile/ios` stubs and `flutter/web/` are gone
+- [ ] `flutter/android`/`flutter/ios` are the Flutter app's platform
+      directories and `flutter/web/` is gone; the outer `mobile/android`,
+      `mobile/ios` placeholders stay reserved for future native apps (§11)
 - [ ] Every repository is abstract with `*Remote` + `*Fake`; `dev`/`stg`
       entrypoints run entirely on fakes seeded from §6's narrative
 - [ ] Zero password/phone/OTP auth surface remains; Google sign-in is the

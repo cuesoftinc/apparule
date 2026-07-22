@@ -534,11 +534,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   bar and remains the capture entry gesture over four shell branches;
   the designer composer arrives designed-first.
 
-- Outer `mobile/android/` and `mobile/ios/` `.gitkeep` stubs (empty
-  placeholders — real platform dirs live inside `mobile/flutter/`), the iOS
-  LaunchImage placeholder README, and the dead ARCore/Sceneform native
-  dependencies from the Android build (§11 ledger; the pre-regeneration
-  build files are preserved under `legacy/android-agp7/`).
+- The iOS LaunchImage placeholder README and the dead ARCore/Sceneform
+  native dependencies from the Android build (§11 ledger; the
+  pre-regeneration build files are preserved under `legacy/android-agp7/`).
+  The outer `mobile/android/` and `mobile/ios/` `.gitkeep` placeholders
+  remain — reserved for possible future native (non-Flutter) apps (user
+  directive 2026-07-22); the Flutter app's platform dirs live inside
+  `mobile/flutter/`.
 
 - The legacy quarantine directory (`src/legacy/`), retired now that the
   system QA gate has passed.
