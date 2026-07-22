@@ -91,7 +91,13 @@ toggle, support (`clients.cuesoft.io`).
 
 ### B4 `/app/vault` — Measurement vault
 - Header: freshness ring avatar (MI-11) + "Retake" CTA → capture options
-  (webcam upload / manual entry MI-13; phone hand-off QR was CUT from scope — mobile capture covers it **[Decided]**).
+  (photo upload / manual entry MI-13). Web capture is **upload-only
+  [Decided 2026-07-22, M-12]**: two files (front + side) into the same
+  per-pose QC pipeline — no webcam flow (full-body webcam capture is
+  rejected UX: desk-height lens, unreachable controls); the options sheet
+  carries a "best experience: guided capture on the mobile app" hint.
+  Phone hand-off QR was CUT from scope — mobile capture covers it
+  **[Decided]**.
 - `MeasurementCard` grid (shoulder, hip, +SMPL girths when available) with
   history sparklines; tap → history sheet (sessions list, method chips,
   delete session).

@@ -290,7 +290,7 @@ canonical scheme. The single auth CTA component (X-1) is named
 | ProcessingConstellation | state: processing (landmark constellation over photo) / success / failed — the "AI is working" moment (MI-12) |
 | CaptureResults chrome | header (confidence summary) + MeasurementCard stagger list slot + "Save to vault" gradient / "Retake" quiet (pages.md C6) |
 | ManualMeasureRow | tape-measure slider + numeric field + cm/in toggle · state: default / active / error (MI-13) |
-| CaptureOptionCard | mode: webcam-upload / manual-entry (vault "Retake" options, pages.md B: vault header) |
+| CaptureOptionCard | mode: photo-upload / manual-entry (vault "Retake" options, pages.md B4 — web upload-only per M-12, front + side files; the sheet carries the "best experience: guided capture on the mobile app" hint) |
 | FormRow | label + control + helper/error · state: default/focus/error/disabled (profile & settings editors) |
 | AddressFieldset | context: delivery (request stepper — frozen per order) / profile location (city + state + country · "near me" explainer, X-10 tier 1) · NG-state select · prefill-from-last-order |
 

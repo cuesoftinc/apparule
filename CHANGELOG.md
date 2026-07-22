@@ -413,7 +413,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   platforms — "Take measurements" + "Post an outfit" (designer-gated;
   non-designers route to become-a-designer); the mobile composer (C15)
   is authorized design-first, and until it ships mobile's chooser
-  offers capture + become-a-designer only. **Auth posture**:
+  offers capture + become-a-designer only. **M-12 web capture is
+  upload-only**: web users upload the two photos (front + side files,
+  same per-pose QC pipeline); the webcam capture flow is removed
+  (rejected UX — desk-height lens, unreachable controls) and the vault
+  entry hints "best experience: guided capture on the mobile app";
+  mobile keeps the live guided camera; the composer create flow is
+  upload/import on both platforms. **Auth posture**:
   TEST_MODE-parity fakes are the ratified state until phase 4; Firebase
   wiring stays documented but gated. **Bio scope**: designer-scoped —
   C9 edit-profile hides bio for non-designers. **Parity-audit items**:

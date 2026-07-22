@@ -9,9 +9,15 @@
 ## 1. Capture flow (camera → pipeline → save)
 
 A capture is **two photos — front, then side (right profile) — plus
-height** (M-10, decisions.md). The pose progress renders as a centered
-over-media bar title ("Pose 1 of 2" / "Pose 2 of 2"); a QC retry re-enters
-the failing pose only and never advances the pose counter.
+height** (M-10, decisions.md). **Platform split (M-12)**: mobile runs the
+guided two-pose camera below; web is **upload-only** — a two-file upload
+(front + side) into the same `POST` and per-pose QC pipeline, with a
+"best experience: guided capture on the mobile app" hint (no webcam flow
+— full-body webcam capture is rejected UX: desk-height lens, unreachable
+controls). On mobile the pose progress renders as a centered over-media
+bar title ("Pose 1 of 2" / "Pose 2 of 2"); a QC retry re-enters the
+failing pose only and never advances the pose counter (web: re-pick the
+failing pose's file).
 
 ```mermaid
 flowchart TD
@@ -39,7 +45,7 @@ flowchart TD
 | --- | --- |
 | Height input | 100–230 cm (39–91 in); stored per account, editable in vault; changing height NEVER retro-scales old sessions (they froze their `input_height_cm`) |
 | Upload | multipart `image_front` + `image_side`, each ≤ 10 MB, JPEG/PNG/HEIC; client compresses each to ≤2048px long edge before upload; both images ride one request with one `Idempotency-Key` header (UUID per capture attempt) — retries on flaky mobile MUST NOT create duplicate sessions |
-| QC failures | always `422 {error:{code, message, guidance, pose}}` — QC is **per pose** (capture-qc.md §2): the error names the failing pose, first-failure-only within it; the client re-enters that pose's camera only (an accepted pose is never discarded; a retry never advances the pose counter). Full code set from capture-qc.md §1–2 with retake copy: `no_body` "Make sure your whole body is visible" · `multiple_bodies` "Make sure you're alone in frame" · `partial_body` "Include head to ankles" · `undecodable_image` "That image couldn't be read — try another photo" · `low_resolution` "Move closer or use a higher-quality camera" · `poor_lighting` "Find better lighting — avoid strong backlight" · `blurry` "Hold steady and retake" · `not_frontal` "Face the camera straight on" · `camera_tilt` "Hold the phone upright" · `arms_position` (front) "Keep arms slightly away from your body" / (side) "Let your arms hang relaxed at your sides" · `too_far` "Move closer — fill more of the frame" · `not_side_profile` "Turn your right side to the camera" |
+| QC failures | always `422 {error:{code, message, guidance, pose}}` — QC is **per pose** (capture-qc.md §2): the error names the failing pose, first-failure-only within it; the client re-enters that pose's camera (mobile) / re-picks that pose's file (web, M-12) — an accepted pose is never discarded; a retry never advances the pose counter. Full code set from capture-qc.md §1–2 with retake copy: `no_body` "Make sure your whole body is visible" · `multiple_bodies` "Make sure you're alone in frame" · `partial_body` "Include head to ankles" · `undecodable_image` "That image couldn't be read — try another photo" · `low_resolution` "Move closer or use a higher-quality camera" · `poor_lighting` "Find better lighting — avoid strong backlight" · `blurry` "Hold steady and retake" · `not_frontal` "Face the camera straight on" · `camera_tilt` "Hold the phone upright" · `arms_position` (front) "Keep arms slightly away from your body" / (side) "Let your arms hang relaxed at your sides" · `too_far` "Move closer — fill more of the frame" · `not_side_profile` "Turn your right side to the camera" |
 | Unsaved results | server session rows created with `status: pending_save`; auto-purged after 24h unsaved **[Decided default]**; "Retake" purges immediately |
 | Save | flips `status: complete`; both capture images begin their 30-day `retention_until` clock; measurements persist indefinitely |
 
@@ -99,7 +105,8 @@ values.
 
 ## 5. Acceptance checklist
 
-- [ ] Full two-pose capture→save on Flutter + webcam path on dashboard
+- [ ] Full two-pose capture→save on Flutter + the two-file upload path on
+      dashboard (upload-only, M-12)
 - [ ] Each QC code produces its specific guidance copy; a pose-2 failure
       re-enters the side capture with pose 1 kept
 - [ ] Duplicate-session impossible under retry storms (idempotency verified)

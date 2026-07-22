@@ -358,3 +358,14 @@ before public launch. Alternative: commission the brand pass first.
   (M-8): canvas frames come next, mirroring the web B5 composer, and the
   build follows once the frames ratify; until C15 ships, mobile's
   chooser offers capture + become-a-designer only. ☑
+- **M-12 Web measurement capture is upload-only (RATIFIED 2026-07-22,
+  user directive)**: web users **upload** the two photos — front + side
+  files into the same endpoint and per-pose QC pipeline (M-10). The
+  webcam capture flow is **removed** from web: full-body webcam capture
+  is rejected UX (desk-height lens; no way to frame yourself and reach
+  the controls). The web vault entry surfaces a "best experience: guided
+  capture on the mobile app" hint; mobile keeps the live guided camera.
+  The composer create flow is upload/import on **both** platforms
+  (already the web idiom; C15 mobile uses the device picker) — no live
+  camera enters the composer. api.md is unchanged beyond M-10: the
+  endpoint takes two images regardless of source. ☑
