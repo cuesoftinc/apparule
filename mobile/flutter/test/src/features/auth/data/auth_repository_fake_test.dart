@@ -97,22 +97,24 @@ void main() {
       expect(await repository.restoreSession(), isNull);
     });
 
-    test('sign-out purges the marker — the next restore is signed out',
-        () async {
-      final persistence = InMemoryPersistenceService()
-        ..sessionToken = AuthRepositoryFake.fakeSessionToken;
-      final repository = AuthRepositoryFake(persistenceService: persistence);
-      expect(await repository.restoreSession(), isNotNull);
+    test(
+      'sign-out purges the marker — the next restore is signed out',
+      () async {
+        final persistence = InMemoryPersistenceService()
+          ..sessionToken = AuthRepositoryFake.fakeSessionToken;
+        final repository = AuthRepositoryFake(persistenceService: persistence);
+        expect(await repository.restoreSession(), isNotNull);
 
-      await repository.signOut();
+        await repository.signOut();
 
-      expect(persistence.sessionToken, isNull);
-      expect(
-        await AuthRepositoryFake(
-          persistenceService: persistence,
-        ).restoreSession(),
-        isNull,
-      );
-    });
+        expect(persistence.sessionToken, isNull);
+        expect(
+          await AuthRepositoryFake(
+            persistenceService: persistence,
+          ).restoreSession(),
+          isNull,
+        );
+      },
+    );
   });
 }
