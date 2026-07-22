@@ -53,5 +53,52 @@ void main() {
       const bar = AppTopBar(title: 'Apparule');
       expect(bar.preferredSize.height, 56);
     });
+
+    testWidgets('sub titles center on the BAR, not the leftover flow space '
+        '(centered-title ruling)', (tester) async {
+      // Back present, no trailing — the old in-flow layout grew the title
+      // into the hidden-trailing space and skewed it right.
+      await tester.pumpApp(
+        Scaffold(
+          appBar: AppTopBar(
+            kind: AppTopBarKind.sub,
+            title: 'Vault',
+            onBack: () {},
+          ),
+        ),
+      );
+
+      final barCenter = tester.getCenter(find.byType(AppTopBar)).dx;
+      final titleCenter = tester.getCenter(find.text('Vault')).dx;
+      expect(titleCenter, moreOrLessEquals(barCenter, epsilon: 1));
+    });
+
+    testWidgets('a long sub title pads by the max slot width — symmetric '
+        'and clear of both slots', (tester) async {
+      await tester.pumpApp(
+        Scaffold(
+          appBar: AppTopBar(
+            kind: AppTopBarKind.sub,
+            title: 'Ankara maxi skirt with structured waistband and train',
+            onBack: () {},
+          ),
+        ),
+      );
+
+      final bar = tester.getRect(find.byType(AppTopBar));
+      final title = tester.getRect(
+        find.text('Ankara maxi skirt with structured waistband and train'),
+      );
+      final back = tester.getRect(find.bySemanticsLabel('Back'));
+
+      // Still truly centered…
+      expect(
+        title.center.dx,
+        moreOrLessEquals(bar.center.dx, epsilon: 1),
+      );
+      // …and clear of the leading slot (padding = max slot width keeps
+      // the ellipsis symmetric instead of running under a slot).
+      expect(title.left, greaterThanOrEqualTo(back.right - 1));
+    });
   });
 }

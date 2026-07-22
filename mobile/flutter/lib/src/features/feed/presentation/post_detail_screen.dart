@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/app_bar.dart';
@@ -86,10 +88,22 @@ class _PostDetailBody extends ConsumerWidget {
                   now: ref.watch(clockProvider)(),
                 ),
                 onToggleLike: viewModel.toggleLike,
-                onToggleSave: viewModel.toggleSave,
+                onToggleSave: () {
+                  unawaited(viewModel.toggleSave());
+                  unawaited(
+                    maybeShowFirstSaveToast(
+                      context,
+                      ref,
+                      wasSaved: post.saved,
+                    ),
+                  );
+                },
                 onComment: () =>
                     PostCommentsRoute(id: post.id).push<void>(context),
                 onShare: () => sharePostLink(context, post.id),
+                onProfileTap: () => PublicProfileRoute(
+                  username: post.designer.username,
+                ).push<void>(context),
               ),
               // The composer affordance — tapping opens the C11 sheet
               // with the keyboard-ready composer.

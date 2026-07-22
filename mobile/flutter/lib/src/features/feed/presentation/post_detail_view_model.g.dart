@@ -9,20 +9,20 @@ part of 'post_detail_view_model.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// C4's ViewModel — one post; like/save mutate the repository and echo
-/// back into this state AND the C2 feed's (the two surfaces render the
-/// same fake truth).
+/// back into this state AND every other engagement surface (C2 feed,
+/// C9 liked/saved grids — the surfaces render the same fake truth).
 
 @ProviderFor(PostDetailViewModel)
 final postDetailViewModelProvider = PostDetailViewModelFamily._();
 
 /// C4's ViewModel — one post; like/save mutate the repository and echo
-/// back into this state AND the C2 feed's (the two surfaces render the
-/// same fake truth).
+/// back into this state AND every other engagement surface (C2 feed,
+/// C9 liked/saved grids — the surfaces render the same fake truth).
 final class PostDetailViewModelProvider
     extends $AsyncNotifierProvider<PostDetailViewModel, Post> {
   /// C4's ViewModel — one post; like/save mutate the repository and echo
-  /// back into this state AND the C2 feed's (the two surfaces render the
-  /// same fake truth).
+  /// back into this state AND every other engagement surface (C2 feed,
+  /// C9 liked/saved grids — the surfaces render the same fake truth).
   PostDetailViewModelProvider._({
     required PostDetailViewModelFamily super.from,
     required String super.argument,
@@ -60,11 +60,11 @@ final class PostDetailViewModelProvider
 }
 
 String _$postDetailViewModelHash() =>
-    r'666e7490fff0370d4255a8122ab568a277fa96c9';
+    r'45242b1dea53749ed325c6d18a1ecca8fd5e9e5f';
 
 /// C4's ViewModel — one post; like/save mutate the repository and echo
-/// back into this state AND the C2 feed's (the two surfaces render the
-/// same fake truth).
+/// back into this state AND every other engagement surface (C2 feed,
+/// C9 liked/saved grids — the surfaces render the same fake truth).
 
 final class PostDetailViewModelFamily extends $Family
     with
@@ -85,8 +85,8 @@ final class PostDetailViewModelFamily extends $Family
       );
 
   /// C4's ViewModel — one post; like/save mutate the repository and echo
-  /// back into this state AND the C2 feed's (the two surfaces render the
-  /// same fake truth).
+  /// back into this state AND every other engagement surface (C2 feed,
+  /// C9 liked/saved grids — the surfaces render the same fake truth).
 
   PostDetailViewModelProvider call(String postId) =>
       PostDetailViewModelProvider._(argument: postId, from: this);
@@ -96,8 +96,8 @@ final class PostDetailViewModelFamily extends $Family
 }
 
 /// C4's ViewModel — one post; like/save mutate the repository and echo
-/// back into this state AND the C2 feed's (the two surfaces render the
-/// same fake truth).
+/// back into this state AND every other engagement surface (C2 feed,
+/// C9 liked/saved grids — the surfaces render the same fake truth).
 
 abstract class _$PostDetailViewModel extends $AsyncNotifier<Post> {
   late final _$args = ref.$arg as String;

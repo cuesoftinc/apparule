@@ -2,6 +2,7 @@ import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/features/feed/data/post_repository_fake.dart';
 import 'package:apparule/src/features/feed/presentation/comments_screen.dart';
 import 'package:apparule/src/features/orders/presentation/request_stepper_screen.dart';
+import 'package:apparule/src/features/profile/presentation/public_profile_screen.dart';
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -54,6 +55,22 @@ void main() {
     final post = await repository.post('post-agbada');
     expect(post.liked, isTrue);
     expect(post.likeCount, 28);
+  });
+
+  testWidgets('the header identity opens the designer C9 profile', (
+    tester,
+  ) async {
+    await bootToPost(tester);
+
+    // Web PostDetailView parity: header (and caption) username link the
+    // designer profile — the live-QA sweep wired the shared PostCard.
+    await tester.tap(find.bySemanticsLabel('View tunde.o profile').first);
+    await tester.pumpAndSettle();
+
+    final profile = tester.widget<PublicProfileScreen>(
+      find.byType(PublicProfileScreen),
+    );
+    expect(profile.username, 'tunde.o');
   });
 
   testWidgets('the comments entry opens the C11 sheet', (tester) async {

@@ -1,15 +1,15 @@
 import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:apparule/src/core/ui/avatar.dart';
-import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/empty_state.dart';
 import 'package:apparule/src/core/ui/skeleton.dart';
+import 'package:apparule/src/core/ui/user_row.dart';
 import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/core/utils/seed_media.dart';
 import 'package:apparule/src/features/feed/domain/designer_summary.dart';
 import 'package:apparule/src/features/feed/domain/explore_results.dart';
 import 'package:apparule/src/features/feed/domain/post.dart';
 import 'package:apparule/src/features/feed/presentation/explore_view_model.dart';
+import 'package:apparule/src/features/profile/presentation/unfollow_confirm_sheet.dart';
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -316,63 +316,36 @@ class _DesignerRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final colors = theme.extension<AppColors>()!;
-    final typography = theme.extension<AppTypography>()!;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: <Widget>[
-          Avatar(
-            name: designer.username,
-            image: seedMediaImageOrNull(designer.avatarUrl),
-            badge: designer.verified
-                ? AvatarBadge.designerVerified
-                : AvatarBadge.none,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  designer.username,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: typography.body14.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colors.text,
-                  ),
-                ),
-                Text(
-                  '${designer.displayName} · ${designer.locality}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: typography.caption13.copyWith(color: colors.text2),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Button(
-            label: designer.viewerFollows
-                ? l10n.exploreFollowing
-                : l10n.exploreFollow,
-            kind: designer.viewerFollows
-                ? ButtonKind.quiet
-                : ButtonKind.gradientPrimary,
-            size: ButtonSize.sm,
-            onPressed: () => ref
-                .read(exploreFollowControllerProvider.notifier)
-                .setFollow(
-                  designer.username,
-                  follow: !designer.viewerFollows,
-                ),
-          ),
-        ],
-      ),
+    // The canonical B2-parity search row is UserRow (design.md §8.2b):
+    // the row body opens the C9 profile (live-QA sweep — the bespoke row
+    // it replaces had no navigation), the trailing button carries the
+    // MI-7 morph with unfollow armed behind the confirm sheet.
+    return UserRow(
+      username: designer.username,
+      meta: '${designer.displayName} · ${designer.locality}',
+      image: seedMediaImageOrNull(designer.avatarUrl),
+      verified: designer.verified,
+      trailing: designer.viewerFollows
+          ? UserRowTrailing.following
+          : UserRowTrailing.follow,
+      onTap: () => PublicProfileRoute(
+        username: designer.username,
+      ).push<void>(context),
+      onFollow: () => ref
+          .read(exploreFollowControllerProvider.notifier)
+          .setFollow(designer.username, follow: true),
+      onFollowingTap: () async {
+        final confirmed = await showUnfollowConfirmSheet(
+          context,
+          username: designer.username,
+          image: seedMediaImageOrNull(designer.avatarUrl),
+        );
+        if (confirmed) {
+          await ref
+              .read(exploreFollowControllerProvider.notifier)
+              .setFollow(designer.username, follow: false);
+        }
+      },
     );
   }
 }

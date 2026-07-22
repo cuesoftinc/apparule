@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/ui/app_bar.dart';
 import 'package:apparule/src/core/ui/caught_up_divider.dart';
@@ -8,6 +10,7 @@ import 'package:apparule/src/core/ui/story_rail_item.dart';
 import 'package:apparule/src/core/utils/clock.dart';
 import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/core/utils/seed_media.dart';
+import 'package:apparule/src/features/feed/data/first_save_flag.dart';
 import 'package:apparule/src/features/feed/domain/post.dart';
 import 'package:apparule/src/features/feed/domain/story_rail_entry.dart';
 import 'package:apparule/src/features/feed/presentation/home_feed_view_model.dart';
@@ -15,6 +18,7 @@ import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// C2 — the home feed (pages.md: = B1 minus the right column): story rail
@@ -195,8 +199,9 @@ class _FeedBody extends ConsumerWidget {
                       state: story.unseen
                           ? StoryRailItemState.unseen
                           : StoryRailItemState.seen,
-                      // Opens the designer's newest outfit (their C9
-                      // profile takes over once the profile wave lands).
+                      // Opens the designer's C9 profile (web FeedView
+                      // parity: the rail item links `/dashboard/{username}`),
+                      // consuming the ring on the way.
                       onTap: () => _openStory(context, ref, story),
                     );
                   },
@@ -226,12 +231,12 @@ class _FeedBody extends ConsumerWidget {
         .read(homeFeedViewModelProvider.notifier)
         .markStorySeen(story.username);
     if (context.mounted) {
-      await PostDetailRoute(id: story.newestPostId).push<void>(context);
+      await PublicProfileRoute(username: story.username).push<void>(context);
     }
   }
 }
 
-class _FeedPostCard extends StatelessWidget {
+class _FeedPostCard extends ConsumerWidget {
   const _FeedPostCard({
     required this.post,
     required this.viewModel,
@@ -243,7 +248,7 @@ class _FeedPostCard extends StatelessWidget {
   final DateTime now;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return PostCard(
       username: post.designer.username,
       avatarImage: seedMediaImageOrNull(post.designer.avatarUrl),
@@ -258,12 +263,46 @@ class _FeedPostCard extends StatelessWidget {
       caption: post.caption,
       timestampLabel: formatAgo(post.createdAt, now: now),
       onToggleLike: () => viewModel.toggleLike(post.id),
-      onToggleSave: () => viewModel.toggleSave(post.id),
+      onToggleSave: () {
+        unawaited(viewModel.toggleSave(post.id));
+        unawaited(
+          maybeShowFirstSaveToast(context, ref, wasSaved: post.saved),
+        );
+      },
       onComment: () => PostCommentsRoute(id: post.id).push<void>(context),
       onShare: () => sharePostLink(context, post.id),
       onRequest: () => RequestRoute(postId: post.id).push<void>(context),
+      onProfileTap: () => PublicProfileRoute(
+        username: post.designer.username,
+      ).push<void>(context),
     );
   }
+}
+
+/// MI-3: the first-ever save shows "Saved to your looks" with a View
+/// action into the profile's saved looks (web `FeedView`/`first-save.ts`
+/// parity — once per install, gated behind the persisted flag).
+Future<void> maybeShowFirstSaveToast(
+  BuildContext context,
+  WidgetRef ref, {
+  required bool wasSaved,
+}) async {
+  // Pre-toggle saved means this tap UN-saved — no toast (web parity).
+  if (wasSaved) return;
+  final messenger = ScaffoldMessenger.of(context);
+  final l10n = context.l10n;
+  final router = GoRouter.of(context);
+  final claimed = await ref.read(firstSaveFlagProvider.notifier).claim();
+  if (!claimed) return;
+  messenger.showSnackBar(
+    SnackBar(
+      content: Text(l10n.feedFirstSaveToast),
+      action: SnackBarAction(
+        label: l10n.feedFirstSaveView,
+        onPressed: () => router.go(const ProfileRoute().location),
+      ),
+    ),
+  );
 }
 
 /// MI-9 share: the public permalink (web-implementation.md §4

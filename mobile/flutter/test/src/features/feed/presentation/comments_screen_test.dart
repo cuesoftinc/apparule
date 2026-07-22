@@ -1,5 +1,6 @@
 import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/features/feed/data/post_repository_fake.dart';
+import 'package:apparule/src/features/profile/presentation/public_profile_screen.dart';
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -57,6 +58,22 @@ void main() {
     final comments = await repository.comments('post-ankara-gown');
     expect(post.commentCount, 4);
     expect(comments, hasLength(4));
+  });
+
+  testWidgets('a commenter identity opens their C9 profile', (
+    tester,
+  ) async {
+    await bootToComments(tester);
+
+    // Avatar and username-span are both labelled profile affordances
+    // (live-QA sweep: every entity reference navigates).
+    await tester.tap(find.bySemanticsLabel('View maisonbisi profile').first);
+    await tester.pumpAndSettle();
+
+    final profile = tester.widget<PublicProfileScreen>(
+      find.byType(PublicProfileScreen),
+    );
+    expect(profile.username, 'maisonbisi');
   });
 
   testWidgets('the heart toggles a comment like', (tester) async {

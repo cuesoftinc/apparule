@@ -2,6 +2,7 @@ import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/app_bar.dart';
 import 'package:apparule/src/core/ui/button.dart';
+import 'package:apparule/src/features/earnings/presentation/earnings_view_model.dart';
 import 'package:apparule/src/features/profile/domain/profile.dart';
 import 'package:apparule/src/features/profile/presentation/edit_profile_view_model.dart';
 import 'package:apparule/src/routing/routes.dart';
@@ -9,8 +10,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-/// C9 — edit profile: display name, bio (the C9 meta line), and the
-/// optional X-10 tier-1 profile location ("used to recommend nearby
+/// C9 — edit profile (canvas 532:2): display name, bio (designer
+/// accounts ONLY — user ruling 2026-07-22, "follow web": web has no
+/// account-level bio edit, the bio is the C9 designer meta line), and
+/// the optional X-10 tier-1 profile location ("used to recommend nearby
 /// designers", pages.md B7) — the same label + field + helper form
 /// idiom as the C13 create-designer frame. Username and email are
 /// Google-identity facts and not editable here.
@@ -75,6 +78,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final state = ref.watch(editProfileViewModelProvider);
+    // Bio is a designer-surface field (C9 designer meta line) — regular
+    // accounts carry no bio edit, matching web ["follow web" ruling].
+    final isDesigner =
+        ref.watch(designerStatusProvider).value?.enabled ?? false;
 
     return Scaffold(
       appBar: AppTopBar(
@@ -95,6 +102,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           bio: _bio,
           city: _city,
           state: _state,
+          showBio: isDesigner,
           saving: _saving,
           onHydrate: _hydrate,
           onSave: _save,
@@ -114,6 +122,7 @@ class _EditForm extends StatelessWidget {
     required this.bio,
     required this.city,
     required this.state,
+    required this.showBio,
     required this.saving,
     required this.onHydrate,
     required this.onSave,
@@ -124,6 +133,11 @@ class _EditForm extends StatelessWidget {
   final TextEditingController bio;
   final TextEditingController city;
   final TextEditingController state;
+
+  /// Designer accounts only — non-designers save their hydrated bio
+  /// back unchanged.
+  final bool showBio;
+
   final bool saving;
   final ValueChanged<Profile> onHydrate;
   final VoidCallback onSave;
@@ -187,13 +201,15 @@ class _EditForm extends StatelessWidget {
           decoration: decoration(),
         ),
         helper(l10n.editProfileDisplayNameHelper),
-        label(l10n.editProfileBio),
-        TextField(
-          controller: bio,
-          style: fieldStyle,
-          decoration: decoration(hint: l10n.editProfileBioHint),
-        ),
-        helper(l10n.editProfileBioHelper),
+        if (showBio) ...<Widget>[
+          label(l10n.editProfileBio),
+          TextField(
+            controller: bio,
+            style: fieldStyle,
+            decoration: decoration(hint: l10n.editProfileBioHint),
+          ),
+          helper(l10n.editProfileBioHelper),
+        ],
         label(l10n.editProfileCity),
         TextField(
           controller: city,

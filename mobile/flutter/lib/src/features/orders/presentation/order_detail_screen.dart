@@ -137,6 +137,11 @@ class _SummaryCard extends StatelessWidget {
     final colors = theme.extension<AppColors>()!;
     final radii = theme.extension<AppRadii>()!;
     final typography = theme.extension<AppTypography>()!;
+    // The counterparty reference navigates to their C9 profile (web
+    // OrderDetailView parity: `/dashboard/{counterparty}` link).
+    final counterpartyUsername = order.viewerRole == OrderRole.customer
+        ? order.designer.username
+        : order.customer.username;
     final counterparty = order.viewerRole == OrderRole.customer
         ? l10n.ordersDesignerLine(order.designer.username)
         : l10n.ordersCustomerLine(order.customer.username);
@@ -175,9 +180,28 @@ class _SummaryCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  counterparty,
-                  style: typography.caption13.copyWith(color: colors.text2),
+                Semantics(
+                  // One node (the StoryRailItem pattern) — the line's
+                  // text is visual; the node announces the affordance.
+                  container: true,
+                  excludeSemantics: true,
+                  label: 'View $counterpartyUsername profile',
+                  button: true,
+                  onTap: () => PublicProfileRoute(
+                    username: counterpartyUsername,
+                  ).push<void>(context),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => PublicProfileRoute(
+                      username: counterpartyUsername,
+                    ).push<void>(context),
+                    child: Text(
+                      counterparty,
+                      style: typography.caption13.copyWith(
+                        color: colors.text2,
+                      ),
+                    ),
+                  ),
                 ),
                 if (order.displayAmountCents case final amount?) ...<Widget>[
                   const SizedBox(height: 4),

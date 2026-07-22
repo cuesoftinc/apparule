@@ -1,6 +1,7 @@
 import 'package:apparule/src/core/ui/empty_state.dart';
 import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/features/feed/presentation/post_detail_screen.dart';
+import 'package:apparule/src/features/profile/presentation/public_profile_screen.dart';
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -64,9 +65,27 @@ void main() {
     // kiki already follows amara — the morph starts at Following.
     expect(find.text('Following'), findsOneWidget);
 
+    // MI-7: unfollow is never a blind toggle — the confirm sheet arms it.
     await tester.tap(find.text('Following'));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Unfollow @amara.designs'));
+    await tester.pumpAndSettle();
     expect(find.text('Follow'), findsOneWidget);
+  });
+
+  testWidgets('a designer search row opens the C9 profile', (tester) async {
+    await bootToExplore(tester);
+    await search(tester, 'ankara');
+
+    // The row body is the profile affordance (live-QA sweep: the
+    // bespoke row it replaced navigated nowhere).
+    await tester.tap(find.text('amara.designs'));
+    await tester.pumpAndSettle();
+
+    final profile = tester.widget<PublicProfileScreen>(
+      find.byType(PublicProfileScreen),
+    );
+    expect(profile.username, 'amara.designs');
   });
 
   testWidgets('a no-match query renders the search empty state', (

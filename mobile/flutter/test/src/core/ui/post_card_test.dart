@@ -29,6 +29,7 @@ void main() {
       VoidCallback? onToggleLike,
       VoidCallback? onComment,
       VoidCallback? onRequest,
+      VoidCallback? onProfileTap,
     }) {
       return SingleChildScrollView(
         child: SizedBox(
@@ -46,6 +47,7 @@ void main() {
             onToggleSave: () {},
             onComment: onComment,
             onRequest: onRequest,
+            onProfileTap: onProfileTap,
           ),
         ),
       );
@@ -113,6 +115,50 @@ void main() {
       await tester.pump();
 
       expect(find.textContaining('more', findRichText: true), findsNothing);
+    });
+
+    testWidgets('the header identity (avatar + username) fires '
+        'onProfileTap', (tester) async {
+      var profileTaps = 0;
+      await tester.pumpApp(card(onProfileTap: () => profileTaps++));
+
+      // The header identity is ONE labelled control covering avatar and
+      // username (the live-QA defect: neither navigated).
+      await tester.tap(
+        find.bySemanticsLabel('View eniola.stitches profile').first,
+      );
+      await tester.pump();
+
+      expect(profileTaps, 1);
+    });
+
+    testWidgets('the caption leading username fires onProfileTap', (
+      tester,
+    ) async {
+      var profileTaps = 0;
+      await tester.pumpApp(card(onProfileTap: () => profileTaps++));
+
+      // Tap inside the caption's first characters — the username span
+      // (web PostDetailView parity).
+      final caption = find.textContaining(
+        'Ankara two-piece.',
+        findRichText: true,
+      );
+      await tester.ensureVisible(caption);
+      await tester.tapAt(tester.getTopLeft(caption) + const Offset(6, 8));
+      await tester.pump();
+
+      expect(profileTaps, 1);
+    });
+
+    testWidgets('without onProfileTap the header announces no dead '
+        'button', (tester) async {
+      await tester.pumpApp(card());
+
+      expect(
+        find.bySemanticsLabel('View eniola.stitches profile'),
+        findsNothing,
+      );
     });
 
     testWidgets('the cta axis follows onRequest', (tester) async {

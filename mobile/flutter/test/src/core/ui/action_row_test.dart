@@ -1,8 +1,30 @@
 import 'package:apparule/src/core/ui/action_row.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../helpers/pump_app.dart';
+
+/// Records HapticFeedback platform calls (MI-20 assertions).
+List<String> recordHaptics(WidgetTester tester) {
+  final calls = <String>[];
+  tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+    SystemChannels.platform,
+    (call) async {
+      if (call.method == 'HapticFeedback.vibrate') {
+        calls.add(call.arguments as String);
+      }
+      return null;
+    },
+  );
+  addTearDown(
+    () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      null,
+    ),
+  );
+  return calls;
+}
 
 void main() {
   group('ActionRow', () {
@@ -35,6 +57,26 @@ void main() {
       expect(find.bySemanticsLabel('Comments'), findsOneWidget);
       expect(find.bySemanticsLabel('Share'), findsOneWidget);
       expect(find.bySemanticsLabel('Save'), findsOneWidget);
+    });
+
+    testWidgets('like and save fire the MI-20 light haptic on set, not '
+        'on unset', (tester) async {
+      final haptics = recordHaptics(tester);
+
+      await tester.pumpApp(row());
+      await tester.tap(find.bySemanticsLabel('Like'));
+      await tester.tap(find.bySemanticsLabel('Save'));
+      await tester.pumpAndSettle();
+      expect(haptics, hasLength(2));
+      expect(haptics.toSet(), <String>{'HapticFeedbackType.lightImpact'});
+
+      haptics.clear();
+      await tester.pumpApp(row(liked: true, saved: true));
+      await tester.tap(find.bySemanticsLabel('Unlike'));
+      await tester.tap(find.bySemanticsLabel('Remove from saved'));
+      await tester.pumpAndSettle();
+      // The un-actions stay quiet (MI-2 asymmetry).
+      expect(haptics, isEmpty);
     });
 
     testWidgets('labels flip with liked/saved state', (tester) async {

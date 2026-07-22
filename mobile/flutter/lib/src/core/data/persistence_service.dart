@@ -21,6 +21,7 @@ class PersistenceService {
   static const String _themeModeKey = 'theme_mode';
   static const String _captureGuideSeenKey = 'capture_guide_seen';
   static const String _firstActionSeenKey = 'first_action_seen';
+  static const String _firstSaveToastKey = 'first_save_toast_shown';
 
   Future<String?> readSessionToken() =>
       _secureStorage.read(key: _sessionTokenKey);
@@ -67,6 +68,19 @@ class PersistenceService {
   Future<void> writeFirstActionSeen() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_firstActionSeenKey, true);
+  }
+
+  /// Whether the MI-3 first-save toast has ever shown ("Saved to your
+  /// looks" — once per install, the web `first-save.ts` localStorage
+  /// gate's mobile sibling; saved state itself lives in the repository).
+  Future<bool> readFirstSaveToastShown() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_firstSaveToastKey) ?? false;
+  }
+
+  Future<void> writeFirstSaveToastShown() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_firstSaveToastKey, true);
   }
 }
 

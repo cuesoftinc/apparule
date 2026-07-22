@@ -42,7 +42,7 @@ final class HomeFeedViewModelProvider
   HomeFeedViewModel create() => HomeFeedViewModel();
 }
 
-String _$homeFeedViewModelHash() => r'56f7d78124f2937c4ad4af4c528d204193b528af';
+String _$homeFeedViewModelHash() => r'dde8acdb27f48198b01a68945e6a326ed394d222';
 
 /// C2's ViewModel — feed + story rail off the post repository; like/save
 /// and story-seen calls are repository mutations echoed back into state
