@@ -300,6 +300,16 @@ before public launch. Alternative: commission the brand pass first.
   appears only if a separate production environment is ratified;
   the bare application id already rides `prod` so identity migrates
   cleanly. ☑
+- **M-8 Canvas-first rule (RATIFIED 2026-07-22, user directive — org
+  canon, `oss-engineering-standards` SKILL #127)**: every shipped screen
+  has a Figma frame; a frameless screen is **designed first or dropped**.
+  Applied same-day, both ways: the mobile `/create` composer placeholder
+  was **dropped** (no frame — the designer composer arrives
+  designed-first with its own canvas frames), and the C6 guide — where
+  "existing guide screens restyled" had resolved to frameless 2023
+  legacy art — was **designed first** (six GuidePage frames landed
+  before the rebuild lane touched the screen). The canvas leads;
+  pages.md rows may not point at unframed screens. ☑
 - **M-10 Two-photo capture (RATIFIED 2026-07-22, user directive —
   REVERSES M-6)**: the product mechanic is **two photos — front + side
   (right profile) — plus height**. The reversal chain, honestly: M-6 was
