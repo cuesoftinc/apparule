@@ -9,6 +9,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Web B4 two-photo upload capture (M-10 + M-12): the vault measurement
+  flow is the two-file upload per the dashboard canvas frame — labeled
+  Front/Side dropzones with per-pose states (empty / uploaded thumbnail
+  + Replace / QC-error + hint chip), a Height (cm) row (100–230,
+  prefilled from the latest capture session — never a fabricated
+  default), and the "Get measurements" CTA into the processing
+  constellation and results stagger. QC is per pose: the 422 names the
+  failing pose, only that pose's file re-picks (an accepted pose is
+  never discarded), `QCHintChip` gains the `not_side_profile` code and
+  the side-pose arms copy, and the mock reports the FIRST failure by
+  the capture-qc.md table order (pre-checks before pose rows). The
+  options sheet and upload view carry the "Best experience: guided
+  capture on the Apparule app" hint; `openapi.yaml` POST /me/sessions
+  takes multipart `image_front` + `image_side` + `input_height_cm`.
+- Web Create chooser (M-11 unified create semantics): the rail's Create
+  pillar opens the two-option chooser — "Take measurements" (primary,
+  accent border → B4 capture options via `/dashboard/vault?capture=1`)
+  and "Post an outfit" (→ B5; designers see "Share a look with its fit
+  data", non-designers "Become a designer to post"). NavRail items gain
+  an `onSelect` action form (button + `aria-haspopup`); decorative
+  marketing rails stay inert.
+- Web `Button` kind `quiet-danger` — the danger-ladder row rung (quiet
+  chrome + error-token label, Figma 501:2), with gallery + test
+  coverage.
+
+### Changed
+
+- Web manual entry carries no height: `input_height_cm` is `null` for
+  `method: manual` (nullable ruling; the fabricated 168 default is
+  gone), out-of-range values prompt the flows/vault.md §2 "double-check"
+  advisory (non-blocking), and the `waist_girth` advisory max aligns to
+  the canonical 150.
+- Web AppBar sub/over-media titles center on the FULL bar width (M-9):
+  an absolute, full-width, center-aligned layer over the bar — never an
+  in-flow element between the slots; root's left wordmark exempt.
+  Propagates to order detail, the settings sub-screens, /p/{id}, the
+  marketing phone mocks and the dev gallery.
+- Web B7 Account & data delete-all rides the full danger ladder:
+  quiet-danger row rung → armed sheet with typed-DELETE gate, "Export
+  everything first" escape hatch, and Cancel (filled destructive only
+  on the armed surface).
+
+### Fixed
+
+- Web author links (entity-navigation rule; the web sibling of the
+  user-found mobile PostCard bug): PostCard header avatar+username and
+  the caption's leading username link to the designer profile
+  (prop-gated — marketing mocks stay inert), PostDetailView's header
+  link wraps the avatar (no dead zone), and CommentRow's avatar +
+  username link to the author profile.
+- Web session-restore hardening (flows/auth.md §2): `SignInGate`
+  replaces a signed-in visitor to /dashboard (a signed-in user never
+  sees /signin), the restore effect catches provider rejections as
+  signed-out (no stranded spinner), and the provider contract
+  (resolve null, never reject) is documented on
+  `AuthProviderAdapter.restore()`. e2e adds the cold-start pair.
+- Webcam capture flow REMOVED from web (M-12 — rejected UX:
+  desk-height lens, unreachable controls): `WebcamCaptureSheet`, its
+  idle tips and the webcam-upload option mode are deleted;
+  `CaptureOptionCard` renames the axis to `photo-upload` ("Upload
+  photos · Two photos — we measure automatically"; mobile thumbs keep
+  the C7 camera title). Mobile keeps the live guided camera.
+
 - Mobile real boot flow over fakes (user directive 2026-07-22, web
   TEST_MODE parity): cold start → native splash → session-restore gate →
   C1 when no session / straight into the tab shell when one persisted;
