@@ -11,13 +11,25 @@ describe("Button (§8.2)", () => {
     );
   });
 
-  it.each(["gradient-primary", "quiet", "destructive", "link"] as const)(
-    "renders kind=%s",
-    (kind) => {
-      render(<Button kind={kind}>Go</Button>);
-      expect(screen.getByRole("button")).toHaveAttribute("data-kind", kind);
-    },
-  );
+  it.each([
+    "gradient-primary",
+    "quiet",
+    "destructive",
+    "link",
+    "quiet-danger",
+  ] as const)("renders kind=%s", (kind) => {
+    render(<Button kind={kind}>Go</Button>);
+    expect(screen.getByRole("button")).toHaveAttribute("data-kind", kind);
+  });
+
+  it("quiet-danger is the danger-ladder row rung: quiet chrome + error label", () => {
+    render(<Button kind="quiet-danger">Delete all</Button>);
+    const button = screen.getByRole("button");
+    // quiet chrome (border + elevated bg), error-toned label — Figma 501:2
+    expect(button.className).toContain("border-border");
+    expect(button.className).toContain("bg-bg-elev");
+    expect(button.className).toContain("text-error");
+  });
 
   it("renders both sizes (md 44 / sm 36)", () => {
     const { rerender } = render(<Button size="md">A</Button>);

@@ -1,15 +1,20 @@
 "use client";
 
 // Button — design.md §8.2: kind gradient-primary / quiet / destructive /
-// link · size md 44 / sm 36 · state default / pressed / disabled / loading.
-// Figma master (39:66): radius/card corners, px 16/12, label 14/13 semibold,
-// disabled 40%, loading = spinner-only. Pressed = Figma overlay tint +
-// active scale (fast/standard, reduced-motion safe).
+// link / quiet-danger · size md 44 / sm 36 · state default / pressed /
+// disabled / loading. Figma master (39:66): radius/card corners, px 16/12,
+// label 14/13 semibold, disabled 40%, loading = spinner-only. Pressed =
+// Figma overlay tint + active scale (fast/standard, reduced-motion safe).
+// Danger ladder [Decided 2026-07-22]: row-level destructive actions render
+// quiet-danger (quiet chrome, error-toned label — Figma 501:2); the filled
+// destructive kind is reserved for armed/confirm surfaces (delete-confirm
+// sheet, dispute/decline sheets) — never both rungs on one surface.
 import { forwardRef, type ButtonHTMLAttributes } from "react";
 import clsx from "clsx";
 import { Spinner } from "./Spinner";
 
-export type ButtonKind = "gradient-primary" | "quiet" | "destructive" | "link";
+export type ButtonKind =
+  "gradient-primary" | "quiet" | "destructive" | "link" | "quiet-danger";
 export type ButtonSize = "md" | "sm";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -57,6 +62,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             "bg-error text-on-accent enabled:active:shadow-[inset_0_0_0_999px_rgba(0,0,0,0.16)]",
           kind === "link" &&
             "text-link underline-offset-2 hover:underline enabled:active:bg-[rgba(128,128,128,0.18)]",
+          // Danger-ladder row rung (Figma 501:2): quiet chrome, error label.
+          kind === "quiet-danger" &&
+            "border border-border bg-bg-elev text-error enabled:active:bg-[rgba(128,128,128,0.18)]",
           className,
         )}
         {...rest}
@@ -66,7 +74,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           // width (spinner 18 md / 16 sm, on-accent on filled kinds).
           <Spinner
             size={size === "md" ? 18 : 16}
-            kind={kind === "quiet" || kind === "link" ? "neutral" : "on-accent"}
+            kind={
+              kind === "quiet" || kind === "link" || kind === "quiet-danger"
+                ? "neutral"
+                : "on-accent"
+            }
           />
         ) : (
           children

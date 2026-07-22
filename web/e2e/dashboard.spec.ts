@@ -821,3 +821,37 @@ test.describe("order-sheet floating layers (shared fixture)", () => {
     });
   }
 });
+
+// Last in the serial file BY DESIGN: it flips the seeded account to
+// deletion_pending, so no journey may follow it in the shared store.
+test("B7 Account & data: danger ladder — quiet-danger row, typed-DELETE confirm, export-first escape", async ({
+  page,
+}) => {
+  await signIn(page);
+  await page.goto("/dashboard/settings/account");
+
+  // Row rung: the unarmed sub-screen renders quiet-danger, never filled.
+  const row = page.getByTestId("delete-all");
+  await expect(row).toHaveAttribute("data-kind", "quiet-danger");
+  await row.click();
+
+  // Armed rung: filled destructive, gated on the typed token.
+  const confirm = page.getByTestId("confirm-delete-all");
+  await expect(confirm).toHaveAttribute("data-kind", "destructive");
+  await expect(confirm).toBeDisabled();
+
+  // The escape hatch exports before deleting (data-model §4 rights).
+  const download = page.waitForEvent("download");
+  await page.getByTestId("export-first").click();
+  expect((await download).suggestedFilename()).toBe("apparule-export.json");
+
+  await page.getByTestId("delete-confirm-input").fill("delete");
+  await expect(confirm).toBeDisabled(); // exact token, not case-insensitive
+  await page.getByTestId("delete-confirm-input").fill("DELETE");
+  await expect(confirm).toBeEnabled();
+  await confirm.click();
+
+  await expect(page.getByText("Deletion requested").first()).toBeVisible();
+  // The pending state disarms the row (no re-entry while pending).
+  await expect(row).toBeDisabled();
+});
