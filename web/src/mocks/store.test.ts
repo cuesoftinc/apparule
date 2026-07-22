@@ -76,10 +76,25 @@ describe("seed narrative", () => {
     }
   });
 
-  it("designer follower counts mirror the follow graph (P1 realism)", () => {
+  it("designer counts mirror the follow graph (P1 realism)", () => {
     for (const designer of store.designers) {
-      expect(designer.followers_count, designer.username).toBe(
+      const served = store.profileFor(designer.username, "kiki.adeyemi");
+      expect(served.kind).toBe("designer");
+      if (served.kind !== "designer") continue;
+      // Served counts derive from the graph (pages.md B6 derived-counts rule)…
+      expect(served.designer.followers_count, designer.username).toBe(
         store.followersOf(designer.username, "kiki.adeyemi").length,
+      );
+      expect(served.designer.following_count, designer.username).toBe(
+        store.followingOf(designer.username, "kiki.adeyemi").length,
+      );
+      // …and the seeded entity fields mirror the seeded graph verbatim
+      // (the mobile accounts.json pattern) — a drifted seed is a seed bug.
+      expect(designer.followers_count, designer.username).toBe(
+        served.designer.followers_count,
+      );
+      expect(designer.following_count, designer.username).toBe(
+        served.designer.following_count,
       );
     }
   });
@@ -544,6 +559,77 @@ describe("profiles & social lists", () => {
     expect(store.savedPosts("kiki.adeyemi").map((p) => p.id)).toContain(
       "post-agbada",
     );
+  });
+
+  // Counts DERIVE from the follow graph / post list at read time — never
+  // from stored fields (pages.md B6; parity with the mobile fake's
+  // unit-gated invariant). Live bug 2026-07-22: enableDesigner's stored
+  // zeros wiped the profile-header counts while the graph-backed sheets
+  // kept the real lists.
+  describe("counts mirror the graph (derived, never stored)", () => {
+    function designerCounts(username: string) {
+      const profile = store.profileFor(username, "kiki.adeyemi");
+      if (profile.kind !== "designer") {
+        throw new Error(`${username} is not a designer`);
+      }
+      return profile.designer;
+    }
+
+    it("creating a designer profile preserves the account's counts", () => {
+      // kiki follows amara + maisonbisi from seed.
+      const enabled = store.enableDesigner("kiki.adeyemi", "Kiki Ade Studio");
+      expect(enabled.following_count).toBe(2);
+      const served = designerCounts("kiki.adeyemi");
+      expect(served.following_count).toBe(
+        store.followingOf("kiki.adeyemi", "kiki.adeyemi").length,
+      );
+      expect(served.following_count).toBe(2);
+      expect(served.followers_count).toBe(
+        store.followersOf("kiki.adeyemi", "kiki.adeyemi").length,
+      );
+    });
+
+    it("follow/unfollow moves both sides' counts; header == sheet", () => {
+      store.enableDesigner("kiki.adeyemi", "Kiki Ade Studio");
+      const tundeBefore = designerCounts("tunde.o").followers_count; // 4 seeded
+
+      store.setFollow("kiki.adeyemi", "tunde.o", true);
+      expect(designerCounts("tunde.o").followers_count).toBe(tundeBefore + 1);
+      expect(designerCounts("kiki.adeyemi").following_count).toBe(3);
+      // idempotent re-follow must not double-count
+      store.setFollow("kiki.adeyemi", "tunde.o", true);
+      expect(designerCounts("tunde.o").followers_count).toBe(tundeBefore + 1);
+
+      store.setFollow("kiki.adeyemi", "tunde.o", false);
+      expect(designerCounts("tunde.o").followers_count).toBe(tundeBefore);
+      expect(designerCounts("kiki.adeyemi").following_count).toBe(2);
+
+      // After the churn, both headers still equal their sheets.
+      expect(designerCounts("tunde.o").followers_count).toBe(
+        store.followersOf("tunde.o", "kiki.adeyemi").length,
+      );
+      expect(designerCounts("kiki.adeyemi").following_count).toBe(
+        store.followingOf("kiki.adeyemi", "kiki.adeyemi").length,
+      );
+    });
+
+    it("posts_count mirrors the grid through create AND delete", () => {
+      const before = designerCounts("amara.designs").posts_count;
+      const post = store.createPost("amara.designs", {
+        caption: "Count fixture",
+        style_tags: ["test"],
+        base_price_cents: null,
+        turnaround_days: 7,
+        media: [{ url: "/demo/outfit-w00.jpg", alt_text: "Look" }],
+      });
+      expect(designerCounts("amara.designs").posts_count).toBe(before + 1);
+      // The stored-tick era never decremented on delete — derivation does.
+      store.deletePost(post.id, "amara.designs");
+      expect(designerCounts("amara.designs").posts_count).toBe(before);
+      expect(designerCounts("amara.designs").posts_count).toBe(
+        store.postsBy("amara.designs", "kiki.adeyemi").length,
+      );
+    });
   });
 });
 

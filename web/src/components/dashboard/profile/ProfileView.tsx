@@ -334,6 +334,7 @@ export function ProfileView({ username }: { username: string }) {
                 type="button"
                 className="hover:underline"
                 onClick={() => setListSheet("following")}
+                data-testid="following-count"
               >
                 <span className="tnum font-semibold">
                   {formatCount(d.following_count)}

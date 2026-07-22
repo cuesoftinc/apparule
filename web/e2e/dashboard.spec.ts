@@ -445,6 +445,23 @@ test("B5/B8: creator upsell → onboarding with Paystack resolution states → p
   // The post lands on the designer's own B6 grid.
   await page.goto("/dashboard/kiki.adeyemi");
   await expect(page.getByTestId("profile-grid").locator("li")).toHaveCount(1);
+
+  // Counts survive onboarding: the header derives from the follow graph, so
+  // completing designer onboarding must NOT zero it (live bug 2026-07-22:
+  // the fresh DESIGNER_PROFILE's stored zeros shadowed the graph while the
+  // graph-backed sheets kept the real lists). kiki's graph at this point in
+  // the serial file: amara + maisonbisi (seed) + tunde (B1 journey).
+  await expect(page.getByTestId("following-count")).toContainText(
+    "3 following",
+  );
+  await expect(page.getByTestId("followers-count")).toContainText(
+    "0 followers",
+  );
+  // Header == sheet: the count opens a list of exactly that many rows.
+  await page.getByTestId("following-count").click();
+  await expect(page.getByTestId("following-list").locator("> li")).toHaveCount(
+    3,
+  );
 });
 
 test("B6 own profile: the avatar renders plain — no freshness ring (MI-11, Decided 2026-07-20)", async ({

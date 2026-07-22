@@ -563,7 +563,8 @@ export class MockStore {
       created_at: new Date().toISOString(),
     };
     this.posts.unshift(post);
-    designer.posts_count += 1;
+    // posts_count derives from the post list at read time (projectDesigner) —
+    // delete needs no mirror bookkeeping either.
     return deepClone(post);
   }
 
@@ -644,6 +645,42 @@ export class MockStore {
 
   // -- profiles & social lists (pages.md B6/B2 — mock-ahead-of-contract) ----
 
+  /** The accounts following a designer — one derivation backs the B6
+   *  followers sheet AND the profile-header count. */
+  private followerAccountsOf(designerUsername: string): Account[] {
+    return this.accounts.filter((a) =>
+      this.follows.has(`${a.id}:${designerUsername}`),
+    );
+  }
+
+  /** The accounts an account follows — backs the following sheet + count. */
+  private followingAccountsOf(accountId: string): Account[] {
+    return [...this.follows]
+      .filter((k) => k.startsWith(`${accountId}:`))
+      .map((k) => this.accounts.find((a) => a.username === k.split(":")[1]))
+      .filter((a): a is Account => a !== undefined);
+  }
+
+  /**
+   * DESIGNER_PROFILE projection: the social counts DERIVE from the follow
+   * graph and the post list at read time — stored count fields are never
+   * served (pages.md B6 derived-counts rule). Deriving through the exact
+   * helpers that back the followers/following sheets makes header-vs-sheet
+   * disagreement structurally impossible (live bug 2026-07-22: enabling a
+   * designer profile served the fresh entity's stored zeros while the
+   * graph-backed sheets kept the real lists).
+   */
+  private projectDesigner(designer: DesignerProfile): DesignerProfile {
+    return {
+      ...deepClone(designer),
+      followers_count: this.followerAccountsOf(designer.username).length,
+      following_count: this.followingAccountsOf(designer.account_id).length,
+      posts_count: this.posts.filter(
+        (p) => p.designer.username === designer.username,
+      ).length,
+    };
+  }
+
   private summaryOf(account: Account, viewer: Account): UserSummary {
     const designer = this.designerByUsername(account.username);
     return {
@@ -665,7 +702,7 @@ export class MockStore {
     if (designer) {
       return {
         kind: "designer",
-        designer: deepClone(designer),
+        designer: this.projectDesigner(designer),
         viewer_follows: this.follows.has(`${viewer.id}:${username}`),
         viewer_is_self: viewer.username === username,
       };
@@ -705,24 +742,17 @@ export class MockStore {
       throw new MockApiError("not_found", "Designer not found", 404);
     }
     const viewer = this.accountByUsername(viewerUsername);
-    return this.accounts
-      .filter((a) => this.follows.has(`${a.id}:${designerUsername}`))
-      .map((a) => this.summaryOf(a, viewer));
+    return this.followerAccountsOf(designerUsername).map((a) =>
+      this.summaryOf(a, viewer),
+    );
   }
 
   followingOf(username: string, viewerUsername: string): UserSummary[] {
     const subject = this.accountByUsername(username);
     const viewer = this.accountByUsername(viewerUsername);
-    return [...this.follows]
-      .filter((k) => k.startsWith(`${subject.id}:`))
-      .map((k) => k.split(":")[1])
-      .map((designerUsername) => {
-        const account = this.accounts.find(
-          (a) => a.username === designerUsername,
-        );
-        return account ? this.summaryOf(account, viewer) : null;
-      })
-      .filter((row): row is UserSummary => row !== null);
+    return this.followingAccountsOf(subject.id).map((a) =>
+      this.summaryOf(a, viewer),
+    );
   }
 
   suggestedDesigners(viewerUsername: string): UserSummary[] {
@@ -759,15 +789,11 @@ export class MockStore {
       throw new MockApiError("not_found", "Designer not found", 404);
     }
     const key = `${viewer.id}:${designerUsername}`;
-    const had = this.follows.has(key);
     if (on) this.follows.add(key);
     else this.follows.delete(key);
-    // followers_count mirrors the follow list exactly (P1 realism pass —
-    // the profile header and the followers sheet must never disagree).
-    if (had !== on) {
-      const designer = this.designerByUsername(designerUsername)!;
-      designer.followers_count += on ? 1 : -1;
-    }
+    // No stored count to tick: followers/following counts derive from the
+    // graph at read time (projectDesigner), so the profile header and the
+    // followers sheet can never disagree (P1 realism pass).
   }
 
   // -- vault ----------------------------------------------------------------
@@ -1488,6 +1514,10 @@ export class MockStore {
         },
         verified: false,
         location: account.profile_location,
+        // Wire-shape placeholders only — every read derives the counts from
+        // the follow graph / post list via projectDesigner, so enabling a
+        // designer profile preserves the account's existing graph (the
+        // 2026-07-22 live bug zeroed the header counts here).
         followers_count: 0,
         following_count: 0,
         posts_count: 0,
@@ -1495,7 +1525,7 @@ export class MockStore {
       this.designers.push(designer);
     }
     account.designer.enabled = true;
-    return deepClone(designer);
+    return this.projectDesigner(designer);
   }
 
   /**
