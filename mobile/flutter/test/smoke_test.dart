@@ -1,9 +1,9 @@
 import 'package:apparule/src/app/app.dart';
 import 'package:apparule/src/app/di.dart';
 import 'package:apparule/src/core/ui/app_shell.dart';
+import 'package:apparule/src/core/ui/tab_bar.dart';
 import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/features/feed/presentation/home_feed_screen.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -27,7 +27,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(AppShell), findsOneWidget);
-    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byType(AppTabBar), findsOneWidget);
     expect(find.byType(HomeFeedScreen), findsOneWidget);
   });
 }

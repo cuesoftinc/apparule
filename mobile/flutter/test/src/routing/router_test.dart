@@ -1,6 +1,7 @@
 import 'package:apparule/src/app/app.dart';
 import 'package:apparule/src/app/di.dart';
 import 'package:apparule/src/core/ui/app_shell.dart';
+import 'package:apparule/src/core/ui/tab_bar.dart';
 import 'package:apparule/src/features/auth/data/auth_repository.dart';
 import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/features/auth/presentation/sign_in_screen.dart';
@@ -11,7 +12,6 @@ import 'package:apparule/src/features/orders/presentation/orders_screen.dart';
 import 'package:apparule/src/features/profile/presentation/profile_screen.dart';
 import 'package:apparule/src/routing/router.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -113,25 +113,30 @@ void main() {
     // Home is the initial branch.
     expect(find.byType(HomeFeedScreen), findsOneWidget);
 
-    // Tap each remaining tab via its (unselected, outline) icon — the
-    // filled variant marks the active tab (IG convention, design.md §2).
-    await tester.tap(find.byIcon(Icons.search_outlined));
+    // Tap each remaining tab via its semantics label — the AppTabBar's
+    // tabs are icon-only controls named per the named-control canon.
+    Finder tab(String label) => find.descendant(
+      of: find.byType(AppTabBar),
+      matching: find.bySemanticsLabel(label),
+    );
+
+    await tester.tap(tab('Explore'));
     await tester.pumpAndSettle();
     expect(find.byType(ExploreScreen), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.add_box_outlined).last);
+    await tester.tap(tab('Create'));
     await tester.pumpAndSettle();
     expect(find.byType(CreateScreen), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.receipt_long_outlined).last);
+    await tester.tap(tab('Orders'));
     await tester.pumpAndSettle();
     expect(find.byType(OrdersScreen), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.person_outline).last);
+    await tester.tap(tab('Profile'));
     await tester.pumpAndSettle();
     expect(find.byType(ProfileScreen), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.home_outlined).last);
+    await tester.tap(tab('Home'));
     await tester.pumpAndSettle();
     expect(find.byType(HomeFeedScreen), findsOneWidget);
   });
