@@ -48,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   ⋯ placeholders, back chevrons on root tabs, the missing C9 bell, the
   C14 explainer, demo measurement content off the ratified §6 seed
   story, no shutter on the C6 frames) are recorded as canvas ops in the
-  audit ledger, not code changes. 14 new tests; goldens re-authored on
+  audit ledger, not code changes. 8 net-new tests (355 total); goldens re-authored on
   the Linux container for every touched screen.
 
 - Mobile profile + earnings wave (screens phase 3, the FINAL C-series
