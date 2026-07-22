@@ -655,6 +655,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Mobile live-QA affordance sweep (user-reported on-device, 2026-07-22):
+  tapping a designer's avatar or name on a feed PostCard did nothing.
+  Fixed at the component — `PostCard` gains `onProfileTap`; the header
+  identity (avatar + username) is one labelled tappable and the
+  caption's leading username span links too (web `PostDetailView`
+  parity) — and the sweep wired every other entity reference to its
+  entity screen: C2 story-rail rings → the designer's C9 profile (web
+  `FeedView` parity; previously hopped to the newest post), C11
+  commenter avatar/name → C9, C8 order-detail counterparty line → C9
+  (web `OrderDetailView` parity), C3 designer search rows → C9 (the
+  bespoke row replaced by the canonical `UserRow`, whose unfollow now
+  arms the MI-7 confirm sheet instead of toggling blind). Verified
+  already wired: C8 list rows, C10 notification rows, C12 UserRows, C9
+  grid + counts, C3 grid tiles; C14 payout rows have no payout-detail
+  surface specced. Every new tappable is a single Semantics node
+  ("View {username} profile"); widget tests assert tap → route per
+  affordance.
+- Mobile `AppTopBar` centered-title ruling (user, 2026-07-22): sub and
+  over-media titles now center on the BAR's full width — a
+  measured-slot layout overlays leading/trailing at the edges and
+  insets the title on both sides by the max slot width — instead of
+  centering in leftover flow space, which skewed every back-only title
+  right and let long titles run under the slots. The root brand bar
+  keeps its left wordmark, exempt per the ruling.
+- Mobile C9 edit profile scopes the Bio field to designer accounts
+  ("follow web" ruling: web has no account-level bio edit) —
+  non-designer sessions hide the field and persist their existing bio
+  unchanged.
+
 - Mobile top chrome under the display cutout (live-device defect,
   2026-07-22 — reproduced on the iPhone 17 Pro simulator AND a Galaxy
   S24 Ultra): `AppTopBar` was a fixed 56px bar that ignored
