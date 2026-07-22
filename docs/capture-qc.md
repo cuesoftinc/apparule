@@ -112,3 +112,6 @@ remain interpretable after tuning.
 - [ ] Confidence values populate and render; manual rows null
 - [ ] Height correction ships behind `pipeline_meta.method` rev with the
       benchmark harness comparing before/after against tape measurements
+- [ ] `height_suspect` hint ("double-check your height", §3) — **deferred
+      [Decided 2026-07-22]**: implemented by neither client; it ships
+      with the backend phase's pipeline work, not before

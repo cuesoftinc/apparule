@@ -111,6 +111,12 @@ ecosystem change, PR'd to all three design.md files together.
 | `EmptyState` | pattern-bg illustration + one-line + one CTA | every list defines one |
 | `Skeleton` | shimmer blocks matching final layout | feed: header line + square + action row |
 
+**Entity-navigation rule [Decided 2026-07-22]**: every avatar/username
+rendered on a social surface navigates to its canonical page (profile;
+post thumbs to their post) — an identity you can see is an identity you
+can visit, on both clients. Exemptions: confirm dialogs, chat bubbles
+(order-thread messages), marketing mocks, and staff moderation queues.
+
 ## 4. Microinteraction catalog
 
 Numbered so pages.md can reference them as `MI-n`.
@@ -262,7 +268,7 @@ canonical scheme. The single auth CTA component (X-1) is named
 
 | Component | Variants × states |
 | --- | --- |
-| Button | kind: gradient-primary / quiet / destructive / link · size: md 44 / sm 36 · state: default / pressed / disabled / loading · theme ×2 |
+| Button | kind: gradient-primary / quiet / destructive / link / quiet-danger · size: md 44 / sm 36 · state: default / pressed / disabled / loading · theme ×2 · **row rung (danger ladder) [Decided 2026-07-22]**: row-level destructive actions render `quiet-danger` (quiet chrome, error-toned text); the filled `destructive` kind is reserved for armed/confirm surfaces (delete-confirm sheet, dispute/decline sheets) — never both rungs on one surface |
 | Input | text / numeric+unit-toggle (cm-in) / search · state: default / focus / error / disabled · theme ×2 |
 | Avatar | size: 32 / 44 / 56 / 96 · ring: none / gradient (fresh) / amber / gray · badge: none / designer-verified |
 | Chip | kind: default / selected / removable — the §8.1 "Pill/Chip" atom *(as built 2026-07-17)* |

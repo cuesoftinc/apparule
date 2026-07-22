@@ -69,7 +69,7 @@ erDiagram
         uuid id PK
         uuid customer_id FK
         string method "mediapipe_2d | smpl_v1 | manual"
-        float input_height_cm
+        float input_height_cm "nullable — null for method: manual"
         string status "pending_save (results unsaved, 24h TTL) | complete | failed"
         json pipeline_meta "model version, confidence, QC flags"
         datetime created_at
@@ -122,6 +122,12 @@ Modeling notes:
 - **Sessions are immutable captures; corrections append** — an audit-friendly
   history rather than destructive edits, given production garments hang off
   these numbers.
+- **`input_height_cm` is nullable — null for `method: manual`** **[Decided
+  2026-07-22, parity adjudication]**: height is a capture-pipeline input
+  (the capture-qc.md §3 scale correction), not a property of a manual tape
+  session — clients never invent a height to satisfy the field (the web
+  manual-entry sheet's fabricated 168 default ends with this ruling; the
+  mobile/canvas position is the model).
 - **`CONSENT_RECORD` is deliberately account-scoped, not workspace-scoped** —
   the PRD's ToS gate (§7) binds the person accepting.
 - **`CAPTURE_ASSET.retention_until`** operationalizes the retention disclosure:

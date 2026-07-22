@@ -158,7 +158,7 @@ Existing screens (splash/welcome/auth/capture) remain the entry path.
 | # | Screen | Spec |
 | --- | --- | --- |
 | C1 | Onboarding | Google-only sign-in (flows/auth.md §5 — one CTA screen; password/verification screens retired); first sign-in hands off to C1b |
-| C1b | Post-signup interstitial | "Take your first measurement" (→C6) or "Explore outfits" (→C3) — skippable; split out of the C1 row 2026-07-18 (the QA loop built it as its own screen) |
+| C1b | Post-signup interstitial | "Take your first measurement" (→C6) or "Explore outfits" (→C3) — skippable; split out of the C1 row 2026-07-18 (the QA loop built it as its own screen). **Mobile-only [Decided 2026-07-22]**: web has no interstitial — the web first-run lands on B1's empty state + the right-column freshness card |
 | C2 | Home feed | = B1 minus right column; story rail on top; MI-1/2/3/4/5/6/16/18/20 all active |
 | C3 | Explore | search + 3-col grid; long-press peek preview (scale 0.97 + dim, MI haptic light); pull-to-refresh MI-5; search-results state = B2 **[Directive 2026-07-18]** |
 | C4 | Post detail | full-bleed carousel; action row; caption; comments sheet (swipe-up); Request CTA pinned bottom (safe-area) |

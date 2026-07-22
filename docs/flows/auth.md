@@ -26,6 +26,12 @@
   verifies (Admin SDK/JWKS, audience `sandbox-e306a`, provider check §1),
   then upserts the `ACCOUNT` row by `firebase_uid` (idempotent).
 - `401 token_expired` → silent refresh → retry once → sign-out on repeat.
+- **Session restore [Decided 2026-07-22, platform-neutral]**: restore
+  resolves **before either surface routes** — mobile runs the silent
+  restore behind the C0 boot gate (mobile-implementation.md §9); web
+  resolves the provider's restored session before dashboard routes
+  render. A failed restore reads as **signed out** (never an error
+  interstitial); a signed-in user never sees the auth screen.
 - Sign-out: SDK signOut + purge local caches; unsaved capture drafts warn.
 
 ## 3. Sequence (first sign-in)

@@ -59,9 +59,23 @@ flowchart TD
 
 - Manual entry (MI-13): any measurement from the open vocabulary
   (`shoulder_width`, `hip_width`, `chest_girth`, …) as `method: manual`
-  sessions; values validated 10–200 cm per measure with per-measure sanity
-  ranges (server-side table, e.g. shoulder 25–75 cm) — out-of-range prompts
-  "double-check" confirm, not a hard block (bodies vary).
+  sessions; values validated 10–200 cm per measure with the advisory
+  ranges below — out-of-range prompts a "double-check" confirm, not a
+  hard block (bodies vary). Manual sessions carry **no height** —
+  `input_height_cm` is null for `method: manual` (data-model.md §2;
+  height is a capture-pipeline input, not a property of tape values).
+
+  | Measure | Advisory range (cm) |
+  | --- | --- |
+  | `shoulder_width` | 25–75 |
+  | `hip_width` | 20–70 |
+  | `chest_girth` | 50–160 |
+  | `waist_girth` | 40–150 |
+
+  The table is canonical for both clients **[Decided 2026-07-22 —
+  parity adjudication: the clients diverged at `waist_girth` (web 160
+  vs mobile/canvas 150); settled at the mobile/canvas value 150]**; the
+  open vocabulary grows server-side, one advisory row per new measure.
 - Corrections on pipeline sessions append `source: manual_correction` rows;
   original pipeline values are never mutated (audit trail, data-model.md §2).
 - Unit display cm/in is a view preference; storage is always cm.
