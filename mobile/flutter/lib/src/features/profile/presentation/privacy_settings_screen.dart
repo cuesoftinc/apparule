@@ -82,21 +82,20 @@ class _PrivacyBody extends ConsumerWidget {
       required String label,
       required bool value,
       required ValueChanged<bool> onChanged,
-    }) =>
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: Text(
-                  label,
-                  style: typography.body14.copyWith(color: colors.text),
-                ),
-              ),
-              AppSwitch(value: value, onChanged: onChanged),
-            ],
+    }) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              label,
+              style: typography.body14.copyWith(color: colors.text),
+            ),
           ),
-        );
+          AppSwitch(value: value, onChanged: onChanged),
+        ],
+      ),
+    );
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),

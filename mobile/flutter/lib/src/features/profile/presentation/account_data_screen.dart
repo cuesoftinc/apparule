@@ -264,9 +264,7 @@ class _DeleteConfirmFormState extends State<_DeleteConfirmForm> {
           label: l10n.deleteSheetConfirm,
           kind: ButtonKind.destructive,
           expand: true,
-          onPressed: _armed
-              ? () => Navigator.of(context).pop(true)
-              : null,
+          onPressed: _armed ? () => Navigator.of(context).pop(true) : null,
         ),
         const SizedBox(height: 12),
         Center(

@@ -44,9 +44,7 @@ class AppSwitch extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: value
                 ? LinearGradient(
-                    colors: colors.accentGradient.colors
-                        .map(dim)
-                        .toList(),
+                    colors: colors.accentGradient.colors.map(dim).toList(),
                   )
                 : null,
             color: value ? null : dim(colors.border),

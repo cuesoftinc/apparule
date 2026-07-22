@@ -150,23 +150,29 @@ class _ProfileBody extends ConsumerWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: <Widget>[
-                      _StatColumn(
-                        value: state.postsCount,
-                        label: l10n.profilePosts,
+                      Expanded(
+                        child: _StatColumn(
+                          value: state.postsCount,
+                          label: l10n.profilePosts,
+                        ),
                       ),
-                      _StatColumn(
-                        value: state.followersCount,
-                        label: l10n.profileFollowers,
-                        onTap: () => FollowersRoute(
-                          username: profile.username,
-                        ).push<void>(context),
+                      Expanded(
+                        child: _StatColumn(
+                          value: state.followersCount,
+                          label: l10n.profileFollowers,
+                          onTap: () => FollowersRoute(
+                            username: profile.username,
+                          ).push<void>(context),
+                        ),
                       ),
-                      _StatColumn(
-                        value: state.followingCount,
-                        label: l10n.profileFollowingLabel,
-                        onTap: () => FollowingRoute(
-                          username: profile.username,
-                        ).push<void>(context),
+                      Expanded(
+                        child: _StatColumn(
+                          value: state.followingCount,
+                          label: l10n.profileFollowingLabel,
+                          onTap: () => FollowingRoute(
+                            username: profile.username,
+                          ).push<void>(context),
+                        ),
                       ),
                     ],
                   ),
@@ -295,6 +301,8 @@ class _StatColumn extends StatelessWidget {
         ),
         Text(
           label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: typography.caption13.copyWith(color: colors.text2),
         ),
       ],

@@ -11,7 +11,6 @@ import 'package:apparule/src/core/ui/transaction_row.dart';
 import 'package:apparule/src/core/utils/clock.dart';
 import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/features/earnings/domain/earnings.dart';
-import 'package:apparule/src/features/earnings/domain/earnings_exception.dart';
 import 'package:apparule/src/features/earnings/domain/payout.dart';
 import 'package:apparule/src/features/earnings/presentation/earnings_view_model.dart';
 import 'package:apparule/src/routing/routes.dart';
@@ -59,7 +58,7 @@ class EarningsScreen extends ConsumerWidget {
           }
         },
         trailing: switch (state) {
-          AsyncData(:final value) when value.availableCents > 0 => IconButton(
+          AsyncData(:final value?) when value.availableCents > 0 => IconButton(
             icon: const Icon(LucideIcons.ellipsis, size: 22),
             tooltip: l10n.earningsRequestPayoutTitle,
             onPressed: requestPayout,
@@ -68,25 +67,23 @@ class EarningsScreen extends ConsumerWidget {
         },
       ),
       body: switch (state) {
-        AsyncData(:final value) => _EarningsBody(
+        AsyncData(:final value?) => _EarningsBody(
           earnings: value,
           status: status,
         ),
-        AsyncError(:final error)
-            when error is EarningsException &&
-                error.code == EarningsErrorCode.designerProfileRequired =>
-          Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: EmptyState(
-                kind: EmptyStateKind.orders,
-                line: l10n.earningsBecomeDesignerLine,
-                ctaLabel: l10n.settingsBecomeDesigner,
-                onCta: () =>
-                    const DesignerOnboardingRoute().push<void>(context),
-              ),
+        // Null = the expected non-designer case (web parity): the
+        // become-a-designer empty state, never an error surface.
+        AsyncData() => Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: EmptyState(
+              kind: EmptyStateKind.orders,
+              line: l10n.earningsBecomeDesignerLine,
+              ctaLabel: l10n.settingsBecomeDesigner,
+              onCta: () => const DesignerOnboardingRoute().push<void>(context),
             ),
           ),
+        ),
         AsyncError(:final error) => Center(child: Text('$error')),
         _ => ListView(
           padding: const EdgeInsets.all(16),
@@ -172,8 +169,7 @@ class _EarningsBody extends ConsumerWidget {
                 label: l10n.earningsChangeAccount,
                 kind: ButtonKind.link,
                 size: ButtonSize.sm,
-                onPressed: () =>
-                    const PayoutAccountRoute().push<void>(context),
+                onPressed: () => const PayoutAccountRoute().push<void>(context),
               ),
             ],
           )
@@ -190,8 +186,7 @@ class _EarningsBody extends ConsumerWidget {
                 label: l10n.earningsAddAccount,
                 kind: ButtonKind.link,
                 size: ButtonSize.sm,
-                onPressed: () =>
-                    const PayoutAccountRoute().push<void>(context),
+                onPressed: () => const PayoutAccountRoute().push<void>(context),
               ),
             ],
           ),

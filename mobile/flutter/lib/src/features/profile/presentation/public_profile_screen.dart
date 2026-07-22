@@ -124,23 +124,29 @@ class _PublicProfileBody extends ConsumerWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: <Widget>[
-                      _StatColumn(
-                        value: profile.postsCount,
-                        label: l10n.profilePosts,
+                      Expanded(
+                        child: _StatColumn(
+                          value: profile.postsCount,
+                          label: l10n.profilePosts,
+                        ),
                       ),
-                      _StatColumn(
-                        value: profile.followersCount,
-                        label: l10n.profileFollowers,
-                        onTap: () => FollowersRoute(
-                          username: profile.username,
-                        ).push<void>(context),
+                      Expanded(
+                        child: _StatColumn(
+                          value: profile.followersCount,
+                          label: l10n.profileFollowers,
+                          onTap: () => FollowersRoute(
+                            username: profile.username,
+                          ).push<void>(context),
+                        ),
                       ),
-                      _StatColumn(
-                        value: profile.followingCount,
-                        label: l10n.profileFollowingLabel,
-                        onTap: () => FollowingRoute(
-                          username: profile.username,
-                        ).push<void>(context),
+                      Expanded(
+                        child: _StatColumn(
+                          value: profile.followingCount,
+                          label: l10n.profileFollowingLabel,
+                          onTap: () => FollowingRoute(
+                            username: profile.username,
+                          ).push<void>(context),
+                        ),
                       ),
                     ],
                   ),
@@ -157,9 +163,10 @@ class _PublicProfileBody extends ConsumerWidget {
               children: <Widget>[
                 if (profile.isDesigner)
                   Text(
-                    <String?>[profile.displayName, profile.locality]
-                        .whereType<String>()
-                        .join(' · '),
+                    <String?>[
+                      profile.displayName,
+                      profile.locality,
+                    ].whereType<String>().join(' · '),
                     style: typography.body16SemiBold.copyWith(
                       color: colors.text,
                     ),
@@ -280,6 +287,8 @@ class _StatColumn extends StatelessWidget {
         ),
         Text(
           label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: typography.caption13.copyWith(color: colors.text2),
         ),
       ],

@@ -202,6 +202,120 @@ void main() {
     });
   });
 
+  group('profiles & social lists (C9/C12 — web store parity)', () {
+    test('the follower lists mirror the seed graph exactly (amara 8 · '
+        'tunde 4 · bisi 6 · eniola 1)', () async {
+      final repository = fake();
+
+      expect(await repository.followersOf('amara.designs'), hasLength(8));
+      expect(await repository.followersOf('tunde.o'), hasLength(4));
+      expect(await repository.followersOf('maisonbisi'), hasLength(6));
+      expect(await repository.followersOf('eniola.stitches'), hasLength(1));
+    });
+
+    test('publicProfile counts NEVER disagree with the lists (the web '
+        'P1 realism invariant), before and after a morph', () async {
+      final repository = fake();
+
+      var profile = await repository.publicProfile('amara.designs');
+      expect(
+        profile.followersCount,
+        (await repository.followersOf('amara.designs')).length,
+      );
+      expect(profile.viewerFollows, isTrue);
+      expect(profile.postsCount, 3);
+      expect(profile.bio, contains('Ankara'));
+
+      await repository.setFollow('amara.designs', follow: false);
+      profile = await repository.publicProfile('amara.designs');
+      final followers = await repository.followersOf('amara.designs');
+      expect(profile.followersCount, followers.length);
+      expect(profile.followersCount, 7);
+      expect(profile.viewerFollows, isFalse);
+      expect(
+        followers.map((row) => row.username),
+        isNot(contains('kiki.adeyemi')),
+      );
+
+      await repository.setFollow('amara.designs', follow: true);
+      expect(
+        (await repository.publicProfile('amara.designs')).followersCount,
+        8,
+      );
+    });
+
+    test('followingOf walks the graph for any account', () async {
+      final repository = fake();
+      final following = await repository.followingOf('kiki.adeyemi');
+
+      expect(
+        following.map((row) => row.username),
+        <String>['amara.designs', 'maisonbisi'],
+      );
+      expect(following.every((row) => row.isDesigner), isTrue);
+      expect(following.every((row) => row.viewerFollows), isTrue);
+
+      // Community accounts resolve too (zainab follows 3 designers).
+      expect(await repository.followingOf('zainab.k'), hasLength(3));
+    });
+
+    test('community accounts render as plain UserRows (no follow '
+        'morph target)', () async {
+      final repository = fake();
+      final followers = await repository.followersOf('amara.designs');
+      final ada = followers.singleWhere((row) => row.username == 'ada.eze');
+
+      expect(ada.displayName, 'Ada Eze');
+      expect(ada.isDesigner, isFalse);
+      expect(ada.viewerFollows, isFalse);
+    });
+
+    test('a non-designer public profile carries no designer block', () async {
+      final repository = fake();
+      final profile = await repository.publicProfile('zainab.k');
+
+      expect(profile.isDesigner, isFalse);
+      expect(profile.displayName, 'Zainab Kassim');
+      expect(profile.postsCount, 0);
+      expect(profile.followersCount, 0);
+      expect(profile.followingCount, 3);
+    });
+
+    test('postsBy is the designer grid, newest first', () async {
+      final repository = fake();
+      final posts = await repository.postsBy('amara.designs');
+
+      expect(posts, hasLength(3));
+      expect(
+        posts.every((post) => post.designer.username == 'amara.designs'),
+        isTrue,
+      );
+      expect(
+        posts.first.createdAt.isAfter(posts.last.createdAt),
+        isTrue,
+      );
+    });
+
+    test('likedPosts/savedPosts project the viewer sets and track '
+        'toggles', () async {
+      final repository = fake();
+      expect(await repository.likedPosts(), hasLength(3));
+      expect(await repository.savedPosts(), hasLength(2));
+
+      await repository.toggleSave('post-asooke-set');
+      final saved = await repository.savedPosts();
+      expect(saved, hasLength(3));
+      expect(saved.every((post) => post.saved), isTrue);
+    });
+
+    test('unknown usernames throw (the C9 not-found state)', () async {
+      expect(
+        () => fake().publicProfile('nobody.here'),
+        throwsStateError,
+      );
+    });
+  });
+
   test('a prod bundle (no dev seeds) degrades to empty domains', () async {
     final repository = PostRepositoryFake(bundle: _EmptyAssetBundle());
     expect(await repository.homeFeed(), isEmpty);

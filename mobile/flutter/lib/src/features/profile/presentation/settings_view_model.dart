@@ -21,9 +21,7 @@ class SettingsViewModel extends _$SettingsViewModel {
     state = AsyncData(current.copyWith(notificationPrefs: prefs));
     try {
       state = AsyncData(
-        await ref
-            .read(profileRepositoryProvider)
-            .setNotificationPrefs(prefs),
+        await ref.read(profileRepositoryProvider).setNotificationPrefs(prefs),
       );
     } catch (_) {
       state = AsyncData(current);

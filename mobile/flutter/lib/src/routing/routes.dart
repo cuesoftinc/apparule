@@ -340,11 +340,10 @@ class FollowersRoute extends GoRouteData with $FollowersRoute {
   final String username;
 
   @override
-  Widget build(BuildContext context, GoRouterState state) =>
-      FollowListScreen(
-        username: username,
-        initialKind: FollowListKind.followers,
-      );
+  Widget build(BuildContext context, GoRouterState state) => FollowListScreen(
+    username: username,
+    initialKind: FollowListKind.followers,
+  );
 }
 
 /// C12 — following tab.
@@ -354,11 +353,10 @@ class FollowingRoute extends GoRouteData with $FollowingRoute {
   final String username;
 
   @override
-  Widget build(BuildContext context, GoRouterState state) =>
-      FollowListScreen(
-        username: username,
-        initialKind: FollowListKind.following,
-      );
+  Widget build(BuildContext context, GoRouterState state) => FollowListScreen(
+    username: username,
+    initialKind: FollowListKind.following,
+  );
 }
 
 /// B7 — settings (C9's gear). The three sub-screens nest beneath so a

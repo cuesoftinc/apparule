@@ -58,7 +58,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             city: _city.text,
             state: _state.text,
           );
-      if (mounted) context.pop();
+      if (mounted) {
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          // Deep-linked with an empty stack: back to the profile tab.
+          const ProfileRoute().go(context);
+        }
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }

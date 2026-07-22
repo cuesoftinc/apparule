@@ -58,21 +58,24 @@ final class DesignerStatusProvider
 
 String _$designerStatusHash() => r'8a23536c6c5431b68828ae1100329e706e63baf3';
 
-/// C14's ViewModel — the summary + ledger. Non-designers surface as the
-/// repository's `designer_profile_required` error, which the screen maps
-/// to the become-a-designer empty state (web `EarningsView` parity).
+/// C14's ViewModel — the summary + ledger. A null value is the
+/// EXPECTED non-designer case (web 403 `designer_profile_required`),
+/// mapped here rather than thrown: Riverpod 3 retries failing
+/// providers, and "become a designer" is a state, not a failure.
 
 @ProviderFor(EarningsViewModel)
 final earningsViewModelProvider = EarningsViewModelProvider._();
 
-/// C14's ViewModel — the summary + ledger. Non-designers surface as the
-/// repository's `designer_profile_required` error, which the screen maps
-/// to the become-a-designer empty state (web `EarningsView` parity).
+/// C14's ViewModel — the summary + ledger. A null value is the
+/// EXPECTED non-designer case (web 403 `designer_profile_required`),
+/// mapped here rather than thrown: Riverpod 3 retries failing
+/// providers, and "become a designer" is a state, not a failure.
 final class EarningsViewModelProvider
-    extends $AsyncNotifierProvider<EarningsViewModel, Earnings> {
-  /// C14's ViewModel — the summary + ledger. Non-designers surface as the
-  /// repository's `designer_profile_required` error, which the screen maps
-  /// to the become-a-designer empty state (web `EarningsView` parity).
+    extends $AsyncNotifierProvider<EarningsViewModel, Earnings?> {
+  /// C14's ViewModel — the summary + ledger. A null value is the
+  /// EXPECTED non-designer case (web 403 `designer_profile_required`),
+  /// mapped here rather than thrown: Riverpod 3 retries failing
+  /// providers, and "become a designer" is a state, not a failure.
   EarningsViewModelProvider._()
     : super(
         from: null,
@@ -92,23 +95,24 @@ final class EarningsViewModelProvider
   EarningsViewModel create() => EarningsViewModel();
 }
 
-String _$earningsViewModelHash() => r'6cbe30b4a0d8e2f76c98fe537b8e2bc499bcf326';
+String _$earningsViewModelHash() => r'ce0091f1b60025dfe51bdf744f83ba5959d9733d';
 
-/// C14's ViewModel — the summary + ledger. Non-designers surface as the
-/// repository's `designer_profile_required` error, which the screen maps
-/// to the become-a-designer empty state (web `EarningsView` parity).
+/// C14's ViewModel — the summary + ledger. A null value is the
+/// EXPECTED non-designer case (web 403 `designer_profile_required`),
+/// mapped here rather than thrown: Riverpod 3 retries failing
+/// providers, and "become a designer" is a state, not a failure.
 
-abstract class _$EarningsViewModel extends $AsyncNotifier<Earnings> {
-  FutureOr<Earnings> build();
+abstract class _$EarningsViewModel extends $AsyncNotifier<Earnings?> {
+  FutureOr<Earnings?> build();
   @$mustCallSuper
   @override
   WhenComplete runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<Earnings>, Earnings>;
+    final ref = this.ref as $Ref<AsyncValue<Earnings?>, Earnings?>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<Earnings>, Earnings>,
-              AsyncValue<Earnings>,
+              AnyNotifier<AsyncValue<Earnings?>, Earnings?>,
+              AsyncValue<Earnings?>,
               Object?,
               Object?
             >;

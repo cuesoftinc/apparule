@@ -21,12 +21,26 @@ class ProfileRepositoryFake implements ProfileRepository {
   final AssetBundle _bundle;
   final DateTime Function() _now;
 
+  /// The one in-flight load — concurrent first callers (two providers
+  /// watching one keepAlive fake) must all await the SAME parse instead
+  /// of the second reading half-loaded state; once loaded, callers get
+  /// a fresh completed future built in THEIR zone, so a fake
+  /// pre-arranged inside `tester.runAsync` never hands the FakeAsync
+  /// test zone a future pinned to another zone (both are profile-wave
+  /// findings — the same trap as the C6 rootBundle string cache).
   bool _loaded = false;
+  Future<void>? _loading;
   Profile? _me;
 
-  Future<void> _ensureLoaded() async {
-    if (_loaded) return;
-    _loaded = true;
+  Future<void> _ensureLoaded() {
+    if (_loaded) return Future<void>.value();
+    return _loading ??= () async {
+      await _load();
+      _loaded = true;
+    }();
+  }
+
+  Future<void> _load() async {
     final now = _now();
     if (await loadSeedJson(_bundle, _meAsset) case final me?) {
       _me = Profile(
@@ -65,8 +79,8 @@ class ProfileRepositoryFake implements ProfileRepository {
           _ => const PrivacyPrefs(),
         },
         consent: <ConsentRecord>[
-          for (final entry in (me['consent'] as List<dynamic>? ??
-              const <dynamic>[]))
+          for (final entry
+              in (me['consent'] as List<dynamic>? ?? const <dynamic>[]))
             ConsentRecord(
               document: (entry as Map<String, dynamic>)['document'] as String,
               version: entry['version'] as String,

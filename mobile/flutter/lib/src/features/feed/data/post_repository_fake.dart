@@ -36,7 +36,15 @@ class PostRepositoryFake implements PostRepository {
   final AssetBundle _bundle;
   final DateTime Function() _now;
 
+  /// The one in-flight load — concurrent first callers (two providers
+  /// watching one keepAlive fake) must all await the SAME parse instead
+  /// of the second reading half-loaded state; once loaded, callers get
+  /// a fresh completed future built in THEIR zone, so a fake
+  /// pre-arranged inside `tester.runAsync` never hands the FakeAsync
+  /// test zone a future pinned to another zone (both are profile-wave
+  /// findings — the same trap as the C6 rootBundle string cache).
   bool _loaded = false;
+  Future<void>? _loading;
   final List<Post> _posts = <Post>[];
   final List<PostComment> _comments = <PostComment>[];
   final List<DesignerSummary> _designers = <DesignerSummary>[];
@@ -69,9 +77,15 @@ class PostRepositoryFake implements PostRepository {
   String _viewerUsername = 'kiki.adeyemi';
   int _commentSequence = 0;
 
-  Future<void> _ensureLoaded() async {
-    if (_loaded) return;
-    _loaded = true;
+  Future<void> _ensureLoaded() {
+    if (_loaded) return Future<void>.value();
+    return _loading ??= () async {
+      await _load();
+      _loaded = true;
+    }();
+  }
+
+  Future<void> _load() async {
     final now = _now();
 
     if (await loadSeedJson(_bundle, _meAsset) case final me?) {
@@ -434,12 +448,8 @@ class PostRepositoryFake implements PostRepository {
     await _ensureLoaded();
     final account = _accounts[username];
     if (account == null) throw StateError('Profile not found: $username');
-    final followers = _graphEdges
-        .where((edge) => edge.$2 == username)
-        .length;
-    final following = _graphEdges
-        .where((edge) => edge.$1 == username)
-        .length;
+    final followers = _graphEdges.where((edge) => edge.$2 == username).length;
+    final following = _graphEdges.where((edge) => edge.$1 == username).length;
     if (_isDesigner(username)) {
       final designer = _designers.firstWhere(
         (entry) => entry.username == username,

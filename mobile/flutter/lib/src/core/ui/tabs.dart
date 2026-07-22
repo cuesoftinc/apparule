@@ -16,9 +16,7 @@ enum AppTabsActive {
 /// The optional [semanticLabel] names icon cells for assistive tech
 /// (text cells read their own label).
 class AppTabItem {
-  const AppTabItem.text(String this.label)
-    : icon = null,
-      semanticLabel = null;
+  const AppTabItem.text(String this.label) : icon = null, semanticLabel = null;
 
   const AppTabItem.icon(IconData this.icon, {required this.semanticLabel})
     : label = null;

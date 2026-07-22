@@ -9,6 +9,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Mobile profile + earnings wave (screens phase 3, the FINAL C-series
+  wave — the dev flavor is now a complete C-series app over fakes;
+  mobile-implementation.md §5/§6; pages.md C9, C12–C14 + B7 mobile).
+  Screens: C9 own profile (the MI-11 vault-freshness ring header as THE
+  C7 entry, social counts off the same follow graph the feed derives
+  from, edit-profile + vault quiet pair, grid/saved icon tabs over the
+  liked/saved projections — a designer side shows its published grid;
+  the bell is C10's profile-tab entry, the gear opens B7), C9 designer
+  public profile (B6 header, MI-7 Follow morph with the unfollow
+  confirm sheet, quiet Request CTA → C5 over the newest post, published
+  grid only — saved stays viewer-private) and the regular-account
+  private-vault variant, C9 edit profile (display name · bio · X-10
+  location), C12 followers/following (count-titled tabs over UserRows;
+  every morph routes through one graph controller so C12/C9/C3
+  re-derive together), B7 settings root (Google-identity block, creator
+  rows off the KYC status, tri-state Appearance persisting through
+  PersistenceService into MaterialApp.themeMode, canonical legal
+  links) with the three canvas sub-screens — Notifications (seven
+  per-event toggles, MI-18 optimistic + rollback), Privacy & consent
+  (AI-processing + nearby toggles, the 30-day retention notice, the
+  consent ledger), Account & data (export-everything-FIRST, Log out,
+  and the quiet-danger delete ladder: the row arms a typed-confirm
+  sheet where only DELETE enables the filled-destructive confirm and
+  "Export everything first" is the escape hatch; deletion-pending
+  disarms the row under a persistent banner) — C13 designer
+  onboarding (intro/create form → payout banking form with the
+  scripted Paystack states: resolving → resolved-name confirm →
+  save, or failed with retry + support link; `00…` numbers fail
+  deterministically and `9999999999` attaches-then-lapses, raising
+  the persistent KYC banner on the designer C8 book and C14), and
+  C14 earnings & payouts (EarningsSummary over the ratified ₦82,500
+  available / ₦45,000 escrow canvas story, the payout-account status
+  line, the tabular-figure TransactionRow ledger, non-designer/empty
+  states, and a ⋯ payout request whose confirm MOVES the balance
+  into a processing row — fakes mutate honestly). Data: me.json grows
+  the web-Account fields, accounts.json carries the community cast +
+  the web `seedFollows` graph verbatim (counts mirror the graph — the
+  web P1 realism invariant, now unit-gated on mobile), earnings.json
+  the C14 canvas ledger; PostRepository gains the profile/social-list
+  surface, ProfileRepository becomes the account domain (me/updates/
+  prefs/export/deletion), EarningsRepository the designer-monetization
+  domain. Four new golden-tested `core/ui` modules (AppTabs, UserRow,
+  TransactionRow, AppSwitch) and typed routes `/profile/edit`,
+  `/profile/{username}` (+ C12 children), `/settings` (+3 subs),
+  `/designer/onboarding` (+ `/payout` sibling).
+
 - Mobile feed + orders wave (screens phase 3, mobile-implementation.md
   §5/§6; pages.md C2–C5, C8, C10, C11; order-lifecycle.md): the
   dev-flavor app now carries the full social + commerce journey over

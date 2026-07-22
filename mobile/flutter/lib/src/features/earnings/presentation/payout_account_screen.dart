@@ -282,9 +282,8 @@ class _PayoutAccountScreenState extends ConsumerState<PayoutAccountScreen> {
                   label: l10n.payoutRetry,
                   kind: ButtonKind.quiet,
                   expand: true,
-                  onPressed: () => ref
-                      .read(payoutAccountViewModelProvider.notifier)
-                      .retry(),
+                  onPressed: () =>
+                      ref.read(payoutAccountViewModelProvider.notifier).retry(),
                 ),
                 const SizedBox(height: 12),
                 Center(
