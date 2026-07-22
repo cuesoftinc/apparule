@@ -304,7 +304,7 @@ Stage 5 and non-blocking; everything else feeds Stages 1–4.
 | Component | Variants × states |
 | --- | --- |
 | NavRail | width: collapsed 72 / expanded 244 (≥1264px) · item ×7 (Home / Explore / Create / Orders / Vault / Profile / Settings) × state: default / active / hover · footer slot: theme toggle + support link · theme ×2 · **as built (2026-07-17):** decomposed into `NavRail` (width ×2) + child set `NavRailItem` (expanded ×2 × state ×3) |
-| AppBar | kind: root (title/logo + action slot) / sub (chevron-left + title + trailing action) / over-media (transparent) · theme ×2 |
+| AppBar | kind: root (title/logo + action slot) / sub (chevron-left + title + trailing action) / over-media (transparent) · theme ×2 · **row alignment (M-9)**: sub/over-media titles center on the full bar width — the title is an absolute, full-width, center-aligned text layer over the bar; leading/trailing slots lay out in-flow at the edges (space-between) and the title's horizontal padding reserves the widest slot, so a hidden trailing slot never skews the title (Flutter AppTopBar: Stack-based, same anatomy). `root` is the brand bar (left wordmark/username), exempt. **Scope — chrome only**: in-content page titles (dashboard h1s, IG-desktop idiom) stay left-aligned; never center page-body titles |
 | Tabs | kind: text ×2 items ("As customer / As designer") / icon (grid · saved) · state: active / inactive · underline indicator · theme ×2 · **as built (2026-07-17):** `active: first / second` (which item is active) × `kind: text / icon` — semantically the same states, different property shape; the grid glyph moves from an interim inline vector to `icon/grid-3x3` (§8.1) |
 
 **Form & overlay primitives**

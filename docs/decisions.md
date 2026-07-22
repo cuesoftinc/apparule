@@ -310,6 +310,17 @@ before public launch. Alternative: commission the brand pass first.
   legacy art — was **designed first** (six GuidePage frames landed
   before the rebuild lane touched the screen). The canvas leads;
   pages.md rows may not point at unframed screens. ☑
+- **M-9 Centered header-bar titles (RATIFIED 2026-07-22, user
+  directive)**: sub and over-media app-bar titles center on the **full
+  bar width** — an absolute, full-width, center-aligned text layer over
+  the bar, never an in-flow element between the slots (in-flow titles
+  grow into hidden trailing slots and skew off-center). Leading/trailing
+  slots stay in-flow at the edges; the title's horizontal padding
+  reserves the widest slot. `root` bars (brand wordmark/username, left)
+  are exempt. **Chrome-scoped**: the rule governs header bars only —
+  in-content page titles (the dashboard's h1s, IG-desktop idiom) stay
+  left-aligned; never center page-body titles. Spec: design.md §8.2b
+  AppBar row. ☑
 - **M-10 Two-photo capture (RATIFIED 2026-07-22, user directive —
   REVERSES M-6)**: the product mechanic is **two photos — front + side
   (right profile) — plus height**. The reversal chain, honestly: M-6 was
