@@ -1,0 +1,62 @@
+{
+  "_comment": "§6 social-graph seed — the community cast + the follow edge list VERBATIM from web/src/mocks/seed.ts (makeCommunityAccount entries + seedFollows, usernames in place of the web's account ids). The designers' followers_count in designers.json mirrors this graph exactly (amara 8 · tunde 4 · bisi 6 · eniola 1 — the web P1 realism invariant: the profile header and the followers sheet must never disagree). PostRepositoryFake derives the C12 followers/following lists and every profile count from these edges.",
+  "accounts": [
+    {
+      "username": "ada.eze",
+      "display_name": "Ada Eze",
+      "avatar_url": null,
+      "location": { "city": "Lagos", "state": "Lagos", "country": "NG" }
+    },
+    {
+      "username": "funmi.b",
+      "display_name": "Funmi Balogun",
+      "avatar_url": null,
+      "location": { "city": "Lagos", "state": "Lagos", "country": "NG" }
+    },
+    {
+      "username": "chidi.n",
+      "display_name": "Chidi Nwosu",
+      "avatar_url": null,
+      "location": { "city": "Enugu", "state": "Enugu", "country": "NG" }
+    },
+    {
+      "username": "zainab.k",
+      "display_name": "Zainab Kassim",
+      "avatar_url": null,
+      "location": { "city": "Abuja", "state": "FCT", "country": "NG" }
+    },
+    {
+      "username": "emeka.u",
+      "display_name": "Emeka Udo",
+      "avatar_url": null,
+      "location": { "city": "Lagos", "state": "Lagos", "country": "NG" }
+    },
+    {
+      "username": "tola.mak",
+      "display_name": "Tola Makinde",
+      "avatar_url": null,
+      "location": { "city": "Ibadan", "state": "Oyo", "country": "NG" }
+    }
+  ],
+  "follows": [
+    ["kiki.adeyemi", "amara.designs"],
+    ["kiki.adeyemi", "maisonbisi"],
+    ["amara.designs", "tunde.o"],
+    ["amara.designs", "maisonbisi"],
+    ["tunde.o", "amara.designs"],
+    ["maisonbisi", "amara.designs"],
+    ["eniola.stitches", "amara.designs"],
+    ["zainab.k", "eniola.stitches"],
+    ["ada.eze", "amara.designs"],
+    ["ada.eze", "maisonbisi"],
+    ["funmi.b", "amara.designs"],
+    ["funmi.b", "maisonbisi"],
+    ["funmi.b", "tunde.o"],
+    ["chidi.n", "tunde.o"],
+    ["zainab.k", "amara.designs"],
+    ["zainab.k", "maisonbisi"],
+    ["emeka.u", "amara.designs"],
+    ["emeka.u", "tunde.o"],
+    ["tola.mak", "maisonbisi"]
+  ]
+}

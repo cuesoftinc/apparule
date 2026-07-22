@@ -1,11 +1,32 @@
 {
-  "_comment": "§6 me seed — the signed-in test user (web/src/mocks/seed.ts acc-kiki): non-designer, Lagos, follows amara+bisi (tunde is the suggested designer), and carries real engagement history (seedLikes/seedSaves verbatim) so action rows reflect a lived-in account, not a fresh one.",
+  "_comment": "§6 me seed — the signed-in test user (web/src/mocks/seed.ts acc-kiki): non-designer, Lagos, follows amara+bisi (tunde is the suggested designer), and carries real engagement history (seedLikes/seedSaves verbatim) so action rows reflect a lived-in account, not a fresh one. The profile/settings wave adds the account-domain fields (email/bio/prefs/consent — web Account entity parity; the bio and the 7 per-event notification prefs follow the ratified B7-mobile canvas, 207:2). accepted_days_ago mirrors the web seed's daysAgo(40) consent stamps.",
   "id": "acc-kiki",
   "username": "kiki.adeyemi",
   "display_name": "Kiki Adeyemi",
+  "email": "kiki.adeyemi@example.com",
+  "bio": "aso-ebi sets & bridal",
   "avatar_url": null,
   "profile_location": { "city": "Lagos", "state": "Lagos", "country": "NG" },
+  "deletion_state": "active",
   "designer": { "enabled": false, "kyc_complete": false },
+  "notification_prefs": {
+    "quotes_order_status": true,
+    "new_requests": true,
+    "likes_comments": true,
+    "new_followers": false,
+    "fresh_outfits": true,
+    "freshness_reminders": true,
+    "email_digest": false
+  },
+  "privacy_prefs": {
+    "ai_processing": true,
+    "nearby_recommendations": true
+  },
+  "consent": [
+    { "document": "tos", "version": "1.0", "accepted_days_ago": 40 },
+    { "document": "privacy", "version": "1.0", "accepted_days_ago": 40 }
+  ],
+  "created_days_ago": 120,
   "follows": ["amara.designs", "maisonbisi"],
   "liked_post_ids": ["post-asooke-set", "post-runway-orange", "post-bridal-gown"],
   "saved_post_ids": ["post-bridal-gown", "post-evening-gown"]

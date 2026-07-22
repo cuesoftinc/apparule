@@ -1,7 +1,9 @@
 import 'package:apparule/src/features/feed/domain/comment.dart';
 import 'package:apparule/src/features/feed/domain/explore_results.dart';
 import 'package:apparule/src/features/feed/domain/post.dart';
+import 'package:apparule/src/features/feed/domain/public_profile.dart';
 import 'package:apparule/src/features/feed/domain/story_rail_entry.dart';
+import 'package:apparule/src/features/feed/domain/user_summary.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'post_repository.g.dart';
@@ -51,6 +53,29 @@ abstract class PostRepository {
 
   /// C11 comment heart toggle.
   Future<PostComment> toggleCommentLike(String commentId);
+
+  /// The C9 `/profile/{username}` header — counts derive from the same
+  /// follow graph the feed re-derives from (the web store's P1 realism
+  /// invariant: the header and the followers sheet never disagree).
+  Future<PublicProfile> publicProfile(String username);
+
+  /// A designer's published grid, newest first (C9 other; web `postsBy`).
+  Future<List<Post>> postsBy(String username);
+
+  /// The viewer's liked grid (C9 own — the non-designer's first tab).
+  Future<List<Post>> likedPosts();
+
+  /// The viewer's saved grid — viewer-private (pages.md B6 [Decided
+  /// 2026-07-20]; web `savedPosts`).
+  Future<List<Post>> savedPosts();
+
+  /// Accounts following [username], seed-graph order (C12; web
+  /// `followersOf`). Empty for non-designers — nothing throws, so C12
+  /// renders its empty copy instead of an error state.
+  Future<List<UserSummary>> followersOf(String username);
+
+  /// Designers [username] follows (C12; web `followingOf`).
+  Future<List<UserSummary>> followingOf(String username);
 }
 
 /// Overridden per entrypoint (di.dart) — no default implementation exists

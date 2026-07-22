@@ -228,9 +228,12 @@ post-detail screen in-app when the app is installed.
 | `/vault` | Measurement vault | C7 |
 | `/orders` (Orders tab) · `/orders/{id}` | Orders list + detail | C8 |
 | `/profile` (Profile tab) · `/profile/{username}` | Own / other profile | C9 |
+| `/profile/edit` | Edit profile (display name · bio · X-10 location) | C9 |
 | `/notifications` | Notifications sheet | C10 |
 | `/profile/{username}/followers` · `/following` | Followers/following | C12 |
+| `/settings` · `/settings/{notifications,privacy,account}` | Settings root + the B7-mobile sub-screens (canvas 207:*) — account & data carries the export-first delete ladder | pages.md B7 |
 | `/designer/onboarding` | Designer onboarding & KYC | C13 |
+| `/designer/onboarding/payout` | Payout banking form (Paystack states) — a sibling under the prefix, not a child (the capture-guide precedent: re-verification entries must not stack a stale intro) | C13 |
 | `/earnings` | Earnings & payouts | C14 |
 | `/create` (➕ tab, designer branch) | Post composer | pages.md B5 parity |
 
@@ -255,8 +258,10 @@ coherent world, not two disconnected demos:
 
 | Seed file | Domain | Ties to (web parity) |
 | --- | --- | --- |
-| `assets/seed/<flavor>/me.json` | Signed-in test user: non-designer, vault populated across all three freshness states, follows several designers | web §6 "signed-in test user" |
+| `assets/seed/<flavor>/me.json` | Signed-in test user: non-designer, vault populated across all three freshness states, follows several designers; account fields (email · bio · notification/privacy prefs · consent ledger) for C9/B7 | web §6 "signed-in test user" |
 | `assets/seed/<flavor>/designers.json` | The Nigerian designer-persona cast, incl. `eniola.stitches` (Abuja, proximity-ranking exemplar) | web §6 designer cast |
+| `assets/seed/<flavor>/accounts.json` | The community cast + the full follow edge list — C12 lists and every profile count derive from these edges (follower counts mirror the graph) | web §6 `seedFollows` verbatim |
+| `assets/seed/<flavor>/earnings.json` | The designer-monetization story: `amara.designs` carries the ratified C14 canvas ledger (₦82,500 available / ₦45,000 escrow, Paystack refs) | web canvas A6/B9 demo story |
 | `assets/seed/<flavor>/posts.json` | Published posts over the same CC-sourced photography pool, captions, style tags, NGN price bands | web §6 posts / design.md §8.3 asset pool |
 | `assets/seed/<flavor>/vault_sessions.json` | Scan + manual measurement sessions (the source for `me.json`'s vault and for measurement snapshots frozen into orders) | web §6 vault seed / capture-qc.md |
 | `assets/seed/<flavor>/orders.json` | All ten order-lifecycle states, at least one per role view, incl. an escrow-held payment and a dispute-frozen order | web §6 "all ten states" |
