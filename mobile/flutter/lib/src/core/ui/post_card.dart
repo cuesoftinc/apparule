@@ -1,5 +1,3 @@
-import 'dart:async' show unawaited;
-
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/action_row.dart';
 import 'package:apparule/src/core/ui/app_haptics.dart';

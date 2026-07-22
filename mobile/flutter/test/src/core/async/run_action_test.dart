@@ -50,7 +50,7 @@ void main() {
     expect(find.text('Something went wrong — try again.'), findsOneWidget);
   });
 
-  testWidgets('StateError (the fakes\' illegal-transition guard) is '
+  testWidgets("StateError (the fakes' illegal-transition guard) is "
       'caught and toasted too', (tester) async {
     final context = await host(tester);
 
