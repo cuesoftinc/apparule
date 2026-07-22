@@ -78,11 +78,27 @@ dev_dependencies:
 # is retired upstream (custom_lint still caps analyzer at ^8 and cannot
 # co-resolve with the modern codegen stack).
 
+# Launcher icons — the design.md §2 brand construction (the web favicon
+# adjudication): white Inter-Bold "A" on the accent gradient. Sources are
+# generated from tokens by tool/gen_brand_assets.mjs (committed
+# provenance — the mobile sibling of web's generate-brand-assets.mjs);
+# regenerate with `dart run flutter_launcher_icons` after re-running the
+# generator. Both flavors ship the same mark — the per-flavor display
+# name (Apparule Dev / Apparule) distinguishes side-by-side installs.
 flutter_launcher_icons:
-  android: "launcher_icon"
+  android: "launcher_icon" # the AndroidManifest icon name
   ios: true
-  image_path: "assets/images/logo.png"
+  # Pre-26 launchers render the PNG as-is → the rounded web-favicon tile;
+  # iOS masks full-bleed itself.
+  image_path_android: "assets/brand/icon_android_legacy.png"
+  image_path_ios: "assets/brand/icon_ios.png"
+  # Adaptive icon (26+): gradient background + white-A foreground in the
+  # 72/108 safe zone; monochrome feeds Android 13+ themed icons.
+  adaptive_icon_background: "assets/brand/icon_adaptive_bg.png"
+  adaptive_icon_foreground: "assets/brand/icon_adaptive_fg.png"
+  adaptive_icon_monochrome: "assets/brand/icon_adaptive_mono.png"
   min_sdk_android: 24 # ratified Android floor (decisions.md M-4)
+  remove_alpha_ios: true # App Store rejects alpha in iOS icons
 
 flutter:
   generate: true

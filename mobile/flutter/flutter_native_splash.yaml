@@ -1,0 +1,24 @@
+# Native splash (flutter_native_splash, ratified dev-dependency) — the
+# design.md §2 brand construction: the white-A gradient tile centered on
+# the token background (`bg`: #FFFFFF light / #000000 true-black dark —
+# the same frame the in-app BootScreen continues while the session
+# restore runs). Sources are generated from tokens by
+# tool/gen_brand_assets.mjs; regenerate the platform files with
+#   dart run flutter_native_splash:create
+# Both flavors share the construction (main-source-set resources; the
+# dev mark is not badged — flavor display names distinguish installs).
+flutter_native_splash:
+  color: "#FFFFFF" # bg (light)
+  color_dark: "#000000" # bg (dark)
+  image: assets/brand/splash_tile.png
+
+  # Android 12+ splash API: icon-in-circle — the gradient disc variant so
+  # the OS crop never clips a tile corner.
+  android_12:
+    color: "#FFFFFF" # bg (light)
+    color_dark: "#000000" # bg (dark)
+    image: assets/brand/splash_android12.png
+
+  # The Flutter web platform is de-registered (mobile-implementation.md
+  # §11).
+  web: false
