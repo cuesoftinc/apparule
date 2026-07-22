@@ -1,10 +1,11 @@
 "use client";
 
 // B4 — Measurement vault: freshness-ring header (MI-11) + Retake CTA →
-// capture options (webcam upload / manual entry MI-13) · MeasurementCard
-// grid with history sparklines · history sheet (SessionRow + delete) ·
-// consent/retention notice with the rights links (resolve at B7 Account &
-// data). Render-only over useVault.
+// capture options (photo upload / manual entry MI-13 — upload-only, M-12) ·
+// MeasurementCard grid with history sparklines · history sheet (SessionRow
+// + delete) · consent/retention notice with the rights links (resolve at B7
+// Account & data). Picking photo upload takes over the page with the
+// two-photo UploadMeasurementsView (Figma 549:2). Render-only over useVault.
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { formatAgoPhrase } from "@/lib/format";
@@ -18,20 +19,23 @@ import { MeasurementCard } from "@/components/ui/MeasurementCard";
 import { SessionRow } from "@/components/ui/SessionRow";
 import { Sheet } from "@/components/ui/Sheet";
 import { Skeleton } from "@/components/ui/Skeleton";
-import {
-  CaptureOptionsSheet,
-  ManualEntrySheet,
-  WebcamCaptureSheet,
-} from "./CaptureSheets";
+import { CaptureOptionsSheet, ManualEntrySheet } from "./CaptureSheets";
+import { UploadMeasurementsView } from "./UploadMeasurementsView";
 import { useToasts } from "../toast-context";
 
-export function VaultView() {
+export interface VaultViewProps {
+  /** M-11: the Create chooser hands off with the options sheet open. */
+  initialSheet?: "options" | null;
+}
+
+export function VaultView({ initialSheet = null }: VaultViewProps) {
   const { account } = useAuth();
   const vault = useVault();
   const { showToast } = useToasts();
-  const [sheet, setSheet] = useState<
-    null | "options" | "webcam" | "manual" | "history"
-  >(null);
+  const [sheet, setSheet] = useState<null | "options" | "manual" | "history">(
+    initialSheet,
+  );
+  const [uploading, setUploading] = useState(false);
 
   const sessionById = useMemo(() => {
     const map = new Map<string, MeasurementSession>();
@@ -77,6 +81,27 @@ export function VaultView() {
       );
 
   const latestComplete = vault.sessions.find((s) => s.status === "complete");
+
+  // Height prefill for the upload flow: the latest capture session's
+  // input_height_cm (manual sessions carry null — never fabricate one).
+  const prefillHeightCm =
+    vault.sessions.find(
+      (s) => s.method !== "manual" && s.input_height_cm !== null,
+    )?.input_height_cm ?? null;
+
+  if (uploading) {
+    return (
+      <UploadMeasurementsView
+        prefillHeightCm={prefillHeightCm}
+        onBack={() => setUploading(false)}
+        onSaved={() => {
+          showToast({ kind: "success", message: "Saved to your vault" });
+          setUploading(false);
+          void vault.reload();
+        }}
+      />
+    );
+  }
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6">
@@ -184,23 +209,16 @@ export function VaultView() {
       <CaptureOptionsSheet
         open={sheet === "options"}
         onOpenChange={(open) => setSheet(open ? "options" : null)}
-        onPick={(mode) =>
-          setSheet(mode === "webcam-upload" ? "webcam" : "manual")
-        }
-      />
-      <WebcamCaptureSheet
-        open={sheet === "webcam"}
-        onOpenChange={(open) => setSheet(open ? "webcam" : null)}
-        onSaved={() => {
-          showToast({ kind: "success", message: "Saved to your vault" });
-          void vault.reload();
+        onPick={(mode) => {
+          setSheet(mode === "manual-entry" ? "manual" : null);
+          if (mode === "photo-upload") setUploading(true);
         }}
       />
       <ManualEntrySheet
         open={sheet === "manual"}
         onOpenChange={(open) => setSheet(open ? "manual" : null)}
-        onSave={async (heightCm, measurements) => {
-          await vault.addManualSession(heightCm, measurements);
+        onSave={async (measurements) => {
+          await vault.addManualSession(measurements);
           showToast({ kind: "success", message: "Saved to your vault" });
         }}
       />

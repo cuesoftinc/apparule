@@ -1,5 +1,5 @@
-// Capture controller — MI-12 processing beat, QC failure mapping, save /
-// retake semantics (flows/vault.md §1).
+// Capture controller — MI-12 processing beat, per-pose QC failure mapping
+// (M-10 two-photo canon), save / retake semantics (flows/vault.md §1).
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import { ApiError } from "@/lib/api";
@@ -28,7 +28,8 @@ const pendingSession = {
   created_at: new Date().toISOString(),
 };
 
-const file = new File(["x"], "photo.jpg", { type: "image/jpeg" });
+const front = new File(["x"], "front.jpg", { type: "image/jpeg" });
+const side = new File(["x"], "side.jpg", { type: "image/jpeg" });
 
 beforeEach(() => {
   createCaptureSession.mockReset();
@@ -51,7 +52,7 @@ describe("useCapture", () => {
       const { result } = renderHook(() => useCapture(onSaved));
       let uploadPromise: Promise<void>;
       act(() => {
-        uploadPromise = result.current.upload(file, 168);
+        uploadPromise = result.current.upload(front, side, 168);
       });
       expect(result.current.phase).toBe("processing");
       await act(async () => {
@@ -60,12 +61,58 @@ describe("useCapture", () => {
       });
       expect(result.current.phase).toBe("results");
       expect(result.current.pending?.id).toBe("sess-p");
+      // both files + height rode one request with one idempotency key
+      expect(createCaptureSession).toHaveBeenCalledWith(
+        front,
+        side,
+        168,
+        expect.any(String),
+      );
     } finally {
       vi.useRealTimers();
     }
   });
 
-  it("maps QC failures to code + guidance", async () => {
+  it("maps QC failures to code + guidance + failing pose (per-pose QC)", async () => {
+    vi.useFakeTimers();
+    try {
+      createCaptureSession.mockRejectedValue(
+        new ApiError(
+          "not_side_profile",
+          "Turn your right side to the camera",
+          422,
+          {
+            guidance: "Turn your right side to the camera",
+            pose: "side",
+          },
+        ),
+      );
+      const { result } = renderHook(() => useCapture(vi.fn()));
+      let uploadPromise: Promise<void>;
+      act(() => {
+        uploadPromise = result.current.upload(front, side, 168);
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1900);
+        await uploadPromise!;
+      });
+      // The failure returns to the form (the failing pose re-uploads) —
+      // never a dead-end phase.
+      expect(result.current.phase).toBe("idle");
+      expect(result.current.qcFailure).toEqual({
+        code: "not_side_profile",
+        guidance: "Turn your right side to the camera",
+        pose: "side",
+      });
+      // Re-picking the failing pose clears the error.
+      act(() => result.current.clearQcFailure());
+      expect(result.current.qcFailure).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("defaults an un-posed failure to the front pose", async () => {
     vi.useFakeTimers();
     try {
       createCaptureSession.mockRejectedValue(
@@ -76,17 +123,13 @@ describe("useCapture", () => {
       const { result } = renderHook(() => useCapture(vi.fn()));
       let uploadPromise: Promise<void>;
       act(() => {
-        uploadPromise = result.current.upload(file, 168);
+        uploadPromise = result.current.upload(front, side, 168);
       });
       await act(async () => {
         await vi.advanceTimersByTimeAsync(1900);
         await uploadPromise!;
       });
-      expect(result.current.phase).toBe("qc_failed");
-      expect(result.current.qcFailure).toEqual({
-        code: "blurry",
-        guidance: "Hold steady and retake",
-      });
+      expect(result.current.qcFailure?.pose).toBe("front");
     } finally {
       vi.useRealTimers();
     }
@@ -102,7 +145,7 @@ describe("useCapture", () => {
       const { result } = renderHook(() => useCapture(onSaved));
       let uploadPromise: Promise<void>;
       act(() => {
-        uploadPromise = result.current.upload(file, 168);
+        uploadPromise = result.current.upload(front, side, 168);
       });
       await act(async () => {
         await vi.advanceTimersByTimeAsync(1900);
@@ -116,7 +159,7 @@ describe("useCapture", () => {
 
       // retake path
       act(() => {
-        uploadPromise = result.current.upload(file, 168);
+        uploadPromise = result.current.upload(front, side, 168);
       });
       await act(async () => {
         await vi.advanceTimersByTimeAsync(1900);

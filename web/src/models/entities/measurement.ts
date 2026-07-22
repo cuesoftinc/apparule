@@ -19,7 +19,12 @@ export interface MeasurementSession {
   id: string;
   customer_id: string;
   method: MeasurementMethod;
-  input_height_cm: number;
+  /**
+   * Nullable — null for `method: manual` (data-model.md §2, ruled
+   * 2026-07-22): height is a capture-pipeline input, not a property of
+   * tape values.
+   */
+  input_height_cm: number | null;
   status: SessionStatus;
   measurements: Measurement[];
   pipeline_meta: Record<string, unknown>;

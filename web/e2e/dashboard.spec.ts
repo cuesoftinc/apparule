@@ -246,29 +246,58 @@ test("B2 explore: turnaround chip filters; near-me proximity-ranks without dropp
   await expect(tiles).toHaveCount(total);
 });
 
-test("B4 vault: webcam QC failure → retake → capture → save; history delete", async ({
+test("B4 vault: two-photo upload — per-pose QC failure → re-pick side only → save; history delete", async ({
   page,
 }) => {
   await signIn(page);
   await page.goto("/dashboard/vault");
   await page.getByTestId("vault-retake").click();
-  await page.getByRole("button", { name: /Use your camera/ }).click();
+  await page.getByRole("button", { name: /Upload photos/ }).click();
 
-  // Designated QC fixture: a file name containing a capture-qc code.
-  await page.getByTestId("capture-file").setInputFiles({
+  // The upload view (M-12, Figma 549:2): two labeled dropzones + height +
+  // the mobile-app hint line.
+  const uploadView = page.getByTestId("upload-measurements");
+  await expect(uploadView).toBeVisible();
+  await expect(uploadView).toContainText(
+    "Best experience: guided capture on the Apparule app",
+  );
+
+  // Height prefills from the latest capture session (seed: 168) — never a
+  // fabricated default.
+  const height = page.getByLabel("Height in centimeters");
+  await expect(height).toHaveValue("168");
+  await height.fill("170");
+
+  // Front passes; the side file is a designated QC fixture (a file name
+  // containing a capture-qc code — per-pose QC, M-10).
+  await page.getByTestId("capture-file-front").setInputFiles({
+    name: "front.jpg",
+    mimeType: "image/jpeg",
+    buffer: TINY_JPEG,
+  });
+  await page.getByTestId("capture-file-side").setInputFiles({
     name: "fixture-blurry.jpg",
     mimeType: "image/jpeg",
     buffer: TINY_JPEG,
   });
-  await expect(page.getByRole("alert")).toContainText("Hold steady and retake");
-  await page.getByRole("button", { name: "Retake" }).click();
+  await page.getByTestId("get-measurements").click();
 
-  // Happy path: processing constellation → results → save to vault.
-  await page.getByTestId("capture-file").setInputFiles({
-    name: "photo.jpg",
+  // The 422 names the failing pose: only the side dropzone re-opens, the
+  // accepted front pose keeps its thumbnail (pose 1 is never discarded).
+  await expect(page.getByTestId("pose-error-side")).toBeVisible();
+  await expect(uploadView.getByRole("status")).toContainText(
+    "Hold steady and retake",
+  );
+  await expect(uploadView).toContainText("front.jpg · uploaded");
+
+  // Re-pick the failing pose only → processing constellation → results.
+  await page.getByTestId("capture-file-side").setInputFiles({
+    name: "side.jpg",
     mimeType: "image/jpeg",
     buffer: TINY_JPEG,
   });
+  await expect(page.getByTestId("pose-error-side")).toHaveCount(0);
+  await page.getByTestId("get-measurements").click();
   await expect(page.getByTestId("capture-processing")).toBeVisible();
   await expect(page.getByRole("button", { name: "Save to vault" })).toBeVisible(
     {

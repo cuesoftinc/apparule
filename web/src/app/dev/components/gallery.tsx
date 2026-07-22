@@ -989,7 +989,7 @@ export function ComponentGallery() {
 
       <Section title="CaptureOptionCard">
         <div className="grid max-w-xl gap-3 md:grid-cols-2">
-          <CaptureOptionCard mode="webcam-upload" onClick={() => {}} />
+          <CaptureOptionCard mode="photo-upload" onClick={() => {}} />
           <CaptureOptionCard mode="manual-entry" onClick={() => {}} />
         </div>
       </Section>

@@ -1,6 +1,8 @@
-// QCHintChip — design.md §8.2b: code ×11, one actionable guidance line each.
-// Fail codes from capture-qc.md §1–2; canonical retake copy from the
-// flows/vault.md QC-failures row (the same strings the 422 envelope carries).
+// QCHintChip — design.md §8.2b: code ×12, one actionable guidance line each.
+// Fail codes from capture-qc.md §1–2 (per-pose QC, M-10: the side pose adds
+// `not_side_profile` and swaps the `arms_position` copy); canonical retake
+// copy from the flows/vault.md QC-failures row (the same strings the 422
+// envelope carries).
 import clsx from "clsx";
 import { Camera, Ruler, Search, User, X, type LucideIcon } from "lucide-react";
 
@@ -13,6 +15,7 @@ export type QcFailCode =
   | "poor_lighting"
   | "blurry"
   | "not_frontal"
+  | "not_side_profile"
   | "camera_tilt"
   | "arms_position"
   | "too_far";
@@ -27,10 +30,27 @@ export const QC_GUIDANCE: Record<QcFailCode, string> = {
   poor_lighting: "Find better lighting — avoid strong backlight",
   blurry: "Hold steady and retake",
   not_frontal: "Face the camera straight on",
+  not_side_profile: "Turn your right side to the camera",
   camera_tilt: "Hold the phone upright",
   arms_position: "Keep arms slightly away from your body",
   too_far: "Move closer — fill more of the frame",
 };
+
+/**
+ * Side-pose copy deltas (capture-qc.md §2 pose-2 table): `arms_position`
+ * guidance is per pose — arms hang relaxed on the side pose.
+ */
+export const QC_GUIDANCE_SIDE: Partial<Record<QcFailCode, string>> = {
+  arms_position: "Let your arms hang relaxed at your sides",
+};
+
+/** The pose-aware guidance line (flows/vault.md: arms copy is per pose). */
+export function qcGuidance(
+  code: QcFailCode,
+  pose: "front" | "side" = "front",
+): string {
+  return (pose === "side" && QC_GUIDANCE_SIDE[code]) || QC_GUIDANCE[code];
+}
 
 /** Figma masters (62:634): the leading glyph names the failure family. */
 const QC_ICON: Record<QcFailCode, LucideIcon> = {
@@ -42,6 +62,7 @@ const QC_ICON: Record<QcFailCode, LucideIcon> = {
   poor_lighting: Camera,
   blurry: Camera,
   not_frontal: User,
+  not_side_profile: User,
   camera_tilt: Camera,
   arms_position: User,
   too_far: Search,
@@ -49,10 +70,16 @@ const QC_ICON: Record<QcFailCode, LucideIcon> = {
 
 export interface QCHintChipProps {
   code: QcFailCode;
+  /** Failing pose — selects the per-pose copy (default front). */
+  pose?: "front" | "side";
   className?: string;
 }
 
-export function QCHintChip({ code, className }: QCHintChipProps) {
+export function QCHintChip({
+  code,
+  pose = "front",
+  className,
+}: QCHintChipProps) {
   const Icon = QC_ICON[code];
   return (
     <span
@@ -66,7 +93,7 @@ export function QCHintChip({ code, className }: QCHintChipProps) {
       )}
     >
       <Icon size={16} className="shrink-0" aria-hidden />
-      <span className="truncate">{QC_GUIDANCE[code]}</span>
+      <span className="truncate">{qcGuidance(code, pose)}</span>
     </span>
   );
 }

@@ -973,7 +973,9 @@ export const seedSessions: MeasurementSession[] = [
     id: "sess-manual-tape",
     customer_id: "acc-kiki",
     method: "manual",
-    input_height_cm: 168,
+    // null for method: manual (data-model.md §2 — tape values carry no
+    // pipeline height input).
+    input_height_cm: null,
     status: "complete",
     measurements: [
       {

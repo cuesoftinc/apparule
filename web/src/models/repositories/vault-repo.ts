@@ -5,7 +5,8 @@ import type { Measurement, MeasurementSession } from "../entities/measurement";
 
 export interface ManualSessionCreate {
   method: "manual";
-  input_height_cm: number;
+  // No height field: manual sessions carry `input_height_cm: null`
+  // (flows/vault.md §2 — height is a capture-pipeline input).
   measurements: { name: string; value_cm: number }[];
 }
 
@@ -18,7 +19,7 @@ export const vaultRepo = {
 
   /**
    * POST /api/v1/me/sessions — manual entry from the web vault (MI-13).
-   * Webcam-upload capture posts multipart to the same route; the mock
+   * Photo-upload capture posts multipart to the same route; the mock
    * accepts JSON manual sessions (capture kit is mobile-first).
    */
   createManualSession: (input: ManualSessionCreate, idempotencyKey: string) =>
@@ -50,17 +51,21 @@ export const vaultRepo = {
     apiFetch<void>(`/v1/sessions/${id}`, { method: "DELETE" }),
 
   /**
-   * POST /api/v1/me/sessions (multipart) — webcam capture upload (B4).
-   * Returns a `pending_save` session with per-measurement confidence; QC
-   * failures surface as 422 with the capture-qc.md code + guidance.
+   * POST /api/v1/me/sessions (multipart) — two-photo upload capture (B4,
+   * M-10/M-12): `image_front` + `image_side` + height ride one request with
+   * one Idempotency-Key. Returns a `pending_save` session with
+   * per-measurement confidence; QC failures surface as 422 with the
+   * capture-qc.md code + guidance + failing pose (per-pose QC).
    */
   createCaptureSession: (
-    image: File,
+    imageFront: File,
+    imageSide: File,
     inputHeightCm: number,
     idempotencyKey: string,
   ) => {
     const form = new FormData();
-    form.set("image", image);
+    form.set("image_front", imageFront);
+    form.set("image_side", imageSide);
     form.set("input_height_cm", String(inputHeightCm));
     return apiFetch<MeasurementSession>("/v1/me/sessions", {
       method: "POST",
