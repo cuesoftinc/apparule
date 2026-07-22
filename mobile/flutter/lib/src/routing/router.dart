@@ -35,8 +35,10 @@ GoRouter router(Ref ref) {
     initialLocation: homeLocation,
     refreshListenable: sessionRefresh,
     redirect: (context, state) {
-      // Loading (restore in flight) reads as signed out: the C1 screen
-      // doubles as the boot surface until the silent restore resolves.
+      // The restore gate lives ABOVE the router (ApparuleApp holds the
+      // BootScreen until the silent restore resolves), so the session
+      // value is settled by the first evaluation here; null is a real
+      // signed-out answer, never an in-flight read.
       final signedIn = ref.read(authSessionProvider).value != null;
       final signingIn = state.matchedLocation == signInLocation;
       if (!signedIn) return signingIn ? null : signInLocation;

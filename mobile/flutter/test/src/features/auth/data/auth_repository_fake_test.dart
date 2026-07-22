@@ -2,6 +2,8 @@ import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/features/auth/domain/auth_session.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../../helpers/in_memory_persistence.dart';
+
 void main() {
   group('AuthRepositoryFake (repository contract)', () {
     test(
@@ -58,6 +60,58 @@ void main() {
       expect(
         await repository.signInWithGoogle(),
         AuthRepositoryFake.seedSession,
+      );
+    });
+  });
+
+  group('AuthRepositoryFake (persisted lifecycle, boot-flow directive '
+      '2026-07-22)', () {
+    test('sign-in writes the session marker through the persistence '
+        'seam', () async {
+      final persistence = InMemoryPersistenceService();
+      final repository = AuthRepositoryFake(persistenceService: persistence);
+
+      await repository.signInWithGoogle();
+
+      expect(persistence.sessionToken, AuthRepositoryFake.fakeSessionToken);
+    });
+
+    test('restore finds a persisted marker — a "relaunched" instance is '
+        'signed in', () async {
+      final persistence = InMemoryPersistenceService()
+        ..sessionToken = AuthRepositoryFake.fakeSessionToken;
+      final relaunched = AuthRepositoryFake(persistenceService: persistence);
+
+      expect(
+        await relaunched.restoreSession(),
+        AuthRepositoryFake.seedSession,
+      );
+    });
+
+    test('restore is null over empty persistence — first-ever launch is '
+        'signed out', () async {
+      final repository = AuthRepositoryFake(
+        persistenceService: InMemoryPersistenceService(),
+      );
+
+      expect(await repository.restoreSession(), isNull);
+    });
+
+    test('sign-out purges the marker — the next restore is signed out',
+        () async {
+      final persistence = InMemoryPersistenceService()
+        ..sessionToken = AuthRepositoryFake.fakeSessionToken;
+      final repository = AuthRepositoryFake(persistenceService: persistence);
+      expect(await repository.restoreSession(), isNotNull);
+
+      await repository.signOut();
+
+      expect(persistence.sessionToken, isNull);
+      expect(
+        await AuthRepositoryFake(
+          persistenceService: persistence,
+        ).restoreSession(),
+        isNull,
       );
     });
   });

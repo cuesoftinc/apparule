@@ -40,9 +40,12 @@ AppFlavor appFlavor(Ref ref) => throw UnimplementedError(
 /// implementations (Firebase auth behind the options files, `*Remote`
 /// at §1 phase 4).
 ///
-/// [authRepository] lets an entrypoint (or test) supply a differently
-/// seeded auth fake — `main_dev` boots signed in as the §6 test user;
-/// everything else starts signed out at C1.
+/// [authRepository] lets a test supply a differently seeded auth fake
+/// (in-memory, pre-signed-in, throwing). The default fake binds the
+/// persistence seam, so both entrypoints run the REAL session lifecycle
+/// over mock identity (boot-flow directive 2026-07-22): first-ever
+/// launch boots to C1, a sign-in persists across relaunches, sign-out
+/// purges it — web TEST_MODE parity.
 ///
 /// [cameraService] swaps the C6 camera seam (§10): the set defaults to
 /// `CameraServiceFake` (bundled sample frame — simulators/CI/dev need no
@@ -65,7 +68,11 @@ List<Override> fakeRepositoryOverrides({
   EarningsRepository? earningsRepository,
 }) => <Override>[
   authRepositoryProvider.overrideWith(
-    (ref) => authRepository ?? AuthRepositoryFake(),
+    (ref) =>
+        authRepository ??
+        AuthRepositoryFake(
+          persistenceService: ref.watch(persistenceServiceProvider),
+        ),
   ),
   cameraServiceProvider.overrideWith(
     (ref) => cameraService ?? CameraServiceFake(),
