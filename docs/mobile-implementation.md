@@ -44,8 +44,8 @@ Four phases, each closing before the next opens (mirrors the audit ledger's
    repositories reading the seed narrative (§6). This is the bulk of the
    work and where the legacy salvage/rewrite/drop ledger (§11) executes.
 4. **API last** — `*Remote` repositories implement the same interfaces the
-   fakes already satisfy; `main.dart` (prd) swaps the provider overrides.
-   No screen or ViewModel changes at this step by construction.
+   fakes already satisfy; `main.dart` (prod, M-7) swaps the provider
+   overrides. No screen or ViewModel changes at this step by construction.
 
 Backend integration timing follows the fleet rule: mobile's API wiring and
 the backend services it calls remain separately gated — this doc covers
@@ -115,12 +115,10 @@ mobile/flutter/
     seed/                     # §6 — dev/stg-flavor-scoped narrative JSON
   android/ ios/                # INSIDE the flutter project root (legacy had them outside — §11)
   lib/
-    main.dart                  # prd entrypoint
-    main_stg.dart
+    main.dart                  # prod entrypoint (sandbox = CueLABS production, M-7)
     main_dev.dart               # fakes wired by default
     firebase_options_dev.dart
-    firebase_options_stg.dart
-    firebase_options_prd.dart
+    firebase_options.dart       # prod
     l10n/
       app_en.arb
       generated/               # gitignored, regenerates on `pub get`
@@ -184,8 +182,8 @@ enforces the conventions in CI. Widgets are `ConsumerWidget`/
 rather than hand-rolled loading-state fields.
 
 DI = **provider overrides per environment** — `main_dev.dart` /
-`main_stg.dart` / `main.dart` each build a `ProviderScope` with the
-repository providers overridden to `*Fake` or `*Remote` accordingly (§6).
+`main.dart` each build a `ProviderScope` with the repository providers
+overridden to `*Fake` or `*Remote` accordingly (§6, M-7).
 No second DI container (`get_it` is not introduced) — Riverpod's provider
 graph is the only injection mechanism, matching the ratified rejection of
 Bloc (boilerplate at this app's size) and GetX (not standards-grade). The
@@ -243,16 +241,14 @@ implementations satisfying the same interface — the compass-app pattern
 (standards-research.md item 7). ViewModels depend only on the abstract
 type; nothing above the repository boundary knows which implementation is
 active. This is the mobile analogue of web's `TEST_MODE` seam
-(web-implementation.md §5): the three entrypoints (`main_dev.dart`,
-`main_stg.dart`, `main.dart`) pick the provider-override set, so `dev`/`stg`
-run entirely on fakes today and `prd` is where `*Remote` is introduced when
-API wiring lands (§1 phase 4) — no `if (kDebugMode)` branching inside
+(web-implementation.md §5): the two entrypoints (`main_dev.dart`,
+`main.dart`) pick the provider-override set (M-7) — both ride fakes
+today; `main.dart` (prod) is where `*Remote` is introduced when API
+wiring lands (§1 phase 4). No `if (kDebugMode)` branching inside
 feature code.
 
-`*Fake` repositories read seeded JSON from `assets/seed/<flavor>/` — flavor
-scoping exists because `dev` and `stg` fakes may want different data
-volumes for local iteration vs. demo/QA use, though both draw from the same
-narrative. Seed files, one per domain (mirrors the mock server's grouping,
+`*Fake` repositories read seeded JSON from `assets/seed/` — the
+dev-flavor asset scope keeps seed data out of prod bundles. Seed files, one per domain (mirrors the mock server's grouping,
 web-implementation.md §6), tell the **same story** as the web dashboard's
 seed so a person moving between the phone and the web app sees one
 coherent world, not two disconnected demos:
