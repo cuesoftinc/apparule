@@ -6,9 +6,11 @@ import 'package:apparule/src/core/ui/qc_hint_chip.dart';
 import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/features/measurements/data/camera_service_fake.dart';
 import 'package:apparule/src/features/measurements/presentation/capture_screen.dart';
+import 'package:apparule/src/features/measurements/presentation/capture_view_model.dart';
 import 'package:apparule/src/features/measurements/presentation/manual_entry_screen.dart';
 import 'package:apparule/src/features/measurements/presentation/vault_screen.dart';
 import 'package:apparule/src/routing/routes.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/boot_app.dart';
@@ -42,9 +44,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
   }
 
-  /// Shutter → 3-2-1 → capture → processing → the fake pipeline verdict.
+  /// Auto-capture (QA-convergence ruling: no shutter): the searching beat
+  /// arms the 3-2-1 → capture fires → processing → the pipeline verdict.
   Future<void> shootThroughProcessing(WidgetTester tester) async {
-    await tester.tap(find.bySemanticsLabel('Capture'));
+    await tester.pump(kCaptureAlignDelay);
     await tester.pump();
     expect(find.bySemanticsLabel('Capturing in 3'), findsOneWidget);
     await tester.pump(const Duration(seconds: 1));
@@ -142,6 +145,77 @@ void main() {
 
       expect(find.byType(CaptureOverlay), findsOneWidget);
       expect(find.byType(CaptureResults), findsNothing);
+
+      // The auto-capture re-arms for the next shot.
+      await tester.pump(kCaptureAlignDelay);
+      await tester.pump();
+      expect(find.bySemanticsLabel('Capturing in 3'), findsOneWidget);
+    });
+  });
+
+  group('auto-capture (QA-convergence ruling — canvas+docs, no shutter)', () {
+    testWidgets('the viewfinder renders no shutter control and arms the '
+        '3-2-1 by itself after the searching beat', (tester) async {
+      await bootToCapture(tester);
+      await continueToViewfinder(tester);
+
+      // No capture control anywhere on the controls layer.
+      expect(find.bySemanticsLabel('Capture'), findsNothing);
+      expect(find.text('Stand inside the outline'), findsOneWidget);
+      expect(find.bySemanticsLabel('Capturing in 3'), findsNothing);
+
+      // ...then the countdown starts on its own.
+      await tester.pump(kCaptureAlignDelay);
+      await tester.pump();
+      expect(find.bySemanticsLabel('Capturing in 3'), findsOneWidget);
+    });
+
+    testWidgets('announces the countdown arming and the capture firing', (
+      tester,
+    ) async {
+      final announcements = <String>[];
+      tester.binding.defaultBinaryMessenger
+          .setMockDecodedMessageHandler<dynamic>(SystemChannels.accessibility, (
+            dynamic message,
+          ) async {
+            if (message case {
+              'type': 'announce',
+              'data': {'message': final String text},
+            }) {
+              announcements.add(text);
+            }
+            return null;
+          });
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger
+            .setMockDecodedMessageHandler<dynamic>(
+              SystemChannels.accessibility,
+              null,
+            ),
+      );
+
+      await bootToCapture(tester);
+      await continueToViewfinder(tester);
+      await shootThroughProcessing(tester);
+
+      expect(
+        announcements,
+        containsAllInOrder(<String>[
+          'Hold still — capturing in 3',
+          'Photo captured',
+        ]),
+      );
+    });
+
+    testWidgets('the manual-entry escape stays available on the live '
+        'viewfinder', (tester) async {
+      await bootToCapture(tester);
+      await continueToViewfinder(tester);
+
+      await tester.tap(find.text('Enter manually instead'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ManualEntryScreen), findsOneWidget);
     });
   });
 

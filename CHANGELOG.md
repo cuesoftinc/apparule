@@ -340,6 +340,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Mobile C6 capture drops the explicit shutter button — the QA-convergence
+  CONTESTED item ruled for canvas+docs (pages.md C6 "silhouette overlay +
+  countdown"; the canvas capture frames 173:574/266:8419 carry no control
+  layer). The viewfinder now arms the 3-2-1 automatically after a short
+  searching beat (`kCaptureAlignDelay`; the fake camera's stand-in for a
+  live alignment signal) and capture fires on countdown completion; Retake
+  re-arms it. Kept: the over-media back chevron as the cancel affordance,
+  the "Enter manually instead" escape, and the ring's per-tick live
+  region — plus new screen-reader announcements when the countdown arms
+  ("Hold still — capturing in 3") and the capture fires ("Photo
+  captured"). The unused shutter label string is gone; camera/countdown
+  goldens re-authored on the Linux gate platform.
 - Mobile flavors collapse to the org's two-environment model (user
   directive 2026-07-22): `dev` (fakes/TEST_MODE, applicationIdSuffix
   `.dev`) and `prod` (bare `io.cuesoft.apparule`, Firebase

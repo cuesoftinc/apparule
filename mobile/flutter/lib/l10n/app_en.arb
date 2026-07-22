@@ -177,9 +177,13 @@
     "description": "Height validation copy — the flows/vault.md §1 bounds."
   },
   "captureHeightContinue": "Continue",
-  "captureShutterLabel": "Capture",
-  "@captureShutterLabel": {
-    "description": "Shutter-button semantics label (icon-only control)."
+  "captureCountdownA11y": "Hold still — capturing in 3",
+  "@captureCountdownA11y": {
+    "description": "Screen-reader announcement when the auto-capture 3-2-1 arms (QA-convergence ruling: no shutter — the countdown starts itself once the viewfinder is live)."
+  },
+  "captureCapturedA11y": "Photo captured",
+  "@captureCapturedA11y": {
+    "description": "Screen-reader announcement when the countdown completes and the capture fires; the processing live region follows with \"Measuring…\"."
   },
   "captureProcessingTitle": "Measuring…",
   "@captureProcessingTitle": {

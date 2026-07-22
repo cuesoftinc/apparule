@@ -19,6 +19,14 @@ part 'capture_view_model.g.dart';
 const double kMinHeightCm = 100;
 const double kMaxHeightCm = 230;
 
+/// The searching beat between the viewfinder going live and the 3-2-1
+/// arming (QA-convergence ruling: the canvas capture frames carry no
+/// shutter — capture is automatic). Over the fake camera this simulates
+/// the subject aligning with the silhouette; a live pose-detection
+/// alignment signal replaces the timer when the real camera lands (§1
+/// phase 4).
+const Duration kCaptureAlignDelay = Duration(milliseconds: 1200);
+
 /// The C6 state machine (mobile-implementation.md §10): height → camera
 /// (countdown) → processing → results | qc-fail, with the
 /// permission-denied dead end resolving to manual entry.
@@ -59,6 +67,7 @@ abstract class CaptureState with _$CaptureState {
 /// flow; navigation stays the View's job.
 @riverpod
 class CaptureViewModel extends _$CaptureViewModel {
+  Timer? _alignTimer;
   Timer? _countdownTimer;
 
   /// Dispose-safe mirrors of the pending/saved state — Riverpod forbids
@@ -72,6 +81,7 @@ class CaptureViewModel extends _$CaptureViewModel {
     final camera = ref.watch(cameraServiceProvider);
     final repository = ref.watch(measurementRepositoryProvider);
     ref.onDispose(() {
+      _alignTimer?.cancel();
       _countdownTimer?.cancel();
       // Leaving without saving purges the pending session ("Retake
       // discards" semantics, flows/vault.md §1) and releases the camera.
@@ -118,14 +128,24 @@ class CaptureViewModel extends _$CaptureViewModel {
       await ref.read(cameraServiceProvider).initialize();
       if (!ref.mounted) return;
       state = state.copyWith(cameraReady: true);
+      _armAutoCapture();
     } on CameraPermissionDeniedException {
       if (!ref.mounted) return;
       state = state.copyWith(step: CaptureStep.permission);
     }
   }
 
-  /// Shutter: runs the 3-2-1 (MI-12), then captures and submits.
-  void startCountdown() {
+  /// Arms the auto-capture: after the [kCaptureAlignDelay] searching
+  /// beat the 3-2-1 starts on its own — no shutter exists (pages.md C6
+  /// "silhouette overlay + countdown"; the canvas capture frames show no
+  /// control layer). Leaving the screen cancels it (provider dispose).
+  void _armAutoCapture() {
+    _alignTimer?.cancel();
+    _alignTimer = Timer(kCaptureAlignDelay, _startCountdown);
+  }
+
+  /// Runs the 3-2-1 (MI-12), then captures and submits on completion.
+  void _startCountdown() {
     if (state.countdown != null || state.step != CaptureStep.camera) return;
     state = state.copyWith(countdown: CountdownCount.three);
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -166,7 +186,8 @@ class CaptureViewModel extends _$CaptureViewModel {
   }
 
   /// "Retake" (results quiet action / qc-fail primary): purges any
-  /// pending session immediately and returns to the viewfinder.
+  /// pending session immediately, returns to the viewfinder and re-arms
+  /// the auto-capture.
   Future<void> retake() async {
     if (state.session case final pending?) {
       await ref.read(measurementRepositoryProvider).discardSession(pending.id);
@@ -179,6 +200,7 @@ class CaptureViewModel extends _$CaptureViewModel {
       session: null,
       qcFailCode: null,
     );
+    _armAutoCapture();
   }
 
   /// "Save to vault" — flips the pending session `complete`; the View

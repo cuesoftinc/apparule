@@ -20,6 +20,7 @@ import 'package:apparule/src/features/measurements/data/capture_sample_catalog.d
 import 'package:apparule/src/features/measurements/presentation/capture_view_model.dart';
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -48,6 +49,30 @@ class CaptureScreen extends ConsumerWidget {
           previous?.step != CaptureStep.qcFail) {
         // MI-20: error buzz on capture failed.
         unawaited(HapticFeedback.vibrate());
+      }
+      // Auto-capture a11y (QA-convergence ruling: no shutter exists) —
+      // announce the 3-2-1 arming and the capture firing; the ring's
+      // live region carries the per-tick counts in between.
+      final wasCounting = previous?.countdown != null;
+      if (next.countdown != null && !wasCounting) {
+        unawaited(
+          SemanticsService.sendAnnouncement(
+            View.of(context),
+            l10n.captureCountdownA11y,
+            Directionality.of(context),
+          ),
+        );
+      }
+      if (wasCounting &&
+          next.countdown == null &&
+          next.step == CaptureStep.processing) {
+        unawaited(
+          SemanticsService.sendAnnouncement(
+            View.of(context),
+            l10n.captureCapturedA11y,
+            Directionality.of(context),
+          ),
+        );
       }
     });
 
@@ -92,11 +117,7 @@ class CaptureScreen extends ConsumerWidget {
         CaptureStep.height => SafeArea(
           child: _HeightStep(state: state, viewModel: viewModel),
         ),
-        CaptureStep.camera => _CameraStep(
-          state: state,
-          viewModel: viewModel,
-          camera: camera,
-        ),
+        CaptureStep.camera => _CameraStep(state: state, camera: camera),
         CaptureStep.processing => _ProcessingStep(state: state),
         CaptureStep.qcFail => _QcFailStep(state: state, viewModel: viewModel),
         CaptureStep.results => SafeArea(
@@ -188,9 +209,9 @@ class _HeightStep extends StatelessWidget {
 const Color _onMediaWhite = Color(0xFFFFFFFF);
 const Color _onMediaText2 = Color(0xFFA8A8A8);
 
-/// The quiet on-media text action ("Enter manually instead" under the
-/// shutter, canvas-adjacent controls layer) — raw white per the on-media
-/// exception; a quiet Button would paint theme `text` (black in light).
+/// The quiet on-media text action ("Enter manually instead" on the
+/// viewfinder's controls layer) — raw white per the on-media exception;
+/// a quiet Button would paint theme `text` (black in light).
 class _OnMediaTextAction extends StatelessWidget {
   const _OnMediaTextAction({required this.label, required this.onTap});
 
@@ -221,27 +242,25 @@ class _OnMediaTextAction extends StatelessWidget {
 }
 
 /// Viewfinder step — the Capture Kit overlay (silhouette, MI-12) FULL
-/// BLEED over the camera seam's preview (canvas 173:574/266:8419); the
-/// shutter runs the 3-2-1 countdown from the overlaid controls layer.
+/// BLEED over the camera seam's preview (canvas 173:574/266:8419). No
+/// shutter exists (QA-convergence ruling, canvas+docs): the ViewModel
+/// arms the 3-2-1 once the camera is live and capture fires on
+/// completion; the controls layer keeps only the manual-entry escape,
+/// and the over-media AppBar's back chevron cancels out of the flow.
 class _CameraStep extends StatelessWidget {
   const _CameraStep({
     required this.state,
-    required this.viewModel,
     required this.camera,
   });
 
   final CaptureState state;
-  final CaptureViewModel viewModel;
   final CameraService camera;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final colors = theme.extension<AppColors>()!;
 
     final counting = state.countdown != null;
-    final canCapture = state.cameraReady && !counting;
 
     return Stack(
       fit: StackFit.expand,
@@ -258,43 +277,9 @@ class _CameraStep extends StatelessWidget {
             top: false,
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Semantics(
-                    label: l10n.captureShutterLabel,
-                    button: true,
-                    enabled: canCapture,
-                    // The gradient disc + glyph are presentational.
-                    excludeSemantics: true,
-                    child: InkResponse(
-                      onTap: canCapture ? viewModel.startCountdown : null,
-                      radius: 44,
-                      child: Opacity(
-                        opacity: canCapture ? 1 : 0.5,
-                        child: Container(
-                          width: 72,
-                          height: 72,
-                          decoration: BoxDecoration(
-                            gradient: colors.accentGradient,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            LucideIcons.camera,
-                            size: 28,
-                            color: colors.onAccent,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _OnMediaTextAction(
-                    label: l10n.captureEnterManually,
-                    onTap: () =>
-                        const ManualEntryRoute().pushReplacement(context),
-                  ),
-                ],
+              child: _OnMediaTextAction(
+                label: l10n.captureEnterManually,
+                onTap: () => const ManualEntryRoute().pushReplacement(context),
               ),
             ),
           ),
