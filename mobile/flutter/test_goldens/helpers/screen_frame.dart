@@ -1,6 +1,5 @@
 import 'package:apparule/l10n/generated/app_localizations.dart';
 import 'package:apparule/src/app/di.dart';
-import 'package:apparule/src/core/data/persistence_service.dart';
 import 'package:apparule/src/features/auth/data/auth_repository.dart';
 import 'package:apparule/src/features/earnings/data/earnings_repository.dart';
 import 'package:apparule/src/features/feed/data/post_repository.dart';
@@ -32,13 +31,11 @@ Widget screenFrame(
 }) {
   return ProviderScope(
     overrides: <Override>[
-      // The secure-storage seam has no plugin in golden runs — the
-      // in-memory stand-in keeps the fake auth lifecycle hermetic.
-      persistenceServiceProvider.overrideWith(
-        (ref) => InMemoryPersistenceService(),
-      ),
       ...fakeRepositoryOverrides(
         authRepository: authRepository,
+        // The secure-storage seam has no plugin in golden runs — the
+        // in-memory stand-in keeps the fake auth lifecycle hermetic.
+        persistenceService: InMemoryPersistenceService(),
         cameraService: cameraService,
         measurementRepository: measurementRepository,
         postRepository: postRepository,

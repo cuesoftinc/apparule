@@ -45,13 +45,12 @@ extension PumpApp on WidgetTester {
     return pumpWidget(
       ProviderScope(
         overrides: <Override>[
-          // The secure-storage seam has no plugin in widget tests — the
-          // in-memory stand-in keeps the fake auth lifecycle hermetic.
-          persistenceServiceProvider.overrideWith(
-            (ref) => persistenceService ?? InMemoryPersistenceService(),
-          ),
           ...fakeRepositoryOverrides(
             authRepository: authRepository,
+            // The secure-storage seam has no plugin in widget tests — the
+            // in-memory stand-in keeps the fake auth lifecycle hermetic.
+            persistenceService:
+                persistenceService ?? InMemoryPersistenceService(),
             cameraService: cameraService,
             measurementRepository: measurementRepository,
             postRepository: postRepository,

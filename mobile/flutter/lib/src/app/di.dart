@@ -47,6 +47,10 @@ AppFlavor appFlavor(Ref ref) => throw UnimplementedError(
 /// launch boots to C1, a sign-in persists across relaunches, sign-out
 /// purges it — web TEST_MODE parity.
 ///
+/// [persistenceService] swaps the persistence seam — tests pass an
+/// in-memory service (secure storage has no plugin in widget tests);
+/// the default is the real service, so entrypoints persist for real.
+///
 /// [cameraService] swaps the C6 camera seam (§10): the set defaults to
 /// `CameraServiceFake` (bundled sample frame — simulators/CI/dev need no
 /// hardware); prod passes `CameraServiceLive` for the real viewfinder
@@ -59,6 +63,7 @@ AppFlavor appFlavor(Ref ref) => throw UnimplementedError(
 /// role (the feed/orders wave's seams).
 List<Override> fakeRepositoryOverrides({
   AuthRepository? authRepository,
+  PersistenceService? persistenceService,
   CameraService? cameraService,
   MeasurementRepository? measurementRepository,
   PostRepository? postRepository,
@@ -67,6 +72,9 @@ List<Override> fakeRepositoryOverrides({
   ProfileRepository? profileRepository,
   EarningsRepository? earningsRepository,
 }) => <Override>[
+  persistenceServiceProvider.overrideWith(
+    (ref) => persistenceService ?? PersistenceService(),
+  ),
   authRepositoryProvider.overrideWith(
     (ref) =>
         authRepository ??
