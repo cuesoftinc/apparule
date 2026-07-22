@@ -72,6 +72,14 @@ class ManualEntryScreen extends ConsumerWidget {
               loading: state.saving,
               onPressed: state.valuesCm.isEmpty ? null : viewModel.save,
             ),
+            const SizedBox(height: 8),
+            // The canvas 267:2 escape hatch back to the camera path —
+            // mirror of the viewfinder's "Enter manually instead".
+            Button(
+              label: l10n.manualEntryUseCamera,
+              kind: ButtonKind.quiet,
+              onPressed: () => const CaptureRoute().pushReplacement(context),
+            ),
           ],
         ),
       ),

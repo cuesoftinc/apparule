@@ -6,6 +6,7 @@ import 'package:apparule/src/core/ui/tab_bar.dart';
 import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/features/orders/presentation/order_detail_screen.dart';
 import 'package:apparule/src/features/profile/data/notification_repository_fake.dart';
+import 'package:apparule/src/features/profile/presentation/public_profile_screen.dart';
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -117,6 +118,47 @@ void main() {
 
     expect(find.byType(OrderDetailScreen), findsOneWidget);
     expect(find.text('Pay ₦40,000'), findsOneWidget);
+  });
+
+  testWidgets('a follow row carries the MI-7 Follow trailing whose morph '
+      'mutates the graph', (tester) async {
+    // Follow rows live in the designer-side stream (the seed's follow
+    // notification belongs to des-tunde's audience).
+    await boot(
+      tester,
+      notificationRepository: NotificationRepositoryFake(
+        audienceIds: const <String>{'des-tunde'},
+      ),
+    );
+    await openNotifications(tester);
+
+    // The follow row's actor (funmi.b) isn't followed yet → gradient
+    // "Follow" (NotificationRow contract trailing).
+    expect(find.textContaining('started following you'), findsOneWidget);
+    expect(find.text('Follow'), findsOneWidget);
+
+    await tester.tap(find.text('Follow'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Follow'), findsNothing);
+    expect(find.text('Following'), findsOneWidget);
+  });
+
+  testWidgets("a follow row links to the follower's C9 profile", (
+    tester,
+  ) async {
+    await boot(
+      tester,
+      notificationRepository: NotificationRepositoryFake(
+        audienceIds: const <String>{'des-tunde'},
+      ),
+    );
+    await openNotifications(tester);
+
+    await tester.tap(find.textContaining('started following you'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PublicProfileScreen), findsOneWidget);
   });
 
   testWidgets('an empty sheet renders the notifications empty state', (

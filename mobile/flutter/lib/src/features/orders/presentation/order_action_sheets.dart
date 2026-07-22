@@ -268,7 +268,7 @@ class _DisputeFormState extends State<_DisputeForm> {
           maxLines: 4,
           maxLength: 500,
           style: typography.body14.copyWith(color: colors.text),
-          decoration: _fieldDecoration(context),
+          decoration: _fieldDecoration(context, hint: l10n.disputeDetailHint),
         ),
         const SizedBox(height: 8),
         _fieldLabel(context, l10n.disputeEvidenceLabel),

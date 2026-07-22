@@ -1,4 +1,5 @@
 import 'package:apparule/src/features/auth/data/auth_repository.dart';
+import 'package:apparule/src/features/auth/data/first_action_flag.dart';
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
@@ -21,9 +22,14 @@ GoRouter router(Ref ref) {
     ..onDispose(sessionRefresh.dispose)
     ..listen(authSessionProvider, (previous, next) {
       sessionRefresh.value++;
-    });
+    })
+    // Prime the C1b flag at boot (SharedPreferences read) so the
+    // synchronous redirect below has a resolved value by the time a
+    // sign-in lands — the redirect itself must not await.
+    ..listen(firstActionFlagProvider, (previous, next) {});
   final signInLocation = const SignInRoute().location;
   final homeLocation = const HomeRoute().location;
+  final firstActionLocation = const FirstActionRoute().location;
   return GoRouter(
     routes: $appRoutes,
     initialLocation: homeLocation,
@@ -34,7 +40,13 @@ GoRouter router(Ref ref) {
       final signedIn = ref.read(authSessionProvider).value != null;
       final signingIn = state.matchedLocation == signInLocation;
       if (!signedIn) return signingIn ? null : signInLocation;
-      if (signingIn) return homeLocation;
+      if (signingIn) {
+        // First sign-in hands off to the C1b interstitial (pages.md
+        // C1b); an unresolved flag reads as seen — never strand a
+        // sign-in on an extra screen it may already have dismissed.
+        final firstActionSeen = ref.read(firstActionFlagProvider).value ?? true;
+        return firstActionSeen ? homeLocation : firstActionLocation;
+      }
       return null;
     },
   );

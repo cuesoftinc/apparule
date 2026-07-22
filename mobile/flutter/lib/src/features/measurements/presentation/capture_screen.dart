@@ -58,58 +58,52 @@ class CaptureScreen extends ConsumerWidget {
         ? _DevScenarioAction(camera: camera)
         : null;
 
+    // The camera/countdown, QC-hint and processing steps are FULL-BLEED
+    // on-media surfaces (canvas 173:574 / 266:8419 / 266:8446): true-black
+    // ground, transparent over-media chrome, controls overlaid — the
+    // screen is the viewport. Height/results/permission keep the sub bar.
+    final immersive = switch (state.step) {
+      CaptureStep.camera ||
+      CaptureStep.qcFail ||
+      CaptureStep.processing => true,
+      _ => false,
+    };
+    // Processing is not escapable mid-flight (the canvas frame carries
+    // no back affordance; the fake pipeline resolves on its own).
+    final processing = state.step == CaptureStep.processing;
+    void back() {
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        const HomeRoute().go(context);
+      }
+    }
+
     return Scaffold(
+      backgroundColor: immersive ? const Color(0xFF000000) : null,
+      extendBodyBehindAppBar: immersive,
       appBar: AppTopBar(
-        kind: AppTopBarKind.sub,
-        title: l10n.captureTitle,
-        onBack: () {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            const HomeRoute().go(context);
-          }
-        },
-        trailing: devSelector,
+        kind: immersive ? AppTopBarKind.overMedia : AppTopBarKind.sub,
+        title: immersive ? null : l10n.captureTitle,
+        onBack: processing ? null : back,
+        trailing: processing ? null : devSelector,
       ),
-      body: SafeArea(
-        child: switch (state.step) {
-          CaptureStep.height => _HeightStep(state: state, viewModel: viewModel),
-          CaptureStep.camera => _CameraStep(
-            state: state,
-            viewModel: viewModel,
-            camera: camera,
-          ),
-          CaptureStep.processing => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              // Size the 3:4 constellation to whichever axis binds, so
-              // the module never overflows short viewports.
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final width = math.min(
-                    constraints.maxWidth,
-                    // 3:4 media + the ~48px status line beneath it.
-                    (constraints.maxHeight - 48) * 3 / 4,
-                  );
-                  return SizedBox(
-                    width: math.max(width, 120),
-                    child: ProcessingConstellation(
-                      state: ProcessingState.processing,
-                      image: state.photoBytes == null
-                          ? null
-                          : MemoryImage(state.photoBytes!),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-          CaptureStep.qcFail => _QcFailStep(state: state, viewModel: viewModel),
-          CaptureStep.results => _ResultsStep(
-            state: state,
-            viewModel: viewModel,
-          ),
-          CaptureStep.permission => Center(
+      body: switch (state.step) {
+        CaptureStep.height => SafeArea(
+          child: _HeightStep(state: state, viewModel: viewModel),
+        ),
+        CaptureStep.camera => _CameraStep(
+          state: state,
+          viewModel: viewModel,
+          camera: camera,
+        ),
+        CaptureStep.processing => _ProcessingStep(state: state),
+        CaptureStep.qcFail => _QcFailStep(state: state, viewModel: viewModel),
+        CaptureStep.results => SafeArea(
+          child: _ResultsStep(state: state, viewModel: viewModel),
+        ),
+        CaptureStep.permission => SafeArea(
+          child: Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: EmptyState(
@@ -120,8 +114,8 @@ class CaptureScreen extends ConsumerWidget {
               ),
             ),
           ),
-        },
-      ),
+        ),
+      },
     );
   }
 
@@ -188,8 +182,47 @@ class _HeightStep extends StatelessWidget {
   }
 }
 
-/// Viewfinder step — the Capture Kit overlay (silhouette, MI-12) over the
-/// camera seam's preview; the shutter runs the 3-2-1 countdown.
+/// The on-media secondary text tone — the dark-mode `text-2` value used
+/// as a raw constant on the full-bleed capture surfaces (the documented
+/// on-media token exception, design.md §2).
+const Color _onMediaWhite = Color(0xFFFFFFFF);
+const Color _onMediaText2 = Color(0xFFA8A8A8);
+
+/// The quiet on-media text action ("Enter manually instead" under the
+/// shutter, canvas-adjacent controls layer) — raw white per the on-media
+/// exception; a quiet Button would paint theme `text` (black in light).
+class _OnMediaTextAction extends StatelessWidget {
+  const _OnMediaTextAction({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final typography = Theme.of(context).extension<AppTypography>()!;
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: typography.body14.copyWith(
+              fontWeight: FontWeight.w600,
+              color: _onMediaWhite,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Viewfinder step — the Capture Kit overlay (silhouette, MI-12) FULL
+/// BLEED over the camera seam's preview (canvas 173:574/266:8419); the
+/// shutter runs the 3-2-1 countdown from the overlaid controls layer.
 class _CameraStep extends StatelessWidget {
   const _CameraStep({
     required this.state,
@@ -210,63 +243,130 @@ class _CameraStep extends StatelessWidget {
     final counting = state.countdown != null;
     final canCapture = state.cameraReady && !counting;
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: <Widget>[
-          Expanded(
-            child: Center(
-              child: CaptureOverlay(
-                guide: counting
-                    ? CaptureGuide.countdown
-                    : CaptureGuide.searching,
-                countdown: state.countdown ?? CountdownCount.three,
-                child: state.cameraReady ? camera.buildPreview() : null,
+    return Stack(
+      fit: StackFit.expand,
+      children: <Widget>[
+        CaptureOverlay(
+          expand: true,
+          guide: counting ? CaptureGuide.countdown : CaptureGuide.searching,
+          countdown: state.countdown ?? CountdownCount.three,
+          child: state.cameraReady ? camera.buildPreview() : null,
+        ),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Semantics(
+                    label: l10n.captureShutterLabel,
+                    button: true,
+                    enabled: canCapture,
+                    // The gradient disc + glyph are presentational.
+                    excludeSemantics: true,
+                    child: InkResponse(
+                      onTap: canCapture ? viewModel.startCountdown : null,
+                      radius: 44,
+                      child: Opacity(
+                        opacity: canCapture ? 1 : 0.5,
+                        child: Container(
+                          width: 72,
+                          height: 72,
+                          decoration: BoxDecoration(
+                            gradient: colors.accentGradient,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            LucideIcons.camera,
+                            size: 28,
+                            color: colors.onAccent,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _OnMediaTextAction(
+                    label: l10n.captureEnterManually,
+                    onTap: () =>
+                        const ManualEntryRoute().pushReplacement(context),
+                  ),
+                ],
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          Semantics(
-            label: l10n.captureShutterLabel,
-            button: true,
-            enabled: canCapture,
-            // The gradient disc + glyph are presentational.
-            excludeSemantics: true,
-            child: InkResponse(
-              onTap: canCapture ? viewModel.startCountdown : null,
-              radius: 44,
-              child: Opacity(
-                opacity: canCapture ? 1 : 0.5,
-                child: Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    gradient: colors.accentGradient,
-                    shape: BoxShape.circle,
+        ),
+      ],
+    );
+  }
+}
+
+/// Processing step — the true-black on-media surface (canvas 266:8446):
+/// constellation card centred, "Measuring…" + the landmark detail line
+/// beneath it; the module's own status caption stays hidden here.
+class _ProcessingStep extends StatelessWidget {
+  const _ProcessingStep({required this.state});
+
+  final CaptureState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final typography = Theme.of(context).extension<AppTypography>()!;
+
+    return SafeArea(
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final width = math.min<double>(constraints.maxWidth, 280);
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  SizedBox(
+                    width: width,
+                    child: ProcessingConstellation(
+                      state: ProcessingState.processing,
+                      showStatus: false,
+                      image: state.photoBytes == null
+                          ? null
+                          : MemoryImage(state.photoBytes!),
+                    ),
                   ),
-                  child: Icon(
-                    LucideIcons.camera,
-                    size: 28,
-                    color: colors.onAccent,
+                  const SizedBox(height: 48),
+                  Semantics(
+                    liveRegion: true,
+                    child: Text(
+                      l10n.captureProcessingTitle,
+                      textAlign: TextAlign.center,
+                      style: typography.title24Bold.copyWith(
+                        color: _onMediaWhite,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ),
+                  const SizedBox(height: 12),
+                  Text(
+                    l10n.captureProcessingBody,
+                    textAlign: TextAlign.center,
+                    style: typography.body14.copyWith(color: _onMediaText2),
+                  ),
+                ],
+              );
+            },
           ),
-          const SizedBox(height: 8),
-          Button(
-            label: l10n.captureEnterManually,
-            kind: ButtonKind.quiet,
-            onPressed: () => const ManualEntryRoute().pushReplacement(context),
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
 /// QC-fail step — ONE actionable retake instruction (first failure only,
-/// capture-qc.md reporting rule), mapped 1:1 onto the QCHintChip codes.
+/// capture-qc.md reporting rule), mapped 1:1 onto the QCHintChip codes,
+/// full-bleed over the rejected frame like the viewfinder it returns to.
 class _QcFailStep extends StatelessWidget {
   const _QcFailStep({required this.state, required this.viewModel});
 
@@ -280,36 +380,49 @@ class _QcFailStep extends StatelessWidget {
     final code = wire == null ? null : QcFailCode.fromWireName(wire);
     final bytes = state.photoBytes;
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: <Widget>[
-          Expanded(
-            child: Center(
-              child: CaptureOverlay(
-                guide: CaptureGuide.qcHint,
-                qcCode: code,
-                child: bytes == null
-                    ? null
-                    : Image.memory(bytes, fit: BoxFit.cover),
+    return Stack(
+      fit: StackFit.expand,
+      children: <Widget>[
+        // The chip rides 24px above the overlay bottom — pad the overlay
+        // up past the controls layer so they never collide.
+        Positioned.fill(
+          bottom: 128,
+          child: CaptureOverlay(
+            expand: true,
+            guide: CaptureGuide.qcHint,
+            qcCode: code,
+            child: bytes == null
+                ? null
+                : Image.memory(bytes, fit: BoxFit.cover),
+          ),
+        ),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Button(
+                    label: l10n.captureRetake,
+                    expand: true,
+                    onPressed: viewModel.retake,
+                  ),
+                  const SizedBox(height: 8),
+                  // Manual fallback for QC that never clears (§10).
+                  _OnMediaTextAction(
+                    label: l10n.captureEnterManually,
+                    onTap: () =>
+                        const ManualEntryRoute().pushReplacement(context),
+                  ),
+                ],
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          Button(
-            label: l10n.captureRetake,
-            expand: true,
-            onPressed: viewModel.retake,
-          ),
-          const SizedBox(height: 8),
-          // Manual fallback for QC that never clears (§10).
-          Button(
-            label: l10n.captureEnterManually,
-            kind: ButtonKind.quiet,
-            onPressed: () => const ManualEntryRoute().pushReplacement(context),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -324,28 +437,43 @@ class _ResultsStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final colors = theme.extension<AppColors>()!;
+    final typography = theme.extension<AppTypography>()!;
     final session = state.session;
     if (session == null) return const SizedBox.shrink();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-      child: CaptureResults(
-        confidences: <double>[
-          for (final measurement in session.measurements)
-            ?measurement.confidence,
-        ],
-        onSave: viewModel.save,
-        onRetake: viewModel.retake,
-        saving: state.saving,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          for (final measurement in session.measurements)
-            MeasurementCard(
-              name: measurement.name,
-              valueCm: measurement.valueCm,
-              unit: state.unit,
-              source: MeasurementSource.scan,
-              confidence: measurement.confidence,
-            ),
+          CaptureResults(
+            confidences: <double>[
+              for (final measurement in session.measurements)
+                ?measurement.confidence,
+            ],
+            onSave: viewModel.save,
+            onRetake: viewModel.retake,
+            saving: state.saving,
+            children: <Widget>[
+              for (final measurement in session.measurements)
+                MeasurementCard(
+                  name: measurement.name,
+                  valueCm: measurement.valueCm,
+                  unit: state.unit,
+                  source: MeasurementSource.scan,
+                  confidence: measurement.confidence,
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // The APP-005 privacy line under Save/Retake (canvas 173:597).
+          Text(
+            l10n.captureResultsPrivacyNote,
+            style: typography.caption13.copyWith(color: colors.text2),
+          ),
         ],
       ),
     );

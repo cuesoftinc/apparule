@@ -47,6 +47,19 @@
   "@signInLegalSuffix": {
     "description": "Legal footer, closing punctuation after the links."
   },
+  "firstActionTitle": "Welcome, {name} 👋",
+  "@firstActionTitle": {
+    "description": "C1b interstitial title (canvas 266:2) — first name from the Google profile.",
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "firstActionSubtitle": "Two ways to start — you can always do the other later.",
+  "firstActionMeasure": "Take your first measurement",
+  "firstActionMeasureMeta": "One photo — about a minute",
+  "firstActionExplore": "Explore outfits",
+  "firstActionExploreMeta": "Browse Lagos designers first",
+  "firstActionSkip": "Skip for now",
   "vaultTitle": "Measurement vault",
   "vaultSessionScan": "Scan",
   "@vaultSessionScan": {
@@ -63,6 +76,54 @@
       "days": { "type": "int" }
     }
   },
+  "vaultMeasuredDaysAgoLong": "Measured {days} days ago",
+  "@vaultMeasuredDaysAgoLong": {
+    "description": "C7 header title (canvas 173:698; MI-11 tooltip idiom).",
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "vaultHeaderMeta": "{state} · {count} measurements",
+  "@vaultHeaderMeta": {
+    "description": "C7 header meta line — freshness state · measurement count (canvas 173:698).",
+    "placeholders": {
+      "state": {"type": "String"},
+      "count": {"type": "int"}
+    }
+  },
+  "vaultFreshnessFresh": "Up to date",
+  "vaultFreshnessAging": "Aging",
+  "vaultFreshnessStale": "Stale",
+  "vaultRetake": "Retake",
+  "vaultRetakeSheetTitle": "Retake your measurements",
+  "@vaultRetakeSheetTitle": {
+    "description": "The B4/C7 capture-options sheet the header Retake opens (canvas 173:698)."
+  },
+  "vaultUpdatedAgo": "Updated {ago} ago",
+  "@vaultUpdatedAgo": {
+    "description": "MeasurementCard meta line (canvas 173:698 'Updated 12d ago').",
+    "placeholders": {
+      "ago": {"type": "String"}
+    }
+  },
+  "vaultUpdatedJustNow": "Updated just now",
+  "vaultConsentNote": "Sessions are kept until you delete them. A snapshot is shared only when you send a request.",
+  "@vaultConsentNote": {
+    "description": "C7 consent + retention notice (canvas 173:698; data-model.md §4)."
+  },
+  "vaultDownloadData": "Download my data",
+  "vaultDeleteAll": "Delete all measurements",
+  "@vaultDeleteAll": {
+    "description": "The B4-parity rights links — both resolve at the B7 Account & data screen."
+  },
+  "vaultHistoryTitle": "{name} history",
+  "@vaultHistoryTitle": {
+    "description": "C7 metric history sheet title (pages.md C7 = B4: sessions list, method chips, delete session).",
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "vaultDeleteSession": "Delete session",
   "vaultMeasuredToday": "Measured today",
   "@vaultMeasuredToday": {
     "description": "C7 card meta line for a session saved under a day ago."
@@ -120,6 +181,18 @@
   "@captureShutterLabel": {
     "description": "Shutter-button semantics label (icon-only control)."
   },
+  "captureProcessingTitle": "Measuring…",
+  "@captureProcessingTitle": {
+    "description": "C6 processing screen title (canvas 266:8446) — on-media white over the true-black processing surface."
+  },
+  "captureProcessingBody": "Mapping 33 landmarks from your photo — about 15 seconds.",
+  "@captureProcessingBody": {
+    "description": "C6 processing detail line (canvas 266:8446; capture-qc.md: 33 pose landmarks)."
+  },
+  "captureResultsPrivacyNote": "Measurements stay private — shared only when you commission a designer",
+  "@captureResultsPrivacyNote": {
+    "description": "C6 results footer (canvas 173:597) — the APP-005 privacy line under Save/Retake."
+  },
   "captureRetake": "Retake",
   "captureEnterManually": "Enter manually instead",
   "@captureEnterManually": {
@@ -129,8 +202,8 @@
   "@captureDevScenarioLabel": {
     "description": "Dev-flavor-only debug selector: picks the fake camera's capture-qc.md sample scenario."
   },
-  "manualEntryTitle": "Enter manually",
-  "manualEntryBody": "Tape-measure your key metrics. Out-of-range values just ask for a double-check — bodies vary.",
+  "manualEntryTitle": "Enter measurements manually",
+  "manualEntryBody": "Use a tape measure and enter values in cm. Out-of-range values just ask for a double-check — bodies vary.",
   "@manualEntryBody": {
     "description": "MI-13 manual-entry explainer (flows/vault.md §2 advisory ranges)."
   },
@@ -143,6 +216,10 @@
     }
   },
   "manualEntrySave": "Save to vault",
+  "manualEntryUseCamera": "Use the camera instead",
+  "@manualEntryUseCamera": {
+    "description": "Manual-entry escape hatch back to the C6 camera (canvas 267:2)."
+  },
   "earningsTitle": "Earnings & payouts",
   "placeholderBody": "Placeholder screen — the real surface lands with its feature wave.",
   "@placeholderBody": {
@@ -393,6 +470,10 @@
   "disputeTitle": "Something wrong?",
   "disputeReasonLabel": "What happened?",
   "disputeDetailLabel": "Tell us more",
+  "disputeDetailHint": "The shoulders came out tighter than the snapshot values I sent...",
+  "@disputeDetailHint": {
+    "description": "Dispute detail textarea placeholder (canvas 205:6725 verbatim)."
+  },
   "disputeDetailCounter": "{count}/500",
   "@disputeDetailCounter": {
     "placeholders": {

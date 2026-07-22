@@ -1,5 +1,6 @@
 import 'package:apparule/l10n/generated/app_localizations.dart';
 import 'package:apparule/src/app/di.dart';
+import 'package:apparule/src/features/auth/data/auth_repository.dart';
 import 'package:apparule/src/features/earnings/data/earnings_repository.dart';
 import 'package:apparule/src/features/feed/data/post_repository.dart';
 import 'package:apparule/src/features/measurements/data/camera_service.dart';
@@ -17,6 +18,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 Widget screenFrame(
   Widget screen, {
   List<Override> overrides = const <Override>[],
+  AuthRepository? authRepository,
   CameraService? cameraService,
   MeasurementRepository? measurementRepository,
   PostRepository? postRepository,
@@ -28,6 +30,7 @@ Widget screenFrame(
   return ProviderScope(
     overrides: <Override>[
       ...fakeRepositoryOverrides(
+        authRepository: authRepository,
         cameraService: cameraService,
         measurementRepository: measurementRepository,
         postRepository: postRepository,

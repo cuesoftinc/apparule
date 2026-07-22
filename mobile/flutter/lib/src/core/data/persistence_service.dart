@@ -20,6 +20,7 @@ class PersistenceService {
   static const String _sessionTokenKey = 'session_token';
   static const String _themeModeKey = 'theme_mode';
   static const String _captureGuideSeenKey = 'capture_guide_seen';
+  static const String _firstActionSeenKey = 'first_action_seen';
 
   Future<String?> readSessionToken() =>
       _secureStorage.read(key: _sessionTokenKey);
@@ -53,6 +54,19 @@ class PersistenceService {
   Future<void> writeCaptureGuideSeen() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_captureGuideSeenKey, true);
+  }
+
+  /// Whether the C1b post-signup interstitial has been dismissed once
+  /// (pages.md C1b: "Take your first measurement" / "Explore outfits",
+  /// skippable — first sign-in hands off to it, later sign-ins skip it).
+  Future<bool> readFirstActionSeen() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_firstActionSeenKey) ?? false;
+  }
+
+  Future<void> writeFirstActionSeen() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_firstActionSeenKey, true);
   }
 }
 

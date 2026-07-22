@@ -60,9 +60,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(VaultScreen), findsOneWidget);
-    expect(find.text('Manual entry'), findsWidgets);
+    // The shoulder card re-derives to the just-saved manual value.
     expect(find.text('Measured today'), findsOneWidget);
     expect(find.text('43.0 cm'), findsOneWidget);
+    expect(find.text('Manual'), findsWidgets);
   });
 
   testWidgets('out-of-range values prompt a double-check, never a block', (
