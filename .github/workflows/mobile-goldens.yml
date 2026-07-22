@@ -1,0 +1,53 @@
+# Regenerates the committed alchemist CI goldens ON LINUX — the platform
+# the golden gate compares on (build-and-test.yml mobile job).
+#
+# Why: alchemist's CI variant removes the dominant cross-platform
+# nondeterminism (text renders as blocked boxes; shadows render solid),
+# but arch-level float differences in anti-aliasing, blur and bilinear
+# image filtering still leave sub-2% pixel residue between macOS-arm64
+# dev machines and the x64 Linux runners (observed: dashed-arc rings
+# 1.57%, sparklines 0.29%, upscaled media 0.27%). Goldens are therefore
+# authored where they are asserted: run this workflow, download the
+# `ci-goldens` artifact, and commit its contents — never commit
+# macOS-rendered goldens/ci images. No diff tolerances are configured;
+# the gate stays byte-exact.
+name: mobile-goldens
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  update-goldens:
+    name: regenerate CI goldens (linux)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile/flutter
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Flutter (version pinned by .fvmrc)
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version-file: mobile/flutter/.fvmrc
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Regenerate goldens
+        run: flutter test --update-goldens test_goldens
+
+      - name: Show what changed
+        run: git diff --stat -- test_goldens
+
+      - name: Upload goldens artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-goldens
+          path: mobile/flutter/test_goldens/**/goldens/ci/*.png
+          if-no-files-found: error
