@@ -86,7 +86,14 @@ List<Override> fakeRepositoryOverrides({
     (ref) => cameraService ?? CameraServiceFake(),
   ),
   postRepositoryProvider.overrideWith(
-    (ref) => postRepository ?? PostRepositoryFake(),
+    // The default fake binds the persistence seam: the viewer's like/save
+    // sets and follow list survive a relaunch (D01's restart half —
+    // engagement truth stays repository-owned, storage just carries it).
+    (ref) =>
+        postRepository ??
+        PostRepositoryFake(
+          persistence: ref.watch(persistenceServiceProvider),
+        ),
   ),
   measurementRepositoryProvider.overrideWith(
     (ref) => measurementRepository ?? MeasurementRepositoryFake(),

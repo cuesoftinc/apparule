@@ -1,7 +1,9 @@
+import 'package:apparule/src/core/data/persistence_service.dart';
 import 'package:apparule/src/features/feed/data/post_repository_fake.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// The seeded post fake carries the web mock narrative and the web
 /// store's SEMANTICS: viewer projection, count mutation on toggle,
@@ -321,6 +323,98 @@ void main() {
     expect(await repository.homeFeed(), isEmpty);
     expect(await repository.storyRail(), isEmpty);
     expect((await repository.explore()).posts, isEmpty);
+  });
+
+  group('failNext seam (CLASS 4)', () {
+    test('an armed failure throws once from the next mutation, then the '
+        'seam disarms', () async {
+      final repository = fake()..failNext = Exception('server 500');
+
+      await expectLater(
+        repository.toggleLike('post-print-couple'),
+        throwsException,
+      );
+      // Nothing mutated on the failed call…
+      final post = await repository.post('post-print-couple');
+      expect(post.liked, isFalse);
+      expect(post.likeCount, 18);
+
+      // …and the seam is disarmed: the retry succeeds.
+      final retried = await repository.toggleLike('post-print-couple');
+      expect(retried.liked, isTrue);
+    });
+
+    test('every mutating surface honours the seam', () async {
+      final repository = fake();
+      final mutations = <String, Future<void> Function()>{
+        'toggleLike': () => repository.toggleLike('post-print-couple'),
+        'toggleSave': () => repository.toggleSave('post-print-couple'),
+        'setFollow': () => repository.setFollow('tunde.o', follow: true),
+        'addComment': () => repository.addComment('post-print-couple', 'hi'),
+        'toggleCommentLike': () => repository.toggleCommentLike('cmt-asooke-1'),
+        'markStorySeen': () => repository.markStorySeen('amara.designs'),
+      };
+      for (final entry in mutations.entries) {
+        repository.failNext = Exception('armed for ${entry.key}');
+        await expectLater(
+          entry.value(),
+          throwsException,
+          reason: '${entry.key} must honour failNext',
+        );
+      }
+    });
+  });
+
+  group('persisted engagement (CLASS 1, D01 restart half)', () {
+    test(
+      'like/save/follow survive a restart via the persistence seam', //
+      () async {
+        SharedPreferences.setMockInitialValues(const <String, Object>{});
+        final persistence = PersistenceService();
+
+        final before = PostRepositoryFake(
+          now: () => DateTime.utc(2026, 7, 22, 12),
+          persistence: persistence,
+        );
+        await before.toggleLike('post-print-couple');
+        await before.toggleSave('post-print-couple');
+        await before.setFollow('tunde.o', follow: true);
+        // Un-mutations persist too — the overlay is the whole truth.
+        await before.toggleLike('post-asooke-set'); // seed-liked → unliked
+
+        // "Restart": a fresh fake over the same key-value store.
+        final after = PostRepositoryFake(
+          now: () => DateTime.utc(2026, 7, 22, 12),
+          persistence: persistence,
+        );
+        final restored = await after.post('post-print-couple');
+        expect(restored.liked, isTrue);
+        expect(restored.saved, isTrue);
+        final unliked = await after.post('post-asooke-set');
+        expect(unliked.liked, isFalse);
+
+        // The follow graph restored: tunde.o's posts join the feed and the
+        // C12/profile counts read the same truth.
+        final feed = await after.homeFeed();
+        expect(
+          feed.map((post) => post.designer.username).toSet(),
+          contains('tunde.o'),
+        );
+        final profile = await after.publicProfile('tunde.o');
+        expect(profile.viewerFollows, isTrue);
+      },
+    );
+
+    test('with no persisted overlay the seed defaults hold', () async {
+      SharedPreferences.setMockInitialValues(const <String, Object>{});
+      final repository = PostRepositoryFake(
+        now: () => DateTime.utc(2026, 7, 22, 12),
+        persistence: PersistenceService(),
+      );
+      final post = await repository.post('post-asooke-set');
+      expect(post.liked, isTrue); // the seeded like set
+      expect(await repository.homeFeed(), hasLength(7));
+    });
   });
 }
 

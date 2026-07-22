@@ -1,3 +1,4 @@
+import 'package:apparule/src/core/data/fail_next_seam.dart';
 import 'package:apparule/src/core/data/seed_json.dart';
 import 'package:apparule/src/features/profile/data/profile_repository.dart';
 import 'package:apparule/src/features/profile/domain/profile.dart';
@@ -8,7 +9,7 @@ import 'package:flutter/services.dart';
 /// ledger), with real mutations: edits, pref toggles, and the deletion
 /// request all persist for the provider's keepAlive lifetime, so the B7
 /// banner state survives navigation the way the web mock's PATCH does.
-class ProfileRepositoryFake implements ProfileRepository {
+class ProfileRepositoryFake with FailNextSeam implements ProfileRepository {
   ProfileRepositoryFake({AssetBundle? bundle, DateTime Function()? now})
     // Instance-scoped bundle, never the global rootBundle — its string
     // cache pins futures to the zone that first loaded them, which
@@ -115,6 +116,7 @@ class ProfileRepositoryFake implements ProfileRepository {
     bool clearLocation = false,
   }) async {
     await _ensureLoaded();
+    maybeFailNext();
     final me = _loadedMe;
     _me = me.copyWith(
       displayName: displayName ?? me.displayName,
@@ -127,6 +129,7 @@ class ProfileRepositoryFake implements ProfileRepository {
   @override
   Future<Profile> setNotificationPrefs(NotificationPrefs prefs) async {
     await _ensureLoaded();
+    maybeFailNext();
     _me = _loadedMe.copyWith(notificationPrefs: prefs);
     return _loadedMe;
   }
@@ -134,6 +137,7 @@ class ProfileRepositoryFake implements ProfileRepository {
   @override
   Future<Profile> setPrivacyPrefs(PrivacyPrefs prefs) async {
     await _ensureLoaded();
+    maybeFailNext();
     _me = _loadedMe.copyWith(privacyPrefs: prefs);
     return _loadedMe;
   }
@@ -141,6 +145,7 @@ class ProfileRepositoryFake implements ProfileRepository {
   @override
   Future<Map<String, Object?>> exportData() async {
     await _ensureLoaded();
+    maybeFailNext();
     final me = _loadedMe;
     // The web mock's export shape in miniature: the account block plus
     // the §6 domain seeds the real export would bundle (the fake keeps
@@ -176,6 +181,7 @@ class ProfileRepositoryFake implements ProfileRepository {
   @override
   Future<Profile> requestDeletion() async {
     await _ensureLoaded();
+    maybeFailNext();
     _me = _loadedMe.copyWith(deletionPending: true);
     return _loadedMe;
   }

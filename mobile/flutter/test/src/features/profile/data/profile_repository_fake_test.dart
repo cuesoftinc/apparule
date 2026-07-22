@@ -115,4 +115,20 @@ void main() {
       expect(export['generated_at'], isNotNull);
     });
   });
+
+  test('failNext arms a throw-once failure on the next mutation '
+      '(CLASS 4 seam)', () async {
+    final repository = fake()..failNext = Exception('server 500');
+
+    await expectLater(
+      repository.updateMe(displayName: 'Kiki A.'),
+      throwsException,
+    );
+
+    // Disarmed — and the failed call left the profile untouched.
+    final me = await repository.me();
+    expect(me?.displayName, isNot('Kiki A.'));
+    final updated = await repository.updateMe(displayName: 'Kiki A.');
+    expect(updated.displayName, 'Kiki A.');
+  });
 }

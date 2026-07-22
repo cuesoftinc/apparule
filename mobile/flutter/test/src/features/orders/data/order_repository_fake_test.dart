@@ -321,6 +321,22 @@ void main() {
       expect(await repository.lastDeliveryAddress(), isNull);
     },
   );
+
+  test('failNext arms a throw-once failure on the next mutation '
+      '(CLASS 4 seam)', () async {
+    final repository = fake();
+    final order = (await repository.orders()).first;
+
+    repository.failNext = Exception('server 500');
+    await expectLater(
+      repository.sendMessage(order.id, 'hello'),
+      throwsException,
+    );
+
+    // Disarmed: the retry lands.
+    final message = await repository.sendMessage(order.id, 'hello');
+    expect(message.body, 'hello');
+  });
 }
 
 /// Simulates a prod bundle: every seed lookup is a missing asset.

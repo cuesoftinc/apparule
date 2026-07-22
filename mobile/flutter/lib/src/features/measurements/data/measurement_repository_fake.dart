@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:apparule/src/core/data/fail_next_seam.dart';
 import 'package:apparule/src/features/measurements/data/capture_qc.dart';
 import 'package:apparule/src/features/measurements/data/capture_sample_catalog.dart';
 import 'package:apparule/src/features/measurements/data/measurement_repository.dart';
@@ -17,7 +18,9 @@ import 'package:flutter/services.dart';
 /// order (first-failure-only), passing frames get the §3
 /// `mediapipe_2d_v2` height-scale and §4 confidence formula. No verdict
 /// or value is hardcoded per scenario.
-class MeasurementRepositoryFake implements MeasurementRepository {
+class MeasurementRepositoryFake
+    with FailNextSeam
+    implements MeasurementRepository {
   MeasurementRepositoryFake({
     AssetBundle? bundle,
     DateTime Function()? now,
@@ -127,6 +130,7 @@ class MeasurementRepositoryFake implements MeasurementRepository {
     required CapturePhoto photo,
     required double userHeightCm,
   }) async {
+    maybeFailNext();
     await _ensureVault();
     final catalog = await _ensureCatalog();
     await Future<void>.delayed(processingDelay);
@@ -173,6 +177,7 @@ class MeasurementRepositoryFake implements MeasurementRepository {
 
   @override
   Future<MeasurementSession> saveSession(String sessionId) async {
+    maybeFailNext();
     final vault = await _ensureVault();
     final pending = _pending.remove(sessionId);
     if (pending == null) {
@@ -185,6 +190,7 @@ class MeasurementRepositoryFake implements MeasurementRepository {
 
   @override
   Future<void> discardSession(String sessionId) async {
+    maybeFailNext();
     _pending.remove(sessionId);
   }
 
@@ -192,6 +198,7 @@ class MeasurementRepositoryFake implements MeasurementRepository {
   Future<MeasurementSession> saveManualEntry(
     Map<String, double> valuesCm,
   ) async {
+    maybeFailNext();
     final vault = await _ensureVault();
     final id = 'sess-local-${++_localSequence}';
     final session = MeasurementSession(
@@ -215,6 +222,7 @@ class MeasurementRepositoryFake implements MeasurementRepository {
 
   @override
   Future<void> deleteSession(String sessionId) async {
+    maybeFailNext();
     final vault = await _ensureVault();
     vault.removeWhere((session) => session.id == sessionId);
   }

@@ -1,3 +1,5 @@
+import 'package:apparule/src/core/data/fail_next_seam.dart';
+import 'package:apparule/src/core/data/persistence_service.dart';
 import 'package:apparule/src/core/data/seed_json.dart';
 import 'package:apparule/src/features/feed/data/post_repository.dart';
 import 'package:apparule/src/features/feed/domain/comment.dart';
@@ -15,15 +17,22 @@ import 'package:flutter/services.dart';
 /// store's SEMANTICS over it: viewer-scoped like/save projection, count
 /// mutation on toggle, comment count == comment list, follow-graph-derived
 /// feed and story rail, and explore's near-me tier re-rank. State lives
-/// for the provider's keepAlive lifetime — a like on C2 is still liked on
-/// C4 and on the next feed refresh.
-class PostRepositoryFake implements PostRepository {
-  PostRepositoryFake({AssetBundle? bundle, DateTime Function()? now})
+/// for the provider's keepAlive lifetime; with a `persistence` seam bound
+/// (di.dart binds the real service) the viewer's like/save sets and
+/// follow list also survive a restart — a like on C2 is still liked on
+/// C4, on the next feed refresh, AND on tomorrow's launch (CLASS 1,
+/// D01's restart half).
+class PostRepositoryFake with FailNextSeam implements PostRepository {
+  PostRepositoryFake({
+    AssetBundle? bundle,
+    DateTime Function()? now,
+    this._persistence,
+  })
     // Instance-scoped bundle, never the global rootBundle — its string
     // cache pins futures to the zone that first loaded them, which
     // deadlocks later widget tests (C6 wave finding).
     : _bundle = bundle ?? PlatformAssetBundle(),
-      _now = now ?? DateTime.now;
+       _now = now ?? DateTime.now;
 
   static const String _meAsset = 'assets/seed/dev/me.json';
   static const String _designersAsset = 'assets/seed/dev/designers.json';
@@ -35,6 +44,7 @@ class PostRepositoryFake implements PostRepository {
 
   final AssetBundle _bundle;
   final DateTime Function() _now;
+  final PersistenceService? _persistence;
 
   /// The one in-flight load — concurrent first callers (two providers
   /// watching one keepAlive fake) must all await the SAME parse instead
@@ -158,6 +168,38 @@ class PostRepositoryFake implements PostRepository {
         _comments.add(_commentFromSeed(entry as Map<String, dynamic>, now));
       }
     }
+
+    await _applyPersistedEngagement();
+  }
+
+  /// The persisted engagement overlay REPLACES the seed sets it covers —
+  /// an unlike of a seed-liked post must stay unliked after a restart, so
+  /// a written set is the whole truth, not a union.
+  Future<void> _applyPersistedEngagement() async {
+    final persistence = _persistence;
+    if (persistence == null) return;
+    final overlay = await persistence.readFakeEngagement();
+    if (overlay.liked case final liked?) {
+      _likedPostIds
+        ..clear()
+        ..addAll(liked);
+    }
+    if (overlay.saved case final saved?) {
+      _savedPostIds
+        ..clear()
+        ..addAll(saved);
+    }
+    if (overlay.follows case final follows?) {
+      _follows
+        ..clear()
+        ..addAll(follows);
+      // Re-derive the viewer's graph edges so C12 lists, profile counts
+      // and the feed all read the restored truth.
+      _graphEdges.removeWhere((edge) => edge.$1 == _viewerUsername);
+      for (final username in follows) {
+        _graphEdges.add((_viewerUsername, username));
+      }
+    }
   }
 
   static ({String city, String state, String country}) _locationOf(
@@ -260,6 +302,7 @@ class PostRepositoryFake implements PostRepository {
 
   @override
   Future<void> markStorySeen(String username) async {
+    maybeFailNext();
     _seenStories.add(username);
   }
 
@@ -342,6 +385,7 @@ class PostRepositoryFake implements PostRepository {
   @override
   Future<Post> toggleLike(String id) async {
     await _ensureLoaded();
+    maybeFailNext();
     final post = _postById(id);
     // Idempotent set semantics with a moving count (web `setEngagement`).
     final int delta;
@@ -353,20 +397,24 @@ class PostRepositoryFake implements PostRepository {
     }
     final updated = post.copyWith(likeCount: post.likeCount + delta);
     _posts[_posts.indexOf(post)] = updated;
+    await _persistence?.writeFakeLikedPostIds(_likedPostIds.toList());
     return _view(updated);
   }
 
   @override
   Future<Post> toggleSave(String id) async {
     await _ensureLoaded();
+    maybeFailNext();
     final post = _postById(id);
     if (!_savedPostIds.add(id)) _savedPostIds.remove(id);
+    await _persistence?.writeFakeSavedPostIds(_savedPostIds.toList());
     return _view(post);
   }
 
   @override
   Future<void> setFollow(String username, {required bool follow}) async {
     await _ensureLoaded();
+    maybeFailNext();
     final edge = (_viewerUsername, username);
     if (follow) {
       _follows.add(username);
@@ -375,6 +423,7 @@ class PostRepositoryFake implements PostRepository {
       _follows.remove(username);
       _graphEdges.remove(edge);
     }
+    await _persistence?.writeFakeFollows(_follows.toList());
   }
 
   @override
@@ -390,6 +439,7 @@ class PostRepositoryFake implements PostRepository {
   @override
   Future<PostComment> addComment(String postId, String body) async {
     await _ensureLoaded();
+    maybeFailNext();
     final post = _postById(postId);
     final comment = PostComment(
       id: 'cmt-local-${++_commentSequence}',
@@ -410,6 +460,7 @@ class PostRepositoryFake implements PostRepository {
   @override
   Future<PostComment> toggleCommentLike(String commentId) async {
     await _ensureLoaded();
+    maybeFailNext();
     final index = _comments.indexWhere((comment) => comment.id == commentId);
     if (index < 0) throw StateError('Comment not found: $commentId');
     final comment = _comments[index];

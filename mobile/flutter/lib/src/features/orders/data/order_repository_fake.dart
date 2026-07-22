@@ -1,3 +1,4 @@
+import 'package:apparule/src/core/data/fail_next_seam.dart';
 import 'package:apparule/src/core/data/seed_json.dart';
 import 'package:apparule/src/features/orders/data/order_repository.dart';
 import 'package:apparule/src/features/orders/domain/order.dart';
@@ -12,7 +13,7 @@ import 'package:flutter/services.dart';
 /// moves throw instead of mutating. State persists for the provider's
 /// keepAlive lifetime, so paying a quote on C8 updates the same order the
 /// list re-reads.
-class OrderRepositoryFake implements OrderRepository {
+class OrderRepositoryFake with FailNextSeam implements OrderRepository {
   /// [viewer] switches the seeded role perspective over the SAME
   /// narrative: the default is the §6 test user (`kiki.adeyemi`,
   /// customer side); tests pass a designer username (`tunde.o`) to walk
@@ -280,6 +281,7 @@ class OrderRepositoryFake implements OrderRepository {
   @override
   Future<ThreadMessage> sendMessage(String orderId, String body) async {
     await _ensureLoaded();
+    maybeFailNext();
     final order = _orderById(orderId);
     final ownParty = order.viewerRole == OrderRole.designer
         ? order.designer
@@ -321,6 +323,7 @@ class OrderRepositoryFake implements OrderRepository {
     DateTime? targetDate,
   }) async {
     await _ensureLoaded();
+    maybeFailNext();
     final now = _now();
     final order = Order(
       id: 'req-local-${++_orderSequence}',
@@ -363,6 +366,7 @@ class OrderRepositoryFake implements OrderRepository {
   @override
   Future<Order> pay(String id) async {
     await _ensureLoaded();
+    maybeFailNext();
     final order = _orderAs(id, OrderRole.customer);
     final quote = order.quoteCents;
     if (quote == null) throw StateError('Order has no quote to pay');
@@ -382,6 +386,7 @@ class OrderRepositoryFake implements OrderRepository {
   @override
   Future<Order> confirmDelivery(String id) async {
     await _ensureLoaded();
+    maybeFailNext();
     final order = _orderAs(id, OrderRole.customer);
     var updated = _transition(order, OrderStatus.delivered, 'customer');
     if (updated.payment case final payment?) {
@@ -396,6 +401,7 @@ class OrderRepositoryFake implements OrderRepository {
   @override
   Future<Order> cancel(String id) async {
     await _ensureLoaded();
+    maybeFailNext();
     final order = _orderAs(id, OrderRole.customer);
     final updated = _transition(order, OrderStatus.cancelled, 'customer');
     _replace(updated);
@@ -409,6 +415,7 @@ class OrderRepositoryFake implements OrderRepository {
     String? detail,
   }) async {
     await _ensureLoaded();
+    maybeFailNext();
     // Either party (order-lifecycle.md §2).
     final order = _orderById(id);
     final updated =
@@ -430,6 +437,7 @@ class OrderRepositoryFake implements OrderRepository {
     required DateTime dueAt,
   }) async {
     await _ensureLoaded();
+    maybeFailNext();
     if (quoteCents <= 0) throw StateError('Quote must be positive');
     var order = _orderAs(id, OrderRole.designer);
     if (order.status != OrderStatus.quoted) {
@@ -445,6 +453,7 @@ class OrderRepositoryFake implements OrderRepository {
   @override
   Future<Order> decline(String id, DeclineReason reason) async {
     await _ensureLoaded();
+    maybeFailNext();
     final order = _orderAs(id, OrderRole.designer);
     final updated = _transition(
       order,
@@ -458,6 +467,7 @@ class OrderRepositoryFake implements OrderRepository {
   @override
   Future<Order> startProgress(String id) async {
     await _ensureLoaded();
+    maybeFailNext();
     final order = _orderAs(id, OrderRole.designer);
     final updated = _transition(order, OrderStatus.inProgress, 'designer');
     _replace(updated);
@@ -467,6 +477,7 @@ class OrderRepositoryFake implements OrderRepository {
   @override
   Future<Order> ship(String id, {String? tracking}) async {
     await _ensureLoaded();
+    maybeFailNext();
     final order = _orderAs(id, OrderRole.designer);
     final updated = _transition(
       order,

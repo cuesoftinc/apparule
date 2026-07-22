@@ -16,22 +16,24 @@ void main() {
     return tester.element(find.byType(SizedBox));
   }
 
-  testWidgets('success: resolves true, no rollback, no toast', //
-  (tester) async {
-    final context = await host(tester);
-    var rolledBack = false;
+  testWidgets(
+    'success: resolves true, no rollback, no toast', //
+    (tester) async {
+      final context = await host(tester);
+      var rolledBack = false;
 
-    final ok = await runAction(
-      context,
-      () async {},
-      rollback: () => rolledBack = true,
-    );
-    await tester.pump();
+      final ok = await runAction(
+        context,
+        () async {},
+        rollback: () => rolledBack = true,
+      );
+      await tester.pump();
 
-    expect(ok, isTrue);
-    expect(rolledBack, isFalse);
-    expect(find.byType(SnackBar), findsNothing);
-  });
+      expect(ok, isTrue);
+      expect(rolledBack, isFalse);
+      expect(find.byType(SnackBar), findsNothing);
+    },
+  );
 
   testWidgets('Exception: rolls back, toasts the shared copy, resolves '
       'false', (tester) async {
@@ -64,20 +66,22 @@ void main() {
     expect(find.byType(SnackBar), findsOneWidget);
   });
 
-  testWidgets('failureText overrides the default toast copy', //
-  (tester) async {
-    final context = await host(tester);
+  testWidgets(
+    'failureText overrides the default toast copy', //
+    (tester) async {
+      final context = await host(tester);
 
-    await runAction(
-      context,
-      () async => throw Exception('boom'),
-      failureText: 'Session deleted failed',
-    );
-    await tester.pump();
+      await runAction(
+        context,
+        () async => throw Exception('boom'),
+        failureText: 'Session deleted failed',
+      );
+      await tester.pump();
 
-    expect(find.text('Session deleted failed'), findsOneWidget);
-    expect(find.text('Something went wrong — try again.'), findsNothing);
-  });
+      expect(find.text('Session deleted failed'), findsOneWidget);
+      expect(find.text('Something went wrong — try again.'), findsNothing);
+    },
+  );
 
   testWidgets('failure resolves only after the pending future fails — '
       'input cleared on success alone stays intact', (tester) async {

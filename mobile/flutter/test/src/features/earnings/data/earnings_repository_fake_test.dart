@@ -229,4 +229,21 @@ void main() {
       );
     });
   });
+
+  test('failNext arms a throw-once failure on the next mutation '
+      '(CLASS 4 seam)', () async {
+    final repository = fake()..failNext = Exception('server 500');
+
+    await expectLater(
+      repository.enableDesigner(username: 'kiki.adeyemi', displayName: 'K'),
+      throwsException,
+    );
+
+    // Disarmed: the retry lands.
+    final status = await repository.enableDesigner(
+      username: 'kiki.adeyemi',
+      displayName: 'K',
+    );
+    expect(status.enabled, isTrue);
+  });
 }

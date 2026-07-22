@@ -1,3 +1,4 @@
+import 'package:apparule/src/core/data/fail_next_seam.dart';
 import 'package:apparule/src/core/data/seed_json.dart';
 import 'package:apparule/src/features/earnings/data/earnings_repository.dart';
 import 'package:apparule/src/features/earnings/domain/earnings.dart';
@@ -15,7 +16,7 @@ import 'package:flutter/services.dart';
 /// released balance into a processing row (pending) instead of
 /// cosmetically resetting it. State lives for the provider's keepAlive
 /// lifetime.
-class EarningsRepositoryFake implements EarningsRepository {
+class EarningsRepositoryFake with FailNextSeam implements EarningsRepository {
   /// [viewer] switches the seeded perspective over the same narrative:
   /// the default §6 test user (`kiki.adeyemi`) is a non-designer — dev
   /// walks C13 to open the surface; tests/goldens pass `amara.designs`
@@ -162,6 +163,7 @@ class EarningsRepositoryFake implements EarningsRepository {
     String? bio,
   }) async {
     await _ensureLoaded();
+    maybeFailNext();
     if (username.trim().isEmpty || displayName.trim().isEmpty) {
       throw const EarningsException(
         EarningsErrorCode.validationFailed,
@@ -186,6 +188,7 @@ class EarningsRepositoryFake implements EarningsRepository {
     String accountNumber,
   ) async {
     await _ensureLoaded();
+    maybeFailNext();
     await Future<void>.delayed(resolveDelay);
     if (bankCode.isEmpty) {
       throw const EarningsException(
@@ -215,6 +218,7 @@ class EarningsRepositoryFake implements EarningsRepository {
     String accountNumber,
   ) async {
     await _ensureLoaded();
+    maybeFailNext();
     if (!_status.enabled) {
       throw const EarningsException(
         EarningsErrorCode.designerProfileRequired,
@@ -257,6 +261,7 @@ class EarningsRepositoryFake implements EarningsRepository {
   @override
   Future<Earnings> requestPayout() async {
     await _ensureLoaded();
+    maybeFailNext();
     if (!_status.enabled) {
       throw const EarningsException(
         EarningsErrorCode.designerProfileRequired,
