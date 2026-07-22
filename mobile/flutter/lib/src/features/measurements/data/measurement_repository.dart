@@ -39,6 +39,11 @@ abstract class MeasurementRepository {
   /// `method: manual` session — `confidence: null`, human truth isn't
   /// scored (capture-qc.md §4). Saves straight into the vault.
   Future<MeasurementSession> saveManualEntry(Map<String, double> valuesCm);
+
+  /// Deletes a saved vault session (the C7 history sheet's per-session
+  /// delete, pages.md C7 = B4). Unknown ids are a no-op — deletes are
+  /// idempotent.
+  Future<void> deleteSession(String sessionId);
 }
 
 /// Overridden per entrypoint (di.dart) — no default implementation exists

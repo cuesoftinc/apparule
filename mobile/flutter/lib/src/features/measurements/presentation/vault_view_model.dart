@@ -12,4 +12,14 @@ class VaultViewModel extends _$VaultViewModel {
   @override
   Future<List<MeasurementSession>> build() =>
       ref.watch(measurementRepositoryProvider).vaultSessions();
+
+  /// The C7 history sheet's per-session delete (pages.md C7 = B4) —
+  /// removes the session, then re-derives the vault list in place.
+  Future<void> deleteSession(String sessionId) async {
+    await ref.read(measurementRepositoryProvider).deleteSession(sessionId);
+    final sessions = await ref
+        .read(measurementRepositoryProvider)
+        .vaultSessions();
+    state = AsyncData<List<MeasurementSession>>(sessions);
+  }
 }

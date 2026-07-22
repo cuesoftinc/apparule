@@ -4,6 +4,7 @@ import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/app_bar.dart';
 import 'package:apparule/src/core/ui/avatar.dart';
+import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/caught_up_divider.dart';
 import 'package:apparule/src/core/ui/empty_state.dart';
 import 'package:apparule/src/core/ui/skeleton.dart';
@@ -11,7 +12,9 @@ import 'package:apparule/src/core/utils/clock.dart';
 import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/core/utils/seed_media.dart';
 import 'package:apparule/src/features/profile/domain/app_notification.dart';
+import 'package:apparule/src/features/profile/presentation/follow_list_view_model.dart';
 import 'package:apparule/src/features/profile/presentation/notifications_view_model.dart';
+import 'package:apparule/src/features/profile/presentation/unfollow_confirm_sheet.dart';
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -179,12 +182,18 @@ class _NotificationRow extends ConsumerWidget {
       unawaited(
         OrderDetailRoute(id: notification.payloadRef).push<void>(context),
       );
+    } else if (notification.kind == NotificationKind.follow) {
+      // Follow rows link to the follower's C9 profile.
+      unawaited(
+        PublicProfileRoute(
+          username: notification.actorUsername,
+        ).push<void>(context),
+      );
     } else if (notification.payloadRef.startsWith('post-')) {
       unawaited(
         PostDetailRoute(id: notification.payloadRef).push<void>(context),
       );
     }
-    // Follow rows link to the follower's profile — the C9 profile wave.
   }
 
   @override
@@ -276,7 +285,14 @@ class _NotificationRow extends ConsumerWidget {
                       style: typography.body14.copyWith(color: colors.text),
                     ),
                   ),
-                  if (notification.thumbUrl case final thumb?) ...<Widget>[
+                  // Trailing per the NotificationRow contract (design.md
+                  // §8.2b): Follow morph on follow kinds / post thumb /
+                  // none.
+                  if (notification.kind == NotificationKind.follow) ...<Widget>[
+                    const SizedBox(width: 12),
+                    _FollowBackButton(username: actor),
+                  ] else if (notification.thumbUrl
+                      case final thumb?) ...<Widget>[
                     const SizedBox(width: 12),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(radii.card),
@@ -294,6 +310,42 @@ class _NotificationRow extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The follow-kind trailing morph (MI-7): gradient "Follow" until the
+/// viewer follows back, then quiet "Following" whose tap opens the
+/// unfollow confirm — one mutation path through FollowGraphController,
+/// so C12/C9/C3 re-derive with this row.
+class _FollowBackButton extends ConsumerWidget {
+  const _FollowBackButton({required this.username});
+
+  final String username;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final follows =
+        ref.watch(viewerFollowingSetProvider).value?.contains(username) ??
+        false;
+    final controller = ref.read(followGraphControllerProvider.notifier);
+
+    Future<void> unfollow() async {
+      final confirmed = await showUnfollowConfirmSheet(
+        context,
+        username: username,
+      );
+      if (confirmed) await controller.setFollow(username, follow: false);
+    }
+
+    return Button(
+      label: follows ? l10n.exploreFollowing : l10n.exploreFollow,
+      kind: follows ? ButtonKind.quiet : ButtonKind.gradientPrimary,
+      size: ButtonSize.sm,
+      onPressed: follows
+          ? () => unawaited(unfollow())
+          : () => unawaited(controller.setFollow(username, follow: true)),
     );
   }
 }

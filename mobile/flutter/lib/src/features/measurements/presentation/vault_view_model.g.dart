@@ -42,7 +42,7 @@ final class VaultViewModelProvider
   VaultViewModel create() => VaultViewModel();
 }
 
-String _$vaultViewModelHash() => r'421bc085c70f775d30271a22866ca43970613266';
+String _$vaultViewModelHash() => r'dc855ab90f2522124706bc10cf82ae07dda037dc';
 
 /// C7's ViewModel — the saved sessions, newest first (the capture and
 /// manual-entry flows invalidate this after a save so the vault lists

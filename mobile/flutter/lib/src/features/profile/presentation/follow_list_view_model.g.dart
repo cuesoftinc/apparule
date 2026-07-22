@@ -171,7 +171,7 @@ final class FollowGraphControllerProvider
 }
 
 String _$followGraphControllerHash() =>
-    r'39887b1253a4e63ac0b78db6fe8217b632916f20';
+    r'50af046a490bd5860693f799aa09de76a877c235';
 
 /// The profile-surface MI-7 morph (C9 public header + C12 rows) — one
 /// mutation path into the social graph, then every derivation that

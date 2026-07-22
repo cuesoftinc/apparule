@@ -9,6 +9,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Mobile QA convergence (screens phase 3 closer — the Figma↔code audit
+  loop applied to the complete C-series app; canvas file
+  `34GbYXm8TpxMMUaAGGuwMM` Mobile page vs main, parity-first). Code-side
+  findings fixed: **C1b** (canvas 266:2, pages.md C1b) ships — the
+  post-signup "Welcome, {name} 👋" interstitial at
+  `/onboarding/first-action` with the two choice cards (→ C6 capture
+  entry, → C3 explore) and "Skip for now"; the router's auth redirect
+  hands a FIRST sign-in off to it behind a persisted `first_action_seen`
+  flag (any exit flips it; returning sign-ins go straight home). **C1**
+  drops the logo mark above the wordmark (the canvas frame opens on the
+  gradient wordmark alone) and both auth screens gain screen-level
+  goldens. **C6** converges on the canvas capture chrome: the
+  camera/countdown/QC-fail steps go FULL-BLEED (true-black ground,
+  transparent over-media AppBar, shutter + on-media manual link overlaid
+  — `CaptureOverlay` gains an additive `expand` axis), processing
+  becomes the immersive canvas 266:8446 surface ("Measuring…" +
+  "Mapping 33 landmarks from your photo — about 15 seconds." on black,
+  module status hidden via an additive `showStatus`), the results screen
+  gains the canvas APP-005 footer ("Measurements stay private — shared
+  only when you commission a designer"), and manual entry takes the
+  canvas 267:2 copy ("Enter measurements manually" / "Use a tape
+  measure and enter values in cm…") plus the "Use the camera instead"
+  escape hatch. **C7** restructures to the canvas/B4 vault (173:698):
+  MI-11 freshness-ring header ("Measured 12 days ago" · "Up to date · N
+  measurements") with Retake opening the capture-options sheet, one
+  MeasurementCard per METRIC (latest value, cross-session sparkline,
+  "Updated 12d ago") whose tap opens the history sheet (session rows +
+  per-session delete — `MeasurementRepository.deleteSession` joins the
+  contract), the inline consent/retention note with the B4 rights links
+  (→ Account & data), the EmptyState-only empty frame (212:5925) and
+  the MI-19 skeleton loading frame (212:5983, replacing the spinner).
+  **C10** follow rows complete the NotificationRow contract: an MI-7
+  Follow/Following trailing morph (one graph mutation path via
+  `FollowGraphController`, re-deriving C12/C9/C3) and the row links to
+  the follower's C9 profile. **C8** dispute sheet gains the canvas
+  "Tell us more" placeholder. Canvas-side divergences (stray sub-AppBar
+  ⋯ placeholders, back chevrons on root tabs, the missing C9 bell, the
+  C14 explainer, demo measurement content off the ratified §6 seed
+  story, no shutter on the C6 frames) are recorded as canvas ops in the
+  audit ledger, not code changes. 14 new tests; goldens re-authored on
+  the Linux container for every touched screen.
+
 - Mobile profile + earnings wave (screens phase 3, the FINAL C-series
   wave — the dev flavor is now a complete C-series app over fakes;
   mobile-implementation.md §5/§6; pages.md C9, C12–C14 + B7 mobile).

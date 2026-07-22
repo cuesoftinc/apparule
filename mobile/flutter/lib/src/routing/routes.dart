@@ -1,4 +1,5 @@
 import 'package:apparule/src/core/ui/app_shell.dart';
+import 'package:apparule/src/features/auth/presentation/first_action_screen.dart';
 import 'package:apparule/src/features/auth/presentation/sign_in_screen.dart';
 import 'package:apparule/src/features/earnings/presentation/designer_onboarding_screen.dart';
 import 'package:apparule/src/features/earnings/presentation/earnings_screen.dart';
@@ -163,6 +164,18 @@ class SignInRoute extends GoRouteData with $SignInRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       const SignInScreen();
+}
+
+/// C1b — the post-signup interstitial (pages.md C1b; §5 route map):
+/// a FIRST sign-in redirects here instead of home; every exit marks the
+/// persisted flag so later sign-ins skip it.
+@TypedGoRoute<FirstActionRoute>(path: '/onboarding/first-action')
+class FirstActionRoute extends GoRouteData with $FirstActionRoute {
+  const FirstActionRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const FirstActionScreen();
 }
 
 /// C6 — deep-linkable capture flow, full-screen outside the tab shell

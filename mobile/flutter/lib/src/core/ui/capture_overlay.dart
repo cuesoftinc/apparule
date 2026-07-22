@@ -24,10 +24,16 @@ class CaptureOverlay extends StatelessWidget {
     this.countdown = CountdownCount.three,
     this.qcCode,
     this.child,
+    this.expand = false,
     super.key,
   });
 
   final CaptureGuide guide;
+
+  /// Full-bleed screen use (the C6 camera frames 173:574/266:8419 run
+  /// the viewport edge-to-edge): fills the parent instead of the 9:16
+  /// card and drops the corner radius — the screen IS the viewport.
+  final bool expand;
 
   /// `countdown` guide: the current tick.
   final CountdownCount countdown;
@@ -48,68 +54,68 @@ class CaptureOverlay extends StatelessWidget {
     final radii = theme.extension<AppRadii>()!;
     final typography = theme.extension<AppTypography>()!;
 
+    final viewport = Stack(
+      fit: StackFit.expand,
+      children: <Widget>[
+        const ColoredBox(color: Color(0xFF000000)),
+        ?child,
+        // 40% scrim.
+        const ColoredBox(color: Color(0x66000000)),
+        // Viewfinder corner marks.
+        const Positioned.fill(
+          child: CustomPaint(painter: _CornerMarksPainter()),
+        ),
+        // Instruction line — 16px semibold white, top-centred at 9%
+        // of the viewport (Alignment y = 2·0.09 − 1).
+        Align(
+          alignment: const Alignment(0, -0.82),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              guide == CaptureGuide.aligned
+                  ? 'Perfect — hold still'
+                  : 'Stand inside the outline',
+              textAlign: TextAlign.center,
+              style: typography.body16SemiBold.copyWith(
+                color: _onMediaWhite,
+              ),
+            ),
+          ),
+        ),
+        // Standing silhouette (head → shoulders → arms-out →
+        // ankles), 70% of the viewport height; dashed while
+        // searching, solid success stroke when aligned (MI-12).
+        Center(
+          child: FractionallySizedBox(
+            heightFactor: 0.7,
+            child: AspectRatio(
+              aspectRatio: 200 / 300,
+              child: _PulsingSilhouette(
+                pulsing: guide == CaptureGuide.searching,
+                color: guide == CaptureGuide.aligned
+                    ? colors.success
+                    : _onMediaWhite,
+                dashed: guide != CaptureGuide.aligned,
+              ),
+            ),
+          ),
+        ),
+        if (guide == CaptureGuide.countdown)
+          Center(child: CountdownRing(count: countdown)),
+        if (guide == CaptureGuide.qcHint && qcCode != null)
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 24,
+            child: Center(child: QCHintChip(code: qcCode!)),
+          ),
+      ],
+    );
+
+    if (expand) return viewport;
     return ClipRRect(
       borderRadius: BorderRadius.circular(radii.card),
-      child: AspectRatio(
-        aspectRatio: 9 / 16,
-        child: Stack(
-          fit: StackFit.expand,
-          children: <Widget>[
-            const ColoredBox(color: Color(0xFF000000)),
-            ?child,
-            // 40% scrim.
-            const ColoredBox(color: Color(0x66000000)),
-            // Viewfinder corner marks.
-            const Positioned.fill(
-              child: CustomPaint(painter: _CornerMarksPainter()),
-            ),
-            // Instruction line — 16px semibold white, top-centred at 9%
-            // of the viewport (Alignment y = 2·0.09 − 1).
-            Align(
-              alignment: const Alignment(0, -0.82),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  guide == CaptureGuide.aligned
-                      ? 'Perfect — hold still'
-                      : 'Stand inside the outline',
-                  textAlign: TextAlign.center,
-                  style: typography.body16SemiBold.copyWith(
-                    color: _onMediaWhite,
-                  ),
-                ),
-              ),
-            ),
-            // Standing silhouette (head → shoulders → arms-out →
-            // ankles), 70% of the viewport height; dashed while
-            // searching, solid success stroke when aligned (MI-12).
-            Center(
-              child: FractionallySizedBox(
-                heightFactor: 0.7,
-                child: AspectRatio(
-                  aspectRatio: 200 / 300,
-                  child: _PulsingSilhouette(
-                    pulsing: guide == CaptureGuide.searching,
-                    color: guide == CaptureGuide.aligned
-                        ? colors.success
-                        : _onMediaWhite,
-                    dashed: guide != CaptureGuide.aligned,
-                  ),
-                ),
-              ),
-            ),
-            if (guide == CaptureGuide.countdown)
-              Center(child: CountdownRing(count: countdown)),
-            if (guide == CaptureGuide.qcHint && qcCode != null)
-              Positioned(
-                left: 16,
-                right: 16,
-                bottom: 24,
-                child: Center(child: QCHintChip(code: qcCode!)),
-              ),
-          ],
-        ),
-      ),
+      child: AspectRatio(aspectRatio: 9 / 16, child: viewport),
     );
   }
 }

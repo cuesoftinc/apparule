@@ -212,4 +212,10 @@ class MeasurementRepositoryFake implements MeasurementRepository {
     vault.insert(0, session);
     return session;
   }
+
+  @override
+  Future<void> deleteSession(String sessionId) async {
+    final vault = await _ensureVault();
+    vault.removeWhere((session) => session.id == sessionId);
+  }
 }

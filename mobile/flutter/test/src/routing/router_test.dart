@@ -1,6 +1,7 @@
 import 'package:apparule/src/core/ui/app_shell.dart';
 import 'package:apparule/src/core/ui/tab_bar.dart';
 import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
+import 'package:apparule/src/features/auth/presentation/first_action_screen.dart';
 import 'package:apparule/src/features/auth/presentation/sign_in_screen.dart';
 import 'package:apparule/src/features/feed/presentation/explore_screen.dart';
 import 'package:apparule/src/features/feed/presentation/home_feed_screen.dart';
@@ -29,10 +30,25 @@ void main() {
       expect(find.byType(AppShell), findsNothing);
     });
 
-    testWidgets('signing in on C1 redirects into the tab shell', (
+    testWidgets('a FIRST sign-in on C1 hands off to the C1b interstitial', (
       tester,
     ) async {
       await pumpBootedApp(tester);
+
+      await tester.tap(find.text('Continue with Google'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(FirstActionScreen), findsOneWidget);
+      expect(find.byType(SignInScreen), findsNothing);
+    });
+
+    testWidgets('a returning sign-in redirects straight into the tab shell', (
+      tester,
+    ) async {
+      await pumpBootedApp(
+        tester,
+        preferences: <String, Object>{'first_action_seen': true},
+      );
 
       await tester.tap(find.text('Continue with Google'));
       await tester.pumpAndSettle();
@@ -49,7 +65,11 @@ void main() {
     });
 
     testWidgets('a signed-in user never sees /signin', (tester) async {
-      await pumpBootedApp(tester, authRepository: _signedIn());
+      await pumpBootedApp(
+        tester,
+        authRepository: _signedIn(),
+        preferences: <String, Object>{'first_action_seen': true},
+      );
 
       routerOf(tester).go(const SignInRoute().location);
       await tester.pumpAndSettle();

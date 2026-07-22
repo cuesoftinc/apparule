@@ -12,15 +12,20 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/boot_app.dart';
 
-/// C7 over the seeded fake: the web-parity session narrative renders with
-/// source chips, confidences, and freshness labels; the capture-entry
-/// cards route into C6.
+/// C7 over the seeded fake (canvas 173:698): the MI-11 freshness-ring
+/// header with the Retake capture-options sheet, one MeasurementCard per
+/// METRIC (latest value + sparkline history, tap → history sheet with
+/// per-session delete), and the consent note with the B4 rights links.
 void main() {
   Future<void> bootToVault(
     WidgetTester tester, {
     MeasurementRepositoryFake? measurementRepository,
     Map<String, Object> preferences = const <String, Object>{},
   }) async {
+    // Tall surface: the ListView virtualizes below the default 600px.
+    tester.view.physicalSize = const Size(800, 1700);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
     await pumpBootedApp(
       tester,
       authRepository: AuthRepositoryFake(
@@ -33,30 +38,44 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('lists the seeded §6 sessions with values, confidences and '
-      'freshness labels', (tester) async {
-    // Tall surface: the ListView virtualizes below the default 600px.
-    tester.view.physicalSize = const Size(800, 1700);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.reset);
+  testWidgets('renders the freshness header and one card per metric with '
+      'the latest value', (tester) async {
     await bootToVault(tester);
 
-    // Three seeded sessions: recent scan, manual tape, old scan —
-    // eight measurement rows between them (web seed parity).
-    expect(find.text('Manual entry'), findsOneWidget);
-    expect(find.text('Measured 12d ago'), findsOneWidget);
-    expect(find.text('Measured 58d ago'), findsOneWidget);
-    expect(find.text('Measured 140d ago'), findsOneWidget);
-    expect(find.byType(MeasurementCard), findsNWidgets(8));
+    // Newest seeded session is the 12-day scan → fresh header.
+    expect(find.text('Measured 12 days ago'), findsOneWidget);
+    expect(find.text('Up to date · 4 measurements'), findsOneWidget);
+    expect(find.text('Retake'), findsOneWidget);
 
-    // Web-parity numbers; the 0.62 hip renders its low-confidence chip.
+    // Metric-centric: 4 distinct measures across the 3 seeded sessions.
+    expect(find.byType(MeasurementCard), findsNWidgets(4));
+
+    // Latest values lead their cards; the 0.62 hip renders its
+    // low-confidence chip (web-parity numbers).
     expect(find.text('42.5 cm'), findsOneWidget);
     expect(find.text('Low confidence · 0.62'), findsOneWidget);
+
+    // Consent note + the B4 rights links.
+    expect(
+      find.text(
+        'Sessions are kept until you delete them. A snapshot is shared '
+        'only when you send a request.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Download my data'), findsOneWidget);
+    expect(find.text('Delete all measurements'), findsOneWidget);
   });
 
-  testWidgets('the camera option card launches the capture flow (guide on '
-      'first run)', (tester) async {
+  testWidgets('Retake opens the capture-options sheet; the camera card '
+      'launches the capture flow (guide on first run)', (tester) async {
     await bootToVault(tester);
+
+    await tester.tap(find.text('Retake'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Retake your measurements'), findsOneWidget);
+    expect(find.byType(CaptureOptionCard), findsNWidgets(2));
 
     await tester.tap(find.text('Use your camera'));
     await tester.pumpAndSettle();
@@ -67,13 +86,44 @@ void main() {
   testWidgets('the manual option card opens manual entry', (tester) async {
     await bootToVault(tester);
 
+    await tester.tap(find.text('Retake'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Enter manually'));
     await tester.pumpAndSettle();
 
     expect(find.byType(ManualEntryScreen), findsOneWidget);
   });
 
-  testWidgets('an empty vault renders the vault EmptyState', (tester) async {
+  testWidgets('tapping a card opens its history sheet; deleting a session '
+      're-derives the vault', (tester) async {
+    await bootToVault(tester);
+
+    await tester.tap(find.text('Shoulder Width'));
+    await tester.pumpAndSettle();
+
+    // All three seeded sessions carry a shoulder value.
+    expect(find.text('Shoulder Width history'), findsOneWidget);
+    expect(find.bySemanticsLabel('Delete session'), findsNWidgets(3));
+
+    // Delete the newest (42.5) session → the card re-derives to the
+    // manual session's 42.0 and the header ages to the 58-day manual.
+    await tester.tap(find.bySemanticsLabel('Delete session').first);
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('Delete session'), findsNWidgets(2));
+
+    // Dismiss the sheet via its barrier.
+    await tester.tapAt(const Offset(20, 20));
+    await tester.pumpAndSettle();
+
+    expect(find.text('42.0 cm'), findsOneWidget);
+    expect(find.text('42.5 cm'), findsNothing);
+    expect(find.text('Measured 58 days ago'), findsOneWidget);
+    expect(find.text('Aging · 4 measurements'), findsOneWidget);
+  });
+
+  testWidgets('an empty vault renders the vault EmptyState alone', (
+    tester,
+  ) async {
     await bootToVault(
       tester,
       measurementRepository: MeasurementRepositoryFake(
@@ -86,7 +136,9 @@ void main() {
       find.text('No measurements yet — take your first scan'),
       findsOneWidget,
     );
-    expect(find.byType(CaptureOptionCard), findsNWidgets(2));
+    // Canvas 212:5925: the capture options live behind the CTA, not
+    // above the empty state.
+    expect(find.byType(CaptureOptionCard), findsNothing);
   });
 }
 

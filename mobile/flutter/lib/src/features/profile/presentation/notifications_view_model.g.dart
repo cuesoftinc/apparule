@@ -49,6 +49,60 @@ final class OrdersTabBadgeProvider
 
 String _$ordersTabBadgeHash() => r'694c595a052e46a13e9eebc3898913ddf5ebd4f5';
 
+/// The viewer's following set — the C10 follow-row trailing morph
+/// (NotificationRow contract: trailing Follow button on follow kinds)
+/// reads it; `FollowGraphController` invalidates it after a morph so the
+/// rows re-derive with every other follow surface.
+
+@ProviderFor(viewerFollowingSet)
+final viewerFollowingSetProvider = ViewerFollowingSetProvider._();
+
+/// The viewer's following set — the C10 follow-row trailing morph
+/// (NotificationRow contract: trailing Follow button on follow kinds)
+/// reads it; `FollowGraphController` invalidates it after a morph so the
+/// rows re-derive with every other follow surface.
+
+final class ViewerFollowingSetProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Set<String>>,
+          Set<String>,
+          FutureOr<Set<String>>
+        >
+    with $FutureModifier<Set<String>>, $FutureProvider<Set<String>> {
+  /// The viewer's following set — the C10 follow-row trailing morph
+  /// (NotificationRow contract: trailing Follow button on follow kinds)
+  /// reads it; `FollowGraphController` invalidates it after a morph so the
+  /// rows re-derive with every other follow surface.
+  ViewerFollowingSetProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'viewerFollowingSetProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$viewerFollowingSetHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<Set<String>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Set<String>> create(Ref ref) {
+    return viewerFollowingSet(ref);
+  }
+}
+
+String _$viewerFollowingSetHash() =>
+    r'107e1e886b902316de9fe347fe9cf0104191a2e7';
+
 /// C10's ViewModel — the activity list. Opening the sheet marks all rows
 /// read in the REPOSITORY (persisting for the session) without touching
 /// the loaded snapshot, so unread tints stay visible for this visit and

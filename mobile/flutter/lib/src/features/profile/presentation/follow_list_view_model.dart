@@ -1,6 +1,7 @@
 import 'package:apparule/src/features/feed/data/post_repository.dart';
 import 'package:apparule/src/features/feed/domain/user_summary.dart';
 import 'package:apparule/src/features/feed/presentation/explore_view_model.dart';
+import 'package:apparule/src/features/profile/presentation/notifications_view_model.dart';
 import 'package:apparule/src/features/profile/presentation/profile_view_model.dart';
 import 'package:apparule/src/features/profile/presentation/public_profile_view_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -45,6 +46,7 @@ class FollowGraphController extends _$FollowGraphController {
       ..invalidate(followListProvider)
       ..invalidate(publicProfileViewModelProvider)
       ..invalidate(profileViewModelProvider)
-      ..invalidate(exploreViewModelProvider);
+      ..invalidate(exploreViewModelProvider)
+      ..invalidate(viewerFollowingSetProvider);
   }
 }

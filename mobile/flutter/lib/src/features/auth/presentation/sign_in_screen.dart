@@ -8,11 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// C1 — the single Google-CTA auth screen (flows/auth.md §5, pages.md C1):
-/// logo + gradient wordmark + tagline, exactly one auth CTA (X-1), and
-/// the legal links — the same structure and copy as web's `/signin`.
-/// Visual fidelity to the C-series Figma frame lands with the design
-/// wave; this build is token-true against the existing theme.
+/// C1 — the single Google-CTA auth screen (flows/auth.md §5, pages.md
+/// C1; canvas 167:13): gradient wordmark + tagline, exactly one auth CTA
+/// (X-1), and the legal links — the same structure and copy as web's
+/// `/signin`.
 class SignInScreen extends ConsumerWidget {
   const SignInScreen({super.key});
 
@@ -39,15 +38,10 @@ class SignInScreen extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: <Widget>[
-                        Center(
-                          child: Image.asset(
-                            'assets/images/logo.png',
-                            height: 72,
-                          ),
-                        ),
-                        SizedBox(height: spacing.s4),
                         // Gradient wordmark — web signin header parity
-                        // (accentStart→accentEnd, the one gradient role).
+                        // (accentStart→accentEnd, the one gradient role);
+                        // the canvas C1 frame (167:13) opens on the
+                        // wordmark alone — no logo mark above it.
                         ShaderMask(
                           shaderCallback: (bounds) => LinearGradient(
                             colors: <Color>[

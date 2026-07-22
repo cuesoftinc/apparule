@@ -14,12 +14,22 @@ enum ProcessingState { processing, success, failed }
 /// freeze it and swap the status line. The constellation strokes the
 /// accent in every state.
 class ProcessingConstellation extends StatelessWidget {
-  const ProcessingConstellation({required this.state, this.image, super.key});
+  const ProcessingConstellation({
+    required this.state,
+    this.image,
+    this.showStatus = true,
+    super.key,
+  });
 
   final ProcessingState state;
 
   /// The captured photo the constellation draws over.
   final ImageProvider<Object>? image;
+
+  /// The C6 processing SCREEN (266:8446) composes its own on-media
+  /// title/detail pair below the card — it hides the module status line
+  /// instead of doubling "Measuring…".
+  final bool showStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -77,27 +87,29 @@ class ProcessingConstellation extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 8),
-        Semantics(
-          liveRegion: true,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              if (icon != null)
-                Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: Icon(icon, size: 14, color: statusColor),
+        if (showStatus) ...<Widget>[
+          const SizedBox(height: 8),
+          Semantics(
+            liveRegion: true,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                if (icon != null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Icon(icon, size: 14, color: statusColor),
+                  ),
+                Flexible(
+                  child: Text(
+                    status,
+                    textAlign: TextAlign.center,
+                    style: typography.caption13.copyWith(color: statusColor),
+                  ),
                 ),
-              Flexible(
-                child: Text(
-                  status,
-                  textAlign: TextAlign.center,
-                  style: typography.caption13.copyWith(color: statusColor),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
