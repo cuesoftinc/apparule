@@ -48,6 +48,101 @@
     "description": "Legal footer, closing punctuation after the links."
   },
   "vaultTitle": "Measurement vault",
+  "vaultSessionScan": "Scan",
+  "@vaultSessionScan": {
+    "description": "C7 session-group label for pipeline sessions."
+  },
+  "vaultSessionManual": "Manual entry",
+  "@vaultSessionManual": {
+    "description": "C7 session-group label for method: manual sessions."
+  },
+  "vaultMeasuredDaysAgo": "Measured {days}d ago",
+  "@vaultMeasuredDaysAgo": {
+    "description": "C7 card meta line — social relative idiom (web parity).",
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "vaultMeasuredToday": "Measured today",
+  "@vaultMeasuredToday": {
+    "description": "C7 card meta line for a session saved under a day ago."
+  },
+  "guideTitle": "How to measure",
+  "@guideTitle": {
+    "description": "C6 guide top-bar title — legacy salvage copy (§11)."
+  },
+  "guideSkip": "Skip",
+  "@guideSkip": {
+    "description": "Guide skip affordance — rendered only after the first completion (§10 persisted flag)."
+  },
+  "guideNext": "Next",
+  "guideStartCapture": "Start capture",
+  "@guideStartCapture": {
+    "description": "Guide last-page CTA into the C6 camera."
+  },
+  "guidePageLabel": "Step {current} of {total}",
+  "@guidePageLabel": {
+    "description": "Guide page-indicator semantics label.",
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "guideStep1Title": "Guide A-Z",
+  "guideStep1Body1": "How to take your body measurement accurately — one frontal photo plus your height is all it takes.",
+  "@guideStep1Body1": {
+    "description": "Guide intro — legacy copy extended with the §10 one-photo canon."
+  },
+  "guideStep2Title": "Get ready",
+  "guideStep2Body1": "Your clothes must fit skin tight around your body, and if you have long hair please tie it back.",
+  "guideStep2Body2": "You must be bare feet, but socks are allowed.",
+  "guideStep3Title": "Set your phone up",
+  "guideStep3Body1": "Place your phone vertically straight on a flat surface with the camera facing you, and stand 5–6 feet away.",
+  "guideStep3Body2": "No other person should be in the frame.",
+  "guideStep4Title": "Strike the pose",
+  "guideStep4Body1": "Stand straight in front of your phone with your head high, facing the camera.",
+  "guideStep4Body2": "Raise both arms slightly — about 45 degrees — with your feet one foot apart.",
+  "captureTitle": "Measure",
+  "@captureTitle": {
+    "description": "C6 top-bar title across the capture steps."
+  },
+  "captureHeightTitle": "Your height",
+  "captureHeightBody": "Height turns your photo's pixels into centimetres — it's collected once per capture and frozen into the session.",
+  "@captureHeightBody": {
+    "description": "Height-step explainer (capture-qc.md §3 scale; flows/vault.md §1)."
+  },
+  "captureHeightError": "Enter a height between 100–230 cm (39–91 in).",
+  "@captureHeightError": {
+    "description": "Height validation copy — the flows/vault.md §1 bounds."
+  },
+  "captureHeightContinue": "Continue",
+  "captureShutterLabel": "Capture",
+  "@captureShutterLabel": {
+    "description": "Shutter-button semantics label (icon-only control)."
+  },
+  "captureRetake": "Retake",
+  "captureEnterManually": "Enter manually instead",
+  "@captureEnterManually": {
+    "description": "Manual-entry fallback CTA (flows/vault.md §1: for QC that never clears / camera denied)."
+  },
+  "captureDevScenarioLabel": "QC scenario",
+  "@captureDevScenarioLabel": {
+    "description": "Dev-flavor-only debug selector: picks the fake camera's capture-qc.md sample scenario."
+  },
+  "manualEntryTitle": "Enter manually",
+  "manualEntryBody": "Tape-measure your key metrics. Out-of-range values just ask for a double-check — bodies vary.",
+  "@manualEntryBody": {
+    "description": "MI-13 manual-entry explainer (flows/vault.md §2 advisory ranges)."
+  },
+  "manualEntryDoubleCheck": "Double-check this one — outside the usual {min}–{max} cm.",
+  "@manualEntryDoubleCheck": {
+    "description": "Advisory out-of-range hint per measure (never a hard block).",
+    "placeholders": {
+      "min": { "type": "int" },
+      "max": { "type": "int" }
+    }
+  },
+  "manualEntrySave": "Save to vault",
   "earningsTitle": "Earnings & payouts",
   "placeholderBody": "Placeholder screen — the real surface lands with its feature wave.",
   "@placeholderBody": {

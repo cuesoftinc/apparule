@@ -8,18 +8,21 @@ part of 'vault_view_model.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// C7 placeholder ViewModel — watches the abstract measurement
-/// repository; flavor overrides supply the fake.
+/// C7's ViewModel — the saved sessions, newest first (the capture and
+/// manual-entry flows invalidate this after a save so the vault lists
+/// the new session on arrival).
 
 @ProviderFor(VaultViewModel)
 final vaultViewModelProvider = VaultViewModelProvider._();
 
-/// C7 placeholder ViewModel — watches the abstract measurement
-/// repository; flavor overrides supply the fake.
+/// C7's ViewModel — the saved sessions, newest first (the capture and
+/// manual-entry flows invalidate this after a save so the vault lists
+/// the new session on arrival).
 final class VaultViewModelProvider
     extends $AsyncNotifierProvider<VaultViewModel, List<MeasurementSession>> {
-  /// C7 placeholder ViewModel — watches the abstract measurement
-  /// repository; flavor overrides supply the fake.
+  /// C7's ViewModel — the saved sessions, newest first (the capture and
+  /// manual-entry flows invalidate this after a save so the vault lists
+  /// the new session on arrival).
   VaultViewModelProvider._()
     : super(
         from: null,
@@ -41,8 +44,9 @@ final class VaultViewModelProvider
 
 String _$vaultViewModelHash() => r'421bc085c70f775d30271a22866ca43970613266';
 
-/// C7 placeholder ViewModel — watches the abstract measurement
-/// repository; flavor overrides supply the fake.
+/// C7's ViewModel — the saved sessions, newest first (the capture and
+/// manual-entry flows invalidate this after a save so the vault lists
+/// the new session on arrival).
 
 abstract class _$VaultViewModel
     extends $AsyncNotifier<List<MeasurementSession>> {

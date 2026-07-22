@@ -17,6 +17,12 @@ environment:
 # `firebase login --reauth`.
 dependencies:
   cached_network_image: ^3.4.1
+  # Pin-ledger addition (C6 capture wave): the first-party camera plugin
+  # (CameraX on Android, AVFoundation on iOS via SwiftPM — no new
+  # CocoaPods dependency, mobile-implementation.md §2) drives the C6
+  # preview + shutter behind the abstract `CameraService` seam; dev/CI
+  # ride `CameraServiceFake` (bundled sample frame, no hardware).
+  camera: ^0.12.0
   dio: ^5.10.0
   firebase_auth: ^6.5.6
   firebase_core: ^4.12.1
@@ -86,6 +92,13 @@ flutter:
 
   assets:
     - assets/images/
+    # §6 seed narrative + the fake camera's sample frame — dev-flavor
+    # scoped so seed data never ships in prod bundles (`flutter test`
+    # bundles flavorless entries AND every flavored entry, so the fakes
+    # read these in tests without a flavor).
+    - path: assets/seed/dev/
+      flavors:
+        - dev
 
   # Inter is bundled, never fetched at runtime (mobile-implementation.md §7).
   # Weights per design.md §2: 400 / 600 / 700. License: assets/fonts/OFL.txt.

@@ -1,0 +1,102 @@
+{
+  "_comment": "§6 vault seed — kiki.adeyemi's measurement sessions, the same story (ids, values, methods, freshness states) as the web mock seed (web/src/mocks/seed.ts seedSessions) so phone and dashboard tell one coherent world. Shape parity with the web MeasurementSession type, except created_at: the web seed computes daysAgo() in code, so this file carries created_days_ago and the fake derives the timestamp the same way (static ISO dates would silently age out of their freshness states).",
+  "sessions": [
+    {
+      "id": "sess-recent-scan",
+      "customer_id": "acc-kiki",
+      "method": "mediapipe_2d_v2",
+      "input_height_cm": 168,
+      "status": "complete",
+      "measurements": [
+        {
+          "id": "m-1",
+          "session_id": "sess-recent-scan",
+          "name": "shoulder_width",
+          "value_cm": 42.5,
+          "source": "pipeline",
+          "confidence": 0.92
+        },
+        {
+          "id": "m-2",
+          "session_id": "sess-recent-scan",
+          "name": "hip_width",
+          "value_cm": 36.8,
+          "source": "pipeline",
+          "confidence": 0.62
+        }
+      ],
+      "pipeline_meta": { "model_version": "mp2d-v2.3", "qc": "pass" },
+      "created_days_ago": 12
+    },
+    {
+      "id": "sess-manual-tape",
+      "customer_id": "acc-kiki",
+      "method": "manual",
+      "input_height_cm": 168,
+      "status": "complete",
+      "measurements": [
+        {
+          "id": "m-3",
+          "session_id": "sess-manual-tape",
+          "name": "shoulder_width",
+          "value_cm": 42.0,
+          "source": "pipeline",
+          "confidence": null
+        },
+        {
+          "id": "m-4",
+          "session_id": "sess-manual-tape",
+          "name": "hip_width",
+          "value_cm": 37.2,
+          "source": "pipeline",
+          "confidence": null
+        },
+        {
+          "id": "m-5",
+          "session_id": "sess-manual-tape",
+          "name": "chest_girth",
+          "value_cm": 92.0,
+          "source": "pipeline",
+          "confidence": null
+        },
+        {
+          "id": "m-6",
+          "session_id": "sess-manual-tape",
+          "name": "waist_girth",
+          "value_cm": 78.5,
+          "source": "pipeline",
+          "confidence": null
+        }
+      ],
+      "pipeline_meta": {},
+      "created_days_ago": 58
+    },
+    {
+      "id": "sess-old-scan",
+      "customer_id": "acc-kiki",
+      "method": "mediapipe_2d",
+      "input_height_cm": 168,
+      "status": "complete",
+      "measurements": [
+        {
+          "id": "m-7",
+          "session_id": "sess-old-scan",
+          "name": "shoulder_width",
+          "value_cm": 41.8,
+          "source": "pipeline",
+          "confidence": 0.81
+        },
+        {
+          "id": "m-8",
+          "session_id": "sess-old-scan",
+          "name": "hip_width",
+          "value_cm": 37.0,
+          "source": "pipeline",
+          "confidence": 0.64
+        }
+      ],
+      "pipeline_meta": { "model_version": "mp2d-v1.9", "qc": "pass" },
+      "created_days_ago": 140
+    }
+  ]
+}
