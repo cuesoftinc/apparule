@@ -1,4 +1,5 @@
 import 'package:apparule/src/core/ui/qc_hint_chip.dart';
+import 'package:apparule/src/core/utils/capture_pose.dart';
 import 'package:apparule/src/features/measurements/data/capture_sample_catalog.dart';
 import 'package:apparule/src/features/measurements/data/measurement_repository_fake.dart';
 import 'package:apparule/src/features/measurements/domain/capture_photo.dart';
@@ -9,9 +10,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// The C6 session flow over the honest fake (mobile-implementation.md
-/// §6/§10): seeded vault parity, submit → pending → save/discard, every
-/// capture-qc.md fail code reproduced BY RULE from its sample scenario,
-/// and the §3/§4 numbers on the happy path.
+/// §6/§10, M-10 two-pose): seeded vault parity, two-image submit →
+/// pending → save/discard, every capture-qc.md fail code — BOTH poses'
+/// tables — reproduced BY RULE from its sample scenario, per-pose
+/// first-failure ordering, and the §3/§4 numbers on the happy path.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -23,6 +25,19 @@ void main() {
 
   CapturePhoto photo(String sampleId) =>
       CapturePhoto(bytes: Uint8List(0), sampleId: sampleId);
+
+  /// The two-image submit (api.md `POST /measure`: `image_front` +
+  /// `image_side` + `user_height_cm`) with passing defaults per pose.
+  Future<MeasurementSession> submit(
+    MeasurementRepositoryFake repo, {
+    String front = 'pass_frontal',
+    String side = 'pass_side',
+    double heightCm = 168,
+  }) => repo.submitCapture(
+    front: photo(front),
+    side: photo(side),
+    userHeightCm: heightCm,
+  );
 
   group('seeded vault (web mock parity)', () {
     test('lists the three seeded sessions newest first', () async {
@@ -69,19 +84,17 @@ void main() {
   });
 
   group('capture session flow (submit → pending → save | discard)', () {
-    test('a passing frame resolves a pending mediapipe_2d_v2 session with '
-        'the §3-scaled values and §4 confidences', () async {
+    test('a passing two-image capture resolves a pending mediapipe_2d_v2 '
+        'session with the §3-scaled values and §4 confidences', () async {
       final repo = repository();
 
-      final session = await repo.submitCapture(
-        photo: photo('pass_frontal'),
-        userHeightCm: 168,
-      );
+      final session = await submit(repo);
 
       expect(session.status, SessionStatus.pendingSave);
       expect(session.method, 'mediapipe_2d_v2');
       expect(session.inputHeightCm, 168);
-      // scale = (168 × 0.93) / 1100; shoulder 300px, hip 250px.
+      // scale = (168 × 0.93) / 1100 — the FRONT image owns the height
+      // scale (capture-qc.md §3); shoulder 300px, hip 250px.
       final shoulder = session.measurements.first;
       expect(shoulder.name, 'shoulder_width');
       expect(shoulder.valueCm, closeTo(42.61, 0.01));
@@ -92,18 +105,12 @@ void main() {
       expect(hip.confidence, closeTo(0.62, 1e-9));
     });
 
-    test('the entered height drives the scale — same frame, taller claim, '
+    test('the entered height drives the scale — same frames, taller claim, '
         'proportionally larger centimetres', () async {
       final repo = repository();
 
-      final at168 = await repo.submitCapture(
-        photo: photo('pass_frontal'),
-        userHeightCm: 168,
-      );
-      final at190 = await repo.submitCapture(
-        photo: photo('pass_frontal'),
-        userHeightCm: 190,
-      );
+      final at168 = await submit(repo);
+      final at190 = await submit(repo, heightCm: 190);
 
       expect(
         at190.measurements.first.valueCm / at168.measurements.first.valueCm,
@@ -114,10 +121,7 @@ void main() {
     test('pending sessions are not vault rows until saved', () async {
       final repo = repository();
 
-      final pending = await repo.submitCapture(
-        photo: photo('pass_frontal'),
-        userHeightCm: 168,
-      );
+      final pending = await submit(repo);
       expect(
         (await repo.vaultSessions()).map((s) => s.id),
         isNot(contains(pending.id)),
@@ -135,10 +139,7 @@ void main() {
       () async {
         final repo = repository();
 
-        final pending = await repo.submitCapture(
-          photo: photo('pass_frontal'),
-          userHeightCm: 168,
-        );
+        final pending = await submit(repo);
         await repo.discardSession(pending.id);
 
         expect(await repo.vaultSessions(), hasLength(3));
@@ -146,21 +147,26 @@ void main() {
       },
     );
 
-    test('a photo without a sample id (live camera) evaluates as the '
-        'passing defaults', () async {
-      final session = await repository().submitCapture(
-        photo: CapturePhoto(bytes: Uint8List(0)),
-        userHeightCm: 168,
-      );
-      expect(session.status, SessionStatus.pendingSave);
-    });
+    test(
+      'photos without sample ids (live camera) evaluate as each '
+      "pose's passing defaults — the side defaults describe a side-on "
+      'subject, never the front-passing frame the side table rejects',
+      () async {
+        final session = await repository().submitCapture(
+          front: CapturePhoto(bytes: Uint8List(0)),
+          side: CapturePhoto(bytes: Uint8List(0)),
+          userHeightCm: 168,
+        );
+        expect(session.status, SessionStatus.pendingSave);
+      },
+    );
   });
 
-  group('QC fail codes — every capture-qc.md code, reproduced by rule', () {
+  group('per-pose QC — every capture-qc.md code, reproduced by rule', () {
     // One scenario per fail code (capture_samples.json); the repository
-    // runs the REAL threshold table, so each expectation exercises the
-    // documented rule, not a canned verdict.
-    const expectedByScenario = <String, String>{
+    // runs the REAL per-pose threshold tables, so each expectation
+    // exercises the documented rule, not a canned verdict.
+    const frontCodes = <String, String>{
       'qc_undecodable_image': 'undecodable_image',
       'qc_low_resolution': 'low_resolution',
       'qc_poor_lighting': 'poor_lighting',
@@ -174,29 +180,76 @@ void main() {
       'qc_too_far': 'too_far',
     };
 
-    for (final MapEntry(key: scenario, value: code)
-        in expectedByScenario.entries) {
-      test('$scenario → $code', () async {
+    for (final MapEntry(key: scenario, value: code) in frontCodes.entries) {
+      test('front $scenario → $code (pose: front)', () async {
         await expectLater(
-          repository().submitCapture(
-            photo: photo(scenario),
-            userHeightCm: 168,
-          ),
+          submit(repository(), front: scenario),
           throwsA(
-            isA<CaptureQcException>().having((e) => e.code, 'code', code),
+            isA<CaptureQcException>()
+                .having((e) => e.code, 'code', code)
+                .having((e) => e.pose, 'pose', CapturePose.front),
           ),
         );
       });
     }
 
+    // The side pose's table: the swapped rows (not_side_profile, the
+    // arms-relaxed rule) plus shared pre-check/body rows on the side
+    // frame.
+    const sideCodes = <String, String>{
+      'qc_not_side_profile': 'not_side_profile',
+      'qc_side_arms_position': 'arms_position',
+      'qc_side_poor_lighting': 'poor_lighting',
+      'qc_side_blurry': 'blurry',
+      'qc_side_too_far': 'too_far',
+    };
+
+    for (final MapEntry(key: scenario, value: code) in sideCodes.entries) {
+      test('side $scenario → $code (pose: side)', () async {
+        await expectLater(
+          submit(repository(), side: scenario),
+          throwsA(
+            isA<CaptureQcException>()
+                .having((e) => e.code, 'code', code)
+                .having((e) => e.pose, 'pose', CapturePose.side),
+          ),
+        );
+      });
+    }
+
+    test('a frontal subject on the side pose fails not_side_profile — the '
+        'passing FRONT frame is exactly what the side table rejects', () async {
+      await expectLater(
+        submit(repository(), side: 'pass_frontal'),
+        throwsA(
+          isA<CaptureQcException>()
+              .having((e) => e.code, 'code', 'not_side_profile')
+              .having((e) => e.pose, 'pose', CapturePose.side),
+        ),
+      );
+    });
+
+    test('front table runs first: both poses failing reports the FRONT '
+        'failure (per-pose reporting, front first)', () async {
+      await expectLater(
+        submit(
+          repository(),
+          front: 'qc_blurry',
+          side: 'qc_not_side_profile',
+        ),
+        throwsA(
+          isA<CaptureQcException>()
+              .having((e) => e.code, 'code', 'blurry')
+              .having((e) => e.pose, 'pose', CapturePose.front),
+        ),
+      );
+    });
+
     test(
-      'the multi-fault scenario reports its first table failure only',
+      'first-failure-only within the FRONT pose (multi-fault frame)',
       () async {
         await expectLater(
-          repository().submitCapture(
-            photo: photo('multi_fault'),
-            userHeightCm: 168,
-          ),
+          submit(repository(), front: 'multi_fault'),
           throwsA(
             isA<CaptureQcException>().having(
               (e) => e.code,
@@ -208,23 +261,63 @@ void main() {
       },
     );
 
-    test('the QCHintChip enum maps every catalog fail code 1:1', () async {
-      final catalog = await CaptureSampleCatalog.load();
-      final failScenarios = catalog.samples.where(
-        (s) => s.id.startsWith('qc_'),
+    test('first-failure-only within the SIDE pose (side multi-fault: '
+        'orientation beats arms and scale in table order)', () async {
+      await expectLater(
+        submit(repository(), side: 'side_multi_fault'),
+        throwsA(
+          isA<CaptureQcException>()
+              .having((e) => e.code, 'code', 'not_side_profile')
+              .having((e) => e.pose, 'pose', CapturePose.side),
+        ),
+      );
+    });
+
+    test('a pose-2 failure leaves the accepted pose-1 frame undisturbed: '
+        'resubmitting the SAME front with a fixed side passes', () async {
+      final repo = repository();
+      final front = photo('pass_frontal');
+
+      await expectLater(
+        repo.submitCapture(
+          front: front,
+          side: photo('qc_not_side_profile'),
+          userHeightCm: 168,
+        ),
+        throwsA(isA<CaptureQcException>()),
       );
 
-      expect(failScenarios, hasLength(11));
-      for (final scenario in failScenarios) {
-        final wire = scenario.id.substring('qc_'.length);
+      // The client re-enters the SIDE camera only and resubmits the
+      // accepted front frame untouched.
+      final session = await repo.submitCapture(
+        front: front,
+        side: photo('pass_side'),
+        userHeightCm: 168,
+      );
+      expect(session.status, SessionStatus.pendingSave);
+    });
+
+    test('the QCHintChip enum maps every catalog fail code 1:1', () async {
+      final catalog = await CaptureSampleCatalog.load();
+      final wires = <String>{...frontCodes.values, ...sideCodes.values};
+
+      for (final wire in wires) {
         expect(
           QcFailCode.fromWireName(wire),
           isNotNull,
           reason: '$wire must carry QCHintChip guidance copy',
         );
       }
-      // And the enum carries nothing the contract doesn't: 11 codes.
-      expect(QcFailCode.values, hasLength(11));
+      // The catalog reaches every code the chip knows: 12 codes — the 11
+      // front-era codes + not_side_profile (M-10).
+      expect(QcFailCode.values, hasLength(12));
+      // And every catalog scenario belongs to a pose group the dev
+      // selector lists.
+      expect(
+        catalog.samplesFor(CapturePose.front).length +
+            catalog.samplesFor(CapturePose.side).length,
+        catalog.samples.length,
+      );
     });
   });
 
@@ -248,6 +341,33 @@ void main() {
     });
   });
 
+  group('per-session export (F2-9)', () {
+    test('renders the session CSV — one row per measurement, confidence '
+        'blank on manual rows', () async {
+      final repo = repository();
+
+      final csv = await repo.exportSessionCsv('sess-manual-tape');
+
+      final lines = csv.trim().split('\n');
+      expect(lines.first, 'name,value_cm,confidence,method,measured_at');
+      expect(lines, hasLength(5));
+      expect(lines[1], startsWith('shoulder_width,'));
+      expect(lines[1], contains(',,manual,'));
+    });
+
+    test('scan sessions carry their confidences', () async {
+      final csv = await repository().exportSessionCsv('sess-recent-scan');
+      expect(csv, contains('shoulder_width,42.5,0.92,mediapipe_2d_v2,'));
+    });
+
+    test('unknown session ids throw', () async {
+      expect(
+        () => repository().exportSessionCsv('sess-nope'),
+        throwsStateError,
+      );
+    });
+  });
+
   group('prod degradation (no dev seeds in the bundle)', () {
     test('a bundle without seed assets yields an empty vault and passing '
         'captures', () async {
@@ -258,7 +378,8 @@ void main() {
 
       expect(await repo.vaultSessions(), isEmpty);
       final session = await repo.submitCapture(
-        photo: photo('qc_no_body'), // no catalog → passing defaults
+        front: photo('qc_no_body'), // no catalog → passing defaults
+        side: photo('qc_not_side_profile'),
         userHeightCm: 168,
       );
       expect(session.status, SessionStatus.pendingSave);

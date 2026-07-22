@@ -1,6 +1,5 @@
 import 'package:apparule/src/core/utils/formats.dart';
-import 'package:apparule/src/features/measurements/data/measurement_repository.dart';
-import 'package:apparule/src/features/measurements/presentation/vault_view_model.dart';
+import 'package:apparule/src/features/measurements/presentation/vault_actions.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -57,13 +56,15 @@ class ManualEntryViewModel extends _$ManualEntryViewModel {
     state = state.copyWith(unit: unit);
   }
 
+  /// Saves through the VaultActions façade (CLASS 1 lock) — its declared
+  /// fan-out re-derives the C7 list AND the C9 header's MI-11 freshness
+  /// ring (D16).
   Future<void> save() async {
     if (state.valuesCm.isEmpty || state.saving) return;
     state = state.copyWith(saving: true);
     await ref
-        .read(measurementRepositoryProvider)
+        .read(vaultActionsProvider.notifier)
         .saveManualEntry(state.valuesCm);
-    ref.invalidate(vaultViewModelProvider);
     if (!ref.mounted) return;
     state = state.copyWith(saving: false, saved: true);
   }

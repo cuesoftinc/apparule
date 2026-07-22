@@ -40,7 +40,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Take your first measurement'), findsOneWidget);
-    expect(find.text('One photo — about a minute'), findsOneWidget);
+    expect(find.text('Two photos — about a minute'), findsOneWidget);
     expect(find.text('Explore outfits'), findsOneWidget);
     expect(find.text('Browse Lagos designers first'), findsOneWidget);
     expect(find.text('Skip for now'), findsOneWidget);

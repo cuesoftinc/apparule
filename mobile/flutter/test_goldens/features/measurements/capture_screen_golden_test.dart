@@ -1,5 +1,6 @@
 import 'package:alchemist/alchemist.dart';
 import 'package:apparule/src/core/ui/countdown_ring.dart';
+import 'package:apparule/src/core/utils/capture_pose.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_session.dart';
 import 'package:apparule/src/features/measurements/presentation/capture_screen.dart';
 import 'package:apparule/src/features/measurements/presentation/capture_view_model.dart';
@@ -55,11 +56,13 @@ void main() {
       columns: 1,
       children: <GoldenTestScenario>[
         GoldenTestScenario(
-          name: 'height input, pre-filled',
+          name: 'height input (canvas 530:4 — after the two poses)',
           child: screenFrame(
             const CaptureScreen(),
             overrides: <Override>[
-              _fixedState(const CaptureState(heightCm: 168)),
+              _fixedState(
+                const CaptureState(step: CaptureStep.height, heightCm: 170),
+              ),
             ],
           ),
         ),
@@ -75,13 +78,37 @@ void main() {
       columns: 1,
       children: <GoldenTestScenario>[
         GoldenTestScenario(
-          name: 'searching, fake preview',
+          name: 'searching, Pose 1 of 2 (173:574)',
+          child: screenFrame(
+            const CaptureScreen(),
+            overrides: <Override>[
+              _fixedState(
+                const CaptureState(heightCm: 168, cameraReady: true),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+
+  themedGoldenTest(
+    'CaptureScreen viewfinder side',
+    fileName: 'capture_screen_camera_side',
+    pumpBeforeTest: precacheThenFrame,
+    builder: () => GoldenTestGroup(
+      columns: 1,
+      children: <GoldenTestScenario>[
+        GoldenTestScenario(
+          name:
+              'searching, Pose 2 of 2 — right-profile silhouette, '
+              'neutral dark feed (540:9224)',
           child: screenFrame(
             const CaptureScreen(),
             overrides: <Override>[
               _fixedState(
                 const CaptureState(
-                  step: CaptureStep.camera,
+                  pose: CapturePose.side,
                   heightCm: 168,
                   cameraReady: true,
                 ),
@@ -107,7 +134,6 @@ void main() {
             overrides: <Override>[
               _fixedState(
                 const CaptureState(
-                  step: CaptureStep.camera,
                   heightCm: 168,
                   cameraReady: true,
                   countdown: CountdownCount.two,
@@ -152,7 +178,7 @@ void main() {
       columns: 1,
       children: <GoldenTestScenario>[
         GoldenTestScenario(
-          name: 'first-failure hint (not_frontal)',
+          name: 'first-failure hint (not_frontal, pose 1)',
           child: screenFrame(
             const CaptureScreen(),
             overrides: <Override>[
@@ -161,6 +187,33 @@ void main() {
                   step: CaptureStep.qcFail,
                   heightCm: 168,
                   qcFailCode: 'not_frontal',
+                  qcFailPose: CapturePose.front,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+
+  themedGoldenTest(
+    'CaptureScreen QC fail side',
+    fileName: 'capture_screen_qc_fail_side',
+    builder: () => GoldenTestGroup(
+      columns: 1,
+      children: <GoldenTestScenario>[
+        GoldenTestScenario(
+          name: 'pose-contextual arms hint (arms_position, pose 2)',
+          child: screenFrame(
+            const CaptureScreen(),
+            overrides: <Override>[
+              _fixedState(
+                const CaptureState(
+                  step: CaptureStep.qcFail,
+                  heightCm: 168,
+                  qcFailCode: 'arms_position',
+                  qcFailPose: CapturePose.side,
                 ),
               ),
             ],

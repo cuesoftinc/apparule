@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/countdown_ring.dart';
 import 'package:apparule/src/core/ui/qc_hint_chip.dart';
+import 'package:apparule/src/core/utils/capture_pose.dart';
 import 'package:flutter/material.dart';
 
 /// The Figma `CaptureOverlay` set's `guide` axis (63:701).
@@ -12,8 +13,13 @@ enum CaptureGuide { searching, aligned, countdown, qcHint }
 /// `CaptureOverlay.tsx`. Guide states: searching (silhouette pulses
 /// gently, MI-12) / aligned (guide turns success, "Perfect — hold still")
 /// / countdown (CountdownRing slot) / qc-hint (QCHintChip slot,
-/// first-failure-only). 9:16 viewport, 40% scrim, viewfinder corner
-/// marks, top instruction line.
+/// first-failure-only). `pose` axis (M-10, side variant 539:2): the code
+/// swaps the silhouette + hint per pose — front keeps the arms-out
+/// outline, side draws the right-profile silhouette (head forward, single
+/// hanging arm, overlapped legs) with "Turn your right side to the
+/// camera". 9:16 viewport, 40% scrim, viewfinder corner marks, top
+/// instruction line (y 112 of the 640 master — clears the over-media
+/// pose bar, two-photo pass).
 ///
 /// On-media capture UI: raw #FFFFFF for the guide text/marks/silhouette
 /// over the camera feed is the documented token exception (c-series
@@ -21,6 +27,7 @@ enum CaptureGuide { searching, aligned, countdown, qcHint }
 class CaptureOverlay extends StatelessWidget {
   const CaptureOverlay({
     required this.guide,
+    this.pose = CapturePose.front,
     this.countdown = CountdownCount.three,
     this.qcCode,
     this.child,
@@ -29,6 +36,10 @@ class CaptureOverlay extends StatelessWidget {
   });
 
   final CaptureGuide guide;
+
+  /// The Figma `pose` axis — picks the silhouette and the instruction
+  /// line (and the QC chip's pose-contextual `arms_position` copy).
+  final CapturePose pose;
 
   /// Full-bleed screen use (the C6 camera frames 173:574/266:8419 run
   /// the viewport edge-to-edge): fills the parent instead of the 9:16
@@ -65,15 +76,19 @@ class CaptureOverlay extends StatelessWidget {
         const Positioned.fill(
           child: CustomPaint(painter: _CornerMarksPainter()),
         ),
-        // Instruction line — 16px semibold white, top-centred at 9%
-        // of the viewport (Alignment y = 2·0.09 − 1).
+        // Instruction line — 16px semibold white, top-centred at 17.5%
+        // of the viewport (y 112 of the 640 master: moved down from y 72
+        // in ALL variants to clear the over-media pose bar, two-photo
+        // pass; Alignment y = 2·0.175 − 1).
         Align(
-          alignment: const Alignment(0, -0.82),
+          alignment: const Alignment(0, -0.65),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
               guide == CaptureGuide.aligned
                   ? 'Perfect — hold still'
+                  : pose == CapturePose.side
+                  ? 'Turn your right side to the camera'
                   : 'Stand inside the outline',
               textAlign: TextAlign.center,
               style: typography.body16SemiBold.copyWith(
@@ -82,15 +97,17 @@ class CaptureOverlay extends StatelessWidget {
             ),
           ),
         ),
-        // Standing silhouette (head → shoulders → arms-out →
-        // ankles), 70% of the viewport height; dashed while
-        // searching, solid success stroke when aligned (MI-12).
+        // Standing silhouette, 70% of the viewport height; dashed while
+        // searching, solid success stroke when aligned (MI-12). Front:
+        // head → shoulders → arms-out → ankles; side (539:2): head
+        // forward, narrow torso, single hanging arm, overlapped legs.
         Center(
           child: FractionallySizedBox(
             heightFactor: 0.7,
             child: AspectRatio(
               aspectRatio: 200 / 300,
               child: _PulsingSilhouette(
+                pose: pose,
                 pulsing: guide == CaptureGuide.searching,
                 color: guide == CaptureGuide.aligned
                     ? colors.success
@@ -107,7 +124,11 @@ class CaptureOverlay extends StatelessWidget {
             left: 16,
             right: 16,
             bottom: 24,
-            child: Center(child: QCHintChip(code: qcCode!)),
+            // Centered regardless of code length (530:9017 — the master
+            // pins the chip x; code centers it instead).
+            child: Center(
+              child: QCHintChip(code: qcCode!, pose: pose),
+            ),
           ),
       ],
     );
@@ -124,11 +145,13 @@ class CaptureOverlay extends StatelessWidget {
 /// reduced motion holds it at 70% opacity.
 class _PulsingSilhouette extends StatefulWidget {
   const _PulsingSilhouette({
+    required this.pose,
     required this.pulsing,
     required this.color,
     required this.dashed,
   });
 
+  final CapturePose pose;
   final bool pulsing;
   final Color color;
   final bool dashed;
@@ -188,6 +211,7 @@ class _PulsingSilhouetteState extends State<_PulsingSilhouette>
       // level survives alchemist's blocked-text golden pass.
       builder: (context, _) => CustomPaint(
         painter: _SilhouettePainter(
+          pose: widget.pose,
           color: widget.color.withValues(
             alpha: widget.pulsing ? 0.7 + 0.3 * _controller.value : 0.8,
           ),
@@ -198,12 +222,16 @@ class _PulsingSilhouetteState extends State<_PulsingSilhouette>
   }
 }
 
-/// The 200×300 guide-space silhouette path (web sibling's SVG, MI-12) —
-/// head circle + torso/arms/legs path, 2.5 stroke, 6/6 dash when not
-/// aligned.
+/// The 200×300 guide-space silhouette paths (web sibling's SVG + the
+/// 539:2 side variant, MI-12) — 2.5 stroke, 6/6 dash when not aligned.
 class _SilhouettePainter extends CustomPainter {
-  const _SilhouettePainter({required this.color, required this.dashed});
+  const _SilhouettePainter({
+    required this.pose,
+    required this.color,
+    required this.dashed,
+  });
 
+  final CapturePose pose;
   final Color color;
   final bool dashed;
 
@@ -220,6 +248,14 @@ class _SilhouettePainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
+    for (final path in pose == CapturePose.front ? _front() : _side()) {
+      canvas.drawPath(dashed ? _dashPath(path) : path, paint);
+    }
+  }
+
+  /// Front: head circle + torso/arms-out/legs (capture-qc.md arms
+  /// clearance).
+  static List<Path> _front() {
     final head = Path()
       ..addOval(Rect.fromCircle(center: const Offset(100, 38), radius: 22));
     final body = Path()
@@ -240,10 +276,37 @@ class _SilhouettePainter extends CustomPainter {
       ..lineTo(128, 284)
       ..moveTo(80, 160)
       ..cubicTo(92, 168, 108, 168, 120, 160);
+    return <Path>[head, body];
+  }
 
-    for (final path in <Path>[head, body]) {
-      canvas.drawPath(dashed ? _dashPath(path) : path, paint);
-    }
+  /// Side (539:2): right profile — head slightly forward of the torso
+  /// axis, one narrow torso capsule with the near arm hanging inside it,
+  /// overlapped legs reading as a single dashed column.
+  static List<Path> _side() {
+    final head = Path()
+      ..addOval(Rect.fromCircle(center: const Offset(102, 38), radius: 22));
+    final torso = Path()
+      // The foreshortened trunk — a tall capsule (not_side_profile's
+      // passing shape: shoulders stacked in depth, not spread in x).
+      ..moveTo(100, 62)
+      ..cubicTo(112, 62, 118, 72, 118, 88)
+      ..lineTo(116, 160)
+      ..cubicTo(116, 176, 110, 184, 100, 184)
+      ..cubicTo(90, 184, 84, 176, 84, 160)
+      ..lineTo(82, 88)
+      ..cubicTo(82, 72, 88, 62, 100, 62);
+    final arm = Path()
+      // The near arm hangs relaxed inside the trunk outline
+      // (capture-qc.md side arms rule: wrists within 5% of the hips).
+      ..moveTo(100, 78)
+      ..lineTo(100, 168);
+    final legs = Path()
+      // Overlapped legs — two near-vertical lines close together.
+      ..moveTo(97, 184)
+      ..lineTo(93, 284)
+      ..moveTo(103, 184)
+      ..lineTo(107, 284);
+    return <Path>[head, torso, arm, legs];
   }
 
   /// 6/6 dash pattern along the path.
@@ -264,7 +327,9 @@ class _SilhouettePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_SilhouettePainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.dashed != dashed;
+      oldDelegate.pose != pose ||
+      oldDelegate.color != color ||
+      oldDelegate.dashed != dashed;
 }
 
 /// The viewfinder corner marks (web sibling's 360×640 path) — raw white,

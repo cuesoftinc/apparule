@@ -1,24 +1,28 @@
 import 'package:apparule/src/core/ui/capture_overlay.dart';
 import 'package:apparule/src/core/ui/capture_results.dart';
 import 'package:apparule/src/core/ui/measurement_card.dart';
-import 'package:apparule/src/core/ui/processing_constellation.dart';
 import 'package:apparule/src/core/ui/qc_hint_chip.dart';
 import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/features/measurements/data/camera_service_fake.dart';
+import 'package:apparule/src/features/measurements/data/measurement_repository.dart';
+import 'package:apparule/src/features/measurements/data/measurement_repository_fake.dart';
 import 'package:apparule/src/features/measurements/presentation/capture_screen.dart';
 import 'package:apparule/src/features/measurements/presentation/capture_view_model.dart';
 import 'package:apparule/src/features/measurements/presentation/manual_entry_screen.dart';
 import 'package:apparule/src/features/measurements/presentation/vault_screen.dart';
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/boot_app.dart';
 import '../../../../helpers/notched.dart';
 
-/// C6 capture states over the fake camera (mobile-implementation.md §10):
-/// height gate, countdown → processing → results, first-failure QC
-/// rendering, permission-denied fallback, and save-to-vault (C7).
+/// C6 two-pose capture over the fake camera (mobile-implementation.md
+/// §10, M-10): front "Pose 1 of 2" → side "Pose 2 of 2" → processing →
+/// results, the height step when not on file, per-pose first-failure QC
+/// with retry-never-advances semantics, the permission-denied fallback,
+/// and save-to-vault (C7).
 ///
 /// Booted through the real router (the flow navigates); bounded pumps
 /// where the viewfinder/constellation animate (MI-12 never settles).
@@ -26,6 +30,7 @@ void main() {
   Future<void> bootToCapture(
     WidgetTester tester, {
     CameraServiceFake? camera,
+    MeasurementRepository? measurementRepository,
   }) async {
     await pumpBootedApp(
       tester,
@@ -33,21 +38,21 @@ void main() {
         initialSession: AuthRepositoryFake.seedSession,
       ),
       cameraService: camera,
+      measurementRepository: measurementRepository,
       preferences: <String, Object>{'capture_guide_seen': true},
     );
     routerOf(tester).go(const CaptureRoute().location);
-    await tester.pumpAndSettle();
-  }
-
-  Future<void> continueToViewfinder(WidgetTester tester) async {
-    await tester.tap(find.text('Continue'));
+    // The flow opens on the viewfinder (MI-12 pulses — never settle):
+    // pump past the camera-init microtask AND the route transition, in
+    // slices that stay short of the auto-capture arming delay.
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
   }
 
-  /// Auto-capture (QA-convergence ruling: no shutter): the searching beat
-  /// arms the 3-2-1 → capture fires → processing → the pipeline verdict.
-  Future<void> shootThroughProcessing(WidgetTester tester) async {
+  /// One pose's auto-capture (QA-convergence ruling: no shutter): the
+  /// searching beat arms the 3-2-1 → capture fires on completion.
+  Future<void> shootPose(WidgetTester tester) async {
     await tester.pump(kCaptureAlignDelay);
     await tester.pump();
     expect(find.bySemanticsLabel('Capturing in 3'), findsOneWidget);
@@ -57,63 +62,52 @@ void main() {
     expect(find.bySemanticsLabel('Capturing in 1'), findsOneWidget);
     await tester.pump(const Duration(seconds: 1));
     await tester.pump();
-    expect(find.byType(ProcessingConstellation), findsOneWidget);
-    // The fake repository's simulated pipeline latency.
+  }
+
+  /// Front + side, then the fake pipeline's simulated latency.
+  Future<void> shootBothPosesThroughProcessing(WidgetTester tester) async {
+    expect(find.text('Pose 1 of 2'), findsOneWidget);
+    await shootPose(tester);
+    expect(find.text('Pose 2 of 2'), findsOneWidget);
+    await shootPose(tester);
+    // The side capture's async take-photo → submit chain, then the
+    // fake pipeline's simulated latency (the processing constellation
+    // state is pinned by the screen goldens; the pump slices here can
+    // land on either side of the 600ms resolve).
+    await tester.pump(const Duration(milliseconds: 50));
     await tester.pump(const Duration(milliseconds: 700));
     await tester.pump();
   }
 
-  group('height step (flows/vault.md §1)', () {
-    testWidgets('pre-fills from the newest session and continues to the '
-        'viewfinder', (tester) async {
+  group('two-pose sequence (M-10: front → side → processing)', () {
+    testWidgets('opens on Pose 1 of 2 with the front silhouette and NO '
+        'height step (height on file)', (tester) async {
       await bootToCapture(tester);
 
-      // Seeded height (kiki's sessions froze 168 cm).
-      expect(find.text('168'), findsOneWidget);
-      expect(find.text('Your height'), findsOneWidget);
-
-      await continueToViewfinder(tester);
       expect(find.byType(CaptureOverlay), findsOneWidget);
+      expect(find.text('Pose 1 of 2'), findsOneWidget);
       expect(find.text('Stand inside the outline'), findsOneWidget);
+      expect(find.text('Your height'), findsNothing);
     });
 
-    testWidgets('rejects heights outside 100–230 cm with the contract copy', (
-      tester,
-    ) async {
+    testWidgets('advances to Pose 2 of 2 with the side silhouette hint '
+        'after the front capture', (tester) async {
       await bootToCapture(tester);
 
-      await tester.enterText(find.bySemanticsLabel('Height value'), '90');
-      await tester.testTextInput.receiveAction(TextInputAction.done);
-      await tester.pump();
-      await tester.tap(find.text('Continue'));
-      await tester.pump();
+      await shootPose(tester);
 
+      expect(find.text('Pose 2 of 2'), findsOneWidget);
       expect(
-        find.text('Enter a height between 100–230 cm (39–91 in).'),
+        find.text('Turn your right side to the camera'),
         findsOneWidget,
       );
-      expect(find.byType(CaptureOverlay), findsNothing);
+      expect(find.text('Stand inside the outline'), findsNothing);
     });
 
-    testWidgets('the unit toggle converts the display, storage stays cm', (
-      tester,
-    ) async {
+    testWidgets('countdown → countdown → processing → results with §4 '
+        'confidences, save lands in the vault', (tester) async {
       await bootToCapture(tester);
-
-      await tester.tap(find.bySemanticsLabel('Switch to in'));
-      await tester.pumpAndSettle();
-
-      // 168 cm = 66.1 in (one decimal, MI-13 display conversion).
-      expect(find.text('66.1'), findsOneWidget);
-    });
-  });
-
-  group('happy path (seeded pass_frontal sample)', () {
-    testWidgets('countdown → processing → results with §4 confidences, '
-        'save lands in the vault', (tester) async {
-      await bootToCapture(tester);
-      await continueToViewfinder(tester);
-      await shootThroughProcessing(tester);
+      await shootBothPosesThroughProcessing(tester);
 
       // Results: scaled values (168 cm over the sample metrics) with the
       // low-confidence chip on the 0.62 hip (capture-qc.md §4).
@@ -133,12 +127,11 @@ void main() {
       expect(find.text('42.6 cm'), findsOneWidget);
     });
 
-    testWidgets('retake from results discards and returns to the viewfinder', (
+    testWidgets('retake from results discards and restarts at Pose 1', (
       tester,
     ) async {
       await bootToCapture(tester);
-      await continueToViewfinder(tester);
-      await shootThroughProcessing(tester);
+      await shootBothPosesThroughProcessing(tester);
 
       await tester.tap(find.text('Retake'));
       await tester.pump();
@@ -146,6 +139,7 @@ void main() {
 
       expect(find.byType(CaptureOverlay), findsOneWidget);
       expect(find.byType(CaptureResults), findsNothing);
+      expect(find.text('Pose 1 of 2'), findsOneWidget);
 
       // The auto-capture re-arms for the next shot.
       await tester.pump(kCaptureAlignDelay);
@@ -154,11 +148,71 @@ void main() {
     });
   });
 
+  group('height step (flows/vault.md §1 — only when not on file)', () {
+    testWidgets('interposes after Pose 2 for a user with no vault height, '
+        'gates 100–230, then submits', (tester) async {
+      await bootToCapture(
+        tester,
+        measurementRepository: MeasurementRepositoryFake(
+          bundle: _NoVaultSeedBundle(),
+          processingDelay: Duration.zero,
+        ),
+      );
+
+      await shootPose(tester);
+      await shootPose(tester);
+
+      // The height step (canvas 530:4) — no stored height to prefill.
+      expect(find.text('Your height'), findsOneWidget);
+
+      await tester.enterText(find.bySemanticsLabel('Height value'), '90');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      await tester.tap(find.text('Continue'));
+      await tester.pump();
+      expect(
+        find.text('Enter a height between 100–230 cm (39–91 in).'),
+        findsOneWidget,
+      );
+
+      await tester.enterText(find.bySemanticsLabel('Height value'), '170');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      await tester.tap(find.text('Continue'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      expect(find.byType(CaptureResults), findsOneWidget);
+    });
+
+    testWidgets('the unit toggle converts the display, storage stays cm', (
+      tester,
+    ) async {
+      await bootToCapture(
+        tester,
+        measurementRepository: MeasurementRepositoryFake(
+          bundle: _NoVaultSeedBundle(),
+          processingDelay: Duration.zero,
+        ),
+      );
+      await shootPose(tester);
+      await shootPose(tester);
+
+      await tester.enterText(find.bySemanticsLabel('Height value'), '168');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      await tester.tap(find.bySemanticsLabel('Switch to in'));
+      await tester.pumpAndSettle();
+
+      // 168 cm = 66.1 in (one decimal, MI-13 display conversion).
+      expect(find.text('66.1'), findsOneWidget);
+    });
+  });
+
   group('auto-capture (QA-convergence ruling — canvas+docs, no shutter)', () {
     testWidgets('the viewfinder renders no shutter control and arms the '
         '3-2-1 by itself after the searching beat', (tester) async {
       await bootToCapture(tester);
-      await continueToViewfinder(tester);
 
       // No capture control anywhere on the controls layer.
       expect(find.bySemanticsLabel('Capture'), findsNothing);
@@ -171,9 +225,8 @@ void main() {
       expect(find.bySemanticsLabel('Capturing in 3'), findsOneWidget);
     });
 
-    testWidgets('announces the countdown arming and the capture firing', (
-      tester,
-    ) async {
+    testWidgets('announces the countdowns, both captures, and the pose '
+        'advance', (tester) async {
       final announcements = <String>[];
       tester.binding.defaultBinaryMessenger
           .setMockDecodedMessageHandler<dynamic>(SystemChannels.accessibility, (
@@ -196,12 +249,14 @@ void main() {
       );
 
       await bootToCapture(tester);
-      await continueToViewfinder(tester);
-      await shootThroughProcessing(tester);
+      await shootBothPosesThroughProcessing(tester);
 
       expect(
         announcements,
         containsAllInOrder(<String>[
+          'Hold still — capturing in 3',
+          'Photo captured',
+          'Front photo captured — now turn your right side to the camera',
           'Hold still — capturing in 3',
           'Photo captured',
         ]),
@@ -211,7 +266,6 @@ void main() {
     testWidgets('the manual-entry escape stays available on the live '
         'viewfinder', (tester) async {
       await bootToCapture(tester);
-      await continueToViewfinder(tester);
 
       await tester.tap(find.text('Enter manually instead'));
       await tester.pumpAndSettle();
@@ -220,22 +274,93 @@ void main() {
     });
   });
 
-  group('QC failure surfacing (first-failure-only, codes 1:1)', () {
-    testWidgets('a failing frame renders exactly one QCHintChip with the '
-        'canonical guidance', (tester) async {
+  group('per-pose QC failure surfacing (first-failure-only, per pose)', () {
+    testWidgets('a failing FRONT frame renders exactly one QCHintChip and '
+        'retake re-enters Pose 1', (tester) async {
       await bootToCapture(
         tester,
-        camera: CameraServiceFake(sampleId: 'qc_no_body'),
+        camera: CameraServiceFake(frontSampleId: 'qc_no_body'),
       );
-      await continueToViewfinder(tester);
-      await shootThroughProcessing(tester);
+      await shootPose(tester);
+      await shootPose(tester);
+      await tester.pump(const Duration(milliseconds: 700));
+      await tester.pump();
 
       expect(find.byType(QCHintChip), findsOneWidget);
       expect(
         find.text('Make sure your whole body is visible'),
         findsOneWidget,
       );
-      expect(find.text('Retake'), findsOneWidget);
+      // The QC-fail bar is title-less — a retry never advances the pose
+      // counter (canvas 530:9017).
+      expect(find.text('Pose 1 of 2'), findsNothing);
+      expect(find.text('Pose 2 of 2'), findsNothing);
+
+      await tester.tap(find.text('Retake'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byType(QCHintChip), findsNothing);
+      expect(find.text('Pose 1 of 2'), findsOneWidget);
+      expect(find.text('Stand inside the outline'), findsOneWidget);
+    });
+
+    testWidgets('a failing SIDE frame surfaces not_side_profile and retake '
+        're-enters Pose 2 directly — pose 1 is never re-shot', (
+      tester,
+    ) async {
+      final camera = CameraServiceFake(sideSampleId: 'qc_not_side_profile');
+      await bootToCapture(tester, camera: camera);
+      await shootPose(tester);
+      await shootPose(tester);
+      await tester.pump(const Duration(milliseconds: 700));
+      await tester.pump();
+
+      expect(find.byType(QCHintChip), findsOneWidget);
+      expect(
+        find.text('Turn your right side to the camera'),
+        // The chip AND the side overlay hint carry the same canonical
+        // retake copy (flows/vault.md table, verbatim).
+        findsWidgets,
+      );
+
+      // Fix the side scenario, then retake: the flow re-enters Pose 2 —
+      // never Pose 1.
+      camera.sideSampleId = 'pass_side';
+      await tester.tap(find.text('Retake'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('Pose 2 of 2'), findsOneWidget);
+      expect(find.text('Pose 1 of 2'), findsNothing);
+
+      // One side shot later the session resolves — the kept front frame
+      // rides the resubmit.
+      await shootPose(tester);
+      await tester.pump(const Duration(milliseconds: 700));
+      await tester.pump();
+      expect(find.byType(CaptureResults), findsOneWidget);
+    });
+
+    testWidgets('the side arms_position failure carries the POSE-CONTEXTUAL '
+        'relaxed-arms copy', (tester) async {
+      await bootToCapture(
+        tester,
+        camera: CameraServiceFake(sideSampleId: 'qc_side_arms_position'),
+      );
+      await shootPose(tester);
+      await shootPose(tester);
+      await tester.pump(const Duration(milliseconds: 700));
+      await tester.pump();
+
+      expect(find.byType(QCHintChip), findsOneWidget);
+      expect(
+        find.text('Let your arms hang relaxed at your sides'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Keep arms slightly away from your body'),
+        findsNothing,
+      );
     });
 
     testWidgets('a multi-fault frame surfaces only the FIRST table failure', (
@@ -243,10 +368,12 @@ void main() {
     ) async {
       await bootToCapture(
         tester,
-        camera: CameraServiceFake(sampleId: 'multi_fault'),
+        camera: CameraServiceFake(frontSampleId: 'multi_fault'),
       );
-      await continueToViewfinder(tester);
-      await shootThroughProcessing(tester);
+      await shootPose(tester);
+      await shootPose(tester);
+      await tester.pump(const Duration(milliseconds: 700));
+      await tester.pump();
 
       // poor_lighting precedes blurry and too_far in the table.
       expect(find.byType(QCHintChip), findsOneWidget);
@@ -258,32 +385,15 @@ void main() {
       expect(find.text('Move closer — fill more of the frame'), findsNothing);
     });
 
-    testWidgets('retake after a QC fail returns to the viewfinder', (
-      tester,
-    ) async {
-      await bootToCapture(
-        tester,
-        camera: CameraServiceFake(sampleId: 'qc_blurry'),
-      );
-      await continueToViewfinder(tester);
-      await shootThroughProcessing(tester);
-      expect(find.text('Hold steady and retake'), findsOneWidget);
-
-      await tester.tap(find.text('Retake'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-
-      expect(find.byType(QCHintChip), findsNothing);
-      expect(find.text('Stand inside the outline'), findsOneWidget);
-    });
-
     testWidgets('the QC dead end offers the manual fallback', (tester) async {
       await bootToCapture(
         tester,
-        camera: CameraServiceFake(sampleId: 'qc_too_far'),
+        camera: CameraServiceFake(frontSampleId: 'qc_too_far'),
       );
-      await continueToViewfinder(tester);
-      await shootThroughProcessing(tester);
+      await shootPose(tester);
+      await shootPose(tester);
+      await tester.pump(const Duration(milliseconds: 700));
+      await tester.pump();
 
       await tester.tap(find.text('Enter manually instead'));
       await tester.pumpAndSettle();
@@ -300,7 +410,6 @@ void main() {
         tester,
         camera: CameraServiceFake(permissionDenied: true),
       );
-      await continueToViewfinder(tester);
       await tester.pumpAndSettle();
 
       expect(
@@ -318,33 +427,58 @@ void main() {
   });
 
   group('dev QC selector (the documented §10 dev seam)', () {
-    testWidgets('lists the sample catalog and swaps the fake camera '
-        'scenario', (tester) async {
+    testWidgets('lists both pose groups and swaps the fake camera scenario '
+        'per pose', (tester) async {
+      // Tall surface: both pose groups render without scrolling.
+      tester.view.physicalSize = const Size(390, 2200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
       final camera = CameraServiceFake();
       await bootToCapture(tester, camera: camera);
 
       await tester.tap(find.bySemanticsLabel('QC scenario'));
       await tester.pumpAndSettle();
+      expect(find.text('Pose 1 — front'), findsOneWidget);
+      expect(find.text('Pose 2 — side'), findsOneWidget);
       expect(find.text('Pass — frontal, well lit'), findsOneWidget);
 
       await tester.tap(find.text('QC fail — two bodies in frame'));
       await tester.pumpAndSettle();
-
-      expect(camera.sampleId, 'qc_multiple_bodies');
+      expect(camera.frontSampleId, 'qc_multiple_bodies');
+      expect(camera.sideSampleId, 'pass_side');
       expect(find.byType(CaptureScreen), findsOneWidget);
+
+      // The side group drives the SIDE pose's sample.
+      await tester.tap(find.bySemanticsLabel('QC scenario'));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.text('QC fail — arms not relaxed (clearance 8% > 5%)'),
+      );
+      await tester.pumpAndSettle();
+      expect(camera.sideSampleId, 'qc_side_arms_position');
+      expect(camera.frontSampleId, 'qc_multiple_bodies');
     });
   });
 
   testWidgets('keeps content clear of notch and status-bar top insets '
-      '(height step + immersive viewfinder)', (tester) async {
+      '(immersive viewfinder chrome)', (tester) async {
     applyNotchedView(tester);
     await bootToCapture(tester);
-    // Height step — the sub bar.
-    await expectContentClearOfTopInsets(tester);
-
     // Viewfinder — the immersive over-media bar: full-bleed is
     // intentional, but the chrome CONTENT must still clear the notch.
-    await continueToViewfinder(tester);
     await expectContentClearOfTopInsets(tester);
   });
+}
+
+/// Serves every dev seed EXCEPT the vault sessions — the no-height-on-file
+/// user (first capture ever): the catalog still resolves so QC scenarios
+/// evaluate by rule.
+class _NoVaultSeedBundle extends CachingAssetBundle {
+  @override
+  Future<ByteData> load(String key) {
+    if (key.endsWith('vault_sessions.json')) {
+      throw FlutterError('Unable to load asset: $key');
+    }
+    return rootBundle.load(key);
+  }
 }

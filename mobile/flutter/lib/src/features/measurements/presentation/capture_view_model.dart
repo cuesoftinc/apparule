@@ -2,13 +2,16 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:apparule/src/core/ui/countdown_ring.dart';
+import 'package:apparule/src/core/utils/capture_pose.dart';
 import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/features/measurements/data/camera_service.dart';
 import 'package:apparule/src/features/measurements/data/camera_service_fake.dart';
+import 'package:apparule/src/features/measurements/data/capture_sample_catalog.dart';
 import 'package:apparule/src/features/measurements/data/measurement_repository.dart';
+import 'package:apparule/src/features/measurements/domain/capture_photo.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_exception.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_session.dart';
-import 'package:apparule/src/features/measurements/presentation/vault_view_model.dart';
+import 'package:apparule/src/features/measurements/presentation/vault_actions.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -27,20 +30,22 @@ const double kMaxHeightCm = 230;
 /// phase 4).
 const Duration kCaptureAlignDelay = Duration(milliseconds: 1200);
 
-/// The C6 state machine (mobile-implementation.md §10): height → camera
-/// (countdown) → processing → results | qc-fail, with the
-/// permission-denied dead end resolving to manual entry.
-enum CaptureStep { height, camera, processing, qcFail, results, permission }
+/// The C6 state machine (mobile-implementation.md §10, M-10 two-pose):
+/// camera (front, Pose 1 of 2) → camera (side, Pose 2 of 2) → height
+/// (when not on file) → processing → results | qc-fail, with the
+/// permission-denied dead end resolving to manual entry. A QC retry
+/// re-enters the FAILING pose only — the counter never advances on
+/// retry, and an accepted pose is never discarded.
+enum CaptureStep { camera, height, processing, qcFail, results, permission }
 
 @freezed
 abstract class CaptureState with _$CaptureState {
   const factory CaptureState({
-    @Default(CaptureStep.height) CaptureStep step,
+    @Default(CaptureStep.camera) CaptureStep step,
 
-    /// Height is canonical cm; the unit is a display preference (MI-13).
-    double? heightCm,
-    @Default(MeasureUnit.cm) MeasureUnit unit,
-    @Default(false) bool heightInvalid,
+    /// The pose the viewfinder is capturing ("Pose 1 of 2"/"Pose 2 of 2"
+    /// over-media bar title, M-9).
+    @Default(CapturePose.front) CapturePose pose,
 
     /// The camera acquired and previewing.
     @Default(false) bool cameraReady,
@@ -48,23 +53,44 @@ abstract class CaptureState with _$CaptureState {
     /// Non-null while the 3-2-1 runs (MI-12).
     CountdownCount? countdown,
 
-    /// The captured frame — the processing constellation draws over it.
-    Uint8List? photoBytes,
+    /// Accepted frames — a pose-2 QC failure keeps [frontPhoto] (M-10:
+    /// an accepted pose is never discarded; the retake resubmits it
+    /// with the fresh side frame).
+    CapturePhoto? frontPhoto,
+    CapturePhoto? sidePhoto,
+
+    /// Height is canonical cm; the unit is a display preference (MI-13).
+    /// Pre-filled from the newest session — when on file, the height
+    /// step is skipped (flows/vault.md §1).
+    double? heightCm,
+    @Default(MeasureUnit.cm) MeasureUnit unit,
+    @Default(false) bool heightInvalid,
 
     /// The `pending_save` result (results step).
     MeasurementSession? session,
 
-    /// First-failure-only QC wire code (qc-fail step).
+    /// First-failure-only QC wire code + its failing pose (qc-fail step).
     String? qcFailCode,
+    CapturePose? qcFailPose,
     @Default(false) bool saving,
 
     /// Save landed — the screen routes to the vault (C7).
     @Default(false) bool saved,
   }) = _CaptureState;
+
+  const CaptureState._();
+
+  /// The frame the full-bleed processing/qc-fail surfaces draw: the
+  /// failing pose's photo on qc-fail, the front frame elsewhere.
+  Uint8List? get displayBytes => switch (step) {
+    CaptureStep.qcFail =>
+      (qcFailPose == CapturePose.side ? sidePhoto : frontPhoto)?.bytes,
+    _ => frontPhoto?.bytes,
+  };
 }
 
-/// C6's ViewModel (1:1 with `CaptureScreen`) — owns the capture session
-/// flow; navigation stays the View's job.
+/// C6's ViewModel (1:1 with `CaptureScreen`) — owns the two-pose capture
+/// session flow; navigation stays the View's job.
 @riverpod
 class CaptureViewModel extends _$CaptureViewModel {
   Timer? _alignTimer;
@@ -90,11 +116,27 @@ class CaptureViewModel extends _$CaptureViewModel {
       }
       unawaited(camera.release());
     });
-    // Microtask, not a direct call: once the seed asset is cached the
-    // repository resolves through SynchronousFutures, and the prefill
-    // would otherwise assign state while build() is still running.
-    unawaited(Future<void>.microtask(_prefillHeight));
+    // Microtask, not a direct call: the flow starts itself (the two-pose
+    // sequence opens on the front viewfinder), and assigning state while
+    // build() is still running is forbidden.
+    unawaited(Future<void>.microtask(_start));
     return const CaptureState();
+  }
+
+  /// Acquires the camera for Pose 1 and pre-fills the account height
+  /// (flows/vault.md §1: collected once, stored per account — when on
+  /// file the height step is skipped after Pose 2).
+  Future<void> _start() async {
+    unawaited(_prefillHeight());
+    try {
+      await ref.read(cameraServiceProvider).initialize();
+      if (!ref.mounted) return;
+      state = state.copyWith(cameraReady: true);
+      _armAutoCapture();
+    } on CameraPermissionDeniedException {
+      if (!ref.mounted) return;
+      state = state.copyWith(step: CaptureStep.permission);
+    }
   }
 
   Future<void> _prefillHeight() async {
@@ -114,27 +156,6 @@ class CaptureViewModel extends _$CaptureViewModel {
     state = state.copyWith(unit: unit);
   }
 
-  /// Validates the height step (100–230 cm hard gate — unlike manual
-  /// entry's advisory ranges, an implausible scale input breaks every
-  /// output) and acquires the camera.
-  Future<void> continueToCamera() async {
-    final height = state.heightCm;
-    if (height == null || height < kMinHeightCm || height > kMaxHeightCm) {
-      state = state.copyWith(heightInvalid: true);
-      return;
-    }
-    state = state.copyWith(step: CaptureStep.camera, heightInvalid: false);
-    try {
-      await ref.read(cameraServiceProvider).initialize();
-      if (!ref.mounted) return;
-      state = state.copyWith(cameraReady: true);
-      _armAutoCapture();
-    } on CameraPermissionDeniedException {
-      if (!ref.mounted) return;
-      state = state.copyWith(step: CaptureStep.permission);
-    }
-  }
-
   /// Arms the auto-capture: after the [kCaptureAlignDelay] searching
   /// beat the 3-2-1 starts on its own — no shutter exists (pages.md C6
   /// "silhouette overlay + countdown"; the canvas capture frames show no
@@ -144,7 +165,8 @@ class CaptureViewModel extends _$CaptureViewModel {
     _alignTimer = Timer(kCaptureAlignDelay, _startCountdown);
   }
 
-  /// Runs the 3-2-1 (MI-12), then captures and submits on completion.
+  /// Runs the 3-2-1 (MI-12), then captures the current pose on
+  /// completion.
   void _startCountdown() {
     if (state.countdown != null || state.step != CaptureStep.camera) return;
     state = state.copyWith(countdown: CountdownCount.three);
@@ -156,39 +178,99 @@ class CaptureViewModel extends _$CaptureViewModel {
           state = state.copyWith(countdown: CountdownCount.one);
         case CountdownCount.one || null:
           timer.cancel();
-          unawaited(_captureAndSubmit());
+          unawaited(_capturePose());
       }
     });
   }
 
-  Future<void> _captureAndSubmit() async {
-    final camera = ref.read(cameraServiceProvider);
-    final photo = await camera.takePhoto();
+  /// Captures the current pose's frame, then advances the sequence:
+  /// front → side (the counter's ONLY advance), side → height/submit.
+  Future<void> _capturePose() async {
+    final pose = state.pose;
+    final photo = await ref.read(cameraServiceProvider).takePhoto(pose: pose);
     if (!ref.mounted) return;
-    state = state.copyWith(
-      step: CaptureStep.processing,
-      countdown: null,
-      photoBytes: photo.bytes,
-    );
+    switch (pose) {
+      case CapturePose.front:
+        state = state.copyWith(
+          frontPhoto: photo,
+          countdown: null,
+          pose: CapturePose.side,
+        );
+        _armAutoCapture();
+      case CapturePose.side:
+        state = state.copyWith(sidePhoto: photo, countdown: null);
+        if (state.heightCm != null) {
+          await _submit();
+        } else {
+          // Height not on file — the §10 height step interposes before
+          // the one-request upload.
+          state = state.copyWith(step: CaptureStep.height);
+        }
+    }
+  }
+
+  /// Validates the height step (100–230 cm hard gate — unlike manual
+  /// entry's advisory ranges, an implausible scale input breaks every
+  /// output) and submits the session.
+  Future<void> continueFromHeight() async {
+    final height = state.heightCm;
+    if (height == null || height < kMinHeightCm || height > kMaxHeightCm) {
+      state = state.copyWith(heightInvalid: true);
+      return;
+    }
+    state = state.copyWith(heightInvalid: false);
+    await _submit();
+  }
+
+  /// One request carries both images + height (api.md `POST /measure`:
+  /// `image_front` + `image_side` + `user_height_cm`).
+  Future<void> _submit() async {
+    final front = state.frontPhoto;
+    final side = state.sidePhoto;
+    if (front == null || side == null) return;
+    state = state.copyWith(step: CaptureStep.processing);
     try {
       final session = await ref
           .read(measurementRepositoryProvider)
-          .submitCapture(photo: photo, userHeightCm: state.heightCm!);
+          .submitCapture(
+            front: front,
+            side: side,
+            userHeightCm: state.heightCm!,
+          );
       _pendingSessionId = session.id;
       if (!ref.mounted) return;
       state = state.copyWith(step: CaptureStep.results, session: session);
     } on CaptureQcException catch (error) {
       if (!ref.mounted) return;
-      // First failure only — the repository already reports exactly one
-      // code (capture-qc.md reporting rule).
-      state = state.copyWith(step: CaptureStep.qcFail, qcFailCode: error.code);
+      // Per-pose, first-failure-only — the repository already reports
+      // exactly one code naming the failing pose (capture-qc.md §2).
+      state = state.copyWith(
+        step: CaptureStep.qcFail,
+        qcFailCode: error.code,
+        qcFailPose: error.pose,
+      );
     }
   }
 
-  /// "Retake" (results quiet action / qc-fail primary): purges any
-  /// pending session immediately, returns to the viewfinder and re-arms
-  /// the auto-capture.
-  Future<void> retake() async {
+  /// QC-fail "Retake": re-enters the FAILING pose's camera only — the
+  /// pose counter never advances on retry, and the other pose's accepted
+  /// frame is kept (flows/vault.md §1).
+  void retakeFailedPose() {
+    final pose = state.qcFailPose ?? CapturePose.front;
+    state = state.copyWith(
+      step: CaptureStep.camera,
+      pose: pose,
+      frontPhoto: pose == CapturePose.front ? null : state.frontPhoto,
+      sidePhoto: pose == CapturePose.side ? null : state.sidePhoto,
+      qcFailCode: null,
+      qcFailPose: null,
+    );
+    _armAutoCapture();
+  }
+
+  /// Results "Retake" (quiet action): purges the pending session
+  /// immediately and restarts the whole two-pose sequence at Pose 1.
+  Future<void> retakeSession() async {
     if (state.session case final pending?) {
       await ref.read(measurementRepositoryProvider).discardSession(pending.id);
       _pendingSessionId = null;
@@ -196,33 +278,43 @@ class CaptureViewModel extends _$CaptureViewModel {
     if (!ref.mounted) return;
     state = state.copyWith(
       step: CaptureStep.camera,
-      photoBytes: null,
+      pose: CapturePose.front,
+      frontPhoto: null,
+      sidePhoto: null,
       session: null,
       qcFailCode: null,
+      qcFailPose: null,
     );
     _armAutoCapture();
   }
 
-  /// "Save to vault" — flips the pending session `complete`; the View
-  /// routes to C7 on [CaptureState.saved].
+  /// "Save to vault" — flips the pending session `complete` through the
+  /// VaultActions façade (its declared fan-out re-derives C7 AND the C9
+  /// header's MI-11 freshness ring, D16); the View routes to C7 on
+  /// [CaptureState.saved].
   Future<void> save() async {
     final session = state.session;
     if (session == null || state.saving) return;
     state = state.copyWith(saving: true);
-    await ref.read(measurementRepositoryProvider).saveSession(session.id);
+    await ref.read(vaultActionsProvider.notifier).saveSession(session.id);
     _sessionSaved = true;
-    // The vault list is stale now — rebuild C7 over the grown store.
-    ref.invalidate(vaultViewModelProvider);
     if (!ref.mounted) return;
     state = state.copyWith(saving: false, saved: true);
   }
 
   /// Dev-flavor QC selector (documented seam, mobile-implementation.md
-  /// §10): points the fake camera at a `capture_samples.json` scenario so
-  /// every capture-qc.md fail code is reproducible on demand. No-op over
-  /// the live camera.
-  void selectDevSample(String sampleId) {
+  /// §10): points the fake camera's [CaptureSample.pose] frame at a
+  /// `capture_samples.json` scenario so every capture-qc.md fail code —
+  /// both poses' tables — is reproducible on demand. No-op over the live
+  /// camera.
+  void selectDevSample(CaptureSample sample) {
     final camera = ref.read(cameraServiceProvider);
-    if (camera is CameraServiceFake) camera.sampleId = sampleId;
+    if (camera is! CameraServiceFake) return;
+    switch (sample.pose) {
+      case CapturePose.front:
+        camera.frontSampleId = sample.id;
+      case CapturePose.side:
+        camera.sideSampleId = sample.id;
+    }
   }
 }

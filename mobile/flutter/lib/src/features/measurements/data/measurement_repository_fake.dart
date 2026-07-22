@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:apparule/src/core/data/fail_next_seam.dart';
+import 'package:apparule/src/core/utils/capture_pose.dart';
 import 'package:apparule/src/features/measurements/data/capture_qc.dart';
 import 'package:apparule/src/features/measurements/data/capture_sample_catalog.dart';
 import 'package:apparule/src/features/measurements/data/measurement_repository.dart';
@@ -13,11 +14,12 @@ import 'package:flutter/services.dart';
 /// Seed-backed fake (mobile-implementation.md §6/§10): the vault reads
 /// `assets/seed/dev/vault_sessions.json` (the web mock seed's sessions,
 /// shape-identical), and the capture flow implements capture-qc.md
-/// HONESTLY — a submitted photo's sample scenario resolves to simulated
-/// pipeline metrics, the real §1/§2 threshold table runs over them in
-/// order (first-failure-only), passing frames get the §3
-/// `mediapipe_2d_v2` height-scale and §4 confidence formula. No verdict
-/// or value is hardcoded per scenario.
+/// HONESTLY — each submitted photo's sample scenario resolves to
+/// simulated pipeline metrics, the real §1/§2 threshold tables run over
+/// them in order **per pose** (front table first, side deltas second;
+/// first-failure-only within the failing pose, M-10), passing captures
+/// get the §3 `mediapipe_2d_v2` height-scale and §4 confidence formula.
+/// No verdict or value is hardcoded per scenario.
 class MeasurementRepositoryFake
     with FailNextSeam
     implements MeasurementRepository {
@@ -127,7 +129,8 @@ class MeasurementRepositoryFake
 
   @override
   Future<MeasurementSession> submitCapture({
-    required CapturePhoto photo,
+    required CapturePhoto front,
+    required CapturePhoto side,
     required double userHeightCm,
   }) async {
     maybeFailNext();
@@ -135,11 +138,25 @@ class MeasurementRepositoryFake
     final catalog = await _ensureCatalog();
     await Future<void>.delayed(processingDelay);
 
-    final metrics = catalog.metricsFor(photo.sampleId);
+    // Per-pose QC (capture-qc.md §2, M-10): the front table runs first,
+    // then the side deltas — each pose reports its OWN first failure,
+    // and a side failure leaves the accepted front frame undisturbed
+    // (the client resubmits the same `front` with a fresh `side`).
+    final metrics = catalog.metricsFor(front.sampleId);
     if (firstQcFailure(metrics) case final code?) {
-      throw CaptureQcException(code);
+      throw CaptureQcException(code, pose: CapturePose.front);
+    }
+    final sideMetrics = catalog.metricsFor(
+      side.sampleId,
+      pose: CapturePose.side,
+    );
+    if (firstQcFailure(sideMetrics, pose: CapturePose.side) case final code?) {
+      throw CaptureQcException(code, pose: CapturePose.side);
     }
 
+    // The front image alone owns the height scale (capture-qc.md §3 —
+    // the nose→ankle axis is most stable in the frontal view); two-view
+    // girth estimation lands with the backend recalibration directive.
     final scale = scaleFactor(userHeightCm, metrics.bodyHeightPx);
     double confidenceFor(String name) => measurementConfidence(
       // Landmarks a sample doesn't score default to a solid-visibility
@@ -225,5 +242,29 @@ class MeasurementRepositoryFake
     maybeFailNext();
     final vault = await _ensureVault();
     vault.removeWhere((session) => session.id == sessionId);
+  }
+
+  @override
+  Future<String> exportSessionCsv(String sessionId) async {
+    maybeFailNext();
+    final vault = await _ensureVault();
+    final session = vault.firstWhere(
+      (session) => session.id == sessionId,
+      orElse: () => throw StateError('No session $sessionId to export'),
+    );
+    // The F2-9 export shape: one row per measurement, confidence blank
+    // for manual rows (capture-qc.md §4 — human truth isn't scored).
+    final buffer = StringBuffer(
+      'name,value_cm,confidence,method,measured_at\n',
+    );
+    for (final measurement in session.measurements) {
+      final confidence = measurement.confidence?.toStringAsFixed(2) ?? '';
+      buffer.writeln(
+        '${measurement.name},${measurement.valueCm.toStringAsFixed(1)},'
+        '$confidence,${session.method},'
+        '${session.createdAt.toIso8601String()}',
+      );
+    }
+    return buffer.toString();
   }
 }

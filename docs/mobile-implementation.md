@@ -473,10 +473,14 @@ the audit ledger's disposition, carried verbatim; the migration order (§1
 phase 1–3 mapping) executes it in the stated sequence.
 
 **KEEP** — `countdown.dart` (clean `AnimatedWidget`, reused as the C6 3-2-1
-countdown); guide artwork `guide1`/`guide3`/`guide4`/`guide5` + `step2` +
-logo; the l10n pipeline (`l10n.yaml` + `.arb` workflow, re-keyed en-only);
-the iOS shell (patched, not replaced — freshest piece of the legacy tree:
-modern `AppDelegate`/`SceneDelegate`, bundle `io.cuesoft.apparule`).
+countdown); the logo asset; the l10n pipeline (`l10n.yaml` + `.arb`
+workflow, re-keyed en-only); the iOS shell (patched, not replaced —
+freshest piece of the legacy tree: modern `AppDelegate`/`SceneDelegate`,
+bundle `io.cuesoft.apparule`). The guide artwork
+(`guide1`/`guide3`/`guide4`/`guide5` + `step2`) was initially kept, then
+**deleted 2026-07-22** when the canvas-first GuidePage rebuild (M-8/M-10,
+Figma 526:33) replaced the 2023 photo art with token-bound CustomPaint
+vectors.
 
 **REWRITE** — `main.dart` (the boot idea is kept; the static
 `ValueNotifier`/locale plumbing and `didChangePlatformBrightness` override
@@ -508,8 +512,8 @@ user removal go, directive 2026-07-22) and the entire quarantine — the
 register below, verbatim — was **deleted**, along with its
 analysis/codegen/CI excludes. The two salvages had already left the
 tree live: `countdown.dart` (now `src/core/ui/countdown.dart`) and the
-promoted guide artwork in `assets/images/` (owned by the C6 guide's
-canvas-first rebuild lane). The removed register:
+promoted guide artwork in `assets/images/` (since deleted by the C6
+guide's canvas-first rebuild — see KEEP). The removed register:
 `welcome_screen.dart` (no-op icons, superseded by the C1 flow); all 9
 files under `lib/src/features/auth/` plus `form_provider`
 (password/phone/OTP auth — X-1 violation, CV-1; retired **by name** per

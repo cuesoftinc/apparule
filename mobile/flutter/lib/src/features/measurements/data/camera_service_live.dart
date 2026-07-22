@@ -1,3 +1,4 @@
+import 'package:apparule/src/core/utils/capture_pose.dart';
 import 'package:apparule/src/features/measurements/data/camera_service.dart';
 import 'package:apparule/src/features/measurements/domain/capture_photo.dart';
 import 'package:camera/camera.dart';
@@ -46,7 +47,8 @@ class CameraServiceLive implements CameraService {
   }
 
   @override
-  Widget buildPreview() {
+  Widget buildPreview({CapturePose pose = CapturePose.front}) {
+    // One lens sees both poses — the pose axis matters to the fake only.
     final controller = _controller;
     if (controller == null || !controller.value.isInitialized) {
       return const SizedBox.shrink();
@@ -55,7 +57,7 @@ class CameraServiceLive implements CameraService {
   }
 
   @override
-  Future<CapturePhoto> takePhoto() async {
+  Future<CapturePhoto> takePhoto({CapturePose pose = CapturePose.front}) async {
     final controller = _controller;
     if (controller == null) {
       throw StateError('takePhoto() before initialize()');

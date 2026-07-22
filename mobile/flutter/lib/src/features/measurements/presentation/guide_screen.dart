@@ -4,22 +4,24 @@ import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/app_bar.dart';
 import 'package:apparule/src/core/ui/button.dart';
+import 'package:apparule/src/core/ui/guide_page.dart';
 import 'package:apparule/src/features/measurements/data/capture_guide_flag.dart';
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-/// One guide page's content — the §11 REWRITE collapses the legacy's five
-/// copy-pasted page classes into this record + ONE parameterized widget.
-typedef _GuidePageData = ({String image, String title, List<String> bullets});
+/// One guide step's copy — title + bullets from the ARB (re-keyed to the
+/// canvas strings, the canon) over the GuidePage set's `step` axis.
+typedef _GuideStepData = ({GuideStep step, String title, List<String> bullets});
 
-/// C6's instructional guide (mobile-implementation.md §10/§11): the
-/// salvaged legacy copy and artwork, rebuilt as a single-pose flow — the
-/// legacy's fifth side-pose page is the two-pose divergence the audit
-/// retired, not canon. First entry pages through all steps; once
-/// completed (persisted flag) the ➕ entry skips straight to capture and
-/// re-entered guides grow a Skip.
+/// C6's instructional guide (mobile-implementation.md §10; M-8/M-10
+/// canvas-first frames 529:2441/2477/8935/8975 + 540:9172): five
+/// GuidePage steps — intro · get ready · phone setup · front pose · side
+/// pose — through ONE parameterized widget, replacing the 2023 navy
+/// photo art with token-bound Capture Kit vectors. First entry pages
+/// through all steps; once completed (persisted flag) the ➕ entry skips
+/// straight to capture and re-entered guides grow a Skip (529:9015).
 class CaptureGuideScreen extends ConsumerStatefulWidget {
   const CaptureGuideScreen({super.key});
 
@@ -37,30 +39,40 @@ class _CaptureGuideScreenState extends ConsumerState<CaptureGuideScreen> {
     super.dispose();
   }
 
-  /// The four salvaged steps (KEEP artwork guide1/step2/guide3/guide4,
-  /// §11) — frontal pose only.
-  List<_GuidePageData> _pages(BuildContext context) {
+  /// The five canvas steps (GuidePage set 526:33, pose split 2026-07-22).
+  List<_GuideStepData> _steps(BuildContext context) {
     final l10n = context.l10n;
-    return <_GuidePageData>[
+    return <_GuideStepData>[
       (
-        image: 'assets/images/guide1.png',
+        step: GuideStep.intro,
         title: l10n.guideStep1Title,
         bullets: <String>[l10n.guideStep1Body1],
       ),
       (
-        image: 'assets/images/step2.jpg',
+        step: GuideStep.ready,
         title: l10n.guideStep2Title,
         bullets: <String>[l10n.guideStep2Body1, l10n.guideStep2Body2],
       ),
       (
-        image: 'assets/images/guide3.png',
+        step: GuideStep.setup,
         title: l10n.guideStep3Title,
-        bullets: <String>[l10n.guideStep3Body1, l10n.guideStep3Body2],
+        bullets: <String>[
+          l10n.guideStep3Body1,
+          l10n.guideStep3Body2,
+          // The lighting bullet — NEW canvas copy teaching the
+          // poor_lighting/blurry QC checks up front.
+          l10n.guideStep3Body3,
+        ],
       ),
       (
-        image: 'assets/images/guide4.png',
+        step: GuideStep.poseFront,
         title: l10n.guideStep4Title,
         bullets: <String>[l10n.guideStep4Body1, l10n.guideStep4Body2],
+      ),
+      (
+        step: GuideStep.poseSide,
+        title: l10n.guideStep5Title,
+        bullets: <String>[l10n.guideStep5Body1, l10n.guideStep5Body2],
       ),
     ];
   }
@@ -78,9 +90,9 @@ class _CaptureGuideScreenState extends ConsumerState<CaptureGuideScreen> {
     final colors = theme.extension<AppColors>()!;
     final motion = theme.extension<AppMotion>()!;
 
-    final pages = _pages(context);
-    final lastPage = _currentIndex == pages.length - 1;
-    // Skippable only after the first completion (§10 persisted flag).
+    final steps = _steps(context);
+    final lastPage = _currentIndex == steps.length - 1;
+    // Skippable only on a REVISIT (529:9015 — persisted-flag re-entry).
     final seenBefore = ref.watch(captureGuideFlagProvider).value ?? false;
 
     return Scaffold(
@@ -98,6 +110,7 @@ class _CaptureGuideScreenState extends ConsumerState<CaptureGuideScreen> {
             ? Button(
                 label: l10n.guideSkip,
                 kind: ButtonKind.link,
+                size: ButtonSize.sm,
                 onPressed: _finish,
               )
             : null,
@@ -108,9 +121,19 @@ class _CaptureGuideScreenState extends ConsumerState<CaptureGuideScreen> {
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
-                itemCount: pages.length,
+                itemCount: steps.length,
                 onPageChanged: (index) => setState(() => _currentIndex = index),
-                itemBuilder: (context, index) => _GuidePage(page: pages[index]),
+                itemBuilder: (context, index) {
+                  final step = steps[index];
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: GuidePage(
+                      step: step.step,
+                      title: step.title,
+                      bullets: step.bullets,
+                    ),
+                  );
+                },
               ),
             ),
             Padding(
@@ -120,14 +143,14 @@ class _CaptureGuideScreenState extends ConsumerState<CaptureGuideScreen> {
                   Semantics(
                     label: l10n.guidePageLabel(
                       _currentIndex + 1,
-                      pages.length,
+                      steps.length,
                     ),
                     // The dots are presentational; the label carries the
                     // position.
                     excludeSemantics: true,
                     child: Row(
                       children: <Widget>[
-                        for (var i = 0; i < pages.length; i++)
+                        for (var i = 0; i < steps.length; i++)
                           Container(
                             width: 6,
                             height: 6,
@@ -159,55 +182,6 @@ class _CaptureGuideScreenState extends ConsumerState<CaptureGuideScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// THE parameterized guide page — image, title, bullet copy; replaces the
-/// legacy `Page1..Page5` clones (audit CV finding; §11 REWRITE).
-class _GuidePage extends StatelessWidget {
-  const _GuidePage({required this.page});
-
-  final _GuidePageData page;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.extension<AppColors>()!;
-    final radii = theme.extension<AppRadii>()!;
-    final typography = theme.extension<AppTypography>()!;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          ClipRRect(
-            borderRadius: BorderRadius.circular(radii.card),
-            child: AspectRatio(
-              aspectRatio: 4 / 3,
-              child: ColoredBox(
-                color: colors.bgElev,
-                child: Image.asset(page.image, fit: BoxFit.contain),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            page.title,
-            style: typography.title20SemiBold.copyWith(color: colors.text),
-          ),
-          const SizedBox(height: 12),
-          for (final bullet in page.bullets)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text(
-                bullet,
-                style: typography.body14.copyWith(color: colors.text2),
-              ),
-            ),
-        ],
       ),
     );
   }

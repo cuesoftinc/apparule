@@ -1,12 +1,17 @@
 /// The capture-qc.md contract, executable: the §1 image pre-checks and §2
-/// pose-QC table in their exact order, the §3 height-scale correction,
-/// and the §4 per-measurement confidence formula. This is what makes the
-/// fake HONEST — `MeasurementRepositoryFake` runs these rules over a
-/// sample frame's simulated pipeline metrics instead of hardcoding
-/// verdicts, so first-failure ordering, thresholds, and confidence values
-/// all behave exactly as the served pipeline will (`app/config.py ::
-/// QCThresholds` is the server twin of [QcThresholds]).
+/// **per-pose** QC tables in their exact order (M-10: the front pose
+/// keeps the frontality table; the side pose swaps in the
+/// profile-orientation and arms-relaxed rows), the §3 height-scale
+/// correction, and the §4 per-measurement confidence formula. This is
+/// what makes the fake HONEST — `MeasurementRepositoryFake` runs these
+/// rules over a sample frame's simulated pipeline metrics instead of
+/// hardcoding verdicts, so first-failure ordering, thresholds, and
+/// confidence values all behave exactly as the served pipeline will
+/// (`app/config.py :: QCThresholds` is the server twin of
+/// [QcThresholds]).
 library;
+
+import 'package:apparule/src/core/utils/capture_pose.dart';
 
 /// The §5 config block, client-side: every §1/§2 threshold as a tuneable
 /// constant in ONE place — never scattered magic numbers.
@@ -110,6 +115,18 @@ class CaptureFrameMetrics {
     },
   });
 
+  /// The SIDE pose's passing defaults: the orientation and arms rows
+  /// invert on the side table (capture-qc.md §2 deltas), so a frame that
+  /// passes the front table is exactly what `not_side_profile` rejects —
+  /// unknown/live side frames must evaluate against a side-on subject
+  /// (stacked shoulders in depth, foreshortened width, arms hanging).
+  const CaptureFrameMetrics.passingSide()
+    : this(
+        shoulderHipRatio: 0.72,
+        shoulderZDelta: 0.28,
+        wristHipClearancePct: 2,
+      );
+
   /// Parses a `capture_samples.json` metrics override block — absent
   /// fields keep the passing-frame defaults.
   factory CaptureFrameMetrics.fromJson(Map<String, dynamic> json) {
@@ -173,35 +190,60 @@ class CaptureFrameMetrics {
   final Map<String, double> landmarkVisibility;
 }
 
-/// Runs the §1 pre-checks then the §2 pose table IN ORDER and returns the
-/// first failing wire code, or `null` on pass. Multiple failures report
-/// the first by table order — one actionable instruction beats a list
-/// (the doc's own reporting rule; surfaced first-failure-only in C6).
+/// Runs the §1 pre-checks then the §2 table **for [pose]** IN ORDER and
+/// returns the first failing wire code, or `null` on pass. Multiple
+/// failures report the first by table order — one actionable instruction
+/// beats a list (the doc's own reporting rule; surfaced
+/// first-failure-only **per pose** in C6). The side pose (M-10) runs the
+/// same pre-checks and body rows, swapping exactly two rows in place:
+/// frontality → profile orientation (`not_side_profile`), arms clearance
+/// → arms relaxed (`arms_position`, side copy).
 String? firstQcFailure(
   CaptureFrameMetrics m, {
+  CapturePose pose = CapturePose.front,
   QcThresholds thresholds = const QcThresholds(),
 }) {
   final t = thresholds;
-  // §1 image pre-checks (before pose detection).
+  // §1 image pre-checks (before pose detection) — per image, both poses.
   if (!m.decodable) return 'undecodable_image';
   if (m.shortEdgePx < t.minShortEdgePx) return 'low_resolution';
   if (m.meanLuma < t.minMeanLuma || m.meanLuma > t.maxMeanLuma) {
     return 'poor_lighting';
   }
   if (m.laplacianVariance < t.minLaplacianVariance) return 'blurry';
-  // §2 pose QC (after detection).
+  // §2 pose QC (after detection) — the shared body rows.
   if (m.posesDetected < 1) return 'no_body';
   if (m.posesDetected > 1) return 'multiple_bodies';
   if (m.minKeyVisibility < t.minKeyVisibility) return 'partial_body';
   if (m.minLandmarkMarginPct < t.minLandmarkMarginPct) return 'partial_body';
-  if (m.shoulderHipRatio < t.minShoulderHipRatio ||
-      m.shoulderHipRatio > t.maxShoulderHipRatio ||
-      m.shoulderZDelta > t.maxShoulderZDelta) {
-    return 'not_frontal';
+  // Orientation row — frontality (front) / profile orientation (side,
+  // the frontality rule inverted: near/far shoulder depth separation AND
+  // foreshortened shoulders).
+  switch (pose) {
+    case CapturePose.front:
+      if (m.shoulderHipRatio < t.minShoulderHipRatio ||
+          m.shoulderHipRatio > t.maxShoulderHipRatio ||
+          m.shoulderZDelta > t.maxShoulderZDelta) {
+        return 'not_frontal';
+      }
+    case CapturePose.side:
+      if (m.shoulderZDelta < t.maxShoulderZDelta ||
+          m.shoulderHipRatio >= t.minShoulderHipRatio) {
+        return 'not_side_profile';
+      }
   }
   if (m.tiltDegrees.abs() > t.maxTiltDegrees) return 'camera_tilt';
-  if (m.wristHipClearancePct < t.minWristHipClearancePct) {
-    return 'arms_position';
+  // Arms row — clearance (front: wrists ≥ 5% away) / relaxed (side:
+  // wrists within 5%, hanging at the sides); same position in the table.
+  switch (pose) {
+    case CapturePose.front:
+      if (m.wristHipClearancePct < t.minWristHipClearancePct) {
+        return 'arms_position';
+      }
+    case CapturePose.side:
+      if (m.wristHipClearancePct > t.minWristHipClearancePct) {
+        return 'arms_position';
+      }
   }
   if (m.bodyHeightFraction < t.minBodyHeightFraction) return 'too_far';
   return null;

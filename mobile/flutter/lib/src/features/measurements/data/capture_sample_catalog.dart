@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:apparule/src/core/utils/capture_pose.dart';
 import 'package:apparule/src/features/measurements/data/capture_qc.dart';
 import 'package:flutter/services.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -7,11 +8,15 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'capture_sample_catalog.g.dart';
 
 /// One fake-camera scenario (`capture_samples.json`): the bundled frame
-/// plus the simulated pipeline metrics the QC table evaluates.
+/// plus the simulated pipeline metrics the QC table evaluates. [pose]
+/// names which pose's table the scenario targets (M-10 per-pose QC) —
+/// the dev selector lists front scenarios for Pose 1 and side scenarios
+/// for Pose 2.
 class CaptureSample {
   const CaptureSample({
     required this.id,
     required this.label,
+    required this.pose,
     required this.metrics,
   });
 
@@ -20,14 +25,17 @@ class CaptureSample {
   /// Human label for the dev-flavor QC selector.
   final String label;
 
+  /// Which pose's QC table this scenario exercises.
+  final CapturePose pose;
+
   final CaptureFrameMetrics metrics;
 }
 
 /// The dev seam's sample-frame catalog: a seeded happy path plus every
-/// capture-qc.md fail code, each reproducible by rule (the fake runs the
-/// real threshold table over [CaptureSample.metrics], mobile-
-/// implementation.md §10). Loaded from `assets/seed/dev/`, so it ships in
-/// dev bundles only.
+/// capture-qc.md fail code **per pose**, each reproducible by rule (the
+/// fake runs the real per-pose threshold tables over
+/// [CaptureSample.metrics], mobile-implementation.md §10). Loaded from
+/// `assets/seed/dev/`, so it ships in dev bundles only.
 class CaptureSampleCatalog {
   const CaptureSampleCatalog({required this.imageAsset, required this.samples});
 
@@ -46,6 +54,9 @@ class CaptureSampleCatalog {
           CaptureSample(
             id: (entry as Map<String, dynamic>)['id'] as String,
             label: entry['label'] as String,
+            pose: CapturePose.fromWireName(
+              entry['pose'] as String? ?? 'front',
+            ),
             metrics: CaptureFrameMetrics.fromJson(
               entry['metrics'] as Map<String, dynamic>,
             ),
@@ -54,19 +65,33 @@ class CaptureSampleCatalog {
     );
   }
 
-  /// The bundled sample frontal frame (all scenarios share it — what
-  /// varies is the simulated analysis).
+  /// The bundled sample frontal frame (all front scenarios share it —
+  /// what varies is the simulated analysis; side scenarios capture the
+  /// neutral dark side frame).
   final String imageAsset;
 
   final List<CaptureSample> samples;
 
+  /// The dev selector's per-pose scenario group.
+  List<CaptureSample> samplesFor(CapturePose pose) => <CaptureSample>[
+    for (final sample in samples)
+      if (sample.pose == pose) sample,
+  ];
+
   /// Metrics for a captured photo's `sampleId`; unknown/`null` ids (live
-  /// camera) evaluate as the passing defaults.
-  CaptureFrameMetrics metricsFor(String? sampleId) {
+  /// camera) evaluate as [pose]'s passing defaults — the side table
+  /// inverts the orientation/arms rows, so its defaults must describe a
+  /// side-on subject (capture-qc.md §2 deltas).
+  CaptureFrameMetrics metricsFor(
+    String? sampleId, {
+    CapturePose pose = CapturePose.front,
+  }) {
     for (final sample in samples) {
       if (sample.id == sampleId) return sample.metrics;
     }
-    return const CaptureFrameMetrics();
+    return pose == CapturePose.front
+        ? const CaptureFrameMetrics()
+        : const CaptureFrameMetrics.passingSide();
   }
 }
 

@@ -8,21 +8,24 @@ part of 'vault_view_model.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// C7's ViewModel — the saved sessions, newest first (the capture and
-/// manual-entry flows invalidate this after a save so the vault lists
-/// the new session on arrival).
+/// C7's ViewModel — the saved sessions, newest first. Read-only: every
+/// vault MUTATION routes through the `VaultActions` façade (the audit's
+/// CLASS 1 lock), whose declared fan-out re-derives this provider and
+/// the C9 freshness ring together.
 
 @ProviderFor(VaultViewModel)
 final vaultViewModelProvider = VaultViewModelProvider._();
 
-/// C7's ViewModel — the saved sessions, newest first (the capture and
-/// manual-entry flows invalidate this after a save so the vault lists
-/// the new session on arrival).
+/// C7's ViewModel — the saved sessions, newest first. Read-only: every
+/// vault MUTATION routes through the `VaultActions` façade (the audit's
+/// CLASS 1 lock), whose declared fan-out re-derives this provider and
+/// the C9 freshness ring together.
 final class VaultViewModelProvider
     extends $AsyncNotifierProvider<VaultViewModel, List<MeasurementSession>> {
-  /// C7's ViewModel — the saved sessions, newest first (the capture and
-  /// manual-entry flows invalidate this after a save so the vault lists
-  /// the new session on arrival).
+  /// C7's ViewModel — the saved sessions, newest first. Read-only: every
+  /// vault MUTATION routes through the `VaultActions` façade (the audit's
+  /// CLASS 1 lock), whose declared fan-out re-derives this provider and
+  /// the C9 freshness ring together.
   VaultViewModelProvider._()
     : super(
         from: null,
@@ -42,11 +45,12 @@ final class VaultViewModelProvider
   VaultViewModel create() => VaultViewModel();
 }
 
-String _$vaultViewModelHash() => r'dc855ab90f2522124706bc10cf82ae07dda037dc';
+String _$vaultViewModelHash() => r'421bc085c70f775d30271a22866ca43970613266';
 
-/// C7's ViewModel — the saved sessions, newest first (the capture and
-/// manual-entry flows invalidate this after a save so the vault lists
-/// the new session on arrival).
+/// C7's ViewModel — the saved sessions, newest first. Read-only: every
+/// vault MUTATION routes through the `VaultActions` façade (the audit's
+/// CLASS 1 lock), whose declared fan-out re-derives this provider and
+/// the C9 freshness ring together.
 
 abstract class _$VaultViewModel
     extends $AsyncNotifier<List<MeasurementSession>> {

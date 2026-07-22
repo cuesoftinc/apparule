@@ -51,7 +51,7 @@ final class ManualEntryViewModelProvider
 }
 
 String _$manualEntryViewModelHash() =>
-    r'9f5fa84ff7ebf40f66c9ed57a1452e36a46839ff';
+    r'd4d037fcec05f4f054628b53a2bf39e067314951';
 
 /// MI-13 manual entry (1:1 with `ManualEntryScreen`) — the C6 fallback
 /// path for QC that never clears or a denied camera; saves a

@@ -4,22 +4,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'vault_view_model.g.dart';
 
-/// C7's ViewModel — the saved sessions, newest first (the capture and
-/// manual-entry flows invalidate this after a save so the vault lists
-/// the new session on arrival).
+/// C7's ViewModel — the saved sessions, newest first. Read-only: every
+/// vault MUTATION routes through the `VaultActions` façade (the audit's
+/// CLASS 1 lock), whose declared fan-out re-derives this provider and
+/// the C9 freshness ring together.
 @riverpod
 class VaultViewModel extends _$VaultViewModel {
   @override
   Future<List<MeasurementSession>> build() =>
       ref.watch(measurementRepositoryProvider).vaultSessions();
-
-  /// The C7 history sheet's per-session delete (pages.md C7 = B4) —
-  /// removes the session, then re-derives the vault list in place.
-  Future<void> deleteSession(String sessionId) async {
-    await ref.read(measurementRepositoryProvider).deleteSession(sessionId);
-    final sessions = await ref
-        .read(measurementRepositoryProvider)
-        .vaultSessions();
-    state = AsyncData<List<MeasurementSession>>(sessions);
-  }
 }

@@ -8,18 +8,18 @@ part of 'capture_view_model.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// C6's ViewModel (1:1 with `CaptureScreen`) — owns the capture session
-/// flow; navigation stays the View's job.
+/// C6's ViewModel (1:1 with `CaptureScreen`) — owns the two-pose capture
+/// session flow; navigation stays the View's job.
 
 @ProviderFor(CaptureViewModel)
 final captureViewModelProvider = CaptureViewModelProvider._();
 
-/// C6's ViewModel (1:1 with `CaptureScreen`) — owns the capture session
-/// flow; navigation stays the View's job.
+/// C6's ViewModel (1:1 with `CaptureScreen`) — owns the two-pose capture
+/// session flow; navigation stays the View's job.
 final class CaptureViewModelProvider
     extends $NotifierProvider<CaptureViewModel, CaptureState> {
-  /// C6's ViewModel (1:1 with `CaptureScreen`) — owns the capture session
-  /// flow; navigation stays the View's job.
+  /// C6's ViewModel (1:1 with `CaptureScreen`) — owns the two-pose capture
+  /// session flow; navigation stays the View's job.
   CaptureViewModelProvider._()
     : super(
         from: null,
@@ -47,10 +47,10 @@ final class CaptureViewModelProvider
   }
 }
 
-String _$captureViewModelHash() => r'5e68c21a85c52ff5d07af8eb8bd1b9b7ddd44881';
+String _$captureViewModelHash() => r'8ef782e7df810f67124e92fcd52a36f2bb6c1bf1';
 
-/// C6's ViewModel (1:1 with `CaptureScreen`) — owns the capture session
-/// flow; navigation stays the View's job.
+/// C6's ViewModel (1:1 with `CaptureScreen`) — owns the two-pose capture
+/// session flow; navigation stays the View's job.
 
 abstract class _$CaptureViewModel extends $Notifier<CaptureState> {
   CaptureState build();

@@ -5,8 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../helpers/golden_themes.dart';
 import '../../helpers/screen_frame.dart';
 
-/// C6 guide (§10/§11 salvage) — the first single-pose step through the
-/// one parameterized page widget, both themes.
+/// C6 guide (M-8/M-10 canvas-first rebuild, 529:2441) — the intro step
+/// through the one parameterized GuidePage, both themes; the per-step
+/// illustration matrix lives in the GuidePage component suite.
 void main() {
   // The guide watches the persisted first-completion flag; goldens run
   // outside test/, so the analyzer can't see this is still a test.

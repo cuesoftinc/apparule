@@ -3,12 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// The Figma `CaptureOptionCard` set's `mode` axis (66:721) — canonical
-/// copy rides the enum (the Figma masters carry it).
+/// copy rides the enum (the Figma masters carry it). `photo-upload` was
+/// renamed from `webcam-upload` in the M-12 webcam purge (web capture is
+/// upload-only; mobile keeps the live guided camera — "Use your camera"
+/// is the mobile C7 string, web B4 instances override to upload
+/// phrasing); the subtitle carries the two-photo canon (M-10).
 enum CaptureOptionMode {
-  webcamUpload(
+  photoUpload(
     LucideIcons.camera,
     'Use your camera',
-    'Full-body photo, we measure automatically',
+    'Two photos — we measure automatically',
   ),
   manualEntry(
     LucideIcons.pencilRuler,

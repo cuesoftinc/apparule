@@ -14,13 +14,19 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CaptureState {
 
- CaptureStep get step;/// Height is canonical cm; the unit is a display preference (MI-13).
- double? get heightCm; MeasureUnit get unit; bool get heightInvalid;/// The camera acquired and previewing.
+ CaptureStep get step;/// The pose the viewfinder is capturing ("Pose 1 of 2"/"Pose 2 of 2"
+/// over-media bar title, M-9).
+ CapturePose get pose;/// The camera acquired and previewing.
  bool get cameraReady;/// Non-null while the 3-2-1 runs (MI-12).
- CountdownCount? get countdown;/// The captured frame — the processing constellation draws over it.
- Uint8List? get photoBytes;/// The `pending_save` result (results step).
- MeasurementSession? get session;/// First-failure-only QC wire code (qc-fail step).
- String? get qcFailCode; bool get saving;/// Save landed — the screen routes to the vault (C7).
+ CountdownCount? get countdown;/// Accepted frames — a pose-2 QC failure keeps [frontPhoto] (M-10:
+/// an accepted pose is never discarded; the retake resubmits it
+/// with the fresh side frame).
+ CapturePhoto? get frontPhoto; CapturePhoto? get sidePhoto;/// Height is canonical cm; the unit is a display preference (MI-13).
+/// Pre-filled from the newest session — when on file, the height
+/// step is skipped (flows/vault.md §1).
+ double? get heightCm; MeasureUnit get unit; bool get heightInvalid;/// The `pending_save` result (results step).
+ MeasurementSession? get session;/// First-failure-only QC wire code + its failing pose (qc-fail step).
+ String? get qcFailCode; CapturePose? get qcFailPose; bool get saving;/// Save landed — the screen routes to the vault (C7).
  bool get saved;
 /// Create a copy of CaptureState
 /// with the given fields replaced by the non-null parameter values.
@@ -32,16 +38,16 @@ $CaptureStateCopyWith<CaptureState> get copyWith => _$CaptureStateCopyWithImpl<C
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CaptureState&&(identical(other.step, step) || other.step == step)&&(identical(other.heightCm, heightCm) || other.heightCm == heightCm)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.heightInvalid, heightInvalid) || other.heightInvalid == heightInvalid)&&(identical(other.cameraReady, cameraReady) || other.cameraReady == cameraReady)&&(identical(other.countdown, countdown) || other.countdown == countdown)&&const DeepCollectionEquality().equals(other.photoBytes, photoBytes)&&(identical(other.session, session) || other.session == session)&&(identical(other.qcFailCode, qcFailCode) || other.qcFailCode == qcFailCode)&&(identical(other.saving, saving) || other.saving == saving)&&(identical(other.saved, saved) || other.saved == saved));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CaptureState&&(identical(other.step, step) || other.step == step)&&(identical(other.pose, pose) || other.pose == pose)&&(identical(other.cameraReady, cameraReady) || other.cameraReady == cameraReady)&&(identical(other.countdown, countdown) || other.countdown == countdown)&&(identical(other.frontPhoto, frontPhoto) || other.frontPhoto == frontPhoto)&&(identical(other.sidePhoto, sidePhoto) || other.sidePhoto == sidePhoto)&&(identical(other.heightCm, heightCm) || other.heightCm == heightCm)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.heightInvalid, heightInvalid) || other.heightInvalid == heightInvalid)&&(identical(other.session, session) || other.session == session)&&(identical(other.qcFailCode, qcFailCode) || other.qcFailCode == qcFailCode)&&(identical(other.qcFailPose, qcFailPose) || other.qcFailPose == qcFailPose)&&(identical(other.saving, saving) || other.saving == saving)&&(identical(other.saved, saved) || other.saved == saved));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,step,heightCm,unit,heightInvalid,cameraReady,countdown,const DeepCollectionEquality().hash(photoBytes),session,qcFailCode,saving,saved);
+int get hashCode => Object.hash(runtimeType,step,pose,cameraReady,countdown,frontPhoto,sidePhoto,heightCm,unit,heightInvalid,session,qcFailCode,qcFailPose,saving,saved);
 
 @override
 String toString() {
-  return 'CaptureState(step: $step, heightCm: $heightCm, unit: $unit, heightInvalid: $heightInvalid, cameraReady: $cameraReady, countdown: $countdown, photoBytes: $photoBytes, session: $session, qcFailCode: $qcFailCode, saving: $saving, saved: $saved)';
+  return 'CaptureState(step: $step, pose: $pose, cameraReady: $cameraReady, countdown: $countdown, frontPhoto: $frontPhoto, sidePhoto: $sidePhoto, heightCm: $heightCm, unit: $unit, heightInvalid: $heightInvalid, session: $session, qcFailCode: $qcFailCode, qcFailPose: $qcFailPose, saving: $saving, saved: $saved)';
 }
 
 
@@ -52,11 +58,11 @@ abstract mixin class $CaptureStateCopyWith<$Res>  {
   factory $CaptureStateCopyWith(CaptureState value, $Res Function(CaptureState) _then) = _$CaptureStateCopyWithImpl;
 @useResult
 $Res call({
- CaptureStep step, double? heightCm, MeasureUnit unit, bool heightInvalid, bool cameraReady, CountdownCount? countdown, Uint8List? photoBytes, MeasurementSession? session, String? qcFailCode, bool saving, bool saved
+ CaptureStep step, CapturePose pose, bool cameraReady, CountdownCount? countdown, CapturePhoto? frontPhoto, CapturePhoto? sidePhoto, double? heightCm, MeasureUnit unit, bool heightInvalid, MeasurementSession? session, String? qcFailCode, CapturePose? qcFailPose, bool saving, bool saved
 });
 
 
-$MeasurementSessionCopyWith<$Res>? get session;
+$CapturePhotoCopyWith<$Res>? get frontPhoto;$CapturePhotoCopyWith<$Res>? get sidePhoto;$MeasurementSessionCopyWith<$Res>? get session;
 
 }
 /// @nodoc
@@ -69,23 +75,50 @@ class _$CaptureStateCopyWithImpl<$Res>
 
 /// Create a copy of CaptureState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? step = null,Object? heightCm = freezed,Object? unit = null,Object? heightInvalid = null,Object? cameraReady = null,Object? countdown = freezed,Object? photoBytes = freezed,Object? session = freezed,Object? qcFailCode = freezed,Object? saving = null,Object? saved = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? step = null,Object? pose = null,Object? cameraReady = null,Object? countdown = freezed,Object? frontPhoto = freezed,Object? sidePhoto = freezed,Object? heightCm = freezed,Object? unit = null,Object? heightInvalid = null,Object? session = freezed,Object? qcFailCode = freezed,Object? qcFailPose = freezed,Object? saving = null,Object? saved = null,}) {
   return _then(_self.copyWith(
 step: null == step ? _self.step : step // ignore: cast_nullable_to_non_nullable
-as CaptureStep,heightCm: freezed == heightCm ? _self.heightCm : heightCm // ignore: cast_nullable_to_non_nullable
+as CaptureStep,pose: null == pose ? _self.pose : pose // ignore: cast_nullable_to_non_nullable
+as CapturePose,cameraReady: null == cameraReady ? _self.cameraReady : cameraReady // ignore: cast_nullable_to_non_nullable
+as bool,countdown: freezed == countdown ? _self.countdown : countdown // ignore: cast_nullable_to_non_nullable
+as CountdownCount?,frontPhoto: freezed == frontPhoto ? _self.frontPhoto : frontPhoto // ignore: cast_nullable_to_non_nullable
+as CapturePhoto?,sidePhoto: freezed == sidePhoto ? _self.sidePhoto : sidePhoto // ignore: cast_nullable_to_non_nullable
+as CapturePhoto?,heightCm: freezed == heightCm ? _self.heightCm : heightCm // ignore: cast_nullable_to_non_nullable
 as double?,unit: null == unit ? _self.unit : unit // ignore: cast_nullable_to_non_nullable
 as MeasureUnit,heightInvalid: null == heightInvalid ? _self.heightInvalid : heightInvalid // ignore: cast_nullable_to_non_nullable
-as bool,cameraReady: null == cameraReady ? _self.cameraReady : cameraReady // ignore: cast_nullable_to_non_nullable
-as bool,countdown: freezed == countdown ? _self.countdown : countdown // ignore: cast_nullable_to_non_nullable
-as CountdownCount?,photoBytes: freezed == photoBytes ? _self.photoBytes : photoBytes // ignore: cast_nullable_to_non_nullable
-as Uint8List?,session: freezed == session ? _self.session : session // ignore: cast_nullable_to_non_nullable
+as bool,session: freezed == session ? _self.session : session // ignore: cast_nullable_to_non_nullable
 as MeasurementSession?,qcFailCode: freezed == qcFailCode ? _self.qcFailCode : qcFailCode // ignore: cast_nullable_to_non_nullable
-as String?,saving: null == saving ? _self.saving : saving // ignore: cast_nullable_to_non_nullable
+as String?,qcFailPose: freezed == qcFailPose ? _self.qcFailPose : qcFailPose // ignore: cast_nullable_to_non_nullable
+as CapturePose?,saving: null == saving ? _self.saving : saving // ignore: cast_nullable_to_non_nullable
 as bool,saved: null == saved ? _self.saved : saved // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
 /// Create a copy of CaptureState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CapturePhotoCopyWith<$Res>? get frontPhoto {
+    if (_self.frontPhoto == null) {
+    return null;
+  }
+
+  return $CapturePhotoCopyWith<$Res>(_self.frontPhoto!, (value) {
+    return _then(_self.copyWith(frontPhoto: value));
+  });
+}/// Create a copy of CaptureState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CapturePhotoCopyWith<$Res>? get sidePhoto {
+    if (_self.sidePhoto == null) {
+    return null;
+  }
+
+  return $CapturePhotoCopyWith<$Res>(_self.sidePhoto!, (value) {
+    return _then(_self.copyWith(sidePhoto: value));
+  });
+}/// Create a copy of CaptureState
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -179,10 +212,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CaptureStep step,  double? heightCm,  MeasureUnit unit,  bool heightInvalid,  bool cameraReady,  CountdownCount? countdown,  Uint8List? photoBytes,  MeasurementSession? session,  String? qcFailCode,  bool saving,  bool saved)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CaptureStep step,  CapturePose pose,  bool cameraReady,  CountdownCount? countdown,  CapturePhoto? frontPhoto,  CapturePhoto? sidePhoto,  double? heightCm,  MeasureUnit unit,  bool heightInvalid,  MeasurementSession? session,  String? qcFailCode,  CapturePose? qcFailPose,  bool saving,  bool saved)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CaptureState() when $default != null:
-return $default(_that.step,_that.heightCm,_that.unit,_that.heightInvalid,_that.cameraReady,_that.countdown,_that.photoBytes,_that.session,_that.qcFailCode,_that.saving,_that.saved);case _:
+return $default(_that.step,_that.pose,_that.cameraReady,_that.countdown,_that.frontPhoto,_that.sidePhoto,_that.heightCm,_that.unit,_that.heightInvalid,_that.session,_that.qcFailCode,_that.qcFailPose,_that.saving,_that.saved);case _:
   return orElse();
 
 }
@@ -200,10 +233,10 @@ return $default(_that.step,_that.heightCm,_that.unit,_that.heightInvalid,_that.c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CaptureStep step,  double? heightCm,  MeasureUnit unit,  bool heightInvalid,  bool cameraReady,  CountdownCount? countdown,  Uint8List? photoBytes,  MeasurementSession? session,  String? qcFailCode,  bool saving,  bool saved)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CaptureStep step,  CapturePose pose,  bool cameraReady,  CountdownCount? countdown,  CapturePhoto? frontPhoto,  CapturePhoto? sidePhoto,  double? heightCm,  MeasureUnit unit,  bool heightInvalid,  MeasurementSession? session,  String? qcFailCode,  CapturePose? qcFailPose,  bool saving,  bool saved)  $default,) {final _that = this;
 switch (_that) {
 case _CaptureState():
-return $default(_that.step,_that.heightCm,_that.unit,_that.heightInvalid,_that.cameraReady,_that.countdown,_that.photoBytes,_that.session,_that.qcFailCode,_that.saving,_that.saved);case _:
+return $default(_that.step,_that.pose,_that.cameraReady,_that.countdown,_that.frontPhoto,_that.sidePhoto,_that.heightCm,_that.unit,_that.heightInvalid,_that.session,_that.qcFailCode,_that.qcFailPose,_that.saving,_that.saved);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -220,10 +253,10 @@ return $default(_that.step,_that.heightCm,_that.unit,_that.heightInvalid,_that.c
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CaptureStep step,  double? heightCm,  MeasureUnit unit,  bool heightInvalid,  bool cameraReady,  CountdownCount? countdown,  Uint8List? photoBytes,  MeasurementSession? session,  String? qcFailCode,  bool saving,  bool saved)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CaptureStep step,  CapturePose pose,  bool cameraReady,  CountdownCount? countdown,  CapturePhoto? frontPhoto,  CapturePhoto? sidePhoto,  double? heightCm,  MeasureUnit unit,  bool heightInvalid,  MeasurementSession? session,  String? qcFailCode,  CapturePose? qcFailPose,  bool saving,  bool saved)?  $default,) {final _that = this;
 switch (_that) {
 case _CaptureState() when $default != null:
-return $default(_that.step,_that.heightCm,_that.unit,_that.heightInvalid,_that.cameraReady,_that.countdown,_that.photoBytes,_that.session,_that.qcFailCode,_that.saving,_that.saved);case _:
+return $default(_that.step,_that.pose,_that.cameraReady,_that.countdown,_that.frontPhoto,_that.sidePhoto,_that.heightCm,_that.unit,_that.heightInvalid,_that.session,_that.qcFailCode,_that.qcFailPose,_that.saving,_that.saved);case _:
   return null;
 
 }
@@ -234,25 +267,34 @@ return $default(_that.step,_that.heightCm,_that.unit,_that.heightInvalid,_that.c
 /// @nodoc
 
 
-class _CaptureState implements CaptureState {
-  const _CaptureState({this.step = CaptureStep.height, this.heightCm, this.unit = MeasureUnit.cm, this.heightInvalid = false, this.cameraReady = false, this.countdown, this.photoBytes, this.session, this.qcFailCode, this.saving = false, this.saved = false});
+class _CaptureState extends CaptureState {
+  const _CaptureState({this.step = CaptureStep.camera, this.pose = CapturePose.front, this.cameraReady = false, this.countdown, this.frontPhoto, this.sidePhoto, this.heightCm, this.unit = MeasureUnit.cm, this.heightInvalid = false, this.session, this.qcFailCode, this.qcFailPose, this.saving = false, this.saved = false}): super._();
   
 
 @override@JsonKey() final  CaptureStep step;
-/// Height is canonical cm; the unit is a display preference (MI-13).
-@override final  double? heightCm;
-@override@JsonKey() final  MeasureUnit unit;
-@override@JsonKey() final  bool heightInvalid;
+/// The pose the viewfinder is capturing ("Pose 1 of 2"/"Pose 2 of 2"
+/// over-media bar title, M-9).
+@override@JsonKey() final  CapturePose pose;
 /// The camera acquired and previewing.
 @override@JsonKey() final  bool cameraReady;
 /// Non-null while the 3-2-1 runs (MI-12).
 @override final  CountdownCount? countdown;
-/// The captured frame — the processing constellation draws over it.
-@override final  Uint8List? photoBytes;
+/// Accepted frames — a pose-2 QC failure keeps [frontPhoto] (M-10:
+/// an accepted pose is never discarded; the retake resubmits it
+/// with the fresh side frame).
+@override final  CapturePhoto? frontPhoto;
+@override final  CapturePhoto? sidePhoto;
+/// Height is canonical cm; the unit is a display preference (MI-13).
+/// Pre-filled from the newest session — when on file, the height
+/// step is skipped (flows/vault.md §1).
+@override final  double? heightCm;
+@override@JsonKey() final  MeasureUnit unit;
+@override@JsonKey() final  bool heightInvalid;
 /// The `pending_save` result (results step).
 @override final  MeasurementSession? session;
-/// First-failure-only QC wire code (qc-fail step).
+/// First-failure-only QC wire code + its failing pose (qc-fail step).
 @override final  String? qcFailCode;
+@override final  CapturePose? qcFailPose;
 @override@JsonKey() final  bool saving;
 /// Save landed — the screen routes to the vault (C7).
 @override@JsonKey() final  bool saved;
@@ -267,16 +309,16 @@ _$CaptureStateCopyWith<_CaptureState> get copyWith => __$CaptureStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CaptureState&&(identical(other.step, step) || other.step == step)&&(identical(other.heightCm, heightCm) || other.heightCm == heightCm)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.heightInvalid, heightInvalid) || other.heightInvalid == heightInvalid)&&(identical(other.cameraReady, cameraReady) || other.cameraReady == cameraReady)&&(identical(other.countdown, countdown) || other.countdown == countdown)&&const DeepCollectionEquality().equals(other.photoBytes, photoBytes)&&(identical(other.session, session) || other.session == session)&&(identical(other.qcFailCode, qcFailCode) || other.qcFailCode == qcFailCode)&&(identical(other.saving, saving) || other.saving == saving)&&(identical(other.saved, saved) || other.saved == saved));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CaptureState&&(identical(other.step, step) || other.step == step)&&(identical(other.pose, pose) || other.pose == pose)&&(identical(other.cameraReady, cameraReady) || other.cameraReady == cameraReady)&&(identical(other.countdown, countdown) || other.countdown == countdown)&&(identical(other.frontPhoto, frontPhoto) || other.frontPhoto == frontPhoto)&&(identical(other.sidePhoto, sidePhoto) || other.sidePhoto == sidePhoto)&&(identical(other.heightCm, heightCm) || other.heightCm == heightCm)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.heightInvalid, heightInvalid) || other.heightInvalid == heightInvalid)&&(identical(other.session, session) || other.session == session)&&(identical(other.qcFailCode, qcFailCode) || other.qcFailCode == qcFailCode)&&(identical(other.qcFailPose, qcFailPose) || other.qcFailPose == qcFailPose)&&(identical(other.saving, saving) || other.saving == saving)&&(identical(other.saved, saved) || other.saved == saved));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,step,heightCm,unit,heightInvalid,cameraReady,countdown,const DeepCollectionEquality().hash(photoBytes),session,qcFailCode,saving,saved);
+int get hashCode => Object.hash(runtimeType,step,pose,cameraReady,countdown,frontPhoto,sidePhoto,heightCm,unit,heightInvalid,session,qcFailCode,qcFailPose,saving,saved);
 
 @override
 String toString() {
-  return 'CaptureState(step: $step, heightCm: $heightCm, unit: $unit, heightInvalid: $heightInvalid, cameraReady: $cameraReady, countdown: $countdown, photoBytes: $photoBytes, session: $session, qcFailCode: $qcFailCode, saving: $saving, saved: $saved)';
+  return 'CaptureState(step: $step, pose: $pose, cameraReady: $cameraReady, countdown: $countdown, frontPhoto: $frontPhoto, sidePhoto: $sidePhoto, heightCm: $heightCm, unit: $unit, heightInvalid: $heightInvalid, session: $session, qcFailCode: $qcFailCode, qcFailPose: $qcFailPose, saving: $saving, saved: $saved)';
 }
 
 
@@ -287,11 +329,11 @@ abstract mixin class _$CaptureStateCopyWith<$Res> implements $CaptureStateCopyWi
   factory _$CaptureStateCopyWith(_CaptureState value, $Res Function(_CaptureState) _then) = __$CaptureStateCopyWithImpl;
 @override @useResult
 $Res call({
- CaptureStep step, double? heightCm, MeasureUnit unit, bool heightInvalid, bool cameraReady, CountdownCount? countdown, Uint8List? photoBytes, MeasurementSession? session, String? qcFailCode, bool saving, bool saved
+ CaptureStep step, CapturePose pose, bool cameraReady, CountdownCount? countdown, CapturePhoto? frontPhoto, CapturePhoto? sidePhoto, double? heightCm, MeasureUnit unit, bool heightInvalid, MeasurementSession? session, String? qcFailCode, CapturePose? qcFailPose, bool saving, bool saved
 });
 
 
-@override $MeasurementSessionCopyWith<$Res>? get session;
+@override $CapturePhotoCopyWith<$Res>? get frontPhoto;@override $CapturePhotoCopyWith<$Res>? get sidePhoto;@override $MeasurementSessionCopyWith<$Res>? get session;
 
 }
 /// @nodoc
@@ -304,24 +346,51 @@ class __$CaptureStateCopyWithImpl<$Res>
 
 /// Create a copy of CaptureState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? step = null,Object? heightCm = freezed,Object? unit = null,Object? heightInvalid = null,Object? cameraReady = null,Object? countdown = freezed,Object? photoBytes = freezed,Object? session = freezed,Object? qcFailCode = freezed,Object? saving = null,Object? saved = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? step = null,Object? pose = null,Object? cameraReady = null,Object? countdown = freezed,Object? frontPhoto = freezed,Object? sidePhoto = freezed,Object? heightCm = freezed,Object? unit = null,Object? heightInvalid = null,Object? session = freezed,Object? qcFailCode = freezed,Object? qcFailPose = freezed,Object? saving = null,Object? saved = null,}) {
   return _then(_CaptureState(
 step: null == step ? _self.step : step // ignore: cast_nullable_to_non_nullable
-as CaptureStep,heightCm: freezed == heightCm ? _self.heightCm : heightCm // ignore: cast_nullable_to_non_nullable
+as CaptureStep,pose: null == pose ? _self.pose : pose // ignore: cast_nullable_to_non_nullable
+as CapturePose,cameraReady: null == cameraReady ? _self.cameraReady : cameraReady // ignore: cast_nullable_to_non_nullable
+as bool,countdown: freezed == countdown ? _self.countdown : countdown // ignore: cast_nullable_to_non_nullable
+as CountdownCount?,frontPhoto: freezed == frontPhoto ? _self.frontPhoto : frontPhoto // ignore: cast_nullable_to_non_nullable
+as CapturePhoto?,sidePhoto: freezed == sidePhoto ? _self.sidePhoto : sidePhoto // ignore: cast_nullable_to_non_nullable
+as CapturePhoto?,heightCm: freezed == heightCm ? _self.heightCm : heightCm // ignore: cast_nullable_to_non_nullable
 as double?,unit: null == unit ? _self.unit : unit // ignore: cast_nullable_to_non_nullable
 as MeasureUnit,heightInvalid: null == heightInvalid ? _self.heightInvalid : heightInvalid // ignore: cast_nullable_to_non_nullable
-as bool,cameraReady: null == cameraReady ? _self.cameraReady : cameraReady // ignore: cast_nullable_to_non_nullable
-as bool,countdown: freezed == countdown ? _self.countdown : countdown // ignore: cast_nullable_to_non_nullable
-as CountdownCount?,photoBytes: freezed == photoBytes ? _self.photoBytes : photoBytes // ignore: cast_nullable_to_non_nullable
-as Uint8List?,session: freezed == session ? _self.session : session // ignore: cast_nullable_to_non_nullable
+as bool,session: freezed == session ? _self.session : session // ignore: cast_nullable_to_non_nullable
 as MeasurementSession?,qcFailCode: freezed == qcFailCode ? _self.qcFailCode : qcFailCode // ignore: cast_nullable_to_non_nullable
-as String?,saving: null == saving ? _self.saving : saving // ignore: cast_nullable_to_non_nullable
+as String?,qcFailPose: freezed == qcFailPose ? _self.qcFailPose : qcFailPose // ignore: cast_nullable_to_non_nullable
+as CapturePose?,saving: null == saving ? _self.saving : saving // ignore: cast_nullable_to_non_nullable
 as bool,saved: null == saved ? _self.saved : saved // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
 
 /// Create a copy of CaptureState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CapturePhotoCopyWith<$Res>? get frontPhoto {
+    if (_self.frontPhoto == null) {
+    return null;
+  }
+
+  return $CapturePhotoCopyWith<$Res>(_self.frontPhoto!, (value) {
+    return _then(_self.copyWith(frontPhoto: value));
+  });
+}/// Create a copy of CaptureState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CapturePhotoCopyWith<$Res>? get sidePhoto {
+    if (_self.sidePhoto == null) {
+    return null;
+  }
+
+  return $CapturePhotoCopyWith<$Res>(_self.sidePhoto!, (value) {
+    return _then(_self.copyWith(sidePhoto: value));
+  });
+}/// Create a copy of CaptureState
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
