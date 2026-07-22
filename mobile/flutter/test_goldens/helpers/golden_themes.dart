@@ -47,3 +47,24 @@ void themedGoldenTest(
 Future<void> pumpFrame(WidgetTester tester) async {
   await tester.pump(const Duration(milliseconds: 50));
 }
+
+/// Alchemist's [precacheImages] with a bounded final pump instead of its
+/// trailing `pumpAndSettle` — for image-bearing scenarios that also host
+/// repeating animations (PostCard shimmer siblings, the processing
+/// pulse), where a settle never finishes.
+Future<void> precacheThenFrame(WidgetTester tester) async {
+  await tester.runAsync(() async {
+    final images = <Future<void>>[];
+    for (final element in find.byType(Image).evaluate()) {
+      images.add(precacheImage((element.widget as Image).image, element));
+    }
+    for (final element in find.byType(DecoratedBox).evaluate()) {
+      final decoration = (element.widget as DecoratedBox).decoration;
+      if (decoration is BoxDecoration && decoration.image != null) {
+        images.add(precacheImage(decoration.image!.image, element));
+      }
+    }
+    await Future.wait(images);
+  });
+  await pumpFrame(tester);
+}

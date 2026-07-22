@@ -6,12 +6,10 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 /// track and a centred "Step n of N · Label" caption.
 @immutable
 class SheetStepper {
-  const SheetStepper({required this.steps, required this.current})
-    : assert(steps.length > 0, 'steps must not be empty'),
-      assert(
-        current >= 0 && current < steps.length,
-        'current must index into steps',
-      );
+  // No constructor asserts: list-length checks are not const-evaluable,
+  // and sheets are const-constructed at call sites. Contract: [steps] is
+  // non-empty and [current] indexes into it.
+  const SheetStepper({required this.steps, required this.current});
 
   /// Ordered step labels (Measurements → Notes/Budget → Review).
   final List<String> steps;

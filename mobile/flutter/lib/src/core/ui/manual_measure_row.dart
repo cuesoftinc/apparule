@@ -98,45 +98,16 @@ class ManualMeasureRow extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           // Tape-measure ruler (Figma 66:695): tick marks under a
-          // transparent track, accent-dot thumb.
-          SizedBox(
-            height: 24,
-            child: Stack(
-              alignment: Alignment.center,
-              children: <Widget>[
-                Positioned.fill(
-                  child: CustomPaint(
-                    painter: _TickRulerPainter(
-                      color: colors.text2.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ),
-                Semantics(
-                  label: '${humanizeMeasureName(name)} slider',
-                  child: SliderTheme(
-                    data: SliderThemeData(
-                      trackHeight: 0,
-                      activeTrackColor: Colors.transparent,
-                      inactiveTrackColor: Colors.transparent,
-                      overlayShape: const RoundSliderOverlayShape(
-                        overlayRadius: 16,
-                      ),
-                      thumbShape: const RoundSliderThumbShape(
-                        enabledThumbRadius: 8,
-                      ),
-                      thumbColor: colors.accentStart,
-                    ),
-                    child: Slider(
-                      value: (valueCm ?? min).clamp(min, max),
-                      min: min,
-                      max: max,
-                      divisions: ((max - min) * 2).round(),
-                      onChanged: onChanged,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          // transparent track, accent-dot thumb. Bespoke (not Material
+          // Slider) — the master's ruler look, no overlay machinery.
+          _TapeSlider(
+            semanticLabel: '${humanizeMeasureName(name)} slider',
+            value: (valueCm ?? min).clamp(min, max),
+            min: min,
+            max: max,
+            onChanged: onChanged,
+            tickColor: colors.text2.withValues(alpha: 0.6),
+            thumbColor: colors.accentStart,
           ),
           if (error != null) ...<Widget>[
             const SizedBox(height: 8),
@@ -277,6 +248,76 @@ class _ValueFieldState extends State<_ValueField> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The MI-13 tape slider — 41-tick ruler strip with an accent-dot thumb,
+/// dragged/tapped in 0.5cm steps.
+class _TapeSlider extends StatelessWidget {
+  const _TapeSlider({
+    required this.semanticLabel,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.onChanged,
+    required this.tickColor,
+    required this.thumbColor,
+  });
+
+  final String semanticLabel;
+  final double value;
+  final double min;
+  final double max;
+  final ValueChanged<double?> onChanged;
+  final Color tickColor;
+  final Color thumbColor;
+
+  void _handle(BuildContext context, Offset localPosition) {
+    final box = context.findRenderObject()! as RenderBox;
+    final fraction = (localPosition.dx / box.size.width).clamp(0.0, 1.0);
+    // 0.5cm steps (the web sibling's `step=0.5`).
+    final raw = min + fraction * (max - min);
+    onChanged((raw * 2).round() / 2);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final fraction = max == min ? 0.0 : (value - min) / (max - min);
+    return Semantics(
+      label: semanticLabel,
+      slider: true,
+      value: value.toStringAsFixed(1),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (details) => _handle(context, details.localPosition),
+        onHorizontalDragUpdate: (details) =>
+            _handle(context, details.localPosition),
+        child: SizedBox(
+          height: 24,
+          width: double.infinity,
+          child: Stack(
+            children: <Widget>[
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _TickRulerPainter(color: tickColor),
+                ),
+              ),
+              Align(
+                alignment: Alignment(2 * fraction - 1, 0),
+                child: Container(
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: thumbColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

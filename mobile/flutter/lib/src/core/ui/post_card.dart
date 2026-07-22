@@ -4,6 +4,7 @@ import 'package:apparule/src/core/ui/avatar.dart';
 import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/skeleton.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show RenderProxyBox;
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// PostCard — the Figma `PostCard` set (52:462); web sibling
@@ -168,13 +169,15 @@ class _PostCardState extends State<PostCard> {
                   children: <Widget>[
                     ColoredBox(color: colors.border.withValues(alpha: 0.3)),
                     if (carousel)
-                      PageView(
-                        onPageChanged: (index) =>
-                            setState(() => _slide = index),
-                        children: <Widget>[
-                          for (final provider in media)
-                            Image(image: provider, fit: BoxFit.cover),
-                        ],
+                      _ZeroIntrinsics(
+                        child: PageView(
+                          onPageChanged: (index) =>
+                              setState(() => _slide = index),
+                          children: <Widget>[
+                            for (final provider in media)
+                              Image(image: provider, fit: BoxFit.cover),
+                          ],
+                        ),
                       )
                     else if (media.isNotEmpty)
                       Image(image: media[slide], fit: BoxFit.cover),
@@ -378,4 +381,31 @@ class _Caption extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Shields the carousel's [PageView] from intrinsic-dimension queries —
+/// viewports cannot answer them (they would have to instantiate every
+/// lazy child), which breaks intrinsics-driven hosts (tables, golden
+/// grids). The media zone's size always comes from the enclosing
+/// [AspectRatio], so the honest intrinsic contribution is zero.
+class _ZeroIntrinsics extends SingleChildRenderObjectWidget {
+  const _ZeroIntrinsics({required Widget super.child});
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderZeroIntrinsics();
+}
+
+class _RenderZeroIntrinsics extends RenderProxyBox {
+  @override
+  double computeMinIntrinsicWidth(double height) => 0;
+
+  @override
+  double computeMaxIntrinsicWidth(double height) => 0;
+
+  @override
+  double computeMinIntrinsicHeight(double width) => 0;
+
+  @override
+  double computeMaxIntrinsicHeight(double width) => 0;
 }

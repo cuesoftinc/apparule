@@ -52,23 +52,23 @@ class CaptureOverlay extends StatelessWidget {
       borderRadius: BorderRadius.circular(radii.card),
       child: AspectRatio(
         aspectRatio: 9 / 16,
-        child: LayoutBuilder(
-          builder: (context, viewport) => Stack(
-            fit: StackFit.expand,
-            children: <Widget>[
-              const ColoredBox(color: Color(0xFF000000)),
-              ?child,
-              // 40% scrim.
-              const ColoredBox(color: Color(0x66000000)),
-              // Viewfinder corner marks.
-              const Positioned.fill(
-                child: CustomPaint(painter: _CornerMarksPainter()),
-              ),
-              // Instruction line — 16px semibold white, top-centred (9%).
-              Positioned(
-                left: 16,
-                right: 16,
-                top: viewport.maxHeight * 0.09,
+        child: Stack(
+          fit: StackFit.expand,
+          children: <Widget>[
+            const ColoredBox(color: Color(0xFF000000)),
+            ?child,
+            // 40% scrim.
+            const ColoredBox(color: Color(0x66000000)),
+            // Viewfinder corner marks.
+            const Positioned.fill(
+              child: CustomPaint(painter: _CornerMarksPainter()),
+            ),
+            // Instruction line — 16px semibold white, top-centred at 9%
+            // of the viewport (Alignment y = 2·0.09 − 1).
+            Align(
+              alignment: const Alignment(0, -0.82),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   guide == CaptureGuide.aligned
                       ? 'Perfect — hold still'
@@ -79,35 +79,35 @@ class CaptureOverlay extends StatelessWidget {
                   ),
                 ),
               ),
-              // Standing silhouette (head → shoulders → arms-out →
-              // ankles), 70% of the viewport height; dashed while
-              // searching, solid success stroke when aligned (MI-12).
-              Center(
-                child: SizedBox(
-                  height: viewport.maxHeight * 0.7,
-                  child: AspectRatio(
-                    aspectRatio: 200 / 300,
-                    child: _PulsingSilhouette(
-                      pulsing: guide == CaptureGuide.searching,
-                      color: guide == CaptureGuide.aligned
-                          ? colors.success
-                          : _onMediaWhite,
-                      dashed: guide != CaptureGuide.aligned,
-                    ),
+            ),
+            // Standing silhouette (head → shoulders → arms-out →
+            // ankles), 70% of the viewport height; dashed while
+            // searching, solid success stroke when aligned (MI-12).
+            Center(
+              child: FractionallySizedBox(
+                heightFactor: 0.7,
+                child: AspectRatio(
+                  aspectRatio: 200 / 300,
+                  child: _PulsingSilhouette(
+                    pulsing: guide == CaptureGuide.searching,
+                    color: guide == CaptureGuide.aligned
+                        ? colors.success
+                        : _onMediaWhite,
+                    dashed: guide != CaptureGuide.aligned,
                   ),
                 ),
               ),
-              if (guide == CaptureGuide.countdown)
-                Center(child: CountdownRing(count: countdown)),
-              if (guide == CaptureGuide.qcHint && qcCode != null)
-                Positioned(
-                  left: 16,
-                  right: 16,
-                  bottom: 24,
-                  child: Center(child: QCHintChip(code: qcCode!)),
-                ),
-            ],
-          ),
+            ),
+            if (guide == CaptureGuide.countdown)
+              Center(child: CountdownRing(count: countdown)),
+            if (guide == CaptureGuide.qcHint && qcCode != null)
+              Positioned(
+                left: 16,
+                right: 16,
+                bottom: 24,
+                child: Center(child: QCHintChip(code: qcCode!)),
+              ),
+          ],
         ),
       ),
     );
