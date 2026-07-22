@@ -280,3 +280,14 @@ before public launch. Alternative: commission the brand pass first.
   `mediapipe_2d_v2` height-scale correction, capture-qc.md's
   first-failure-only QC surfacing, and a manual-entry fallback; results
   save into the vault (C7). ☑
+- **M-7 Flavor model — two flavors, sandbox is production (RATIFIED
+  2026-07-22, user directive)**: mobile ships exactly `dev` (fake
+  repositories, `applicationIdSuffix ".dev"`) and `prod` (bare
+  `io.cuesoft.apparule`, Firebase `sandbox-e306a`, Doppler `stg`
+  config) — the CueLABS environment model treats the sandbox account
+  as production, so a `prd`-vs-`stg` split encodes an environment
+  that does not exist (X-6). The generic dev/stg/prd trio from the
+  industry-standard research is explicitly rejected. A third flavor
+  appears only if a separate production environment is ratified;
+  the bare application id already rides `prod` so identity migrates
+  cleanly. ☑
