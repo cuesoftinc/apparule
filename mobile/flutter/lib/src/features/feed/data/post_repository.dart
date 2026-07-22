@@ -1,13 +1,56 @@
+import 'package:apparule/src/features/feed/domain/comment.dart';
+import 'package:apparule/src/features/feed/domain/explore_results.dart';
 import 'package:apparule/src/features/feed/domain/post.dart';
+import 'package:apparule/src/features/feed/domain/story_rail_entry.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'post_repository.g.dart';
 
 /// Abstract post/social-graph repository — C2/C3/C4/C11 all operate over
-/// this one domain (mobile-implementation.md §3).
+/// this one domain (mobile-implementation.md §3). Engagement calls are
+/// real state mutations (like counts move, the follow graph re-derives
+/// the feed) — the web mock store's semantics, not static JSON rendering.
 abstract class PostRepository {
-  /// The home-feed posts (C2).
+  /// The home-feed posts (C2): followed designers only, newest first
+  /// (web store `feed()` parity).
   Future<List<Post>> homeFeed();
+
+  /// The C2 story rail (MI-8): followed designers with published work,
+  /// ring lit while they have <48h posts the viewer hasn't opened
+  /// (web `storyDesignersOf` parity).
+  Future<List<StoryRailEntry>> storyRail();
+
+  /// Opening a story dims its ring until the designer posts again.
+  Future<void> markStorySeen(String username);
+
+  /// C3 explore: the recency-ordered browse grid, sectioned search
+  /// results when [query] is non-empty, an optional [tag] chip filter,
+  /// and the near-me proximity RE-RANKING — city > state > country
+  /// tiers, never a hard gate (pages.md B2 [Revised 2026-07-19]).
+  Future<ExploreResults> explore({String query, String? tag, bool nearMe});
+
+  /// One post by id (C4).
+  Future<Post> post(String id);
+
+  /// MI-1/MI-2 like toggle — mutates the like set + count, returns the
+  /// updated post.
+  Future<Post> toggleLike(String id);
+
+  /// MI-3 save toggle.
+  Future<Post> toggleSave(String id);
+
+  /// MI-7 follow morph — feed and story rail re-derive from the graph.
+  Future<void> setFollow(String username, {required bool follow});
+
+  /// A post's visible comments, oldest first (C11).
+  Future<List<PostComment>> comments(String postId);
+
+  /// MI-18 composer — appends and bumps the post's comment count (the
+  /// web store's unit-gated count==list invariant).
+  Future<PostComment> addComment(String postId, String body);
+
+  /// C11 comment heart toggle.
+  Future<PostComment> toggleCommentLike(String commentId);
 }
 
 /// Overridden per entrypoint (di.dart) — no default implementation exists

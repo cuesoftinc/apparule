@@ -1,8 +1,11 @@
 import 'package:apparule/src/app/app.dart';
 import 'package:apparule/src/app/di.dart';
 import 'package:apparule/src/features/auth/data/auth_repository.dart';
+import 'package:apparule/src/features/feed/data/post_repository.dart';
 import 'package:apparule/src/features/measurements/data/camera_service.dart';
 import 'package:apparule/src/features/measurements/data/measurement_repository.dart';
+import 'package:apparule/src/features/orders/data/order_repository.dart';
+import 'package:apparule/src/features/profile/data/notification_repository.dart';
 import 'package:apparule/src/routing/router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,6 +22,9 @@ Future<void> pumpBootedApp(
   AuthRepository? authRepository,
   CameraService? cameraService,
   MeasurementRepository? measurementRepository,
+  PostRepository? postRepository,
+  OrderRepository? orderRepository,
+  NotificationRepository? notificationRepository,
   List<Override> overrides = const <Override>[],
   Map<String, Object> preferences = const <String, Object>{},
 }) async {
@@ -30,6 +36,9 @@ Future<void> pumpBootedApp(
           authRepository: authRepository,
           cameraService: cameraService,
           measurementRepository: measurementRepository,
+          postRepository: postRepository,
+          orderRepository: orderRepository,
+          notificationRepository: notificationRepository,
         ),
         ...overrides,
       ],

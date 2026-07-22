@@ -79,3 +79,52 @@ String humanizeMeasureName(String name) {
       .map((word) => word[0].toUpperCase() + word.substring(1))
       .join(' ');
 }
+
+// ---------------------------------------------------------------------------
+// Timestamp text — the Dart port of web format.ts' relative/absolute
+// labels, reading the DateTime's own fields (the seed derives instants
+// from one injected clock, so phone and dashboard render the same story).
+// ---------------------------------------------------------------------------
+
+const List<String> _months = <String>[
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', //
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
+
+/// Relative label for meta lines — the social "2h" idiom (web `formatAgo`
+/// parity): `now` → `3h` → `3d` → `2w`, then the absolute `22 May`.
+String formatAgo(DateTime at, {DateTime? now}) {
+  final reference = now ?? DateTime.now();
+  final elapsed = reference.difference(at);
+  final days = elapsed.inDays;
+  if (days <= 0) {
+    final hours = elapsed.inHours;
+    if (hours <= 0) {
+      final minutes = elapsed.inMinutes;
+      return minutes <= 0 ? 'now' : '${minutes}m';
+    }
+    return '${hours}h';
+  }
+  if (days < 7) return '${days}d';
+  if (days < 30) return '${days ~/ 7}w';
+  return formatDayMonth(at);
+}
+
+/// `22 May` (web `formatDateUtc` parity — the ≥30d fallback).
+String formatDayMonth(DateTime at) => '${at.day} ${_months[at.month - 1]}';
+
+/// `13:58` — wall-clock stamp (per-bubble thread times, web
+/// `formatTimeUtc` parity).
+String formatClock(DateTime at) {
+  String pad(int n) => n.toString().padLeft(2, '0');
+  return '${pad(at.hour)}:${pad(at.minute)}';
+}
+
+/// `Jul 10, 09:14` — timeline / older thread stamps (web
+/// `formatDateTimeUtc` parity).
+String formatDateClock(DateTime at) =>
+    '${_months[at.month - 1]} ${at.day}, ${formatClock(at)}';
+
+/// `Jul 12, 2026` — the C5 snapshot-picker date idiom.
+String formatMonthDayYear(DateTime at) =>
+    '${_months[at.month - 1]} ${at.day}, ${at.year}';
