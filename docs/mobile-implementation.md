@@ -235,10 +235,12 @@ with the answer known. C0 precedes the router — it has no route of its
 own.
 
 Tab shell per pages.md Part C: **Home · Explore · ➕ · Orders · Profile**
-(design.md §3). The centre `➕` tab is the create/request entry — for a
-regular user it opens Explore→Request (C5 stepper reached from a post, not
-a blank compose screen); for a designer it opens the post composer, mirroring
-web's B5 creator-upsell branch. Deep links (App Links/Universal Links, per
+(design.md §3). The centre `➕` tab opens the **two-option create
+chooser** (M-11, both platforms): "Take measurements" pushes the
+`/capture` flow (§10); "Post an outfit" is designer-gated — designers
+open the post composer (`/create/post`, pending C15), non-designers route
+to become-a-designer (`/designer/onboarding`). Until C15 ships, the
+chooser offers capture + become-a-designer only. Deep links (App Links/Universal Links, per
 the standard cookbook) are on by default — a post permalink
 (`apparule.cuesoft.io/p/{post_id}`, web-implementation.md §4) opens the C4
 post-detail screen in-app when the app is installed.
@@ -252,7 +254,7 @@ post-detail screen in-app when the app is installed.
 | `/post/{id}` | Post detail | C4 |
 | `/post/{id}/comments` | Comments sheet (full) | C11 |
 | `/request/{postId}` | Request stepper | C5 |
-| `/capture` (➕ tab, customer branch) | Measurement capture | C6 |
+| `/capture` (via the ➕ chooser, M-11) | Measurement capture | C6 |
 | `/vault` | Measurement vault | C7 |
 | `/orders` (Orders tab) · `/orders/{id}` | Orders list + detail | C8 |
 | `/profile` (Profile tab) · `/profile/{username}` | Own / other profile | C9 |
@@ -263,11 +265,13 @@ post-detail screen in-app when the app is installed.
 | `/designer/onboarding` | Designer onboarding & KYC | C13 |
 | `/designer/onboarding/payout` | Payout banking form (Paystack states) — a sibling under the prefix, not a child (the capture-guide precedent: re-verification entries must not stack a stale intro) | C13 |
 | `/earnings` | Earnings & payouts | C14 |
+| `/create/post` | Post composer (designer) — **pending C15 [Designing]**; the route arrives with C15's ratified frames | C15 |
 
-The ➕ tab is an entry **gesture**, not a branch: the customer path
-pushes the `/capture` flow (§10); the designer composer (pages.md B5
-parity) arrives designed-first with its own canvas frames — no
-placeholder route stands in for it (canvas-first ruling 2026-07-22).
+The ➕ tab is an entry **gesture**, not a shell branch: it opens the
+M-11 chooser sheet over the current tab ("Take measurements" →
+`/capture`, §10; "Post an outfit" — designer-gated). The composer route
+(`/create/post`) arrives with C15's ratified frames — no placeholder
+route stands in for it (M-8).
 
 ## 6. Data layer & mock-first (TEST_MODE parity)
 

@@ -408,7 +408,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   **M-8 canvas-first**: every shipped screen has a Figma frame —
   frameless is designed first or dropped. **M-9 centered header-bar
   titles**: true bar-width centering, chrome-scoped (design.md §8.2b
-  AppBar spec; page-body titles stay left-aligned). **Auth posture**:
+  AppBar spec; page-body titles stay left-aligned). **M-11 unified
+  create semantics**: ➕/Create opens a two-option chooser on both
+  platforms — "Take measurements" + "Post an outfit" (designer-gated;
+  non-designers route to become-a-designer); the mobile composer (C15)
+  is authorized design-first, and until it ships mobile's chooser
+  offers capture + become-a-designer only. **Auth posture**:
   TEST_MODE-parity fakes are the ratified state until phase 4; Firebase
   wiring stays documented but gated. **Bio scope**: designer-scoped —
   C9 edit-profile hides bio for non-designers. **Parity-audit items**:

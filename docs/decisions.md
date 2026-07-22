@@ -348,3 +348,13 @@ before public launch. Alternative: commission the brand pass first.
   side-pose contribution — girth estimation from two views — marked
   **[Directive: measurement pipeline recalibration needed]** for the
   backend phase. ☑
+- **M-11 Unified create semantics (RATIFIED 2026-07-22, user
+  directive)**: the ➕/Create action opens a **two-option chooser on
+  both platforms** — "Take measurements" (capture) and "Post an outfit"
+  (designer-gated: non-designers route to become-a-designer). Supersedes
+  the divergence where web Create was composer-only and mobile ➕ was
+  capture-only — each client was per its contract; the **contracts** had
+  diverged. The mobile composer (**C15**) is **authorized design-first**
+  (M-8): canvas frames come next, mirroring the web B5 composer, and the
+  build follows once the frames ratify; until C15 ships, mobile's
+  chooser offers capture + become-a-designer only. ☑

@@ -99,6 +99,10 @@ toggle, support (`clients.cuesoft.io`).
   "Delete all" links (rights parity with expendit **[Proposed]**).
 
 ### B5 `/app/create` — Post an outfit (designer)
+- Entry **[Decided 2026-07-22, M-11]**: the rail's Create action opens the
+  two-option chooser — "Take measurements" (→ B4 capture options) +
+  "Post an outfit" (here; designer-gated — non-creators land on the
+  upsell below).
 - Dropzone (≤10 media, reorder by drag; MI-4 preview) → details form
   (caption, style tags, base price or "quote on request", turnaround days,
   fabric notes) → publish. Media limits **[Decided]**: images only in v1 (video
@@ -172,6 +176,8 @@ Existing screens (splash/welcome/auth/capture) remain the entry path.
 | C12 | Followers/following **[Directive 2026-07-18]** | = B6 lists; UserRow + Follow morph (MI-7), tabs Followers / Following |
 | C13 | Designer onboarding & KYC **[Directive 2026-07-18]** | = B8: intro → banking form (Paystack resolution states: resolving / resolved-name confirm / mismatch error) → done; KYC-lapse banner state |
 | C14 | Earnings & payouts **[Directive 2026-07-18]** | = B9: EarningsSummary + TransactionRow list; payout push notifications deep-link here |
+| ➕ | Create chooser **[Decided 2026-07-22, M-11]** | tapping the centre tab opens a two-option chooser sheet (both platforms): "Take measurements" → C6 · "Post an outfit" (designer-gated) → C15 for designers, become-a-designer (C13) for non-designers; until C15 ships, the chooser offers capture + become-a-designer only |
+| C15 | Post composer **[Designing — M-11]** | = B5 composer mirrored to mobile (media picker ≤10, caption, style tags, base price / quote-on-request, turnaround, fabric notes, alt text); authorized design-first (M-8) — canvas frames next, built after the frames ratify |
 
 Push notifications **[Proposed]**: quote received, payment confirmed, status
 changes, delivery confirm reminder (customer), new request (designer).

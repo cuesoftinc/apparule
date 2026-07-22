@@ -106,7 +106,7 @@ ecosystem change, PR'd to all three design.md files together.
 | `RequestCard` | outfit thumb · status pill · designer/customer · price · next-action button | states in §4.4 |
 | `MeasurementCard` | metric name · value + unit (tabular) · source chip (scan/manual) · sparkline of history | tap → history sheet |
 | `Sheet` | bottom sheet mobile / centered modal desktop | all secondary flows live in sheets |
-| `TabBar` | Home · Explore · ➕ Create · Orders · Profile | Create is a raised gradient FAB-in-bar |
+| `TabBar` | Home · Explore · ➕ Create · Orders · Profile | Create is a raised gradient FAB-in-bar; it opens the two-option create chooser — "Take measurements" + "Post an outfit" (designer-gated), same semantics as web's rail Create **[Decided 2026-07-22, M-11]** |
 | `Toast` | icon + text, bottom, auto-dismiss 3s | optimistic-action failures re-toast with Retry |
 | `EmptyState` | pattern-bg illustration + one-line + one CTA | every list defines one |
 | `Skeleton` | shimmer blocks matching final layout | feed: header line + square + action row |
