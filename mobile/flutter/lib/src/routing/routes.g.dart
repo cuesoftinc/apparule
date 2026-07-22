@@ -14,6 +14,10 @@ List<RouteBase> get $appRoutes => [
   $manualEntryRoute,
   $vaultRoute,
   $earningsRoute,
+  $postDetailRoute,
+  $requestRoute,
+  $orderDetailRoute,
+  $notificationsRoute,
 ];
 
 RouteBase get $appShellRoute => StatefulShellRouteData.$route(
@@ -314,6 +318,154 @@ mixin $EarningsRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/earnings');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $postDetailRoute => GoRouteData.$route(
+  path: '/post/:id',
+  hasOverriddenOnExit: false,
+  factory: $PostDetailRoute._fromState,
+  routes: [
+    GoRouteData.$route(
+      path: 'comments',
+      hasOverriddenOnExit: false,
+      factory: $PostCommentsRoute._fromState,
+    ),
+  ],
+);
+
+mixin $PostDetailRoute on GoRouteData {
+  static PostDetailRoute _fromState(GoRouterState state) =>
+      PostDetailRoute(id: state.pathParameters['id']!);
+
+  PostDetailRoute get _self => this as PostDetailRoute;
+
+  @override
+  String get location =>
+      GoRouteData.$location('/post/${Uri.encodeComponent(_self.id)}');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $PostCommentsRoute on GoRouteData {
+  static PostCommentsRoute _fromState(GoRouterState state) =>
+      PostCommentsRoute(id: state.pathParameters['id']!);
+
+  PostCommentsRoute get _self => this as PostCommentsRoute;
+
+  @override
+  String get location =>
+      GoRouteData.$location('/post/${Uri.encodeComponent(_self.id)}/comments');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $requestRoute => GoRouteData.$route(
+  path: '/request/:postId',
+  hasOverriddenOnExit: false,
+  factory: $RequestRoute._fromState,
+);
+
+mixin $RequestRoute on GoRouteData {
+  static RequestRoute _fromState(GoRouterState state) =>
+      RequestRoute(postId: state.pathParameters['postId']!);
+
+  RequestRoute get _self => this as RequestRoute;
+
+  @override
+  String get location =>
+      GoRouteData.$location('/request/${Uri.encodeComponent(_self.postId)}');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $orderDetailRoute => GoRouteData.$route(
+  path: '/orders/:id',
+  hasOverriddenOnExit: false,
+  factory: $OrderDetailRoute._fromState,
+);
+
+mixin $OrderDetailRoute on GoRouteData {
+  static OrderDetailRoute _fromState(GoRouterState state) =>
+      OrderDetailRoute(id: state.pathParameters['id']!);
+
+  OrderDetailRoute get _self => this as OrderDetailRoute;
+
+  @override
+  String get location =>
+      GoRouteData.$location('/orders/${Uri.encodeComponent(_self.id)}');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $notificationsRoute => GoRouteData.$route(
+  path: '/notifications',
+  hasOverriddenOnExit: false,
+  factory: $NotificationsRoute._fromState,
+);
+
+mixin $NotificationsRoute on GoRouteData {
+  static NotificationsRoute _fromState(GoRouterState state) =>
+      const NotificationsRoute();
+
+  @override
+  String get location => GoRouteData.$location('/notifications');
 
   @override
   void go(BuildContext context) => context.go(location);

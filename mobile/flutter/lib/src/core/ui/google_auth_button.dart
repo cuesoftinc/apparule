@@ -70,7 +70,17 @@ class GoogleAuthButton extends StatelessWidget {
               ),
             )
           else
-            Text(label),
+            // Flexible + ellipsis: the label clamps instead of
+            // overflowing the row on narrow (~390px) viewports — the
+            // boot-surface overflow the C6 lane flagged (C1 renders
+            // for a frame while the session restore resolves).
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
         ],
       ),
     );

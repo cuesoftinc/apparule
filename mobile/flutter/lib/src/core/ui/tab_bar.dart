@@ -126,6 +126,10 @@ class _TabItem extends StatelessWidget {
 
     return Semantics(
       label: tab.semanticLabel,
+      // The count rides `value`, never the label — a merged "Orders 3"
+      // label would break the named-control contract (each tab announces
+      // its canonical name; the badge is state, not identity).
+      value: badge != null && badge! > 0 ? '${badge!} new' : null,
       selected: active,
       button: true,
       child: InkResponse(
@@ -142,7 +146,7 @@ class _TabItem extends StatelessWidget {
                   // Figma master: badge rides the icon's top-right corner.
                   top: -10,
                   left: 17.5,
-                  child: _Badge(count: badge!),
+                  child: ExcludeSemantics(child: _Badge(count: badge!)),
                 ),
               if (active && tab != AppTab.create)
                 Positioned(

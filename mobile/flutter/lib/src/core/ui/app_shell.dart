@@ -7,7 +7,12 @@ import 'package:go_router/go_router.dart';
 /// branch navigators over the C-series AppTabBar module (49:384; the
 /// design wave's replacement for the Material-icon stand-in).
 class AppShell extends StatelessWidget {
-  const AppShell({required this.navigationShell, this.onCreate, super.key});
+  const AppShell({
+    required this.navigationShell,
+    this.onCreate,
+    this.ordersBadge,
+    super.key,
+  });
 
   final StatefulNavigationShell navigationShell;
 
@@ -17,12 +22,16 @@ class AppShell extends StatelessWidget {
   /// shell). `null` falls back to activating the branch.
   final VoidCallback? onCreate;
 
+  /// MI-16 Orders-tab badge count (pass-through to the AppTabBar axis).
+  final int? ordersBadge;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: AppTabBar(
         active: AppTab.values[navigationShell.currentIndex],
+        ordersBadge: ordersBadge,
         onSelect: (tab) {
           if (tab == AppTab.create && onCreate != null) {
             onCreate!();
