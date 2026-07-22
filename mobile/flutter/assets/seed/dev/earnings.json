@@ -1,0 +1,63 @@
+{
+  "_comment": "§6 earnings seed — the designer-monetization story per username. amara.designs carries the ratified C14 canvas ledger VERBATIM (Mobile 267:8613 — the same ₦82,500 available / ₦45,000 in-escrow story as the web canvas A6 demo, web/src/controllers/home-demo.ts designerEarningsDemo): payouts are negative (money leaving the released balance for the bank), escrow rows carry the order's gross hold and tie to the §6 order book (#APR-1042 held · #APR-1058 released Jul 16 with its 10% fee line). available_cents is the post-payout released balance; the fake derives pending from the escrow rows still `held` (45,000 gross — #APR-1042) and gates the ledger invariants the way the web store unit-gates its counts. created_days_ago is relative to the pinned narrative clock (Jul 22), matching the canvas dates Jul 16/15/12/8.",
+  "designers": {
+    "amara.designs": {
+      "payout_account": {
+        "provider_ref": "PSTK-RCP-04521",
+        "bank_code": "058",
+        "bank_name": "GTBank",
+        "account_last4": "4521",
+        "account_name": "AMARA OKAFOR",
+        "kyc_state": "verified"
+      },
+      "available_cents": 8250000,
+      "currency": "NGN",
+      "transactions": [
+        {
+          "id": "txn-payout-1058",
+          "kind": "payout",
+          "label": "Payout to GTBank ••• 4521",
+          "amount_cents": -5580000,
+          "order_number": "#APR-1058",
+          "provider_ref": "PSK-9921404",
+          "created_days_ago": 6
+        },
+        {
+          "id": "txn-fee-1058",
+          "kind": "fee_line",
+          "amount_cents": -620000,
+          "order_number": "#APR-1058",
+          "provider_ref": "PSK-9987201",
+          "created_days_ago": 6
+        },
+        {
+          "id": "txn-held-1058",
+          "kind": "escrow_held",
+          "state": "released",
+          "amount_cents": 6200000,
+          "order_number": "#APR-1058",
+          "provider_ref": "PSK-9987201",
+          "created_days_ago": 7
+        },
+        {
+          "id": "txn-held-1042",
+          "kind": "escrow_held",
+          "state": "held",
+          "amount_cents": 4500000,
+          "order_number": "#APR-1042",
+          "provider_ref": "PSK-9841377",
+          "created_days_ago": 10
+        },
+        {
+          "id": "txn-payout-1031",
+          "kind": "payout",
+          "label": "Payout to GTBank ••• 4521",
+          "amount_cents": -3800000,
+          "order_number": "#APR-1031",
+          "provider_ref": "PSK-9782114",
+          "created_days_ago": 14
+        }
+      ]
+    }
+  }
+}

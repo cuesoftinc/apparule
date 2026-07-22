@@ -61,6 +61,8 @@ List<Override> fakeRepositoryOverrides({
   PostRepository? postRepository,
   OrderRepository? orderRepository,
   NotificationRepository? notificationRepository,
+  ProfileRepository? profileRepository,
+  EarningsRepository? earningsRepository,
 }) => <Override>[
   authRepositoryProvider.overrideWith(
     (ref) => authRepository ?? AuthRepositoryFake(),
@@ -80,11 +82,14 @@ List<Override> fakeRepositoryOverrides({
   notificationRepositoryProvider.overrideWith(
     (ref) => notificationRepository ?? NotificationRepositoryFake(),
   ),
+  // [profileRepository]/[earningsRepository] are the profile/earnings
+  // wave's seams: tests pin the fake's clock or switch the seeded viewer
+  // (`amara.designs` renders the populated C14 canvas story).
   profileRepositoryProvider.overrideWith(
-    (ref) => ProfileRepositoryFake(),
+    (ref) => profileRepository ?? ProfileRepositoryFake(),
   ),
   earningsRepositoryProvider.overrideWith(
-    (ref) => EarningsRepositoryFake(),
+    (ref) => earningsRepository ?? EarningsRepositoryFake(),
   ),
 ];
 

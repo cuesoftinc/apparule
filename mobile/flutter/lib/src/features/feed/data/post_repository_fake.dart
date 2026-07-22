@@ -4,7 +4,9 @@ import 'package:apparule/src/features/feed/domain/comment.dart';
 import 'package:apparule/src/features/feed/domain/designer_summary.dart';
 import 'package:apparule/src/features/feed/domain/explore_results.dart';
 import 'package:apparule/src/features/feed/domain/post.dart';
+import 'package:apparule/src/features/feed/domain/public_profile.dart';
 import 'package:apparule/src/features/feed/domain/story_rail_entry.dart';
+import 'package:apparule/src/features/feed/domain/user_summary.dart';
 import 'package:flutter/services.dart';
 
 /// Seed-backed fake (mobile-implementation.md §6): parses the web mock
@@ -26,6 +28,7 @@ class PostRepositoryFake implements PostRepository {
   static const String _meAsset = 'assets/seed/dev/me.json';
   static const String _designersAsset = 'assets/seed/dev/designers.json';
   static const String _postsAsset = 'assets/seed/dev/posts.json';
+  static const String _accountsAsset = 'assets/seed/dev/accounts.json';
 
   /// MI-8: a story ring is lit while the designer has <48h posts.
   static const Duration storyFreshWindow = Duration(hours: 48);
@@ -33,7 +36,15 @@ class PostRepositoryFake implements PostRepository {
   final AssetBundle _bundle;
   final DateTime Function() _now;
 
+  /// The one in-flight load — concurrent first callers (two providers
+  /// watching one keepAlive fake) must all await the SAME parse instead
+  /// of the second reading half-loaded state; once loaded, callers get
+  /// a fresh completed future built in THEIR zone, so a fake
+  /// pre-arranged inside `tester.runAsync` never hands the FakeAsync
+  /// test zone a future pinned to another zone (both are profile-wave
+  /// findings — the same trap as the C6 rootBundle string cache).
   bool _loaded = false;
+  Future<void>? _loading;
   final List<Post> _posts = <Post>[];
   final List<PostComment> _comments = <PostComment>[];
   final List<DesignerSummary> _designers = <DesignerSummary>[];
@@ -47,14 +58,42 @@ class PostRepositoryFake implements PostRepository {
   _designerLocations =
       <String, ({String city, String state, String country})>{};
   final Map<String, String> _designerBios = <String, String>{};
+
+  /// Display-case bios (the search map above lowercases; C9 headers
+  /// render the seed's original casing).
+  final Map<String, String> _designerDisplayBios = <String, String>{};
+
+  /// Every known account (me + designers + the accounts.json community
+  /// cast) — the C12 rows' display fields.
+  final Map<String, ({String displayName, String? avatarUrl})> _accounts =
+      <String, ({String displayName, String? avatarUrl})>{};
+
+  /// The full follow graph as `follower→designer` edges, seed order
+  /// (accounts.json `follows` — web seedFollows verbatim). The viewer's
+  /// edges stay mirrored into [_follows] so every existing derivation
+  /// (feed, story rail, explore morphs) reads the same state C12 mutates.
+  final List<(String, String)> _graphEdges = <(String, String)>[];
+
+  String _viewerUsername = 'kiki.adeyemi';
   int _commentSequence = 0;
 
-  Future<void> _ensureLoaded() async {
-    if (_loaded) return;
-    _loaded = true;
+  Future<void> _ensureLoaded() {
+    if (_loaded) return Future<void>.value();
+    return _loading ??= () async {
+      await _load();
+      _loaded = true;
+    }();
+  }
+
+  Future<void> _load() async {
     final now = _now();
 
     if (await loadSeedJson(_bundle, _meAsset) case final me?) {
+      _viewerUsername = me['username'] as String? ?? _viewerUsername;
+      _accounts[_viewerUsername] = (
+        displayName: me['display_name'] as String? ?? _viewerUsername,
+        avatarUrl: me['avatar_url'] as String?,
+      );
       _follows.addAll((me['follows'] as List<dynamic>).cast<String>());
       _likedPostIds.addAll(
         (me['liked_post_ids'] as List<dynamic>).cast<String>(),
@@ -75,7 +114,13 @@ class PostRepositoryFake implements PostRepository {
         );
         final username = json['username'] as String;
         _designerLocations[username] = location;
-        _designerBios[username] = (json['bio'] as String? ?? '').toLowerCase();
+        final bio = json['bio'] as String? ?? '';
+        _designerBios[username] = bio.toLowerCase();
+        _designerDisplayBios[username] = bio;
+        _accounts[username] = (
+          displayName: json['display_name'] as String,
+          avatarUrl: json['avatar_url'] as String?,
+        );
         _designers.add(
           DesignerSummary(
             username: username,
@@ -85,6 +130,23 @@ class PostRepositoryFake implements PostRepository {
             verified: json['verified'] as bool? ?? false,
           ),
         );
+      }
+    }
+
+    if (await loadSeedJson(_bundle, _accountsAsset) case final seed?) {
+      for (final entry in seed['accounts'] as List<dynamic>) {
+        final json = entry as Map<String, dynamic>;
+        _accounts[json['username'] as String] = (
+          displayName: json['display_name'] as String,
+          avatarUrl: json['avatar_url'] as String?,
+        );
+      }
+      for (final entry in seed['follows'] as List<dynamic>) {
+        final edge = (entry as List<dynamic>).cast<String>();
+        _graphEdges.add((edge[0], edge[1]));
+        // The seed lists the viewer's own edges too — union keeps the
+        // graph and the viewer set telling one story.
+        if (edge[0] == _viewerUsername) _follows.add(edge[1]);
       }
     }
 
@@ -305,10 +367,13 @@ class PostRepositoryFake implements PostRepository {
   @override
   Future<void> setFollow(String username, {required bool follow}) async {
     await _ensureLoaded();
+    final edge = (_viewerUsername, username);
     if (follow) {
       _follows.add(username);
+      if (!_graphEdges.contains(edge)) _graphEdges.add(edge);
     } else {
       _follows.remove(username);
+      _graphEdges.remove(edge);
     }
   }
 
@@ -355,5 +420,109 @@ class PostRepositoryFake implements PostRepository {
     );
     _comments[index] = updated;
     return updated.copyWith(liked: liked);
+  }
+
+  // -- profiles & social lists (C9/C12 — web store parity) ------------------
+
+  bool _isDesigner(String username) =>
+      _designers.any((designer) => designer.username == username);
+
+  UserSummary _summaryOf(String username) {
+    final account = _accounts[username];
+    final designer = _isDesigner(username);
+    final verified =
+        designer &&
+        _designers.firstWhere((entry) => entry.username == username).verified;
+    return UserSummary(
+      username: username,
+      displayName: account?.displayName ?? username,
+      avatarUrl: account?.avatarUrl,
+      verified: verified,
+      isDesigner: designer,
+      viewerFollows: designer && _follows.contains(username),
+    );
+  }
+
+  @override
+  Future<PublicProfile> publicProfile(String username) async {
+    await _ensureLoaded();
+    final account = _accounts[username];
+    if (account == null) throw StateError('Profile not found: $username');
+    final followers = _graphEdges.where((edge) => edge.$2 == username).length;
+    final following = _graphEdges.where((edge) => edge.$1 == username).length;
+    if (_isDesigner(username)) {
+      final designer = _designers.firstWhere(
+        (entry) => entry.username == username,
+      );
+      return PublicProfile(
+        username: username,
+        displayName: designer.displayName,
+        avatarUrl: designer.avatarUrl,
+        bio: _designerDisplayBios[username],
+        locality: designer.locality,
+        isDesigner: true,
+        verified: designer.verified,
+        postsCount: _posts
+            .where((post) => post.designer.username == username)
+            .length,
+        followersCount: followers,
+        followingCount: following,
+        viewerFollows: _follows.contains(username),
+        viewerIsSelf: username == _viewerUsername,
+      );
+    }
+    return PublicProfile(
+      username: username,
+      displayName: account.displayName,
+      avatarUrl: account.avatarUrl,
+      followersCount: followers,
+      followingCount: following,
+      viewerIsSelf: username == _viewerUsername,
+    );
+  }
+
+  @override
+  Future<List<Post>> postsBy(String username) async {
+    await _ensureLoaded();
+    return <Post>[
+      for (final post in _posts)
+        if (post.designer.username == username) _view(post),
+    ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  }
+
+  @override
+  Future<List<Post>> likedPosts() async {
+    await _ensureLoaded();
+    return <Post>[
+      for (final post in _posts)
+        if (_likedPostIds.contains(post.id)) _view(post),
+    ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  }
+
+  @override
+  Future<List<Post>> savedPosts() async {
+    await _ensureLoaded();
+    return <Post>[
+      for (final post in _posts)
+        if (_savedPostIds.contains(post.id)) _view(post),
+    ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  }
+
+  @override
+  Future<List<UserSummary>> followersOf(String username) async {
+    await _ensureLoaded();
+    return <UserSummary>[
+      for (final edge in _graphEdges)
+        if (edge.$2 == username) _summaryOf(edge.$1),
+    ];
+  }
+
+  @override
+  Future<List<UserSummary>> followingOf(String username) async {
+    await _ensureLoaded();
+    return <UserSummary>[
+      for (final edge in _graphEdges)
+        if (edge.$1 == username) _summaryOf(edge.$2),
+    ];
   }
 }

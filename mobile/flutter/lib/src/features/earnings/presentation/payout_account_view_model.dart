@@ -1,0 +1,120 @@
+import 'dart:async';
+
+import 'package:apparule/src/features/earnings/data/earnings_repository.dart';
+import 'package:apparule/src/features/earnings/domain/earnings_exception.dart';
+import 'package:apparule/src/features/earnings/domain/payout.dart';
+import 'package:apparule/src/features/earnings/presentation/earnings_view_model.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'payout_account_view_model.freezed.dart';
+part 'payout_account_view_model.g.dart';
+
+/// The C13 payout-form phase — the four canvas frames: the idle form,
+/// "Checking with your bank…", the resolved name confirm, and the failed
+/// state with retry (+ support link, pages.md B8's after-3-fails rule).
+enum PayoutFormPhase { idle, resolving, resolved, failed }
+
+/// C13 banking-form state (Paystack resolution states, pages.md B8).
+@freezed
+abstract class PayoutFormState with _$PayoutFormState {
+  const factory PayoutFormState({
+    @Default(<BankOption>[]) List<BankOption> banks,
+    BankOption? bank,
+    @Default('') String accountNumber,
+    @Default(PayoutFormPhase.idle) PayoutFormPhase phase,
+    BankResolution? resolution,
+    @Default(0) int failCount,
+    @Default(false) bool saving,
+  }) = _PayoutFormState;
+}
+
+/// C13 payout form — resolve on a complete (bank, 10-digit) pair;
+/// save attaches the resolved account and re-derives the status
+/// surfaces (C8 banner, C14 chip, settings row).
+@riverpod
+class PayoutAccountViewModel extends _$PayoutAccountViewModel {
+  @override
+  PayoutFormState build() {
+    unawaited(_loadBanks());
+    return const PayoutFormState();
+  }
+
+  Future<void> _loadBanks() async {
+    final banks = await ref.read(earningsRepositoryProvider).banks();
+    state = state.copyWith(banks: banks);
+  }
+
+  void setBank(BankOption bank) {
+    state = state.copyWith(bank: bank);
+    unawaited(_maybeResolve());
+  }
+
+  void setAccountNumber(String value) {
+    state = state.copyWith(accountNumber: value);
+    unawaited(_maybeResolve());
+  }
+
+  /// The failed state's "Retry verification".
+  Future<void> retry() => _maybeResolve(force: true);
+
+  Future<void> _maybeResolve({bool force = false}) async {
+    final bank = state.bank;
+    if (bank == null || state.accountNumber.length != 10) {
+      if (state.phase != PayoutFormPhase.idle) {
+        state = state.copyWith(
+          phase: PayoutFormPhase.idle,
+          resolution: null,
+        );
+      }
+      return;
+    }
+    if (state.phase == PayoutFormPhase.resolving && !force) return;
+    state = state.copyWith(
+      phase: PayoutFormPhase.resolving,
+      resolution: null,
+    );
+    final requested = (bank.code, state.accountNumber);
+    try {
+      final resolution = await ref
+          .read(earningsRepositoryProvider)
+          .resolveBank(bank.code, state.accountNumber);
+      // Inputs changed mid-flight — the newer resolve owns the state.
+      if ((state.bank?.code, state.accountNumber) != requested) return;
+      state = state.copyWith(
+        phase: PayoutFormPhase.resolved,
+        resolution: resolution,
+      );
+    } on EarningsException {
+      if ((state.bank?.code, state.accountNumber) != requested) return;
+      state = state.copyWith(
+        phase: PayoutFormPhase.failed,
+        failCount: state.failCount + 1,
+      );
+    }
+  }
+
+  /// Attaches the resolved account; true on success.
+  Future<bool> save() async {
+    final bank = state.bank;
+    if (bank == null || state.phase != PayoutFormPhase.resolved) return false;
+    state = state.copyWith(saving: true);
+    try {
+      await ref
+          .read(earningsRepositoryProvider)
+          .attachPayoutAccount(bank.code, state.accountNumber);
+      ref
+        ..invalidate(designerStatusProvider)
+        ..invalidate(earningsViewModelProvider);
+      return true;
+    } on EarningsException {
+      state = state.copyWith(
+        phase: PayoutFormPhase.failed,
+        failCount: state.failCount + 1,
+      );
+      return false;
+    } finally {
+      state = state.copyWith(saving: false);
+    }
+  }
+}

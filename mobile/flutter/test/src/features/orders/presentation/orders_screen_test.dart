@@ -1,6 +1,7 @@
 import 'package:apparule/src/core/ui/empty_state.dart';
 import 'package:apparule/src/core/ui/status_pill.dart';
 import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
+import 'package:apparule/src/features/earnings/data/earnings_repository_fake.dart';
 import 'package:apparule/src/features/orders/data/order_repository_fake.dart';
 import 'package:apparule/src/features/orders/presentation/order_detail_screen.dart';
 import 'package:apparule/src/routing/routes.dart';
@@ -18,6 +19,7 @@ void main() {
   Future<void> bootToOrders(
     WidgetTester tester, {
     OrderRepositoryFake? orderRepository,
+    EarningsRepositoryFake? earningsRepository,
   }) async {
     tester.view.physicalSize = const Size(390, 2600);
     tester.view.devicePixelRatio = 1.0;
@@ -28,6 +30,7 @@ void main() {
         initialSession: AuthRepositoryFake.seedSession,
       ),
       orderRepository: orderRepository,
+      earningsRepository: earningsRepository,
     );
     routerOf(tester).go(const OrdersRoute().location);
     await tester.pumpAndSettle();
@@ -101,6 +104,33 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('Customer · kiki.adeyemi'), findsNWidgets(3));
     expect(find.text('Send quote'), findsOneWidget); // requested #APR-1031
+  });
+
+  testWidgets('a lapsed payout account raises the persistent C13 KYC '
+      'banner over the designer book (canvas 205:6614)', (tester) async {
+    final earnings = EarningsRepositoryFake(
+      viewer: 'tunde.o',
+      resolveDelay: Duration.zero,
+    );
+    // Pre-pump arrangement loads seed assets — real async, so it must
+    // run outside the FakeAsync test zone.
+    await tester.runAsync(
+      () => earnings.attachPayoutAccount('058', '9999999999'),
+    );
+    await bootToOrders(
+      tester,
+      orderRepository: OrderRepositoryFake(viewer: 'tunde.o'),
+      earningsRepository: earnings,
+    );
+
+    expect(
+      find.text(
+        'Your payout details lapsed — re-verify to keep '
+        'receiving payments.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Re-verify'), findsOneWidget);
   });
 
   testWidgets('an empty order book renders the orders empty state', (

@@ -147,12 +147,17 @@ class _ButtonState extends State<Button> {
               color: spinnerColor,
             ),
           )
-        : Text(
-            widget.label,
-            maxLines: 1,
-            overflow: TextOverflow.clip,
-            softWrap: false,
-            style: labelStyle.copyWith(color: dim(foreground)),
+        // Flexible + clip: the label clamps instead of overflowing when
+        // it outgrows the row (the GoogleAuthButton pattern — long
+        // danger-ladder labels hit this first).
+        : Flexible(
+            child: Text(
+              widget.label,
+              maxLines: 1,
+              overflow: TextOverflow.clip,
+              softWrap: false,
+              style: labelStyle.copyWith(color: dim(foreground)),
+            ),
           );
 
     child = Container(

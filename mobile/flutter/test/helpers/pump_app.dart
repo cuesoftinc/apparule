@@ -2,10 +2,13 @@ import 'package:apparule/l10n/generated/app_localizations.dart';
 import 'package:apparule/src/app/di.dart';
 import 'package:apparule/src/core/theme/app_theme.dart';
 import 'package:apparule/src/features/auth/data/auth_repository.dart';
+import 'package:apparule/src/features/earnings/data/earnings_repository.dart';
 import 'package:apparule/src/features/feed/data/post_repository.dart';
 import 'package:apparule/src/features/measurements/data/camera_service.dart';
+import 'package:apparule/src/features/measurements/data/measurement_repository.dart';
 import 'package:apparule/src/features/orders/data/order_repository.dart';
 import 'package:apparule/src/features/profile/data/notification_repository.dart';
+import 'package:apparule/src/features/profile/data/profile_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -27,9 +30,12 @@ extension PumpApp on WidgetTester {
     List<Override> overrides = const <Override>[],
     AuthRepository? authRepository,
     CameraService? cameraService,
+    MeasurementRepository? measurementRepository,
     PostRepository? postRepository,
     OrderRepository? orderRepository,
     NotificationRepository? notificationRepository,
+    ProfileRepository? profileRepository,
+    EarningsRepository? earningsRepository,
     ThemeMode themeMode = ThemeMode.light,
   }) {
     return pumpWidget(
@@ -38,9 +44,12 @@ extension PumpApp on WidgetTester {
           ...fakeRepositoryOverrides(
             authRepository: authRepository,
             cameraService: cameraService,
+            measurementRepository: measurementRepository,
             postRepository: postRepository,
             orderRepository: orderRepository,
             notificationRepository: notificationRepository,
+            profileRepository: profileRepository,
+            earningsRepository: earningsRepository,
           ),
           ...overrides,
         ],

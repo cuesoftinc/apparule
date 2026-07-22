@@ -1,6 +1,8 @@
 import 'package:apparule/src/core/ui/app_shell.dart';
 import 'package:apparule/src/features/auth/presentation/sign_in_screen.dart';
+import 'package:apparule/src/features/earnings/presentation/designer_onboarding_screen.dart';
 import 'package:apparule/src/features/earnings/presentation/earnings_screen.dart';
+import 'package:apparule/src/features/earnings/presentation/payout_account_screen.dart';
 import 'package:apparule/src/features/feed/presentation/comments_screen.dart';
 import 'package:apparule/src/features/feed/presentation/create_screen.dart';
 import 'package:apparule/src/features/feed/presentation/explore_screen.dart';
@@ -14,9 +16,17 @@ import 'package:apparule/src/features/measurements/presentation/vault_screen.dar
 import 'package:apparule/src/features/orders/presentation/order_detail_screen.dart';
 import 'package:apparule/src/features/orders/presentation/orders_screen.dart';
 import 'package:apparule/src/features/orders/presentation/request_stepper_screen.dart';
+import 'package:apparule/src/features/profile/presentation/account_data_screen.dart';
+import 'package:apparule/src/features/profile/presentation/edit_profile_screen.dart';
+import 'package:apparule/src/features/profile/presentation/follow_list_screen.dart';
+import 'package:apparule/src/features/profile/presentation/follow_list_view_model.dart';
+import 'package:apparule/src/features/profile/presentation/notification_settings_screen.dart';
 import 'package:apparule/src/features/profile/presentation/notifications_screen.dart';
 import 'package:apparule/src/features/profile/presentation/notifications_view_model.dart';
+import 'package:apparule/src/features/profile/presentation/privacy_settings_screen.dart';
 import 'package:apparule/src/features/profile/presentation/profile_screen.dart';
+import 'package:apparule/src/features/profile/presentation/public_profile_screen.dart';
+import 'package:apparule/src/features/profile/presentation/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -289,4 +299,131 @@ class NotificationsRoute extends GoRouteData with $NotificationsRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       const NotificationsScreen();
+}
+
+/// C9 — edit profile. Declared BEFORE the `/profile/:username` param
+/// route: go_router walks routes in declaration order, so the literal
+/// segment must win over `username: "edit"`.
+@TypedGoRoute<EditProfileRoute>(path: '/profile/edit')
+class EditProfileRoute extends GoRouteData with $EditProfileRoute {
+  const EditProfileRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const EditProfileScreen();
+}
+
+/// C9 — another user's profile (pages.md: others = B6). C12's
+/// followers/following lists nest beneath, so a list deep link stacks
+/// the profile under it.
+@TypedGoRoute<PublicProfileRoute>(
+  path: '/profile/:username',
+  routes: <TypedRoute<RouteData>>[
+    TypedGoRoute<FollowersRoute>(path: 'followers'),
+    TypedGoRoute<FollowingRoute>(path: 'following'),
+  ],
+)
+class PublicProfileRoute extends GoRouteData with $PublicProfileRoute {
+  const PublicProfileRoute({required this.username});
+
+  final String username;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      PublicProfileScreen(username: username);
+}
+
+/// C12 — followers tab ([Directive 2026-07-18]: = B6 lists).
+class FollowersRoute extends GoRouteData with $FollowersRoute {
+  const FollowersRoute({required this.username});
+
+  final String username;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) => FollowListScreen(
+    username: username,
+    initialKind: FollowListKind.followers,
+  );
+}
+
+/// C12 — following tab.
+class FollowingRoute extends GoRouteData with $FollowingRoute {
+  const FollowingRoute({required this.username});
+
+  final String username;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) => FollowListScreen(
+    username: username,
+    initialKind: FollowListKind.following,
+  );
+}
+
+/// B7 — settings (C9's gear). The three sub-screens nest beneath so a
+/// sub-screen deep link stacks the root under it.
+@TypedGoRoute<SettingsRoute>(
+  path: '/settings',
+  routes: <TypedRoute<RouteData>>[
+    TypedGoRoute<NotificationSettingsRoute>(path: 'notifications'),
+    TypedGoRoute<PrivacySettingsRoute>(path: 'privacy'),
+    TypedGoRoute<AccountDataRoute>(path: 'account'),
+  ],
+)
+class SettingsRoute extends GoRouteData with $SettingsRoute {
+  const SettingsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const SettingsScreen();
+}
+
+/// B7 sub-screen — per-event notification toggles.
+class NotificationSettingsRoute extends GoRouteData
+    with $NotificationSettingsRoute {
+  const NotificationSettingsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const NotificationSettingsScreen();
+}
+
+/// B7 sub-screen — privacy & consent.
+class PrivacySettingsRoute extends GoRouteData with $PrivacySettingsRoute {
+  const PrivacySettingsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const PrivacySettingsScreen();
+}
+
+/// B7 sub-screen — account & data (the danger ladder lives here).
+class AccountDataRoute extends GoRouteData with $AccountDataRoute {
+  const AccountDataRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const AccountDataScreen();
+}
+
+/// C13 — designer onboarding intro (§5 route map).
+@TypedGoRoute<DesignerOnboardingRoute>(path: '/designer/onboarding')
+class DesignerOnboardingRoute extends GoRouteData
+    with $DesignerOnboardingRoute {
+  const DesignerOnboardingRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const DesignerOnboardingScreen();
+}
+
+/// C13 — the payout banking form. A SIBLING under the prefix, not a
+/// child (the capture-guide precedent): nesting would stack a stale
+/// intro beneath every re-verification entry (C8 banner, C14 chip).
+@TypedGoRoute<PayoutAccountRoute>(path: '/designer/onboarding/payout')
+class PayoutAccountRoute extends GoRouteData with $PayoutAccountRoute {
+  const PayoutAccountRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const PayoutAccountScreen();
 }

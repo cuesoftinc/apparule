@@ -8,18 +8,74 @@ part of 'earnings_view_model.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// C14 placeholder ViewModel — watches the abstract earnings
-/// repository; flavor overrides supply the fake.
+/// The viewer's designer/KYC state — the C9 settings rows, the C8
+/// KYC-lapse banner, and C14's status line all watch this one
+/// derivation.
+
+@ProviderFor(designerStatus)
+final designerStatusProvider = DesignerStatusProvider._();
+
+/// The viewer's designer/KYC state — the C9 settings rows, the C8
+/// KYC-lapse banner, and C14's status line all watch this one
+/// derivation.
+
+final class DesignerStatusProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<DesignerStatus>,
+          DesignerStatus,
+          FutureOr<DesignerStatus>
+        >
+    with $FutureModifier<DesignerStatus>, $FutureProvider<DesignerStatus> {
+  /// The viewer's designer/KYC state — the C9 settings rows, the C8
+  /// KYC-lapse banner, and C14's status line all watch this one
+  /// derivation.
+  DesignerStatusProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'designerStatusProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$designerStatusHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<DesignerStatus> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<DesignerStatus> create(Ref ref) {
+    return designerStatus(ref);
+  }
+}
+
+String _$designerStatusHash() => r'8a23536c6c5431b68828ae1100329e706e63baf3';
+
+/// C14's ViewModel — the summary + ledger. A null value is the
+/// EXPECTED non-designer case (web 403 `designer_profile_required`),
+/// mapped here rather than thrown: Riverpod 3 retries failing
+/// providers, and "become a designer" is a state, not a failure.
 
 @ProviderFor(EarningsViewModel)
 final earningsViewModelProvider = EarningsViewModelProvider._();
 
-/// C14 placeholder ViewModel — watches the abstract earnings
-/// repository; flavor overrides supply the fake.
+/// C14's ViewModel — the summary + ledger. A null value is the
+/// EXPECTED non-designer case (web 403 `designer_profile_required`),
+/// mapped here rather than thrown: Riverpod 3 retries failing
+/// providers, and "become a designer" is a state, not a failure.
 final class EarningsViewModelProvider
-    extends $AsyncNotifierProvider<EarningsViewModel, List<Payout>> {
-  /// C14 placeholder ViewModel — watches the abstract earnings
-  /// repository; flavor overrides supply the fake.
+    extends $AsyncNotifierProvider<EarningsViewModel, Earnings?> {
+  /// C14's ViewModel — the summary + ledger. A null value is the
+  /// EXPECTED non-designer case (web 403 `designer_profile_required`),
+  /// mapped here rather than thrown: Riverpod 3 retries failing
+  /// providers, and "become a designer" is a state, not a failure.
   EarningsViewModelProvider._()
     : super(
         from: null,
@@ -39,22 +95,24 @@ final class EarningsViewModelProvider
   EarningsViewModel create() => EarningsViewModel();
 }
 
-String _$earningsViewModelHash() => r'cbd9a678e840e204bf578cdd25ae7476e5d97921';
+String _$earningsViewModelHash() => r'ce0091f1b60025dfe51bdf744f83ba5959d9733d';
 
-/// C14 placeholder ViewModel — watches the abstract earnings
-/// repository; flavor overrides supply the fake.
+/// C14's ViewModel — the summary + ledger. A null value is the
+/// EXPECTED non-designer case (web 403 `designer_profile_required`),
+/// mapped here rather than thrown: Riverpod 3 retries failing
+/// providers, and "become a designer" is a state, not a failure.
 
-abstract class _$EarningsViewModel extends $AsyncNotifier<List<Payout>> {
-  FutureOr<List<Payout>> build();
+abstract class _$EarningsViewModel extends $AsyncNotifier<Earnings?> {
+  FutureOr<Earnings?> build();
   @$mustCallSuper
   @override
   WhenComplete runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<List<Payout>>, List<Payout>>;
+    final ref = this.ref as $Ref<AsyncValue<Earnings?>, Earnings?>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<List<Payout>>, List<Payout>>,
-              AsyncValue<List<Payout>>,
+              AnyNotifier<AsyncValue<Earnings?>, Earnings?>,
+              AsyncValue<Earnings?>,
               Object?,
               Object?
             >;

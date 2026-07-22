@@ -128,3 +128,6 @@ String formatDateClock(DateTime at) =>
 /// `Jul 12, 2026` — the C5 snapshot-picker date idiom.
 String formatMonthDayYear(DateTime at) =>
     '${_months[at.month - 1]} ${at.day}, ${at.year}';
+
+/// `Jul 16` — the C14 ledger meta idiom (canvas 267:8613 dates).
+String formatMonthDay(DateTime at) => '${_months[at.month - 1]} ${at.day}';

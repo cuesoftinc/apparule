@@ -30,7 +30,8 @@ class PersistenceService {
   Future<void> clearSessionToken() =>
       _secureStorage.delete(key: _sessionTokenKey);
 
-  /// Persisted theme preference: `light` / `dark` / null (follow system).
+  /// Persisted theme preference: `light` / `dark` / `system`; null (never
+  /// set) also reads as follow-system.
   Future<String?> readThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_themeModeKey);

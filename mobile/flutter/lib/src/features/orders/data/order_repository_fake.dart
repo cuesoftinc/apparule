@@ -37,16 +37,30 @@ class OrderRepositoryFake implements OrderRepository {
   /// The signed-in username the §2 permissions matrix evaluates against.
   final String viewer;
 
+  /// The one in-flight load — concurrent first callers (two providers
+  /// watching one keepAlive fake) must all await the SAME parse instead
+  /// of the second reading half-loaded state; once loaded, callers get
+  /// a fresh completed future built in THEIR zone, so a fake
+  /// pre-arranged inside `tester.runAsync` never hands the FakeAsync
+  /// test zone a future pinned to another zone (both are profile-wave
+  /// findings — the same trap as the C6 rootBundle string cache).
   bool _loaded = false;
+  Future<void>? _loading;
   final List<Order> _orders = <Order>[];
   final List<ThreadMessage> _messages = <ThreadMessage>[];
   final Set<String> _autoReplied = <String>{};
   int _orderSequence = 0;
   int _messageSequence = 0;
 
-  Future<void> _ensureLoaded() async {
-    if (_loaded) return;
-    _loaded = true;
+  Future<void> _ensureLoaded() {
+    if (_loaded) return Future<void>.value();
+    return _loading ??= () async {
+      await _load();
+      _loaded = true;
+    }();
+  }
+
+  Future<void> _load() async {
     final now = _now();
     if (await loadSeedJson(_bundle, _ordersAsset) case final seed?) {
       for (final entry in seed['orders'] as List<dynamic>) {
