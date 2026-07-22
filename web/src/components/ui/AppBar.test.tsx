@@ -36,4 +36,29 @@ describe("AppBar (§8.2b)", () => {
     expect(bar.className).not.toContain("border-b");
     expect(bar.className).toContain("to-transparent");
   });
+
+  it.each(["sub", "over-media"] as const)(
+    "%s: title centers on the FULL bar width — absolute layer, not the between-actions remainder (M-9)",
+    (kind) => {
+      render(<AppBar kind={kind} title="Order #APR-1042" onBack={() => {}} />);
+      const layer = screen.getByTestId("appbar-title");
+      // Absolute, full-width, center-aligned, click-through — a hidden
+      // trailing slot can never skew the title off the bar's true center.
+      expect(layer.className).toContain("absolute");
+      expect(layer.className).toContain("inset-x-0");
+      expect(layer.className).toContain("justify-center");
+      expect(layer.className).toContain("pointer-events-none");
+      // px-14 reserves the widest action slot on both sides symmetrically.
+      expect(layer.className).toContain("px-14");
+      expect(layer).toHaveTextContent("Order #APR-1042");
+    },
+  );
+
+  it("root: wordmark stays in-flow left (M-9 exemption)", () => {
+    render(<AppBar kind="root" title="Apparule" />);
+    expect(screen.queryByTestId("appbar-title")).not.toBeInTheDocument();
+    const wordmark = screen.getByText("Apparule");
+    expect(wordmark.className).not.toContain("absolute");
+    expect(wordmark.className).toContain("bg-accent-gradient");
+  });
 });

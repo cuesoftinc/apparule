@@ -45,15 +45,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-    provider.restore().then((session) => {
-      if (cancelled) return;
-      if (session) {
-        setAccount(session.account);
-        setStatus("signed_in");
-      } else {
-        setStatus("signed_out");
-      }
-    });
+    provider
+      .restore()
+      .then((session) => {
+        if (cancelled) return;
+        if (session) {
+          setAccount(session.account);
+          setStatus("signed_in");
+        } else {
+          setStatus("signed_out");
+        }
+      })
+      .catch(() => {
+        // flows/auth.md §2: a failed restore reads as SIGNED OUT — never an
+        // error interstitial, never a stranded aria-busy gate. Providers
+        // contract to resolve null (types.ts), so this is the second net
+        // (mirrors mobile's boot gate).
+        if (!cancelled) setStatus("signed_out");
+      });
     return () => {
       cancelled = true;
     };

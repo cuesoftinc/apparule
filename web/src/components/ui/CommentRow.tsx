@@ -1,9 +1,12 @@
 "use client";
 
-// CommentRow — design.md §8.2b: avatar 32 + username + text + timestamp +
-// like heart · state default / liked / posting-optimistic (MI-18) /
-// reply-indent.
+// CommentRow — design.md §8.2b: avatar 32 + username → author profile +
+// text + timestamp + like heart · state default / liked /
+// posting-optimistic (MI-18) / reply-indent. Entity-navigation rule
+// (Decided 2026-07-22): consumers pass authorHref so the avatar and
+// username are real links; gallery renders omit it.
 import clsx from "clsx";
+import Link from "next/link";
 import { Heart } from "lucide-react";
 import type { Comment } from "@/models";
 import { formatAgo } from "@/lib/format";
@@ -11,6 +14,8 @@ import { Avatar } from "./Avatar";
 
 export interface CommentRowProps {
   comment: Comment;
+  /** Author-profile href — renders avatar + username as the profile link. */
+  authorHref?: string;
   /** MI-18: renders dimmed while the optimistic post is in flight. */
   posting?: boolean;
   replyIndent?: boolean;
@@ -21,6 +26,7 @@ export interface CommentRowProps {
 
 export function CommentRow({
   comment,
+  authorHref,
   posting = false,
   replyIndent = false,
   onToggleLike,
@@ -38,16 +44,37 @@ export function CommentRow({
         className,
       )}
     >
-      <Avatar
-        size={32}
-        name={comment.author.username}
-        src={comment.author.avatar_url}
-      />
+      {authorHref ? (
+        <Link
+          href={authorHref}
+          aria-label={`${comment.author.username}'s profile`}
+          data-testid="comment-author-avatar"
+          className="shrink-0"
+        >
+          <Avatar
+            size={32}
+            name={comment.author.username}
+            src={comment.author.avatar_url}
+          />
+        </Link>
+      ) : (
+        <Avatar
+          size={32}
+          name={comment.author.username}
+          src={comment.author.avatar_url}
+        />
+      )}
       <div className="min-w-0 flex-1">
         {/* Figma master (92:1077): the comment text stays visible while
             posting; the meta line reads "Posting…" */}
         <p className="text-body text-text">
-          <span className="font-semibold">{comment.author.username}</span>{" "}
+          {authorHref ? (
+            <Link href={authorHref} className="font-semibold">
+              {comment.author.username}
+            </Link>
+          ) : (
+            <span className="font-semibold">{comment.author.username}</span>
+          )}{" "}
           {comment.body}
         </p>
         <div className="mt-1 flex items-center gap-4 text-micro text-text-2">

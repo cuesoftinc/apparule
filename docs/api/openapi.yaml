@@ -49,15 +49,15 @@ paths:
   /api/v1/me/sessions:
     post:
       tags: [vault]
-      summary: Create own measurement session (self-customer alias, data-model §6.1)
+      summary: Create own measurement session (self-customer alias, data-model §6.1; two-photo capture per M-10 — both images ride one request with one Idempotency-Key)
       parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
       requestBody:
         content:
           multipart/form-data:
-            schema: { type: object, required: [image], properties: { image: { type: string, format: binary, description: "<=10MB JPEG/PNG/HEIC" }, input_height_cm: { type: number, minimum: 100, maximum: 230 } } }
+            schema: { type: object, required: [image_front, image_side], properties: { image_front: { type: string, format: binary, description: "front pose, <=10MB JPEG/PNG/HEIC" }, image_side: { type: string, format: binary, description: "side pose (right profile), <=10MB JPEG/PNG/HEIC" }, input_height_cm: { type: number, minimum: 100, maximum: 230 } } }
       responses:
         "201": { description: Session with measurements, content: { application/json: { schema: { $ref: "#/components/schemas/MeasurementSession" } } } }
-        "422": { description: "QC failure — capture-qc.md codes (no_body, multiple_bodies, partial_body, undecodable_image, low_resolution, poor_lighting, blurry, not_frontal, camera_tilt, arms_position, too_far)", content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "422": { description: "QC failure — per pose (capture-qc.md §2): error.details names the failing pose; first failure by table order within it. Codes (undecodable_image, low_resolution, poor_lighting, blurry, no_body, multiple_bodies, partial_body, not_frontal, not_side_profile, camera_tilt, arms_position, too_far)", content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
         "403": { description: consent_required }
     get: { tags: [vault], summary: Own measurement history, parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }], responses: { "200": { description: Sessions page } } }
   /api/v1/customers:
@@ -211,7 +211,7 @@ components:
         id: { type: string }
         method: { enum: [mediapipe_2d, mediapipe_2d_v2, smpl_v1, manual] }
         status: { enum: [pending_save, complete, failed] }
-        input_height_cm: { type: number }
+        input_height_cm: { type: [number, "null"], description: "nullable — null for method: manual (data-model §2)" }
         measurements:
           type: array
           items: { type: object, properties: { name: { type: string }, value_cm: { type: number }, source: { enum: [pipeline, manual_correction] }, confidence: { type: number } } }

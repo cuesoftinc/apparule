@@ -22,6 +22,11 @@ export interface AuthProviderAdapter {
   /** X-1: Google is the only sign-in method, product-wide. */
   signInWithGoogle(): Promise<SignInResult>;
   signOut(): Promise<void>;
-  /** Restore an existing session on app load (SDK/session cache). */
+  /**
+   * Restore an existing session on app load (SDK/session cache).
+   * Contract (flows/auth.md §2, ratified 2026-07-22): implementations
+   * resolve `null` on any failure and MUST NOT reject — a failed restore
+   * reads as signed out. AuthContext still catches as a second net.
+   */
   restore(): Promise<AuthSession | null>;
 }

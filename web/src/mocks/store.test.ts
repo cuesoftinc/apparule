@@ -432,7 +432,6 @@ describe("idempotency (api.md §4)", () => {
   it("replays the original response for the same key + payload", () => {
     const first = store.idempotent("k1", "payload", () =>
       store.createManualSession("kiki.adeyemi", {
-        input_height_cm: 168,
         measurements: [{ name: "shoulder_width", value_cm: 42.7 }],
       }),
     );
@@ -548,20 +547,82 @@ describe("profiles & social lists", () => {
   });
 });
 
-describe("capture path (webcam, B4)", () => {
-  it("QC fixture file names reproduce 422 codes with guidance", () => {
+describe("capture path (two-photo upload, B4 — M-10/M-12)", () => {
+  it("QC fixture file names reproduce 422 codes with guidance + pose", () => {
     expect(() =>
       store.createCaptureSession("kiki.adeyemi", {
         input_height_cm: 168,
-        filename: "fixture-blurry.jpg",
+        filenameFront: "fixture-blurry.jpg",
+        filenameSide: "side.jpg",
       }),
     ).toThrow(expect.objectContaining({ code: "blurry", status: 422 }));
+  });
+
+  it("a side-pose failure names pose=side and keeps its per-pose copy", () => {
+    try {
+      store.createCaptureSession("kiki.adeyemi", {
+        input_height_cm: 168,
+        filenameFront: "front.jpg",
+        filenameSide: "fixture-arms_position.jpg",
+      });
+      expect.unreachable("side QC failure must throw");
+    } catch (e) {
+      expect(e).toMatchObject({
+        code: "arms_position",
+        status: 422,
+        details: {
+          pose: "side",
+          guidance: "Let your arms hang relaxed at your sides",
+        },
+      });
+    }
+  });
+
+  it("side pose swaps frontality for not_side_profile (capture-qc.md §2)", () => {
+    expect(() =>
+      store.createCaptureSession("kiki.adeyemi", {
+        input_height_cm: 168,
+        filenameFront: "front.jpg",
+        filenameSide: "fixture-not_side_profile.jpg",
+      }),
+    ).toThrow(
+      expect.objectContaining({
+        code: "not_side_profile",
+        details: expect.objectContaining({ pose: "side" }),
+      }),
+    );
+  });
+
+  it("multi-code fixtures report the FIRST failure by contract table order (pre-checks before pose rows)", () => {
+    // capture-qc.md §2: "Multiple failures report the first by the table
+    // order above" — undecodable_image (§1 pre-check) outranks no_body.
+    expect(() =>
+      store.createCaptureSession("kiki.adeyemi", {
+        input_height_cm: 168,
+        filenameFront: "fixture-no_body-undecodable_image.jpg",
+        filenameSide: "side.jpg",
+      }),
+    ).toThrow(expect.objectContaining({ code: "undecodable_image" }));
+    // …and the front pose reports before the side pose.
+    expect(() =>
+      store.createCaptureSession("kiki.adeyemi", {
+        input_height_cm: 168,
+        filenameFront: "fixture-too_far.jpg",
+        filenameSide: "fixture-blurry.jpg",
+      }),
+    ).toThrow(
+      expect.objectContaining({
+        code: "too_far",
+        details: expect.objectContaining({ pose: "front" }),
+      }),
+    );
   });
 
   it("upload → pending_save → save flips complete; retake deletes", () => {
     const session = store.createCaptureSession("kiki.adeyemi", {
       input_height_cm: 168,
-      filename: "photo.jpg",
+      filenameFront: "front.jpg",
+      filenameSide: "side.jpg",
     });
     expect(session.status).toBe("pending_save");
     expect(session.measurements.some((m) => (m.confidence ?? 1) < 0.7)).toBe(
@@ -573,6 +634,14 @@ describe("capture path (webcam, B4)", () => {
     expect(() => store.saveSession(session.id, "kiki.adeyemi")).toThrow(
       expect.objectContaining({ code: "invalid_transition" }),
     );
+  });
+
+  it("manual sessions carry no height — input_height_cm is null", () => {
+    const session = store.createManualSession("kiki.adeyemi", {
+      measurements: [{ name: "waist_girth", value_cm: 78.5 }],
+    });
+    expect(session.method).toBe("manual");
+    expect(session.input_height_cm).toBeNull();
   });
 });
 

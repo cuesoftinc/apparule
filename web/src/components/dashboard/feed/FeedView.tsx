@@ -196,6 +196,7 @@ export function FeedView() {
                   <div className="bg-bg">
                     <PostCard
                       post={post}
+                      authorHref={`/dashboard/${post.designer.username}`}
                       onToggleLike={() => void like(post)}
                       onToggleSave={() => void save(post)}
                       onComment={() => setOpenPostId(post.id)}

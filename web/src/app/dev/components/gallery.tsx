@@ -349,6 +349,9 @@ export function ComponentGallery() {
           <Button kind="gradient-primary">Request this outfit</Button>
           <Button kind="quiet">Following</Button>
           <Button kind="destructive">Delete session</Button>
+          {/* danger ladder: quiet-danger = row rung; filled destructive
+              only on armed/confirm surfaces (Figma 501:2) */}
+          <Button kind="quiet-danger">Delete all</Button>
           <Button kind="link">View order</Button>
         </Row>
         <Row label="size sm · loading · disabled">
@@ -989,7 +992,7 @@ export function ComponentGallery() {
 
       <Section title="CaptureOptionCard">
         <div className="grid max-w-xl gap-3 md:grid-cols-2">
-          <CaptureOptionCard mode="webcam-upload" onClick={() => {}} />
+          <CaptureOptionCard mode="photo-upload" onClick={() => {}} />
           <CaptureOptionCard mode="manual-entry" onClick={() => {}} />
         </div>
       </Section>

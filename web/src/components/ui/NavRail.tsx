@@ -31,6 +31,12 @@ export interface NavRailItemSpec {
   icon: LucideIcon;
   /** Orders badge (MI-16): unread count, clears on tab visit. */
   badge?: number;
+  /**
+   * Action items (M-11: Create opens the two-option chooser) render as a
+   * button firing this instead of a Link — the href stays as the fallback
+   * for decorative rails (marketing thumbs) that pass no handler.
+   */
+  onSelect?: () => void;
 }
 
 // Figma master (84:1046): explore = search glyph, create = plain plus.
@@ -154,17 +160,8 @@ export function NavRailItem({
   expanded: boolean;
 }) {
   const Icon = item.icon;
-  return (
-    <Link
-      href={item.href}
-      // Rails also render inside decorative home-page thumbs, where
-      // viewport prefetch 404s against unshipped /dashboard/* routes on
-      // the live landing (W2.1 live-QA).
-      prefetch={false}
-      aria-current={active ? "page" : undefined}
-      data-state={active ? "active" : "default"}
-      className={itemClasses(active, expanded)}
-    >
+  const content = (
+    <>
       <span className="relative">
         {active ? (
           <span
@@ -183,6 +180,34 @@ export function NavRailItem({
         ) : null}
       </span>
       {expanded ? <span>{item.label}</span> : null}
+    </>
+  );
+  if (item.onSelect) {
+    // Action pillar (M-11: Create → chooser dialog), not navigation.
+    return (
+      <button
+        type="button"
+        onClick={item.onSelect}
+        aria-haspopup="dialog"
+        data-state={active ? "active" : "default"}
+        className={clsx("w-full", itemClasses(active, expanded))}
+      >
+        {content}
+      </button>
+    );
+  }
+  return (
+    <Link
+      href={item.href}
+      // Rails also render inside decorative home-page thumbs, where
+      // viewport prefetch 404s against unshipped /dashboard/* routes on
+      // the live landing (W2.1 live-QA).
+      prefetch={false}
+      aria-current={active ? "page" : undefined}
+      data-state={active ? "active" : "default"}
+      className={itemClasses(active, expanded)}
+    >
+      {content}
     </Link>
   );
 }

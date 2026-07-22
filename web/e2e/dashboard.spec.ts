@@ -189,6 +189,38 @@ test("B1 journey: like/save/follow → request stepper → order → quote → p
   ).toBeVisible();
 });
 
+test("entity-nav: feed author links + detail header + comment authors navigate to profiles", async ({
+  page,
+}) => {
+  await signIn(page);
+
+  // B1 feed card: the header avatar+username is a real anchor to the
+  // designer profile (the web sibling of the mobile PostCard author bug).
+  const firstAuthor = page.getByTestId("post-author-link").first();
+  const href = await firstAuthor.getAttribute("href");
+  expect(href).toMatch(/^\/dashboard\/[a-z0-9._]+$/);
+  await firstAuthor.click();
+  await page.waitForURL(`**${href}`);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(
+    href!.split("/").pop()!,
+  );
+
+  // Post detail: header link wraps the avatar too (no dead zone), and
+  // comment rows carry author links.
+  await page.goBack();
+  await page
+    .getByRole("button", { name: /View all \d+ comments/ })
+    .first()
+    .click();
+  const detailAuthor = page.getByTestId("detail-author-link");
+  await expect(detailAuthor).toBeVisible();
+  expect(await detailAuthor.getAttribute("href")).toMatch(/^\/dashboard\//);
+  await expect(detailAuthor.locator("span").last()).toBeVisible(); // username inside the link
+  const commentAvatar = page.getByTestId("comment-author-avatar").first();
+  await expect(commentAvatar).toBeVisible();
+  expect(await commentAvatar.getAttribute("href")).toMatch(/^\/dashboard\//);
+});
+
 test("B3: the seeded list covers all ten lifecycle states", async ({
   page,
 }) => {
@@ -246,29 +278,58 @@ test("B2 explore: turnaround chip filters; near-me proximity-ranks without dropp
   await expect(tiles).toHaveCount(total);
 });
 
-test("B4 vault: webcam QC failure → retake → capture → save; history delete", async ({
+test("B4 vault: two-photo upload — per-pose QC failure → re-pick side only → save; history delete", async ({
   page,
 }) => {
   await signIn(page);
   await page.goto("/dashboard/vault");
   await page.getByTestId("vault-retake").click();
-  await page.getByRole("button", { name: /Use your camera/ }).click();
+  await page.getByRole("button", { name: /Upload photos/ }).click();
 
-  // Designated QC fixture: a file name containing a capture-qc code.
-  await page.getByTestId("capture-file").setInputFiles({
+  // The upload view (M-12, Figma 549:2): two labeled dropzones + height +
+  // the mobile-app hint line.
+  const uploadView = page.getByTestId("upload-measurements");
+  await expect(uploadView).toBeVisible();
+  await expect(uploadView).toContainText(
+    "Best experience: guided capture on the Apparule app",
+  );
+
+  // Height prefills from the latest capture session (seed: 168) — never a
+  // fabricated default.
+  const height = page.getByLabel("Height in centimeters");
+  await expect(height).toHaveValue("168");
+  await height.fill("170");
+
+  // Front passes; the side file is a designated QC fixture (a file name
+  // containing a capture-qc code — per-pose QC, M-10).
+  await page.getByTestId("capture-file-front").setInputFiles({
+    name: "front.jpg",
+    mimeType: "image/jpeg",
+    buffer: TINY_JPEG,
+  });
+  await page.getByTestId("capture-file-side").setInputFiles({
     name: "fixture-blurry.jpg",
     mimeType: "image/jpeg",
     buffer: TINY_JPEG,
   });
-  await expect(page.getByRole("alert")).toContainText("Hold steady and retake");
-  await page.getByRole("button", { name: "Retake" }).click();
+  await page.getByTestId("get-measurements").click();
 
-  // Happy path: processing constellation → results → save to vault.
-  await page.getByTestId("capture-file").setInputFiles({
-    name: "photo.jpg",
+  // The 422 names the failing pose: only the side dropzone re-opens, the
+  // accepted front pose keeps its thumbnail (pose 1 is never discarded).
+  await expect(page.getByTestId("pose-error-side")).toBeVisible();
+  await expect(uploadView.getByRole("status")).toContainText(
+    "Hold steady and retake",
+  );
+  await expect(uploadView).toContainText("front.jpg · uploaded");
+
+  // Re-pick the failing pose only → processing constellation → results.
+  await page.getByTestId("capture-file-side").setInputFiles({
+    name: "side.jpg",
     mimeType: "image/jpeg",
     buffer: TINY_JPEG,
   });
+  await expect(page.getByTestId("pose-error-side")).toHaveCount(0);
+  await page.getByTestId("get-measurements").click();
   await expect(page.getByTestId("capture-processing")).toBeVisible();
   await expect(page.getByRole("button", { name: "Save to vault" })).toBeVisible(
     {
@@ -303,6 +364,37 @@ test("B4 vault: webcam QC failure → retake → capture → save; history delet
   const before = await history.locator("li").count();
   await history.getByRole("button", { name: "Delete session" }).first().click();
   await expect(history.locator("li")).toHaveCount(before - 1);
+});
+
+test("M-11 create chooser: rail Create opens the two-option chooser → vault capture options", async ({
+  page,
+}) => {
+  await signIn(page);
+  const rail = page.locator('nav[aria-label="Primary"]:visible');
+  // The Create pillar is an action (chooser dialog), not a route (M-11).
+  const create = rail.getByRole("button", { name: "Create" });
+  await expect(create).toHaveAttribute("aria-haspopup", "dialog");
+  await create.click();
+
+  const chooser = page.getByRole("dialog", { name: "Create" });
+  await expect(chooser).toBeVisible();
+  await expect(page.getByTestId("create-choice-measure")).toContainText(
+    "Two photos — about a minute",
+  );
+  // Non-designer arm: the post card routes to become-a-designer (B5 upsell).
+  await expect(page.getByTestId("create-choice-post")).toContainText(
+    "Become a designer to post",
+  );
+
+  // "Take measurements" hands off to B4 with the capture options open.
+  await page.getByTestId("create-choice-measure").click();
+  await page.waitForURL("**/dashboard/vault?capture=1");
+  await expect(
+    page.getByRole("dialog", { name: "Update measurements" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /Upload photos/ }),
+  ).toBeVisible();
 });
 
 test("B5/B8: creator upsell → onboarding with Paystack resolution states → publish → profile grid", async ({
@@ -728,4 +820,38 @@ test.describe("order-sheet floating layers (shared fixture)", () => {
       await expectMenuUnclipped(page, height);
     });
   }
+});
+
+// Last in the serial file BY DESIGN: it flips the seeded account to
+// deletion_pending, so no journey may follow it in the shared store.
+test("B7 Account & data: danger ladder — quiet-danger row, typed-DELETE confirm, export-first escape", async ({
+  page,
+}) => {
+  await signIn(page);
+  await page.goto("/dashboard/settings/account");
+
+  // Row rung: the unarmed sub-screen renders quiet-danger, never filled.
+  const row = page.getByTestId("delete-all");
+  await expect(row).toHaveAttribute("data-kind", "quiet-danger");
+  await row.click();
+
+  // Armed rung: filled destructive, gated on the typed token.
+  const confirm = page.getByTestId("confirm-delete-all");
+  await expect(confirm).toHaveAttribute("data-kind", "destructive");
+  await expect(confirm).toBeDisabled();
+
+  // The escape hatch exports before deleting (data-model §4 rights).
+  const download = page.waitForEvent("download");
+  await page.getByTestId("export-first").click();
+  expect((await download).suggestedFilename()).toBe("apparule-export.json");
+
+  await page.getByTestId("delete-confirm-input").fill("delete");
+  await expect(confirm).toBeDisabled(); // exact token, not case-insensitive
+  await page.getByTestId("delete-confirm-input").fill("DELETE");
+  await expect(confirm).toBeEnabled();
+  await confirm.click();
+
+  await expect(page.getByText("Deletion requested").first()).toBeVisible();
+  // The pending state disarms the row (no re-entry while pending).
+  await expect(row).toBeDisabled();
 });

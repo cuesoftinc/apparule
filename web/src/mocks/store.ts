@@ -48,22 +48,43 @@ const USERNAME_RE = /^[a-z0-9._]{3,30}$/;
 
 /**
  * QC failure taxonomy (capture-qc.md §1–2) with the canonical retake copy
- * (flows/vault.md). The webcam capture path reproduces a code when the
- * uploaded file's name contains it (designated fixture images).
+ * (flows/vault.md), ordered EXACTLY as the contract tables run — §1
+ * pre-checks first, then the §2 pose rows — because multiple failures
+ * report the first by table order. QC is per pose (M-10): the front pose
+ * keeps the frontality row; the side pose swaps in `not_side_profile` and
+ * the arms-relaxed copy. The upload path reproduces a code when a pose's
+ * file name contains it (designated fixture images).
  */
-export const QC_FAILURES: Record<string, string> = {
-  no_body: "Make sure your whole body is visible",
-  multiple_bodies: "Make sure you're alone in frame",
-  partial_body: "Include head to ankles",
-  undecodable_image: "That image couldn't be read — try another photo",
-  low_resolution: "Move closer or use a higher-quality camera",
-  poor_lighting: "Find better lighting — avoid strong backlight",
-  blurry: "Hold steady and retake",
-  not_frontal: "Face the camera straight on",
-  camera_tilt: "Hold the phone upright",
-  arms_position: "Keep arms slightly away from your body",
-  too_far: "Move closer — fill more of the frame",
-};
+const QC_PRECHECKS: [code: string, guidance: string][] = [
+  ["undecodable_image", "That image couldn't be read — try another photo"],
+  ["low_resolution", "Move closer or use a higher-quality camera"],
+  ["poor_lighting", "Find better lighting — avoid strong backlight"],
+  ["blurry", "Hold steady and retake"],
+];
+
+export const QC_ORDER_FRONT: [code: string, guidance: string][] = [
+  ...QC_PRECHECKS,
+  ["no_body", "Make sure your whole body is visible"],
+  ["multiple_bodies", "Make sure you're alone in frame"],
+  ["partial_body", "Include head to ankles"],
+  ["not_frontal", "Face the camera straight on"],
+  ["camera_tilt", "Hold the phone upright"],
+  ["arms_position", "Keep arms slightly away from your body"],
+  ["too_far", "Move closer — fill more of the frame"],
+];
+
+export const QC_ORDER_SIDE: [code: string, guidance: string][] = [
+  ...QC_PRECHECKS,
+  ["no_body", "Make sure your whole body is visible"],
+  ["multiple_bodies", "Make sure you're alone in frame"],
+  ["partial_body", "Include head to ankles"],
+  // Profile orientation sits at the frontality row's position (§2 pose 2).
+  ["not_side_profile", "Turn your right side to the camera"],
+  ["camera_tilt", "Hold the phone upright"],
+  // Arms-relaxed replaces the front pose's arms-clearance rule, same slot.
+  ["arms_position", "Let your arms hang relaxed at your sides"],
+  ["too_far", "Move closer — fill more of the frame"],
+];
 
 /** Notification kind → the pref that gates it (pages.md B7 Notifications). */
 const KIND_TO_PREF: Record<NotificationKind, keyof NotificationPrefs> = {
@@ -766,22 +787,10 @@ export class MockStore {
   createManualSession(
     username: string,
     input: {
-      input_height_cm: number;
       measurements: { name: string; value_cm: number }[];
     },
   ): MeasurementSession {
     const account = this.accountByUsername(username);
-    if (
-      !Number.isFinite(input.input_height_cm) ||
-      input.input_height_cm < 100 ||
-      input.input_height_cm > 230
-    ) {
-      throw new MockApiError(
-        "validation_failed",
-        "Height must be 100-230 cm",
-        422,
-      );
-    }
     if (!input.measurements || input.measurements.length === 0) {
       throw new MockApiError(
         "validation_failed",
@@ -794,7 +803,9 @@ export class MockStore {
       id: sessionId,
       customer_id: account.id,
       method: "manual",
-      input_height_cm: input.input_height_cm,
+      // Manual sessions carry no height (flows/vault.md §2; data-model.md
+      // §2: input_height_cm nullable — null for method: manual).
+      input_height_cm: null,
       status: "complete",
       measurements: input.measurements.map((m, i) => ({
         id: `${sessionId}-m${i}`,
@@ -812,13 +823,21 @@ export class MockStore {
   }
 
   /**
-   * Webcam capture path (B4): multipart upload → QC → pending_save session
-   * with per-measurement confidence (api.md §2 v2 schema). QC failures are
-   * reproduced when the file name contains a QC code (designated fixtures).
+   * Two-photo upload path (B4, M-10/M-12): multipart image_front +
+   * image_side + height → per-pose QC → pending_save session with
+   * per-measurement confidence (api.md §2 v2 schema). QC failures are
+   * reproduced when a pose's file name contains a QC code (designated
+   * fixtures); multiple codes report the FIRST by the contract table
+   * order (capture-qc.md §2), the front pose first — a pose-2 failure
+   * never discards the accepted pose 1 (the 422 names the failing pose).
    */
   createCaptureSession(
     username: string,
-    input: { input_height_cm: number; filename: string },
+    input: {
+      input_height_cm: number;
+      filenameFront: string;
+      filenameSide: string;
+    },
   ): MeasurementSession {
     const account = this.accountByUsername(username);
     if (
@@ -832,10 +851,19 @@ export class MockStore {
         422,
       );
     }
-    const name = input.filename.toLowerCase();
-    for (const [code, guidance] of Object.entries(QC_FAILURES)) {
-      if (name.includes(code)) {
-        throw new MockApiError(code, guidance, 422, { guidance });
+    const poses: [
+      pose: "front" | "side",
+      name: string,
+      table: [string, string][],
+    ][] = [
+      ["front", input.filenameFront.toLowerCase(), QC_ORDER_FRONT],
+      ["side", input.filenameSide.toLowerCase(), QC_ORDER_SIDE],
+    ];
+    for (const [pose, name, table] of poses) {
+      for (const [code, guidance] of table) {
+        if (name.includes(code)) {
+          throw new MockApiError(code, guidance, 422, { guidance, pose });
+        }
       }
     }
     const sessionId = id("sess");

@@ -59,12 +59,11 @@ export function useVault() {
   }, [sessions]);
 
   const addManualSession = useCallback(
-    async (
-      inputHeightCm: number,
-      measurements: { name: string; value_cm: number }[],
-    ) => {
+    async (measurements: { name: string; value_cm: number }[]) => {
+      // Manual sessions carry no height — input_height_cm is null for
+      // method: manual (flows/vault.md §2, data-model.md §2).
       const session = await vaultRepo.createManualSession(
-        { method: "manual", input_height_cm: inputHeightCm, measurements },
+        { method: "manual", measurements },
         crypto.randomUUID(),
       );
       setSessions((prev) => [session, ...prev]);

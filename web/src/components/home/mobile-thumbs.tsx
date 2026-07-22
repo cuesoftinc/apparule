@@ -117,7 +117,9 @@ export function VaultThumb() {
           <span className="text-body-lg font-semibold text-text">
             Retake your measurements
           </span>
-          <CaptureOptionCard mode="webcam-upload" />
+          {/* Mobile C7 keeps the live guided camera (M-12) — the thumb
+              renders the mobile title over the shared master copy. */}
+          <CaptureOptionCard mode="photo-upload" title="Use your camera" />
           <CaptureOptionCard mode="manual-entry" />
         </div>
       </div>

@@ -42,4 +42,36 @@ test.describe("TEST_MODE auth smoke", () => {
     expect(body.items.length).toBeGreaterThan(0);
     expect(body.items[0].designer.username).toBeTruthy();
   });
+
+  // Cold-start matrix (flows/auth.md §2, ratified 2026-07-22) — the web
+  // sibling of mobile's boot-gate tests: restore resolves before either
+  // surface routes, and each surface guards its wrong-state visitor.
+  test("cold start signed out: /dashboard replaces to /signin with no dashboard paint", async ({
+    page,
+  }) => {
+    await page.goto("/dashboard");
+    await page.waitForURL("**/signin");
+    await expect(
+      page.getByRole("button", { name: /continue with google/i }),
+    ).toBeVisible();
+    // The dashboard never painted content for the signed-out visitor.
+    await expect(page.getByTestId("feed-list")).toHaveCount(0);
+  });
+
+  test("reverse guard: a signed-in visit to /signin is replaced to /dashboard", async ({
+    page,
+  }) => {
+    await page.goto("/signin");
+    await page.getByRole("button", { name: /continue with google/i }).click();
+    await page.waitForURL("**/dashboard");
+
+    // Same tab (TEST_MODE session is sessionStorage-held): /signin is not a
+    // reachable surface while signed in — the gate replaces to the app.
+    await page.goto("/signin");
+    await page.waitForURL("**/dashboard");
+    await expect(page.getByTestId("feed-list")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /continue with google/i }),
+    ).toHaveCount(0);
+  });
 });

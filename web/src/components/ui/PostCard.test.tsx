@@ -75,4 +75,24 @@ describe("PostCard (§3 anatomy + §8.2)", () => {
     fireEvent.click(media);
     expect(onToggleLike).not.toHaveBeenCalled();
   });
+
+  it("authorHref links the header (avatar + username) and caption username (entity-nav rule)", () => {
+    render(
+      <PostCard post={fixturePost} authorHref="/dashboard/amara.designs" />,
+    );
+    const header = screen.getByTestId("post-author-link");
+    expect(header).toHaveAttribute("href", "/dashboard/amara.designs");
+    expect(header).toHaveTextContent("amara.designs");
+    // header link + caption link — both real anchors
+    const links = screen
+      .getAllByRole("link")
+      .filter((a) => a.getAttribute("href") === "/dashboard/amara.designs");
+    expect(links.length).toBe(2);
+  });
+
+  it("without authorHref the card stays inert (marketing mocks, gallery)", () => {
+    render(<PostCard post={fixturePost} />);
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("post-author-link")).not.toBeInTheDocument();
+  });
 });
