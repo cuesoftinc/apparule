@@ -376,6 +376,12 @@ substance — mobile has no "email stub" to delete because it never had a
 production backend; the legacy screen surface implementing the forbidden
 methods was quarantined at the cutover and removed 2026-07-22 (§11).
 
+**Auth posture [Decided 2026-07-22, user]**: the TEST_MODE-parity fakes
+are the **ratified state until phase 4** — both flavors ride
+`AuthRepositoryFake` over the real session lifecycle (§6). The Firebase
+wiring below stays documented but **gated**: no Firebase auth wiring
+lands before the explicit phase-4 go (§1).
+
 - `firebase_core` + `firebase_auth` + `google_sign_in` (7.x): the sign-in
   call sequence is `GoogleSignIn.instance.initialize(serverClientId)` →
   `.authenticate()` → `GoogleAuthProvider.credential(idToken)` →

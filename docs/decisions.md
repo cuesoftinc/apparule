@@ -278,7 +278,13 @@ before public launch. Alternative: commission the brand pass first.
   designer/order/vault personas** as the web mock server's seed
   (web-implementation.md §6) so both clients tell one coherent demo.
   API wiring is the **last** migration step, behind unchanged repository
-  interfaces — no ViewModel or screen changes at that step. ☑
+  interfaces — no ViewModel or screen changes at that step.
+  **Addendum — auth posture (user, 2026-07-22)**: the TEST_MODE-parity
+  fakes (both flavors riding `AuthRepositoryFake` over the real
+  session-lifecycle seam) are the **ratified state until phase 4** —
+  the Firebase wiring steps stay documented
+  (mobile-implementation.md §9) but gated behind an explicit
+  phase-4 go. ☑
 - **M-6 Single-photo measurement reaffirmation (RATIFIED 2026-07-21 —
   REVERSED by M-10, 2026-07-22; kept for the audit trail)**:
   the **one frontal photo + height** canon (api.md `POST /measure`;
