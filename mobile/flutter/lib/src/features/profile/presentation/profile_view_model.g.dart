@@ -9,17 +9,17 @@ part of 'profile_view_model.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// C9 placeholder ViewModel — watches the abstract profile repository;
-/// dev/stg overrides supply the fake.
+/// flavor overrides supply the fake.
 
 @ProviderFor(ProfileViewModel)
 final profileViewModelProvider = ProfileViewModelProvider._();
 
 /// C9 placeholder ViewModel — watches the abstract profile repository;
-/// dev/stg overrides supply the fake.
+/// flavor overrides supply the fake.
 final class ProfileViewModelProvider
     extends $AsyncNotifierProvider<ProfileViewModel, Profile?> {
   /// C9 placeholder ViewModel — watches the abstract profile repository;
-  /// dev/stg overrides supply the fake.
+  /// flavor overrides supply the fake.
   ProfileViewModelProvider._()
     : super(
         from: null,
@@ -42,7 +42,7 @@ final class ProfileViewModelProvider
 String _$profileViewModelHash() => r'27ccbdbea9ea92f2372d8e8595da2627b34d2e42';
 
 /// C9 placeholder ViewModel — watches the abstract profile repository;
-/// dev/stg overrides supply the fake.
+/// flavor overrides supply the fake.
 
 abstract class _$ProfileViewModel extends $AsyncNotifier<Profile?> {
   FutureOr<Profile?> build();

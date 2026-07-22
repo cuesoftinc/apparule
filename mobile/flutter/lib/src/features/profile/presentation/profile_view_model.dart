@@ -5,7 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'profile_view_model.g.dart';
 
 /// C9 placeholder ViewModel — watches the abstract profile repository;
-/// dev/stg overrides supply the fake.
+/// flavor overrides supply the fake.
 @riverpod
 class ProfileViewModel extends _$ProfileViewModel {
   @override

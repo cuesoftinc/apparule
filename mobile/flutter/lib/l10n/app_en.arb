@@ -7,6 +7,46 @@
   "tabOrders": "Orders",
   "tabProfile": "Profile",
   "signInTitle": "Sign in",
+  "signInTagline": "Precision measurement meets social fashion",
+  "@signInTagline": {
+    "description": "C1 tagline under the wordmark — web /signin copy parity."
+  },
+  "signInContinueWithGoogle": "Continue with Google",
+  "@signInContinueWithGoogle": {
+    "description": "The single auth CTA (X-1, flows/auth.md §1)."
+  },
+  "signInErrorNetwork": "You're offline — check your connection and try again.",
+  "@signInErrorNetwork": {
+    "description": "Firebase network-request-failed (flows/auth.md §4)."
+  },
+  "signInErrorDisabled": "This account has been disabled.",
+  "@signInErrorDisabled": {
+    "description": "Firebase user-disabled (flows/auth.md §4)."
+  },
+  "signInErrorGeneric": "Something went wrong signing you in. Try again.",
+  "@signInErrorGeneric": {
+    "description": "Fallback sign-in failure copy; the CTA is the retry."
+  },
+  "signInLegalPrefix": "By continuing you agree to our ",
+  "@signInLegalPrefix": {
+    "description": "Legal footer, segment before the Terms link."
+  },
+  "signInLegalTerms": "Terms",
+  "@signInLegalTerms": {
+    "description": "Legal footer link text → https://terms.cuesoft.io."
+  },
+  "signInLegalAnd": " and ",
+  "@signInLegalAnd": {
+    "description": "Legal footer, segment between the two links."
+  },
+  "signInLegalPrivacy": "Privacy Policy",
+  "@signInLegalPrivacy": {
+    "description": "Legal footer link text → https://privacy.cuesoft.io."
+  },
+  "signInLegalSuffix": ".",
+  "@signInLegalSuffix": {
+    "description": "Legal footer, closing punctuation after the links."
+  },
   "vaultTitle": "Measurement vault",
   "earningsTitle": "Earnings & payouts",
   "placeholderBody": "Placeholder screen — the real surface lands with its feature wave.",

@@ -5,7 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'vault_view_model.g.dart';
 
 /// C7 placeholder ViewModel — watches the abstract measurement
-/// repository; dev/stg overrides supply the fake.
+/// repository; flavor overrides supply the fake.
 @riverpod
 class VaultViewModel extends _$VaultViewModel {
   @override

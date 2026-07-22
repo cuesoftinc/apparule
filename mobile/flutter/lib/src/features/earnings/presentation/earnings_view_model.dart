@@ -5,7 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'earnings_view_model.g.dart';
 
 /// C14 placeholder ViewModel — watches the abstract earnings
-/// repository; dev/stg overrides supply the fake.
+/// repository; flavor overrides supply the fake.
 @riverpod
 class EarningsViewModel extends _$EarningsViewModel {
   @override

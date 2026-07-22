@@ -36,10 +36,13 @@ android {
         versionName = flutter.versionName
     }
 
-    // dev / stg / prd flavors (mobile-implementation.md §2): distinct
-    // applicationIds so all three install side by side, each paired with
-    // its lib/main_<flavor>.dart entrypoint (main.dart = prd). iOS
-    // schemes/xcconfigs are deferred to an Xcode pass — tracked in the PR.
+    // dev / prod flavors (org environment ruling, user directive
+    // 2026-07-22): CueLABS production runs on the sandbox account, so the
+    // pair is `dev` (fakes/TEST_MODE, suffixed id) and `prod` (bare
+    // canonical applicationId, Firebase sandbox-e306a). Both install side
+    // by side; each pairs with its entrypoint (main.dart = prod,
+    // main_dev.dart = dev). iOS schemes/xcconfigs are deferred to an
+    // Xcode pass — tracked in the PR.
     flavorDimensions += "env"
     productFlavors {
         create("dev") {
@@ -47,12 +50,7 @@ android {
             applicationIdSuffix = ".dev"
             resValue("string", "app_name", "Apparule Dev")
         }
-        create("stg") {
-            dimension = "env"
-            applicationIdSuffix = ".stg"
-            resValue("string", "app_name", "Apparule Stg")
-        }
-        create("prd") {
+        create("prod") {
             dimension = "env"
             resValue("string", "app_name", "Apparule")
         }

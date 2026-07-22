@@ -11,8 +11,10 @@ environment:
   flutter: 3.44.7 # mirrored from .fvmrc — the single source of truth (mobile-implementation.md §2)
 
 # The ratified dependency set (standards-research ledger, verified pub.dev
-# 2026-07-21). Firebase packages are ADDED here but not initialized — the
-# auth wave runs `flutterfire configure` per flavor (§2/§9).
+# 2026-07-21). The auth cutover wired firebase_core/firebase_auth/
+# google_sign_in (§9); the per-flavor `flutterfire configure` output
+# (firebase_options.dart for prod, firebase_options_dev.dart) is pending
+# `firebase login --reauth`.
 dependencies:
   cached_network_image: ^3.4.1
   dio: ^5.10.0
@@ -34,6 +36,9 @@ dependencies:
   json_annotation: ^4.9.0
   riverpod_annotation: ^4.0.3
   shared_preferences: ^2.5.5
+  # Pin-ledger addition (auth cutover): C1's legal links open the
+  # canonical Cuesoft policies in the system browser (flows/auth.md §5).
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   alchemist: ^0.14.0

@@ -1,8 +1,9 @@
 # Seed narrative (mobile-implementation.md §6)
 
 `*Fake` repositories read flavor-scoped JSON from `assets/seed/<flavor>/`
-(`dev/`, `stg/`) — the same story as the web dashboard's seed, so a person
-moving between the phone and the web app sees one coherent world.
+(`dev/` today; the two-flavor model per the org environment ruling, user
+directive 2026-07-22) — the same story as the web dashboard's seed, so a
+person moving between the phone and the web app sees one coherent world.
 
 The files land with the screens wave (§1 phase 3), one per domain:
 

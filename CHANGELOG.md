@@ -9,6 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Mobile Google-only auth cutover (restructure step 4,
+  mobile-implementation.md §9, X-1/M-3): the abstract `AuthRepository`
+  grows the full contract (silent restore, `signInWithGoogle`, sign-out,
+  session stream) with two implementations — `AuthRepositoryFirebase`
+  (the google_sign_in 7 rewrite: `initialize(serverClientId)` →
+  `authenticate()` → `GoogleAuthProvider.credential(idToken:)` →
+  `signInWithCredential`; silent restore via
+  `attemptLightweightAuthentication()`; tokens at rest through the
+  secure-storage persistence seam, closing CV-2) and the seeded
+  `AuthRepositoryFake` (instant sign-in as the web mock's `kiki.adeyemi`
+  test user); C1 replaces the auth placeholder — logo, gradient wordmark,
+  tagline, exactly one "Continue with Google" CTA (Google 'G' brand
+  glyph, loading/notice states per flows/auth.md §4) and underlined legal
+  links to the canonical Cuesoft policies; the router's auth redirect
+  goes live (`refreshListenable` off the session provider — signed-out →
+  `/signin`, signed-in never sees it, closing CV-7's push-only chains);
+  `main_dev` boots signed in over fakes. 19 new tests cover the
+  repository contract, the mocked Firebase call sequence and §4 error
+  mapping, the C1 widget states, and the redirect matrix.
+  `firebase_options*.dart` generation is pending `firebase login
+  --reauth` (expired CLI credentials); `bootstrap(firebaseOptions:)` +
+  `firebaseAuthRepositoryOverride()` are the one-diff seam for when it
+  lands. Pin-ledger addition: `url_launcher ^6.3.2` (legal links).
 - Mobile feature-first skeleton (restructure step 3,
   mobile-implementation.md §3–§7): `lib/src/{app,routing,core,features}`
   with the six ratified features (`auth`, `feed`, `measurements`, `orders`,
@@ -86,6 +109,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Mobile flavors collapse to the org's two-environment model (user
+  directive 2026-07-22): `dev` (fakes/TEST_MODE, applicationIdSuffix
+  `.dev`) and `prod` (bare `io.cuesoft.apparule`, Firebase
+  `sandbox-e306a` — CueLABS production runs on the sandbox account; the
+  Doppler config name stays `stg`). `main_stg.dart` and the `stg`/`prd`
+  Android flavors are gone; `main.dart` is the prod entrypoint, and a
+  separate prd tier is added only when a production environment is
+  ratified.
 - Mobile legacy quarantine, wave 2 (mobile-implementation.md §11): all of
   `lib/src/**`, the superseded `main.dart`, and the old l10n surface
   (`app_sq.arb` + committed generated localizations) moved

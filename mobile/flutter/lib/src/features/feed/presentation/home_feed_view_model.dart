@@ -5,7 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'home_feed_view_model.g.dart';
 
 /// C2 placeholder ViewModel — watches the abstract post repository;
-/// dev/stg overrides supply the fake.
+/// flavor overrides supply the fake.
 @riverpod
 class HomeFeedViewModel extends _$HomeFeedViewModel {
   @override
