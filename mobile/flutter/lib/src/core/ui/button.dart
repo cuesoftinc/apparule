@@ -94,7 +94,14 @@ class _ButtonState extends State<Button> {
       fontWeight: FontWeight.w600,
     );
 
-    // Kind → chrome. Fills/borders bind base hues; the quiet-danger label
+    // Figma: disabled cells render the default chrome at 40%. Applied at
+    // the color level (not an Opacity layer) so the dim survives every
+    // rendering path, including alchemist's blocked-text golden pass.
+    final disabled = widget.onPressed == null && !widget.loading;
+    Color dim(Color color) =>
+        disabled ? color.withValues(alpha: color.a * 0.4) : color;
+
+    // Kind -> chrome. Fills/borders bind base hues; the quiet-danger label
     // binds the error token over quiet chrome (Figma 501:2).
     Gradient? gradient;
     Color? background;
@@ -145,16 +152,22 @@ class _ButtonState extends State<Button> {
             maxLines: 1,
             overflow: TextOverflow.clip,
             softWrap: false,
-            style: labelStyle.copyWith(color: foreground),
+            style: labelStyle.copyWith(color: dim(foreground)),
           );
 
     child = Container(
       height: height,
       padding: EdgeInsets.symmetric(horizontal: horizontal),
       decoration: BoxDecoration(
-        gradient: gradient,
-        color: background,
-        border: side == BorderSide.none ? null : Border.fromBorderSide(side),
+        gradient: gradient == null
+            ? null
+            : LinearGradient(
+                colors: gradient.colors.map(dim).toList(),
+              ),
+        color: background == null ? null : dim(background),
+        border: side == BorderSide.none
+            ? null
+            : Border.fromBorderSide(side.copyWith(color: dim(side.color))),
         borderRadius: BorderRadius.circular(radii.card),
       ),
       child: Row(
@@ -192,15 +205,11 @@ class _ButtonState extends State<Button> {
           onTapCancel: () => _setPressed(false),
           onTapUp: (_) => _setPressed(false),
           onTap: _enabled ? widget.onPressed : null,
-          child: Opacity(
-            // Figma: disabled cells render the default chrome at 40%.
-            opacity: widget.onPressed == null && !widget.loading ? 0.4 : 1,
-            child: AnimatedScale(
-              scale: _pressed && _enabled ? 0.98 : 1,
-              duration: motion.fast,
-              curve: motion.standardEasing,
-              child: child,
-            ),
+          child: AnimatedScale(
+            scale: _pressed && _enabled ? 0.98 : 1,
+            duration: motion.fast,
+            curve: motion.standardEasing,
+            child: child,
           ),
         ),
       ),

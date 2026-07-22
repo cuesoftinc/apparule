@@ -177,14 +177,15 @@ class _PulsingSilhouetteState extends State<_PulsingSilhouette>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _controller,
-      builder: (context, _) => Opacity(
-        // Pulse 0.7 → 1.0; static states hold 0.8 (web `opacity-80`).
-        opacity: widget.pulsing ? 0.7 + 0.3 * _controller.value : 0.8,
-        child: CustomPaint(
-          painter: _SilhouettePainter(
-            color: widget.color,
-            dashed: widget.dashed,
+      // Pulse 0.7 -> 1.0; static states hold 0.8 (web `opacity-80`).
+      // Alpha rides the stroke color (not an Opacity layer) so the pulse
+      // level survives alchemist's blocked-text golden pass.
+      builder: (context, _) => CustomPaint(
+        painter: _SilhouettePainter(
+          color: widget.color.withValues(
+            alpha: widget.pulsing ? 0.7 + 0.3 * _controller.value : 0.8,
           ),
+          dashed: widget.dashed,
         ),
       ),
     );

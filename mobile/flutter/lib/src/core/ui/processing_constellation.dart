@@ -54,9 +54,12 @@ class ProcessingConstellation extends StatelessWidget {
               children: <Widget>[
                 const ColoredBox(color: Color(0xFF000000)),
                 if (image != null)
-                  Opacity(
-                    opacity: 0.6,
-                    child: Image(image: image!, fit: BoxFit.cover),
+                  // Paint-level opacity (not an Opacity layer) so the dim
+                  // survives alchemist's blocked-text golden pass.
+                  Image(
+                    image: image!,
+                    fit: BoxFit.cover,
+                    opacity: const AlwaysStoppedAnimation<double>(0.6),
                   ),
                 Center(
                   child: FractionallySizedBox(
