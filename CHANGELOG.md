@@ -9,6 +9,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Mobile core/ui component wave (design phase 2, mobile-implementation.md
+  §7 — one Flutter module per Figma C-series component set, golden-tested
+  before any screen consumes it, the web W1 discipline): 23 new modules
+  in `core/ui/` + 2 conformed. Mobile chrome — `AppTabBar` (49:384,
+  icon-only tabs, gradient create FAB, MI-16 orders badge; `AppShell` now
+  consumes it, replacing the Material-icon stand-in), `AppTopBar`
+  (85:994, root/sub/over-media kinds, gradient wordmark), `Sheet`
+  (50:296, grabber/centred title/MI-10 stepper header, `Sheet.show`
+  bottom-layer presenter). The 7-set Capture Kit — `CaptureOverlay`
+  (63:701, searching/aligned/countdown/qc-hint guides, pulsing
+  silhouette, on-media white per the documented token exception),
+  `CountdownRing` (60:590, 3/2/1), `QCHintChip` (62:634, all 11
+  capture-qc.md fail codes with the canonical retake copy,
+  first-failure-only), `ProcessingConstellation` (64:748, MediaPipe
+  landmark pulse), `CaptureResults` (65:612, confidence-summary pill +
+  MI-12 stagger), `ManualMeasureRow` (66:695, bespoke tape slider +
+  cm/in flip, advisory out-of-range hint), `CaptureOptionCard` (66:721).
+  Shared molecules/cards — `PostCard` (52:462, single/carousel/cta/
+  skeleton, MI-1 double-tap heart), `ActionRow` (46:140, MI-2/3, filled
+  Lucide heart/bookmark via inline SVG), `StoryRailItem` (46:95, MI-8
+  rotating loading ring), `CaughtUpDivider` (96:1214), `StatusPill`
+  (47:135, all 13 states, `-text` AA labels, MI-14 pulse), `Banner`
+  (95:1220, four tones, dismiss + action slot), `MeasurementCard`
+  (48:208, source chip, <0.7 low-confidence chip, bespoke sparkline),
+  `PaymentBox` (90:1103, six states × two roles, itemized 10% fee line,
+  MI-15 escrow explainer), `EarningsSummary` (97:1249, AA-large base
+  hues), `EmptyState` (54:459, six kinds), `Skeleton` (54:464, MI-19
+  shimmer), `Avatar` (42:189, ring/badge geometry per the [Decided
+  2026-07-19] spec), `Button` (39:66) with the **new `quiet-danger`
+  kind** (501:2, danger-ladder row rung — quiet chrome, error label).
+  `GoogleAuthButton` and the salvaged `Countdown` conform to their
+  inventory axes (pressed tint; ring module supersedes the m:ss text
+  for C6). Constructor params mirror the Figma variant axes exactly;
+  every color binds the ThemeExtensions (raw #FFFFFF only on-media);
+  money/measurement text sets `FontFeature.tabularFigures()`. 56
+  committed alchemist CI goldens cover every variant×state cell in
+  light + dark (platform goldens disabled — images are byte-identical
+  across hosts), plus behavior/a11y widget tests (icon-only controls
+  carry semantics labels per the named-control canon). Pin-ledger
+  addition: `lucide_icons_flutter ^3.1.15` (design.md §2 iconography).
 - Mobile Google-only auth cutover (restructure step 4,
   mobile-implementation.md §9, X-1/M-3): the abstract `AuthRepository`
   grows the full contract (silent restore, `signInWithGoogle`, sign-out,
