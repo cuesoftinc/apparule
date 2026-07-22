@@ -42,4 +42,26 @@ describe("CommentRow (§8.2b)", () => {
     await userEvent.click(screen.getByRole("button", { name: "Reply" }));
     expect(onReply).toHaveBeenCalledOnce();
   });
+
+  it("authorHref links avatar + username to the profile (entity-nav rule)", () => {
+    render(
+      <CommentRow
+        comment={fixtureComment}
+        authorHref="/dashboard/kiki.adeyemi"
+      />,
+    );
+    expect(screen.getByTestId("comment-author-avatar")).toHaveAttribute(
+      "href",
+      "/dashboard/kiki.adeyemi",
+    );
+    expect(screen.getByRole("link", { name: "kiki.adeyemi" })).toHaveAttribute(
+      "href",
+      "/dashboard/kiki.adeyemi",
+    );
+  });
+
+  it("without authorHref the row stays inert (gallery renders)", () => {
+    render(<CommentRow comment={fixtureComment} />);
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
 });

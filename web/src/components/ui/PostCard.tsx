@@ -2,13 +2,17 @@
 
 // PostCard — design.md §3 anatomy + §8.2: media single / carousel (dots) ·
 // CTA with/without "Request this outfit" · state default / skeleton.
-// Anatomy: header (avatar, username, badge, ⋯) · media carousel (MI-4) ·
-// action row (MI-1/2/3) · like count · caption (2-line clamp, "more") ·
-// request CTA (full-width quiet button — Apparule's one IG addition) ·
-// timestamp. MI-1: double-tap/double-click media → 96px heart burst + like.
+// Anatomy: header (avatar + username → designer profile, badge, ⋯) · media
+// carousel (MI-4) · action row (MI-1/2/3) · like count · caption (2-line
+// clamp, "more") · request CTA (full-width quiet button — Apparule's one IG
+// addition) · timestamp. MI-1: double-tap/double-click media → 96px heart
+// burst + like. Entity-navigation rule (design.md §3, Decided 2026-07-22):
+// product surfaces pass authorHref so the header and caption usernames are
+// real links; marketing mocks / gallery renders omit it and stay inert.
 import { useRef, useState } from "react";
 import clsx from "clsx";
 import Image from "next/image";
+import Link from "next/link";
 import { ChevronLeft, ChevronRight, Heart, MoreHorizontal } from "lucide-react";
 import type { Post } from "@/models";
 import { formatAgo } from "@/lib/format";
@@ -30,6 +34,12 @@ export interface PostCardProps {
   mediaPriority?: boolean;
   /** next/image `sizes` override for scaled contexts (e.g. the hero mock). */
   mediaSizes?: string;
+  /**
+   * Designer-profile href — renders the header avatar+username and the
+   * caption's leading username as real anchors (entity-navigation rule).
+   * Omit in pointer-inert contexts (marketing mocks, dev gallery).
+   */
+  authorHref?: string;
   onToggleLike?: () => void;
   onToggleSave?: () => void;
   onRequest?: () => void;
@@ -44,6 +54,7 @@ export function PostCard({
   skeleton = false,
   mediaPriority = false,
   mediaSizes = "(max-width: 768px) 100vw, 630px",
+  authorHref,
   onToggleLike,
   onToggleSave,
   onRequest,
@@ -83,17 +94,39 @@ export function PostCard({
         className,
       )}
     >
-      {/* header — Figma master (52:462): px 12 / py 8 / gap 8 */}
+      {/* header — Figma master (52:462): px 12 / py 8 / gap 8. Avatar +
+          username are one profile link when authorHref is set (the exact
+          sibling of the mobile PostCard author-tap fix). */}
       <header className="flex items-center gap-2 px-3 py-2">
-        <Avatar
-          size={32}
-          name={post.designer.display_name}
-          src={post.designer.avatar_url}
-          verified={post.designer.verified}
-        />
-        <span className="text-body font-semibold text-text">
-          {post.designer.username}
-        </span>
+        {authorHref ? (
+          <Link
+            href={authorHref}
+            data-testid="post-author-link"
+            className="flex min-w-0 items-center gap-2"
+          >
+            <Avatar
+              size={32}
+              name={post.designer.display_name}
+              src={post.designer.avatar_url}
+              verified={post.designer.verified}
+            />
+            <span className="truncate text-body font-semibold text-text">
+              {post.designer.username}
+            </span>
+          </Link>
+        ) : (
+          <>
+            <Avatar
+              size={32}
+              name={post.designer.display_name}
+              src={post.designer.avatar_url}
+              verified={post.designer.verified}
+            />
+            <span className="text-body font-semibold text-text">
+              {post.designer.username}
+            </span>
+          </>
+        )}
         <IconButton
           aria-label="More options"
           size="sm"
@@ -219,7 +252,12 @@ export function PostCard({
             !captionOpen && "line-clamp-2",
           )}
         >
-          {post.designer.username} {post.caption}
+          {authorHref ? (
+            <Link href={authorHref}>{post.designer.username}</Link>
+          ) : (
+            post.designer.username
+          )}{" "}
+          {post.caption}
           {!captionOpen && post.caption.length > 80 ? (
             <>
               {" "}

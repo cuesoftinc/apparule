@@ -189,6 +189,38 @@ test("B1 journey: like/save/follow → request stepper → order → quote → p
   ).toBeVisible();
 });
 
+test("entity-nav: feed author links + detail header + comment authors navigate to profiles", async ({
+  page,
+}) => {
+  await signIn(page);
+
+  // B1 feed card: the header avatar+username is a real anchor to the
+  // designer profile (the web sibling of the mobile PostCard author bug).
+  const firstAuthor = page.getByTestId("post-author-link").first();
+  const href = await firstAuthor.getAttribute("href");
+  expect(href).toMatch(/^\/dashboard\/[a-z0-9._]+$/);
+  await firstAuthor.click();
+  await page.waitForURL(`**${href}`);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(
+    href!.split("/").pop()!,
+  );
+
+  // Post detail: header link wraps the avatar too (no dead zone), and
+  // comment rows carry author links.
+  await page.goBack();
+  await page
+    .getByRole("button", { name: /View all \d+ comments/ })
+    .first()
+    .click();
+  const detailAuthor = page.getByTestId("detail-author-link");
+  await expect(detailAuthor).toBeVisible();
+  expect(await detailAuthor.getAttribute("href")).toMatch(/^\/dashboard\//);
+  await expect(detailAuthor.locator("span").last()).toBeVisible(); // username inside the link
+  const commentAvatar = page.getByTestId("comment-author-avatar").first();
+  await expect(commentAvatar).toBeVisible();
+  expect(await commentAvatar.getAttribute("href")).toMatch(/^\/dashboard\//);
+});
+
 test("B3: the seeded list covers all ten lifecycle states", async ({
   page,
 }) => {

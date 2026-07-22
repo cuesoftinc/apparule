@@ -113,17 +113,22 @@ export function PostDetailView({
 
       <div className="flex max-h-[640px] min-w-0 flex-col">
         <header className="flex items-center gap-2 border-b border-border px-4 py-3">
-          <Avatar
-            size={32}
-            name={post.designer.display_name}
-            src={post.designer.avatar_url}
-            verified={post.designer.verified}
-          />
+          {/* Avatar + username share one profile link — the avatar is never
+              a dead zone (entity-navigation rule, Decided 2026-07-22). */}
           <Link
             href={`/dashboard/${post.designer.username}`}
-            className="truncate text-body font-semibold text-text"
+            data-testid="detail-author-link"
+            className="flex min-w-0 items-center gap-2"
           >
-            {post.designer.username}
+            <Avatar
+              size={32}
+              name={post.designer.display_name}
+              src={post.designer.avatar_url}
+              verified={post.designer.verified}
+            />
+            <span className="truncate text-body font-semibold text-text">
+              {post.designer.username}
+            </span>
           </Link>
           {onOverflow ? (
             <IconButton
@@ -161,6 +166,7 @@ export function PostDetailView({
                 <li key={comment.id}>
                   <CommentRow
                     comment={comment}
+                    authorHref={`/dashboard/${comment.author.username}`}
                     posting={comment.id.startsWith("optimistic-")}
                   />
                 </li>
