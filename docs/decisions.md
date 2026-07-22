@@ -279,7 +279,8 @@ before public launch. Alternative: commission the brand pass first.
   (web-implementation.md §6) so both clients tell one coherent demo.
   API wiring is the **last** migration step, behind unchanged repository
   interfaces — no ViewModel or screen changes at that step. ☑
-- **M-6 Single-photo measurement reaffirmation (RATIFIED 2026-07-21)**:
+- **M-6 Single-photo measurement reaffirmation (RATIFIED 2026-07-21 —
+  REVERSED by M-10, 2026-07-22; kept for the audit trail)**:
   the **one frontal photo + height** canon (api.md `POST /measure`;
   capture-qc.md; flows/vault.md §1) is unchanged by the mobile rebuild —
   the legacy two-pose `guide_screen.dart` (front + side) is **rewritten**
@@ -299,3 +300,24 @@ before public launch. Alternative: commission the brand pass first.
   appears only if a separate production environment is ratified;
   the bare application id already rides `prod` so identity migrates
   cleanly. ☑
+- **M-10 Two-photo capture (RATIFIED 2026-07-22, user directive —
+  REVERSES M-6)**: the product mechanic is **two photos — front + side
+  (right profile) — plus height**. The reversal chain, honestly: M-6 was
+  ratified from the docs' one-photo contracts as they then stood (api.md
+  `POST /measure`, capture-qc.md, flows/vault.md §1); the user ruled that
+  the web marketing copy ("Two photos. A perfect fit.") was the true
+  product intent all along — the **docs, not the copy, had drifted**.
+  The contracts now carry the two-photo canon: api.md `POST /measure`
+  takes multipart `image_front` + `image_side` + `user_height_cm`;
+  capture-qc.md defines **per-pose QC** (the front pose keeps the
+  frontality table; the side pose gets a profile-orientation check —
+  `not_side_profile` — and an arms-relaxed check in place of the front
+  pose's arms rule; first-failure-only **per pose**, and a pose-2 failure
+  never discards an accepted pose 1); flows/vault.md §1 runs the
+  two-capture sequence (front → side → processing; a QC retry re-enters
+  the failing pose, never advances the pose counter); pages.md C6 and
+  mobile-implementation.md §10 describe the two-pose flow with the 5-step
+  guide (side pose included); the `mediapipe_2d_v2` formula gains the
+  side-pose contribution — girth estimation from two views — marked
+  **[Directive: measurement pipeline recalibration needed]** for the
+  backend phase. ☑

@@ -278,9 +278,9 @@ canonical scheme. The single auth CTA component (X-1) is named
 | EmptyState | feed / vault / orders / explore / notifications (5 illustrated) |
 | Toast | success / error+retry / neutral |
 | Skeleton | kind: line / avatar / media / card (§3 anatomy; MI-19 shimmer) *(as built 2026-07-17)* |
-| CaptureOverlay | guide: searching (silhouette pulses) / aligned (guide turns success) / countdown / qc-hint (chip slot) — dashed silhouette vector over camera viewport (MI-12) |
+| CaptureOverlay | guide: searching (silhouette pulses) / aligned (guide turns success) / countdown / qc-hint (chip slot) · pose: front / side (M-10 — the side pose swaps in the right-profile silhouette, arms relaxed) — dashed silhouette vector over camera viewport (MI-12) |
 | CountdownRing | 3 / 2 / 1 (ring progress + numeral) |
-| QCHintChip | code ×11: no_body / multiple_bodies / partial_body / undecodable_image / low_resolution / poor_lighting / blurry / not_frontal / camera_tilt / arms_position / too_far — one actionable guidance line each (fail codes [capture-qc.md](capture-qc.md) §1–2; canonical copy [flows/vault.md](flows/vault.md) QC-failures row) |
+| QCHintChip | code ×12: no_body / multiple_bodies / partial_body / undecodable_image / low_resolution / poor_lighting / blurry / not_frontal / camera_tilt / arms_position / too_far / not_side_profile (side pose, M-10) — one actionable guidance line each, `arms_position` copy per pose (fail codes [capture-qc.md](capture-qc.md) §1–2; canonical copy [flows/vault.md](flows/vault.md) QC-failures row) |
 | ProcessingConstellation | state: processing (landmark constellation over photo) / success / failed — the "AI is working" moment (MI-12) |
 | CaptureResults chrome | header (confidence summary) + MeasurementCard stagger list slot + "Save to vault" gradient / "Retake" quiet (pages.md C6) |
 | ManualMeasureRow | tape-measure slider + numeric field + cm/in toggle · state: default / active / error (MI-13) |
