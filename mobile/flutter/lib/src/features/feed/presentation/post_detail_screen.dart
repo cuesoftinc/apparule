@@ -90,6 +90,9 @@ class _PostDetailBody extends ConsumerWidget {
                 onComment: () =>
                     PostCommentsRoute(id: post.id).push<void>(context),
                 onShare: () => sharePostLink(context, post.id),
+                onProfileTap: () => PublicProfileRoute(
+                  username: post.designer.username,
+                ).push<void>(context),
               ),
               // The composer affordance — tapping opens the C11 sheet
               // with the keyboard-ready composer.

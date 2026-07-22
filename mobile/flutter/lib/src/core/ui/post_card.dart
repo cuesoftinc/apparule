@@ -3,6 +3,7 @@ import 'package:apparule/src/core/ui/action_row.dart';
 import 'package:apparule/src/core/ui/avatar.dart';
 import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/skeleton.dart';
+import 'package:flutter/gestures.dart' show TapGestureRecognizer;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show RenderProxyBox;
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -37,6 +38,7 @@ class PostCard extends StatefulWidget {
     this.onComment,
     this.onShare,
     this.onOverflow,
+    this.onProfileTap,
     super.key,
   });
 
@@ -70,6 +72,11 @@ class PostCard extends StatefulWidget {
   final VoidCallback? onComment;
   final VoidCallback? onShare;
   final VoidCallback? onOverflow;
+
+  /// Designer-identity tap — the header (avatar + username) and the
+  /// caption's leading username open the designer's profile (web
+  /// PostDetailView parity: both link `/dashboard/{username}`).
+  final VoidCallback? onProfileTap;
 
   @override
   State<PostCard> createState() => _PostCardState();
@@ -119,24 +126,12 @@ class _PostCardState extends State<PostCard> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Row(
                 children: <Widget>[
-                  Avatar(
-                    name: widget.username,
-                    size: AvatarSize.s32,
-                    image: widget.avatarImage,
-                    badge: widget.verified
-                        ? AvatarBadge.designerVerified
-                        : AvatarBadge.none,
-                  ),
-                  const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
-                      widget.username,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: typography.body14.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: colors.text,
-                      ),
+                    child: _HeaderIdentity(
+                      username: widget.username,
+                      avatarImage: widget.avatarImage,
+                      verified: widget.verified,
+                      onTap: widget.onProfileTap,
                     ),
                   ),
                   Semantics(
@@ -278,6 +273,7 @@ class _PostCardState extends State<PostCard> {
                     caption: widget.caption,
                     open: _captionOpen,
                     onMore: () => setState(() => _captionOpen = true),
+                    onUsernameTap: widget.onProfileTap,
                   ),
                   if (widget.commentCount > 0)
                     Padding(
@@ -333,18 +329,107 @@ class _PostCardState extends State<PostCard> {
   }
 }
 
-class _Caption extends StatelessWidget {
+/// The tappable header identity — avatar + username as ONE profile
+/// affordance (the user-reported live-QA defect: neither navigated).
+/// Layout matches the previous inline anatomy exactly; the tap layer is
+/// behavior-only, so goldens hold.
+class _HeaderIdentity extends StatelessWidget {
+  const _HeaderIdentity({
+    required this.username,
+    required this.avatarImage,
+    required this.verified,
+    required this.onTap,
+  });
+
+  final String username;
+  final ImageProvider<Object>? avatarImage;
+  final bool verified;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.extension<AppColors>()!;
+    final typography = theme.extension<AppTypography>()!;
+
+    final identity = Row(
+      children: <Widget>[
+        Avatar(
+          name: username,
+          size: AvatarSize.s32,
+          image: avatarImage,
+          badge: verified ? AvatarBadge.designerVerified : AvatarBadge.none,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            username,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: typography.body14.copyWith(
+              fontWeight: FontWeight.w600,
+              color: colors.text,
+            ),
+          ),
+        ),
+      ],
+    );
+
+    // No destination, no control — never announce a dead button
+    // (skeleton hosts, previews).
+    if (onTap == null) return identity;
+
+    return Semantics(
+      // One node announcing the affordance once (the StoryRailItem
+      // pattern) — the inner username text is visual.
+      container: true,
+      excludeSemantics: true,
+      label: 'View $username profile',
+      button: true,
+      onTap: onTap,
+      child: InkWell(onTap: onTap, child: identity),
+    );
+  }
+}
+
+class _Caption extends StatefulWidget {
   const _Caption({
     required this.username,
     required this.caption,
     required this.open,
     required this.onMore,
+    required this.onUsernameTap,
   });
 
   final String username;
   final String caption;
   final bool open;
   final VoidCallback onMore;
+
+  /// Web PostDetailView parity: the caption's leading username links the
+  /// designer profile.
+  final VoidCallback? onUsernameTap;
+
+  @override
+  State<_Caption> createState() => _CaptionState();
+}
+
+class _CaptionState extends State<_Caption> {
+  // Span recognizers are owned (and disposed) here — a build-scoped
+  // recognizer would leak its gesture arena entry.
+  final TapGestureRecognizer _usernameRecognizer = TapGestureRecognizer();
+
+  @override
+  void initState() {
+    super.initState();
+    _usernameRecognizer.onTap = () => widget.onUsernameTap?.call();
+  }
+
+  @override
+  void dispose() {
+    _usernameRecognizer.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -356,15 +441,22 @@ class _Caption extends StatelessWidget {
       fontWeight: FontWeight.w600,
       color: colors.text,
     );
-    final showMore = !open && caption.length > 80;
+    final showMore = !widget.open && widget.caption.length > 80;
+    final linkedUsername = widget.onUsernameTap != null;
 
     return GestureDetector(
-      onTap: showMore ? onMore : null,
+      onTap: showMore ? widget.onMore : null,
       child: Text.rich(
         TextSpan(
           children: <InlineSpan>[
-            TextSpan(text: '$username '),
-            TextSpan(text: caption),
+            TextSpan(
+              text: '${widget.username} ',
+              recognizer: linkedUsername ? _usernameRecognizer : null,
+              semanticsLabel: linkedUsername
+                  ? 'View ${widget.username} profile'
+                  : null,
+            ),
+            TextSpan(text: widget.caption),
             if (showMore)
               TextSpan(
                 text: ' more',
@@ -376,8 +468,8 @@ class _Caption extends StatelessWidget {
           ],
         ),
         style: style,
-        maxLines: open ? null : 2,
-        overflow: open ? TextOverflow.visible : TextOverflow.ellipsis,
+        maxLines: widget.open ? null : 2,
+        overflow: widget.open ? TextOverflow.visible : TextOverflow.ellipsis,
       ),
     );
   }

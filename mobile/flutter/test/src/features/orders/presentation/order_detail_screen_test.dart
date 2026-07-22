@@ -3,6 +3,7 @@ import 'package:apparule/src/core/ui/status_pill.dart';
 import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/features/orders/data/order_repository_fake.dart';
 import 'package:apparule/src/features/orders/domain/order.dart';
+import 'package:apparule/src/features/profile/presentation/public_profile_screen.dart';
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -67,6 +68,22 @@ void main() {
         find.textContaining('Fabric cut today'),
         findsOneWidget,
       );
+    });
+
+    testWidgets('the counterparty line opens their C9 profile', (
+      tester,
+    ) async {
+      await bootToOrder(tester, 'req-apr-1042');
+
+      // Web OrderDetailView parity: the counterparty links their
+      // profile (live-QA sweep — the line rendered as static text).
+      await tester.tap(find.bySemanticsLabel('View amara.designs profile'));
+      await tester.pumpAndSettle();
+
+      final profile = tester.widget<PublicProfileScreen>(
+        find.byType(PublicProfileScreen),
+      );
+      expect(profile.username, 'amara.designs');
     });
 
     testWidgets('the dispute flow: link → sheet → destructive confirm → '

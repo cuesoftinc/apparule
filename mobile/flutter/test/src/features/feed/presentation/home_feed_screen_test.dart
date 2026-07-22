@@ -5,6 +5,7 @@ import 'package:apparule/src/core/ui/story_rail_item.dart';
 import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/features/feed/data/post_repository_fake.dart';
 import 'package:apparule/src/features/profile/presentation/notifications_screen.dart';
+import 'package:apparule/src/features/profile/presentation/public_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -76,6 +77,52 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text("You're all caught up"), findsOneWidget);
+  });
+
+  testWidgets('a PostCard header identity opens the designer C9 profile', (
+    tester,
+  ) async {
+    await bootToFeed(tester);
+
+    // The live-QA defect: the header avatar/name navigated nowhere.
+    await tester.tap(
+      find.bySemanticsLabel('View amara.designs profile').first,
+    );
+    await tester.pumpAndSettle();
+
+    final profile = tester.widget<PublicProfileScreen>(
+      find.byType(PublicProfileScreen),
+    );
+    expect(profile.username, 'amara.designs');
+  });
+
+  testWidgets('a story ring opens the designer C9 profile and consumes '
+      'the ring', (tester) async {
+    final repository = PostRepositoryFake();
+    await bootToFeed(tester, postRepository: repository);
+
+    final firstStory = tester.widget<StoryRailItem>(
+      find.byType(StoryRailItem).first,
+    );
+    expect(firstStory.state, StoryRailItemState.unseen);
+
+    await tester.tap(find.byType(StoryRailItem).first);
+    await tester.pumpAndSettle();
+
+    // Web FeedView parity: the rail item links the designer profile.
+    final profile = tester.widget<PublicProfileScreen>(
+      find.byType(PublicProfileScreen),
+    );
+    expect(profile.username, firstStory.username);
+
+    // The ring was consumed on the way (repository state, not widget).
+    final stories = await repository.storyRail();
+    expect(
+      stories
+          .firstWhere((entry) => entry.username == firstStory.username)
+          .unseen,
+      isFalse,
+    );
   });
 
   testWidgets('the top-bar bell opens C10', (tester) async {

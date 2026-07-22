@@ -195,8 +195,9 @@ class _FeedBody extends ConsumerWidget {
                       state: story.unseen
                           ? StoryRailItemState.unseen
                           : StoryRailItemState.seen,
-                      // Opens the designer's newest outfit (their C9
-                      // profile takes over once the profile wave lands).
+                      // Opens the designer's C9 profile (web FeedView
+                      // parity: the rail item links `/dashboard/{username}`),
+                      // consuming the ring on the way.
                       onTap: () => _openStory(context, ref, story),
                     );
                   },
@@ -226,7 +227,7 @@ class _FeedBody extends ConsumerWidget {
         .read(homeFeedViewModelProvider.notifier)
         .markStorySeen(story.username);
     if (context.mounted) {
-      await PostDetailRoute(id: story.newestPostId).push<void>(context);
+      await PublicProfileRoute(username: story.username).push<void>(context);
     }
   }
 }
@@ -262,6 +263,9 @@ class _FeedPostCard extends StatelessWidget {
       onComment: () => PostCommentsRoute(id: post.id).push<void>(context),
       onShare: () => sharePostLink(context, post.id),
       onRequest: () => RequestRoute(postId: post.id).push<void>(context),
+      onProfileTap: () => PublicProfileRoute(
+        username: post.designer.username,
+      ).push<void>(context),
     );
   }
 }

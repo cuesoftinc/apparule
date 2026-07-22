@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/avatar.dart';
@@ -6,6 +8,8 @@ import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/core/utils/seed_media.dart';
 import 'package:apparule/src/features/feed/domain/comment.dart';
 import 'package:apparule/src/features/feed/presentation/comments_view_model.dart';
+import 'package:apparule/src/routing/routes.dart';
+import 'package:flutter/gestures.dart' show TapGestureRecognizer;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -226,28 +230,72 @@ class _CommentsScreenState extends ConsumerState<CommentsScreen> {
   }
 }
 
-class _CommentRow extends ConsumerWidget {
+class _CommentRow extends ConsumerStatefulWidget {
   const _CommentRow({required this.comment, required this.postId});
 
   final PostComment comment;
   final String postId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_CommentRow> createState() => _CommentRowState();
+}
+
+class _CommentRowState extends ConsumerState<_CommentRow> {
+  // Owned here (not build-scoped) so the arena entry is disposed.
+  final TapGestureRecognizer _authorRecognizer = TapGestureRecognizer();
+
+  @override
+  void initState() {
+    super.initState();
+    _authorRecognizer.onTap = _openAuthorProfile;
+  }
+
+  @override
+  void dispose() {
+    _authorRecognizer.dispose();
+    super.dispose();
+  }
+
+  /// Commenter avatar/name → the author's C9 profile (live-QA sweep:
+  /// every entity reference navigates to its entity screen).
+  void _openAuthorProfile() {
+    unawaited(
+      PublicProfileRoute(
+        username: widget.comment.author.username,
+      ).push<void>(context),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final colors = theme.extension<AppColors>()!;
     final typography = theme.extension<AppTypography>()!;
+    final comment = widget.comment;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Avatar(
-            name: comment.author.username,
-            size: AvatarSize.s32,
-            image: seedMediaImageOrNull(comment.author.avatarUrl),
+          Semantics(
+            // One node (the StoryRailItem pattern) — the avatar's own
+            // name semantics fold into the affordance announcement.
+            container: true,
+            excludeSemantics: true,
+            label: 'View ${comment.author.username} profile',
+            button: true,
+            onTap: _openAuthorProfile,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _openAuthorProfile,
+              child: Avatar(
+                name: comment.author.username,
+                size: AvatarSize.s32,
+                image: seedMediaImageOrNull(comment.author.avatarUrl),
+              ),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -259,6 +307,9 @@ class _CommentRow extends ConsumerWidget {
                     children: <InlineSpan>[
                       TextSpan(
                         text: '${comment.author.username} ',
+                        recognizer: _authorRecognizer,
+                        semanticsLabel:
+                            'View ${comment.author.username} profile',
                         style: typography.body14.copyWith(
                           fontWeight: FontWeight.w600,
                           color: colors.text,
@@ -294,7 +345,7 @@ class _CommentRow extends ConsumerWidget {
             toggled: comment.liked,
             child: InkResponse(
               onTap: () => ref
-                  .read(commentsViewModelProvider(postId).notifier)
+                  .read(commentsViewModelProvider(widget.postId).notifier)
                   .toggleCommentLike(comment.id),
               radius: 18,
               child: SizedBox(
