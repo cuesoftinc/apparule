@@ -3,6 +3,7 @@ import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/app_bar.dart';
 import 'package:apparule/src/core/ui/banner.dart';
 import 'package:apparule/src/core/ui/button.dart';
+import 'package:apparule/src/core/ui/confetti_burst.dart';
 import 'package:apparule/src/core/ui/empty_state.dart';
 import 'package:apparule/src/core/ui/status_pill.dart';
 import 'package:apparule/src/core/utils/clock.dart';
@@ -806,15 +807,15 @@ class _SuccessView extends StatelessWidget {
               SizedBox(
                 height: 220,
                 width: double.infinity,
-                child: CustomPaint(
-                  painter: _ConfettiPainter(
-                    colors: <Color>[
-                      colors.accentStart,
-                      colors.accentEnd,
-                      colors.success,
-                      colors.warn,
-                    ],
-                  ),
+                // MI-10: the ≤800ms burst animates once per order and
+                // settles on the canvas frame's static scatter.
+                child: ConfettiBurst(
+                  colors: <Color>[
+                    colors.accentStart,
+                    colors.accentEnd,
+                    colors.success,
+                    colors.warn,
+                  ],
                   child: Align(
                     alignment: Alignment.bottomCenter,
                     child: Icon(
@@ -857,47 +858,4 @@ class _SuccessView extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Deterministic confetti scatter — a fixed pseudo-random layout (no
-/// animation state, byte-stable in goldens; the canvas frame is a static
-/// scatter too).
-class _ConfettiPainter extends CustomPainter {
-  const _ConfettiPainter({required this.colors});
-
-  final List<Color> colors;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Linear congruential generator with a fixed seed — same scatter on
-    // every frame and every platform.
-    var state = 0x5eed;
-    double next() {
-      state = (state * 48271) % 0x7fffffff;
-      return (state % 1000) / 1000;
-    }
-
-    for (var i = 0; i < 28; i++) {
-      final x = next() * size.width;
-      final y = next() * size.height * 0.8;
-      final angle = next() * 3.14159;
-      final color = colors[i % colors.length];
-      canvas
-        ..save()
-        ..translate(x, y)
-        ..rotate(angle)
-        ..drawRRect(
-          RRect.fromRectAndRadius(
-            const Rect.fromLTWH(-4, -4, 8, 8),
-            const Radius.circular(1.5),
-          ),
-          Paint()..color = color,
-        )
-        ..restore();
-    }
-  }
-
-  @override
-  bool shouldRepaint(_ConfettiPainter oldDelegate) =>
-      oldDelegate.colors != colors;
 }

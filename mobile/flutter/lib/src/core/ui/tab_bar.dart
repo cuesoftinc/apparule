@@ -1,5 +1,5 @@
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:apparule/src/core/utils/formats.dart';
+import 'package:apparule/src/core/ui/spring_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -144,9 +144,10 @@ class _TabItem extends StatelessWidget {
               if (badge != null && badge! > 0)
                 Positioned(
                   // Figma master: badge rides the icon's top-right corner.
+                  // MI-16: increments pop with SpringBadge's springy scale.
                   top: -10,
                   left: 17.5,
-                  child: ExcludeSemantics(child: _Badge(count: badge!)),
+                  child: ExcludeSemantics(child: SpringBadge(count: badge!)),
                 ),
               if (active && tab != AppTab.create)
                 Positioned(
@@ -163,41 +164,6 @@ class _TabItem extends StatelessWidget {
                 ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Badge extends StatelessWidget {
-  const _Badge({required this.count});
-
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.extension<AppColors>()!;
-    final radii = theme.extension<AppRadii>()!;
-    final typography = theme.extension<AppTypography>()!;
-
-    return Container(
-      constraints: const BoxConstraints(minWidth: 16),
-      height: 16,
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: colors.like,
-        borderRadius: BorderRadius.circular(radii.pill),
-      ),
-      child: Text(
-        formatCount(count),
-        style: typography.micro12.copyWith(
-          fontSize: 10,
-          height: 1.6,
-          fontWeight: FontWeight.w600,
-          color: colors.onAccent,
-          fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
         ),
       ),
     );
