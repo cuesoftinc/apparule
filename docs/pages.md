@@ -166,7 +166,7 @@ Existing screens (splash/welcome/auth/capture) remain the entry path.
 | C6 | Capture | two-pose flow (M-10): 5-step guide (intro · get ready · phone setup · front pose · side pose — canvas-first frames, M-8) → front capture "Pose 1 of 2" then right-profile side capture "Pose 2 of 2", silhouette overlay + 3-2-1 countdown per pose (MI-12; centered over-media pose bar, M-9) → height step → processing constellation; results screen: measurement cards stagger-in, "Save to vault" primary, "Retake" quiet; QC failures re-enter the failing pose only (retry never advances the pose counter, capture-qc.md §2); manual-entry fallback (MI-13) |
 | C7 | Vault | = B4 adapted; entry from Profile tab header ring |
 | C8 | Orders | = B3 list + detail, incl. the dispute flow and designer decline sheet **[Directive 2026-07-18]**; push notifications drive re-entry (badge MI-16) |
-| C9 | Profile | own: vault ring header, grid of liked/saved, settings gear; others: designer profile = B6 |
+| C9 | Profile | own: vault ring header, grid of liked/saved, settings gear; others: designer profile = B6. Bio is **designer-scoped** (follows web — `DESIGNER_PROFILE.bio`, data-model.md §5): the edit-profile screen hides the bio field for non-designers **[Decided 2026-07-22]** |
 | C10 | Notifications sheet | activity list (likes, follows, quotes, status changes); grouped by day; swipe-to-clear |
 | C11 | Comments sheet (full) **[Directive 2026-07-18]** | C4's swipe-up sheet expanded to full height: CommentRow list (reply indent, like hearts), composer pinned above keyboard, optimistic post MI-18 |
 | C12 | Followers/following **[Directive 2026-07-18]** | = B6 lists; UserRow + Follow morph (MI-7), tabs Followers / Following |

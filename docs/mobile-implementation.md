@@ -256,7 +256,7 @@ post-detail screen in-app when the app is installed.
 | `/vault` | Measurement vault | C7 |
 | `/orders` (Orders tab) · `/orders/{id}` | Orders list + detail | C8 |
 | `/profile` (Profile tab) · `/profile/{username}` | Own / other profile | C9 |
-| `/profile/edit` | Edit profile (display name · bio · X-10 location) | C9 |
+| `/profile/edit` | Edit profile (display name · bio — designer-scoped, hidden for non-designers (pages.md C9) · X-10 location) | C9 |
 | `/notifications` | Notifications sheet | C10 |
 | `/profile/{username}/followers` · `/following` | Followers/following | C12 |
 | `/settings` · `/settings/{notifications,privacy,account}` | Settings root + the B7-mobile sub-screens (canvas 207:*) — account & data carries the export-first delete ladder | pages.md B7 |
