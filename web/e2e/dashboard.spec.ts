@@ -334,6 +334,37 @@ test("B4 vault: two-photo upload — per-pose QC failure → re-pick side only �
   await expect(history.locator("li")).toHaveCount(before - 1);
 });
 
+test("M-11 create chooser: rail Create opens the two-option chooser → vault capture options", async ({
+  page,
+}) => {
+  await signIn(page);
+  const rail = page.locator('nav[aria-label="Primary"]:visible');
+  // The Create pillar is an action (chooser dialog), not a route (M-11).
+  const create = rail.getByRole("button", { name: "Create" });
+  await expect(create).toHaveAttribute("aria-haspopup", "dialog");
+  await create.click();
+
+  const chooser = page.getByRole("dialog", { name: "Create" });
+  await expect(chooser).toBeVisible();
+  await expect(page.getByTestId("create-choice-measure")).toContainText(
+    "Two photos — about a minute",
+  );
+  // Non-designer arm: the post card routes to become-a-designer (B5 upsell).
+  await expect(page.getByTestId("create-choice-post")).toContainText(
+    "Become a designer to post",
+  );
+
+  // "Take measurements" hands off to B4 with the capture options open.
+  await page.getByTestId("create-choice-measure").click();
+  await page.waitForURL("**/dashboard/vault?capture=1");
+  await expect(
+    page.getByRole("dialog", { name: "Update measurements" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /Upload photos/ }),
+  ).toBeVisible();
+});
+
 test("B5/B8: creator upsell → onboarding with Paystack resolution states → publish → profile grid", async ({
   page,
 }) => {

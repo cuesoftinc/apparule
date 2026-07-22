@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@/design/ThemeProvider";
 import { DEFAULT_NAV_ITEMS, NavRail } from "./NavRail";
 
@@ -80,5 +81,22 @@ describe("NavRail (§8.2b)", () => {
       ),
     });
     expect(screen.getByTestId("nav-badge")).toHaveTextContent("3");
+  });
+
+  it("an onSelect item renders as a dialog-opening button, not a link (M-11 Create)", async () => {
+    const onSelect = vi.fn();
+    renderRail({
+      expanded: true,
+      items: DEFAULT_NAV_ITEMS.map((i) =>
+        i.key === "create" ? { ...i, onSelect } : i,
+      ),
+    });
+    const create = screen.getByRole("button", { name: "Create" });
+    expect(create).toHaveAttribute("aria-haspopup", "dialog");
+    expect(
+      screen.queryByRole("link", { name: "Create" }),
+    ).not.toBeInTheDocument();
+    await userEvent.click(create);
+    expect(onSelect).toHaveBeenCalledOnce();
   });
 });

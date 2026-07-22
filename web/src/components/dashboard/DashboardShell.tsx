@@ -2,13 +2,16 @@
 
 // Dashboard shell (pages.md Part B chrome): left NavRail (collapsed 72,
 // expanded 244 at ≥1264px), auth guard, Orders badge (MI-16 — clears on tab
-// visit), and the single <main> landmark every screen renders into.
-import { useEffect, useMemo, type ReactNode } from "react";
+// visit), the Create chooser (M-11: the rail's Create pillar opens the
+// two-option chooser, not a route), and the single <main> landmark every
+// screen renders into.
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/auth/AuthContext";
 import { useNotifications } from "@/controllers/use-notifications";
 import { NavRail, DEFAULT_NAV_ITEMS } from "@/components/ui/NavRail";
 import { Spinner } from "@/components/ui/Spinner";
+import { CreateChooserSheet } from "./CreateChooserSheet";
 import { ToastProvider } from "./toast-context";
 
 function activeKeyFor(pathname: string, ownUsername: string | null): string {
@@ -32,6 +35,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { ordersBadge, markOrderKindsRead } = useNotifications();
+  const [chooserOpen, setChooserOpen] = useState(false);
 
   // Auth guard: the dashboard is the authenticated app (web-implementation
   // §4) — signed-out visitors land on /signin.
@@ -58,6 +62,10 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         }
         if (item.key === "profile" && account) {
           return { ...item, href: `/dashboard/${account.username}` };
+        }
+        if (item.key === "create") {
+          // M-11: Create opens the two-option chooser (capture / post).
+          return { ...item, onSelect: () => setChooserOpen(true) };
         }
         return item;
       }),
@@ -99,6 +107,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         <main id="main" tabIndex={-1} className="min-w-0 flex-1">
           {children}
         </main>
+        <CreateChooserSheet open={chooserOpen} onOpenChange={setChooserOpen} />
       </div>
     </ToastProvider>
   );
