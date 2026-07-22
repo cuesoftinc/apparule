@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../helpers/pump_app.dart';
+import '../../../../helpers/notched.dart';
 
 /// B7 settings root: identity block, creator rows off the earnings
 /// status, the tri-state Appearance control persisting via the
@@ -110,5 +111,13 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('keeps content clear of the notched top inset', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await pump(tester);
+    expectNoContentInTopInset(tester);
   });
 }

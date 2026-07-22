@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/pump_app.dart';
 import '../../../../helpers/throwing_auth_repository.dart';
+import '../../../../helpers/notched.dart';
 
 void main() {
   group('SignInScreen (C1)', () {
@@ -118,5 +119,13 @@ void main() {
         findsNothing,
       );
     });
+  });
+
+  testWidgets('keeps content clear of the notched top inset', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await tester.pumpApp(const SignInScreen());
+    expectNoContentInTopInset(tester);
   });
 }

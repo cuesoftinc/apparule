@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/boot_app.dart';
+import '../../../../helpers/notched.dart';
 
 /// C8 list over the seeded fake: the ten-state chip ladder, contextual
 /// actions, B3 role tabs (designer side only when it exists). 390px
@@ -144,6 +145,13 @@ void main() {
     expect(find.byType(EmptyState), findsOneWidget);
     expect(find.text('No orders yet'), findsOneWidget);
     expect(find.text('Discover designers'), findsOneWidget);
+  });
+  testWidgets('keeps content clear of the notched top inset', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await bootToOrders(tester);
+    expectNoContentInTopInset(tester);
   });
 }
 

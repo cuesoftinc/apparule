@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/pump_app.dart';
+import '../../../../helpers/notched.dart';
 
 /// C12 followers/following: count-titled tabs over UserRow lists, the
 /// MI-7 morph mutating the same graph every header derives from.
@@ -81,5 +82,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Following'), findsNothing);
     expect(find.text('Follow'), findsNWidgets(2));
+  });
+
+  testWidgets('keeps content clear of the notched top inset', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await pump(tester);
+    expectNoContentInTopInset(tester);
   });
 }

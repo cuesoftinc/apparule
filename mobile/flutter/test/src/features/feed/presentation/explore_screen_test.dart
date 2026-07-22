@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/boot_app.dart';
+import '../../../../helpers/notched.dart';
 
 /// C3 over the seeded fake: browse grid, sectioned search results with
 /// the MI-7 follow morph, per-section empties. 390px canvas width.
@@ -77,5 +78,13 @@ void main() {
     expect(find.byType(EmptyState), findsOneWidget);
     expect(find.text('No results for "zzzz"'), findsOneWidget);
     expect(find.text('Clear search'), findsOneWidget);
+  });
+
+  testWidgets('keeps content clear of the notched top inset', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await bootToExplore(tester);
+    expectNoContentInTopInset(tester);
   });
 }

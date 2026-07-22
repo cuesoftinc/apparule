@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/boot_app.dart';
+import '../../../../helpers/notched.dart';
 
 /// C7 over the seeded fake (canvas 173:698): the MI-11 freshness-ring
 /// header with the Retake capture-options sheet, one MeasurementCard per
@@ -139,6 +140,13 @@ void main() {
     // Canvas 212:5925: the capture options live behind the CTA, not
     // above the empty state.
     expect(find.byType(CaptureOptionCard), findsNothing);
+  });
+  testWidgets('keeps content clear of the notched top inset', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await bootToVault(tester);
+    expectNoContentInTopInset(tester);
   });
 }
 

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/pump_app.dart';
+import '../../../../helpers/notched.dart';
 
 /// B7 Account & data (207:7182) + the delete ladder (207:7204):
 /// export-first, quiet-danger arming, the typed-confirm gate, and the
@@ -122,5 +123,13 @@ void main() {
       find.text("Export requested — we'll email a link within 24 hours."),
       findsOneWidget,
     );
+  });
+
+  testWidgets('keeps content clear of the notched top inset', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await pump(tester);
+    expectNoContentInTopInset(tester);
   });
 }

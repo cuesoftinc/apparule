@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/pump_app.dart';
+import '../../../../helpers/notched.dart';
 
 /// B7 Notifications sub-screen: the seven canvas toggles (207:2),
 /// persisting through the account repository.
@@ -54,5 +55,17 @@ void main() {
     await tester.tap(find.byType(AppSwitch).at(6));
     await tester.pumpAndSettle();
     expect((await repository.me())!.notificationPrefs.emailDigest, isTrue);
+  });
+
+  testWidgets('keeps content clear of the notched top inset', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await tester.pumpApp(
+      const NotificationSettingsScreen(),
+      profileRepository: ProfileRepositoryFake(now: () => pinned),
+    );
+    await tester.pumpAndSettle();
+    expectNoContentInTopInset(tester);
   });
 }

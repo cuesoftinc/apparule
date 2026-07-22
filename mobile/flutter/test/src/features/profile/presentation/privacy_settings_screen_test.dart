@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/pump_app.dart';
+import '../../../../helpers/notched.dart';
 
 /// B7 Privacy & consent sub-screen (207:7155): AI-processing + nearby
 /// toggles, the retention notice, the seeded consent ledger.
@@ -60,5 +61,17 @@ void main() {
     await tester.tap(find.byType(AppSwitch).first);
     await tester.pumpAndSettle();
     expect((await repository.me())!.privacyPrefs.aiProcessing, isFalse);
+  });
+
+  testWidgets('keeps content clear of the notched top inset', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await tester.pumpApp(
+      const PrivacySettingsScreen(),
+      profileRepository: ProfileRepositoryFake(now: () => pinned),
+    );
+    await tester.pumpAndSettle();
+    expectNoContentInTopInset(tester);
   });
 }

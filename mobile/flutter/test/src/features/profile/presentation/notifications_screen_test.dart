@@ -14,6 +14,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/boot_app.dart';
+import '../../../../helpers/notched.dart';
 
 /// C10 over the seeded fake: day grouping, unread tint/dot for the
 /// visit, read-state persisting to the repository (clearing the MI-16
@@ -174,6 +175,14 @@ void main() {
 
     expect(find.byType(EmptyState), findsOneWidget);
     expect(find.text('Back to feed'), findsOneWidget);
+  });
+  testWidgets('keeps content clear of the notched top inset', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await boot(tester);
+    await openNotifications(tester);
+    expectNoContentInTopInset(tester);
   });
 }
 

@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 
 import '../../../../helpers/pump_app.dart';
+import '../../../../helpers/notched.dart';
 
 /// C9 designer public profile: the B6 header off the graph, the MI-7
 /// morph with the unfollow confirm, the published grid.
@@ -118,5 +119,13 @@ void main() {
       find.text("@nobody.here doesn't exist (or isn't visible)."),
       findsOneWidget,
     );
+  });
+
+  testWidgets('keeps content clear of the notched top inset', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await pump(tester, 'amara.designs');
+    expectNoContentInTopInset(tester);
   });
 }

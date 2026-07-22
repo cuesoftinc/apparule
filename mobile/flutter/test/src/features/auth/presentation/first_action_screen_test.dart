@@ -7,6 +7,7 @@ import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/boot_app.dart';
+import '../../../../helpers/notched.dart';
 
 /// C1b — the post-signup interstitial (canvas 266:2; pages.md C1b): the
 /// personalised welcome, the two choice cards (→ C6 capture entry / →
@@ -77,5 +78,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(FirstActionScreen), findsNothing);
     expect(find.byType(HomeFeedScreen), findsOneWidget);
+  });
+
+  testWidgets('keeps content clear of the notched top inset', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await bootToFirstAction(tester);
+    expectNoContentInTopInset(tester);
   });
 }

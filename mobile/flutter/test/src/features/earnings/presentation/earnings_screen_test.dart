@@ -8,6 +8,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 
 import '../../../../helpers/pump_app.dart';
+import '../../../../helpers/notched.dart';
 
 /// C14 earnings & payouts: the canvas ledger states plus the honest
 /// payout-request mutation.
@@ -148,5 +149,13 @@ void main() {
     );
     expect(find.text('Re-verify'), findsOneWidget);
     expect(find.text('Lapsed'), findsOneWidget);
+  });
+
+  testWidgets('keeps content clear of the notched top inset', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await pump(tester);
+    expectNoContentInTopInset(tester);
   });
 }

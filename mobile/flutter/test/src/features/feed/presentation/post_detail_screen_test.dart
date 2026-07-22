@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/boot_app.dart';
+import '../../../../helpers/notched.dart';
 
 /// C4 over the seeded fake: full anatomy, like mutation shared with the
 /// repository, comments entry, pinned Request CTA → C5. 390px width.
@@ -72,5 +73,13 @@ void main() {
 
     expect(find.byType(RequestStepperScreen), findsOneWidget);
     expect(find.text('New request · 1 of 3'), findsOneWidget);
+  });
+
+  testWidgets('keeps content clear of the notched top inset', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await bootToPost(tester);
+    expectNoContentInTopInset(tester);
   });
 }

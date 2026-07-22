@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../helpers/boot_app.dart';
+import '../../../../helpers/notched.dart';
 
 /// The C6 guide (§10/§11 salvage): single-pose four-step flow through one
 /// parameterized page widget, completion persists the skip flag, Skip
@@ -90,5 +91,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(CaptureScreen), findsOneWidget);
+  });
+
+  testWidgets('keeps content clear of the notched top inset', (
+    tester,
+  ) async {
+    applyNotchedView(tester);
+    await bootToGuide(tester);
+    expectNoContentInTopInset(tester);
   });
 }
