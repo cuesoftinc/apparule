@@ -1,0 +1,71 @@
+# E2E smoke — the §8 gate-5 patrol journeys (mobile-implementation.md):
+# the five critical paths (sign-in · capture · commerce · earnings ·
+# sign-out) over the dev flavor's fake set, on an Android emulator.
+# Scheduled NIGHTLY + manual dispatch, never per-PR (§8: patrol's
+# device-farm cost profile; PRs get analyze+test via build-and-test.yml).
+name: mobile-e2e
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Nightly; the offset dodges the top-of-hour scheduler crunch.
+    - cron: "17 3 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  patrol-android:
+    name: mobile · patrol journeys (Android emulator, dev flavor)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: mobile/flutter
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Hardware-accelerated emulation on the Ubuntu runners
+      # (android-emulator-runner README, verified v2.38.0: KVM must be
+      # enabled before the action runs).
+      - name: Enable KVM group perms
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      # AGP 9 builds on JDK 17+.
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Flutter (version pinned by .fvmrc)
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version-file: mobile/flutter/.fvmrc
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # patrol_finders over the SDK's integration_test binding — plain
+      # `flutter test` on the emulator, no native-automation runner.
+      # x86_64 `default` image (no Play services: the dev flavor fakes
+      # every remote seam, mobile-implementation.md §6); the runner's
+      # default emulator-options disable window/audio/boot-anim and
+      # animations, matching the reduced-motion widget-test posture.
+      - name: Patrol journeys (dev flavor)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          profile: pixel_7
+          working-directory: mobile/flutter
+          script: flutter test integration_test --flavor dev -d emulator-5554

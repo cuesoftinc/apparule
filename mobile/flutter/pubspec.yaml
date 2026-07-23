@@ -72,9 +72,20 @@ dev_dependencies:
   # analyzer-12 compatibility build and the only co-resolvable version.
   freezed: ^3.2.5
   go_router_builder: ^4.3.1
+  # The §8 gate-5 journeys run over the SDK's own on-device harness —
+  # patrol_finders drives it; no native-automation runner is wired.
+  integration_test:
+    sdk: flutter
   json_serializable: ^6.14.0
   mocktail: ^1.0.5
   patrol: ^4.7.1
+  # Pin-ledger verification (patrol E2E wave): patrol 4.7.1 is the
+  # ratified pin and resolves patrol_finders 3.6.0; the finder layer is
+  # promoted to a direct dev dependency because integration_test/
+  # imports it directly (PatrolTester/$ over integration_test above —
+  # the full patrol harness stays a dependency, unused at runtime until
+  # a native-automation lane earns patrol_cli).
+  patrol_finders: ^3.6.0
   riverpod_generator: ^4.0.4
   very_good_analysis: ^10.3.0
 

@@ -114,7 +114,7 @@ jobs:
       # analysis excludes.
       - name: Format check
         run: |
-          find lib test test_goldens tool -name '*.dart' \
+          find lib test test_goldens integration_test tool -name '*.dart' \
             -not -path 'lib/l10n/generated/*' \
             -not -name '*.g.dart' \
             -not -name '*.freezed.dart' \
