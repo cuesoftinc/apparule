@@ -3,6 +3,9 @@
 Fashion body-measurement platform — capture body measurements from a phone and
 turn them into sizing data for a better-fitting shopping experience.
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![build-and-test](https://github.com/cuesoftinc/apparule/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/cuesoftinc/apparule/actions/workflows/build-and-test.yml)
+
 ## Overview
 
 Apparule is a monorepo containing the clients, backend services, deployment

@@ -274,7 +274,7 @@ before public launch. Alternative: commission the brand pass first.
   the web `TEST_MODE` contract (web-implementation.md §5) — every
   repository ships abstract with `*Remote` and `*Fake` implementations;
   fakes read seeded narrative JSON from flavor-scoped `assets/seed/`
-  (`dev`/`stg` entrypoints run entirely on fakes), tied to the **same
+  (`dev`/`prod` entrypoints run entirely on fakes), tied to the **same
   designer/order/vault personas** as the web mock server's seed
   (web-implementation.md §6) so both clients tell one coherent demo.
   API wiring is the **last** migration step, behind unchanged repository

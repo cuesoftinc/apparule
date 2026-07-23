@@ -200,8 +200,8 @@ pointer cursor on controls.
   `scripts/check-boundaries.mjs` — the org-shared boundary gate (byte-identical
   across apparule/expendit/upstat, per-repo rule lists inside), wired into
   `npm run lint` via `check:boundaries`.
-- `src/legacy/` is currently empty; no live path imports from it (the
-  boundary gates above keep it that way).
+- No `src/legacy/` tree exists — nothing has been quarantined; the boundary
+  gates above stay armed for when a retirement stages one.
 - Semantic-HTML landmarks (one `<main>`, one `nav[aria-label="Primary"]`)
   are enforced by e2e across all 15 dashboard screens, not spot-checked.
 
@@ -628,7 +628,8 @@ Live paths carry zero dead code. `web/src/legacy/` plus the boundary gates
 (the eslint `no-restricted-imports` rule scoped to `src/legacy/**` and
 `scripts/check-boundaries.mjs`, wired into `npm run lint`) are the standing
 mechanism for future replacements per the §1 policy (quarantine → replace →
-QA → dedicated retirement PR) — the directory is currently empty. The
+QA → dedicated retirement PR) — no such tree exists today; the gates stay
+armed. The
 **mobile Flutter app has its own implementation standard**:
 [mobile-implementation.md](mobile-implementation.md) — including its own
 application of the quarantine policy over the existing `mobile/flutter`
