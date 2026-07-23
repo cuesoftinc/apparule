@@ -1,17 +1,21 @@
 import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/app_bar.dart';
+import 'package:apparule/src/core/ui/app_haptics.dart';
 import 'package:apparule/src/core/ui/banner.dart';
 import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/confetti_burst.dart';
 import 'package:apparule/src/core/ui/empty_state.dart';
 import 'package:apparule/src/core/ui/status_pill.dart';
+import 'package:apparule/src/core/ui/step_slide.dart';
 import 'package:apparule/src/core/utils/clock.dart';
 import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/core/utils/parse_amount.dart';
+import 'package:apparule/src/features/feed/domain/post.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_session.dart';
 import 'package:apparule/src/features/measurements/presentation/capture_launcher.dart';
 import 'package:apparule/src/features/orders/domain/order.dart';
+import 'package:apparule/src/features/orders/domain/order_exception.dart';
 import 'package:apparule/src/features/orders/presentation/request_view_model.dart';
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/material.dart';
@@ -19,11 +23,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-/// C5 — the request stepper (MI-10): Step 1 measurement-snapshot picker
-/// (vault sessions, freshness warnings) · Step 2 notes/budget/delivery
-/// (pre-filled from the last order, §6.3) · Step 3 review → submit ·
-/// success (confetti + "View order"). Snapshot values freeze at submit
-/// (order-lifecycle.md §1).
+/// Soft warning (web `use-request-stepper.ts` isTurnaroundTight parity):
+/// the need-by date lands inside the designer's typical turnaround.
+@visibleForTesting
+bool turnaroundTight(Post post, DateTime? needBy, DateTime now) {
+  if (needBy == null || post.turnaroundDays <= 0) return false;
+  return needBy.isBefore(now.add(Duration(days: post.turnaroundDays)));
+}
+
+/// C5 — the request stepper (MI-10: 24px step slides, confetti ≤800ms):
+/// Step 1 measurement-snapshot picker (vault sessions newest-first
+/// preselected, freshness warnings) · Step 2 notes/budget/delivery
+/// (pre-filled from the last order, §6.3; Continue gates on the complete
+/// six-field delivery set — web REQUIRED_DELIVERY parity) · Step 3
+/// review (expandable frozen snapshot) → submit (failure taxonomy per
+/// flows/request.md §1) · success (confetti + "View order"). Snapshot
+/// values freeze at submit (order-lifecycle.md §1).
 class RequestStepperScreen extends ConsumerStatefulWidget {
   const RequestStepperScreen({required this.postId, super.key});
 
@@ -38,13 +53,23 @@ class _RequestStepperScreenState extends ConsumerState<RequestStepperScreen> {
   static const int _steps = 3;
 
   int _step = 0;
+
+  /// MI-10 (D62): the slide direction — backing up slides in from the
+  /// left.
+  bool _steppedBack = false;
   String? _sessionId;
+  bool _sessionPreselected = false;
   DateTime? _needBy;
   Order? _submitted;
   bool _submitting = false;
 
+  /// D38: the submit failure surfacing as an error banner (flows/
+  /// request.md §1 taxonomy — duplicate_request offers "View orders").
+  OrderErrorCode? _failure;
+
   final TextEditingController _notes = TextEditingController();
   final TextEditingController _budget = TextEditingController();
+  final TextEditingController _recipient = TextEditingController();
   final TextEditingController _line1 = TextEditingController();
   final TextEditingController _city = TextEditingController();
   final TextEditingController _state = TextEditingController();
@@ -57,6 +82,7 @@ class _RequestStepperScreenState extends ConsumerState<RequestStepperScreen> {
     for (final controller in <TextEditingController>[
       _notes,
       _budget,
+      _recipient,
       _line1,
       _city,
       _state,
@@ -71,11 +97,20 @@ class _RequestStepperScreenState extends ConsumerState<RequestStepperScreen> {
   void _prefillDelivery(DeliveryAddress? delivery) {
     if (_deliveryPrefilled || delivery == null) return;
     _deliveryPrefilled = true;
+    _recipient.text = delivery.recipientName;
     _line1.text = delivery.line1;
     _city.text = delivery.city;
     _state.text = delivery.state;
     _country.text = delivery.country;
     _phone.text = delivery.phone;
+  }
+
+  /// D63 (web parity: `setSelectedSessionId(prev ?? complete[0]?.id)`) —
+  /// the newest vault session starts selected; Continue starts ready.
+  void _preselectSession(List<MeasurementSession> sessions) {
+    if (_sessionPreselected || sessions.isEmpty) return;
+    _sessionPreselected = true;
+    _sessionId ??= sessions.first.id;
   }
 
   MeasurementSession? _selectedSession(RequestContext context) {
@@ -85,20 +120,34 @@ class _RequestStepperScreenState extends ConsumerState<RequestStepperScreen> {
     return null;
   }
 
+  /// D14 — the six-field REQUIRED_DELIVERY set (web
+  /// `use-request-stepper.ts` parity): Continue stays disabled until a
+  /// deliverable address exists; a blank address can never submit.
+  bool get _deliveryComplete => <TextEditingController>[
+    _recipient,
+    _phone,
+    _line1,
+    _city,
+    _state,
+    _country,
+  ].every((controller) => controller.text.trim().isNotEmpty);
+
   Future<void> _submit(RequestContext requestContext) async {
     final session = _selectedSession(requestContext);
     if (session == null || _submitting) return;
-    setState(() => _submitting = true);
+    setState(() {
+      _submitting = true;
+      _failure = null;
+    });
     try {
       final order = await ref
           .read(requestViewModelProvider(widget.postId).notifier)
           .submit(
             session: session,
             delivery: DeliveryAddress(
-              // v1 keeps the §6 signed-in persona as recipient (the web
-              // stepper does the same; a recipient field is post-v1).
-              recipientName:
-                  requestContext.lastDelivery?.recipientName ?? 'Kiki Adeyemi',
+              // D15: the recipient the user actually typed — never a
+              // hardcoded persona fallback.
+              recipientName: _recipient.text.trim(),
               phone: _phone.text.trim(),
               line1: _line1.text.trim(),
               city: _city.text.trim(),
@@ -111,7 +160,15 @@ class _RequestStepperScreenState extends ConsumerState<RequestStepperScreen> {
             budgetCents: parseAmountMinor(_budget.text),
             targetDate: _needBy,
           );
+      // MI-20 medium: request submitted.
+      AppHaptics.medium();
       setState(() => _submitted = order);
+    } on OrderException catch (exception) {
+      // D38: the flows/request.md §1 taxonomy surfaces as a banner; the
+      // user's whole stepper state survives.
+      setState(() => _failure = exception.code);
+    } on Object {
+      setState(() => _failure = OrderErrorCode.networkFailed);
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -135,7 +192,7 @@ class _RequestStepperScreenState extends ConsumerState<RequestStepperScreen> {
         title: l10n.requestStepTitle(_step + 1, _steps),
         onBack: () {
           if (_step > 0) {
-            setState(() => _step -= 1);
+            _goToStep(_step - 1);
           } else if (context.canPop()) {
             context.pop();
           } else {
@@ -151,9 +208,16 @@ class _RequestStepperScreenState extends ConsumerState<RequestStepperScreen> {
     );
   }
 
+  void _goToStep(int step) => setState(() {
+    _steppedBack = step < _step;
+    _step = step;
+  });
+
   Widget _buildStep(BuildContext context, RequestContext requestContext) {
     _prefillDelivery(requestContext.lastDelivery);
+    _preselectSession(requestContext.sessions);
     final session = _selectedSession(requestContext);
+    final now = ref.watch(clockProvider)();
 
     final Widget body;
     final Widget cta;
@@ -168,12 +232,15 @@ class _RequestStepperScreenState extends ConsumerState<RequestStepperScreen> {
         cta = Button(
           label: l10n.requestContinue,
           expand: true,
-          onPressed: session == null ? null : () => setState(() => _step = 1),
+          onPressed: session == null ? null : () => _goToStep(1),
         );
       case 1:
+        final budgetKobo = parseAmountMinor(_budget.text);
+        final basePrice = requestContext.post.basePriceCents;
         body = _DetailsStep(
           notes: _notes,
           budget: _budget,
+          recipient: _recipient,
           line1: _line1,
           city: _city,
           state: _state,
@@ -181,11 +248,21 @@ class _RequestStepperScreenState extends ConsumerState<RequestStepperScreen> {
           phone: _phone,
           needBy: _needBy,
           onNeedBy: (date) => setState(() => _needBy = date),
+          // D14/D44: gating and warnings re-derive as the user types.
+          onFieldChanged: () => setState(() {}),
+          // D44 (web budgetWarning/turnaroundWarning parity): soft
+          // warnings — warn, never block.
+          budgetBelowBase:
+              basePrice != null && budgetKobo != null && budgetKobo < basePrice,
+          turnaroundDays: turnaroundTight(requestContext.post, _needBy, now)
+              ? requestContext.post.turnaroundDays
+              : null,
         );
         cta = Button(
           label: l10n.requestContinue,
           expand: true,
-          onPressed: () => setState(() => _step = 2),
+          // D14: a blank address/phone can never advance to submit.
+          onPressed: _deliveryComplete ? () => _goToStep(2) : null,
         );
       default:
         body = _ReviewStep(
@@ -197,6 +274,7 @@ class _RequestStepperScreenState extends ConsumerState<RequestStepperScreen> {
           line1: _line1.text,
           city: _city.text,
           state: _state.text,
+          failure: _failure,
         );
         cta = Button(
           label: l10n.requestSubmit,
@@ -209,7 +287,17 @@ class _RequestStepperScreenState extends ConsumerState<RequestStepperScreen> {
     return Column(
       children: <Widget>[
         _ProgressTrack(fraction: (_step + 1) / _steps),
-        Expanded(child: body),
+        Expanded(
+          // MI-10 (D62): step bodies slide 24px through the shared
+          // primitive, keyed by step so the switcher sees the swap.
+          child: StepSlide(
+            reverse: _steppedBack,
+            child: KeyedSubtree(
+              key: ValueKey<int>(_step),
+              child: body,
+            ),
+          ),
+        ),
         Container(
           decoration: BoxDecoration(
             color: Theme.of(context).extension<AppColors>()!.bg,
@@ -469,11 +557,13 @@ class _SnapshotRow extends StatelessWidget {
   }
 }
 
-/// Step 2 — notes + budget + need-by + §6.3 delivery pre-fill.
+/// Step 2 — notes + budget + need-by + §6.3 delivery pre-fill, with the
+/// D44 soft-warning banners and the D14 gating callback.
 class _DetailsStep extends StatelessWidget {
   const _DetailsStep({
     required this.notes,
     required this.budget,
+    required this.recipient,
     required this.line1,
     required this.city,
     required this.state,
@@ -481,10 +571,14 @@ class _DetailsStep extends StatelessWidget {
     required this.phone,
     required this.needBy,
     required this.onNeedBy,
+    required this.onFieldChanged,
+    required this.budgetBelowBase,
+    required this.turnaroundDays,
   });
 
   final TextEditingController notes;
   final TextEditingController budget;
+  final TextEditingController recipient;
   final TextEditingController line1;
   final TextEditingController city;
   final TextEditingController state;
@@ -492,6 +586,17 @@ class _DetailsStep extends StatelessWidget {
   final TextEditingController phone;
   final DateTime? needBy;
   final ValueChanged<DateTime> onNeedBy;
+
+  /// Fires on every keystroke so the parent re-derives Continue gating
+  /// (D14) and the budget warning (D44).
+  final VoidCallback onFieldChanged;
+
+  /// D44: budget typed below the designer's base price.
+  final bool budgetBelowBase;
+
+  /// D44: non-null (the designer's typical days) when the need-by date
+  /// is tighter than the turnaround.
+  final int? turnaroundDays;
 
   @override
   Widget build(BuildContext context) {
@@ -549,6 +654,7 @@ class _DetailsStep extends StatelessWidget {
         TextField(
           controller: budget,
           keyboardType: TextInputType.number,
+          onChanged: (_) => onFieldChanged(),
           style: fieldStyle,
           decoration: decoration(
             hint: '₦ 45,000',
@@ -561,6 +667,13 @@ class _DetailsStep extends StatelessWidget {
             ),
           ),
         ),
+        if (budgetBelowBase) ...<Widget>[
+          const SizedBox(height: 8),
+          AppBanner(
+            message: l10n.requestBudgetWarning,
+            tone: BannerTone.warn,
+          ),
+        ],
         label(l10n.requestNeedByLabel),
         GestureDetector(
           onTap: () async {
@@ -591,6 +704,13 @@ class _DetailsStep extends StatelessWidget {
             ),
           ),
         ),
+        if (turnaroundDays case final days?) ...<Widget>[
+          const SizedBox(height: 8),
+          AppBanner(
+            message: l10n.requestTurnaroundWarning(days),
+            tone: BannerTone.warn,
+          ),
+        ],
         label(l10n.requestDeliveryHeading),
         Container(
           padding: const EdgeInsets.all(16),
@@ -602,8 +722,12 @@ class _DetailsStep extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
+              // D15: recipient name is part of the web REQUIRED_DELIVERY
+              // set — an order must never ship addressed to a hardcoded
+              // persona.
               for (final (fieldLabel, controller)
                   in <(String, TextEditingController)>[
+                    (l10n.requestRecipientName, recipient),
                     (l10n.requestAddressLine1, line1),
                     (l10n.requestCity, city),
                     (l10n.requestState, state),
@@ -624,6 +748,7 @@ class _DetailsStep extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 16),
                   child: TextField(
                     controller: controller,
+                    onChanged: (_) => onFieldChanged(),
                     style: fieldStyle,
                     decoration: decoration(),
                   ),
@@ -641,8 +766,9 @@ class _DetailsStep extends StatelessWidget {
   }
 }
 
-/// Step 3 — review card + budget card (canvas C5-step3).
-class _ReviewStep extends StatelessWidget {
+/// Step 3 — review card + budget card (canvas C5-step3), the D38 failure
+/// banner, and the D65 expandable frozen-snapshot values.
+class _ReviewStep extends StatefulWidget {
   const _ReviewStep({
     required this.requestContext,
     required this.session,
@@ -652,6 +778,7 @@ class _ReviewStep extends StatelessWidget {
     required this.line1,
     required this.city,
     required this.state,
+    required this.failure,
   });
 
   final RequestContext requestContext;
@@ -662,6 +789,15 @@ class _ReviewStep extends StatelessWidget {
   final String line1;
   final String city;
   final String state;
+  final OrderErrorCode? failure;
+
+  @override
+  State<_ReviewStep> createState() => _ReviewStepState();
+}
+
+class _ReviewStepState extends State<_ReviewStep> {
+  /// D65: the frozen values expand for inspection before submit.
+  bool _snapshotOpen = false;
 
   @override
   Widget build(BuildContext context) {
@@ -670,8 +806,11 @@ class _ReviewStep extends StatelessWidget {
     final colors = theme.extension<AppColors>()!;
     final radii = theme.extension<AppRadii>()!;
     final typography = theme.extension<AppTypography>()!;
-    final post = requestContext.post;
-    final budgetKobo = parseAmountMinor(budget);
+    final post = widget.requestContext.post;
+    final session = widget.session;
+    final needBy = widget.needBy;
+    final notes = widget.notes;
+    final budgetKobo = parseAmountMinor(widget.budget);
 
     Widget reviewRow(String label, String value) => Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -709,6 +848,25 @@ class _ReviewStep extends StatelessWidget {
           style: typography.title20SemiBold.copyWith(color: colors.text),
         ),
         const SizedBox(height: 16),
+        // D38: submit failures land here as a banner (web RequestStepper
+        // parity) — duplicate_request offers the jump to C8.
+        if (widget.failure case final failure?) ...<Widget>[
+          AppBanner(
+            message: switch (failure) {
+              OrderErrorCode.duplicateRequest => l10n.requestDuplicateFailed,
+              OrderErrorCode.snapshotInvalid ||
+              OrderErrorCode.networkFailed => l10n.requestSubmitFailed,
+            },
+            tone: BannerTone.error,
+            actionLabel: failure == OrderErrorCode.duplicateRequest
+                ? l10n.requestViewOrders
+                : null,
+            onAction: failure == OrderErrorCode.duplicateRequest
+                ? () => const OrdersRoute().go(context)
+                : null,
+          ),
+          const SizedBox(height: 16),
+        ],
         Container(
           padding: const EdgeInsets.all(16),
           decoration: card(),
@@ -735,14 +893,14 @@ class _ReviewStep extends StatelessWidget {
               reviewRow(
                 l10n.requestReviewDelivery,
                 <String>[
-                  line1,
-                  city,
-                  state,
+                  widget.line1,
+                  widget.city,
+                  widget.state,
                 ].where((part) => part.trim().isNotEmpty).join(', '),
               ),
               reviewRow(
                 l10n.requestReviewNeedBy,
-                needBy == null ? '—' : formatMonthDayYear(needBy!),
+                needBy == null ? '—' : formatMonthDayYear(needBy),
               ),
               reviewRow(
                 l10n.requestReviewNotes,
@@ -751,6 +909,88 @@ class _ReviewStep extends StatelessWidget {
             ],
           ),
         ),
+        // D65 (web parity: the aria-expanded snapshot section): every
+        // value about to freeze is inspectable before submit.
+        if (session case final session?) ...<Widget>[
+          const SizedBox(height: 16),
+          Container(
+            decoration: card(),
+            child: Column(
+              children: <Widget>[
+                Semantics(
+                  button: true,
+                  expanded: _snapshotOpen,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => setState(() => _snapshotOpen = !_snapshotOpen),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: Text(
+                              l10n.requestSnapshotValues(
+                                session.measurements.length,
+                              ),
+                              style: typography.body14.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: colors.text,
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            _snapshotOpen
+                                ? LucideIcons.chevronUp
+                                : LucideIcons.chevronDown,
+                            size: 20,
+                            color: colors.text2,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                if (_snapshotOpen)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: Column(
+                      children: <Widget>[
+                        for (final measurement in session.measurements)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: Text(
+                                    humanizeMeasureName(measurement.name),
+                                    style: typography.body14.copyWith(
+                                      color: colors.text2,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  formatCm(measurement.valueCm),
+                                  style: typography.body14.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: colors.text,
+                                    fontFeatures: const <FontFeature>[
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(16),

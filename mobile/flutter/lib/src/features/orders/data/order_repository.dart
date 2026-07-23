@@ -58,8 +58,10 @@ abstract class OrderRepository {
   /// the amount without a transition, flows/designer.md §2).
   Future<Order> quote(String id, int quoteCents, {required DateTime dueAt});
 
-  /// Designer declines with a required reason (requested → declined).
-  Future<Order> decline(String id, DeclineReason reason);
+  /// Designer declines with a required reason and an optional note to
+  /// the customer (requested → declined; pages.md B3 "reason enum +
+  /// optional note" — web `orders-repo.decline(id, reason, note)`).
+  Future<Order> decline(String id, DeclineReason reason, {String? note});
 
   /// Designer starts work (paid → in_progress).
   Future<Order> startProgress(String id);

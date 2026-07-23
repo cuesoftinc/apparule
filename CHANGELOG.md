@@ -110,6 +110,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
     renders on C2/C4, the C11 reply affordance) were regenerated on
     Linux per the authoring rule.
 
+- Mobile orders/commerce interaction defects (the audit's Lane B —
+  C5/C8 plus the D03/D20/D22 earnings & shell items):
+  - C8 danger ladder (CLASS 5): the dispute and decline sheets are born
+    DISARMED — the reason starts unpicked behind a placeholder and the
+    destructive confirm arms only on a deliberate pick (D11/D12; the
+    three defect-encoding unit tests rewritten as arming tests);
+    confirm-delivery and withdraw/reject pass ARMED confirm sheets
+    before anything irreversible moves, with the quoted state finally
+    labelled "Reject quote" (D08/D09); mark-shipped gets the ship sheet
+    so optional tracking is enterable (D10); the decline note the sheet
+    always collected now rides `decline(id, reason, note:)` instead of
+    being silently discarded (D04).
+  - C8 detail: the quoted-state designer can finally requote — the
+    payment box's "Edit quote" opens the quote sheet prefilled and
+    `quote()` replaces the amount without a transition (D06); MI-15's
+    `paying` state is driven from an in-flight ViewModel flag with a
+    double-tap guard (no more unhandled paid→paid StateError) and the
+    escrow explainer expands only on the in-session just-paid moment
+    (D07/D64); every lifecycle action runs through `runAction`, so
+    races/double-taps toast instead of failing silently (D39); the
+    MI-14 timeline adopts `TimelineConnector` — declined/disputed/
+    refunded/cancelled events wear the terminal-error rung, never a
+    green ✓ (D41, MI-registry row un-skipped; the primitive's connector
+    draw re-painted — a fractional sizer at factor 0 reported an
+    infinite intrinsic height and crashed IntrinsicHeight rows); the
+    released/dispute-frozen quiet CTAs are wired (payout → C14, dispute
+    CTAs scroll to the new dispute section) (D42); "Declined: {reason}"
+    (+ note) and the open dispute's reason/detail render to the
+    counterparty (D43).
+  - C8 thread: the scripted counterparty reply hides behind a 1600ms
+    `TypingBubble` hold-back instead of popping in the send's own frame
+    (D13, MI-17 registry row un-skipped), and sends are optimistic with
+    sending/failed states and tap-to-retry — a failed send keeps the
+    text on stage (D40).
+  - C5 stepper: step-2 Continue gates on the six-field
+    REQUIRED_DELIVERY set and the delivery form gains the recipient-name
+    field, deleting the hardcoded persona fallback (D14/D15); submit
+    failures surface as an error banner with the flows/request.md §1
+    taxonomy — duplicate_request offers "View orders" (D38, new
+    `OrderException`); soft warn banners for budget-below-base-price and
+    need-by-inside-turnaround (D44); MI-20 medium haptics on submit and
+    pay success (D46); step bodies slide through `StepSlide` (D62,
+    registry row un-skipped); the newest vault session starts
+    preselected (D63); review gains the expandable frozen-snapshot
+    values section (D65).
+  - C13/C14/shell: the Paystack resolve state machine supersedes instead
+    of wedging — edits during an in-flight resolve start a fresh resolve
+    and stale completions are dropped, so `resolving` always terminates
+    (D03, Completer-driven state-machine tests); designer-onboarding
+    create runs through `runAction` with the CTA disabled while either
+    identity field is empty (D20); the MI-16 Orders-tab badge clears on
+    TAB VISIT via the new `markOrderKindsRead` repository seam +
+    `OrdersBadgeSync` shell effect — social unreads survive for C10
+    (D22).
+
 - Mobile capture/vault interaction defects (the audit's Lane C
   capture-vault cluster): the empty-vault CTA now opens the
   capture-options sheet so manual entry is reachable from an empty vault

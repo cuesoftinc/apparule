@@ -95,6 +95,19 @@ class NotificationRepositoryFake
   }
 
   @override
+  Future<void> markOrderKindsRead() async {
+    await _ensureLoaded();
+    maybeFailNext();
+    final now = _now();
+    for (var i = 0; i < _notifications.length; i++) {
+      final notification = _notifications[i];
+      if (notification.unread && notification.kind.isOrderKind) {
+        _notifications[i] = notification.copyWith(readAt: now);
+      }
+    }
+  }
+
+  @override
   Future<void> remove(String id) async {
     await _ensureLoaded();
     maybeFailNext();

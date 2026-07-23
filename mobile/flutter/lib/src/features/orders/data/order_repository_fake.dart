@@ -118,6 +118,7 @@ class OrderRepositoryFake with FailNextSeam implements OrderRepository {
         null => null,
         final reason => DeclineReason.fromWireName(reason),
       },
+      declineNote: json['decline_note'] as String?,
       dispute: dispute == null
           ? null
           : OrderDispute(
@@ -451,7 +452,7 @@ class OrderRepositoryFake with FailNextSeam implements OrderRepository {
   }
 
   @override
-  Future<Order> decline(String id, DeclineReason reason) async {
+  Future<Order> decline(String id, DeclineReason reason, {String? note}) async {
     await _ensureLoaded();
     maybeFailNext();
     final order = _orderAs(id, OrderRole.designer);
@@ -459,7 +460,7 @@ class OrderRepositoryFake with FailNextSeam implements OrderRepository {
       order,
       OrderStatus.declined,
       'designer',
-    ).copyWith(declineReason: reason);
+    ).copyWith(declineReason: reason, declineNote: note);
     _replace(updated);
     return updated;
   }

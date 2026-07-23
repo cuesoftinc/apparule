@@ -683,6 +683,81 @@
   "quoteDueLabel": "Delivery date",
   "quoteSubmit": "Send quote",
   "quoteFooter": "You receive the quote minus the 10% platform fee once the customer confirms delivery.",
+  "declineReasonPlaceholder": "Why are you declining?",
+  "@declineReasonPlaceholder": {
+    "description": "D12 unpicked-reason placeholder — the decline sheet is born disarmed (web DeclineSheet parity)."
+  },
+  "disputeReasonPlaceholder": "What went wrong?",
+  "@disputeReasonPlaceholder": {
+    "description": "D11 unpicked-reason placeholder — the dispute sheet is born disarmed (web DisputeSheet parity)."
+  },
+  "shipSheetTitle": "Mark shipped",
+  "shipTrackingLabel": "Tracking number (optional)",
+  "shipSubmit": "Mark shipped",
+  "shipFooter": "The customer is notified and can confirm delivery once the order arrives.",
+  "sheetCancel": "Cancel",
+  "confirmDeliveryTitle": "Confirm delivery?",
+  "confirmDeliveryBody": "This releases the payout to {designer}. Only confirm once you have the order in hand.",
+  "@confirmDeliveryBody": {
+    "description": "D08 armed-sheet copy (web ConfirmSheet parity) — the release is irreversible.",
+    "placeholders": {
+      "designer": {"type": "String"}
+    }
+  },
+  "withdrawSheetTitle": "Withdraw this request?",
+  "withdrawSheetBody": "The designer will be notified and your snapshot deleted after 30 days.",
+  "orderRejectQuote": "Reject quote",
+  "rejectQuoteSheetTitle": "Reject this quote?",
+  "rejectQuoteSheetBody": "The order will be cancelled and the designer notified.",
+  "payFailedToast": "Payment failed — try again.",
+  "orderDeclinedReason": "Declined: {reason}",
+  "@orderDeclinedReason": {
+    "description": "D43 — the decline reason surfaces to the customer (web 'Declined: {reason}' parity).",
+    "placeholders": {
+      "reason": {"type": "String"}
+    }
+  },
+  "orderDisputeOpen": "Dispute open ({reason}){detail}. Support resolves disputes; the payout stays frozen meanwhile.",
+  "@orderDisputeOpen": {
+    "description": "D43 — the open dispute's reason + optional ' — detail' tail (web parity).",
+    "placeholders": {
+      "reason": {"type": "String"},
+      "detail": {"type": "String"}
+    }
+  },
+  "threadSending": "Sending…",
+  "@threadSending": {
+    "description": "D40/MI-18 — the optimistic bubble's in-flight meta line."
+  },
+  "threadFailedRetry": "Couldn't send — tap to retry",
+  "@threadFailedRetry": {
+    "description": "D40/MI-18 — the failed bubble's retry affordance; the text survives in the bubble."
+  },
+  "requestRecipientName": "Recipient name",
+  "@requestRecipientName": {
+    "description": "D15 — part of the six-field REQUIRED_DELIVERY set (web AddressFieldset parity)."
+  },
+  "requestBudgetWarning": "Your budget is below the designer's base price — they may decline or quote higher.",
+  "requestTurnaroundWarning": "Designer's typical turnaround is {days} days — that date may be tight.",
+  "@requestTurnaroundWarning": {
+    "description": "D44 soft warning (web turnaroundWarning parity) — warn, never block.",
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "requestSubmitFailed": "Something went wrong — try again.",
+  "requestDuplicateFailed": "You already have an open request for this outfit.",
+  "@requestDuplicateFailed": {
+    "description": "D38 — flows/request.md §1 409 duplicate_request; the banner offers View orders."
+  },
+  "requestViewOrders": "View orders",
+  "requestSnapshotValues": "Snapshot · {count} values",
+  "@requestSnapshotValues": {
+    "description": "D65 — the expandable review section header listing every value about to freeze.",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "profileNotifications": "Notifications",
   "@profileNotifications": {
     "description": "C9 app-bar bell tooltip — C10's profile-tab entry (mobile-implementation.md §3)."
