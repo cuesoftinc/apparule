@@ -4,3 +4,10 @@
 // Profile-dev build configurations on top of their mode base.
 PRODUCT_BUNDLE_IDENTIFIER = io.cuesoft.apparule.dev
 APP_DISPLAY_NAME = Apparule Dev
+
+// LOCAL ONLY (uncommitted): signing for physical-device dev installs
+DEVELOPMENT_TEAM = SK94285H2A
+
+// Optional machine-local signing (gitignored): create signing.local.xcconfig
+// with DEVELOPMENT_TEAM = <your team id> for physical-device dev builds.
+#include? "signing.local.xcconfig"
