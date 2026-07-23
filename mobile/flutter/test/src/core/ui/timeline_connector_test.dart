@@ -13,27 +13,52 @@ void main() {
     child: TimelineConnector(state: state, last: last),
   );
 
-  double heightFactorOf(WidgetTester tester) => tester
-      .widget<FractionallySizedBox>(find.byType(FractionallySizedBox))
-      .heightFactor!;
+  Finder connector() => find.byWidgetPredicate(
+    (widget) => widget is CustomPaint && widget.painter is ConnectorDrawPainter,
+  );
+
+  double drawProgressOf(WidgetTester tester) =>
+      (tester.widget<CustomPaint>(connector()).painter! as ConnectorDrawPainter)
+          .progress;
 
   testWidgets('the connector draws 0→full over 400ms', (tester) async {
     await tester.pumpApp(host(TimelineDotState.done));
-    expect(heightFactorOf(tester), 0);
+    expect(drawProgressOf(tester), 0);
 
     await tester.pump(const Duration(milliseconds: 200));
-    final mid = heightFactorOf(tester);
+    final mid = drawProgressOf(tester);
     expect(mid, greaterThan(0));
     expect(mid, lessThan(1));
 
     await tester.pump(const Duration(milliseconds: 250));
-    expect(heightFactorOf(tester), 1);
+    expect(drawProgressOf(tester), 1);
+  });
+
+  testWidgets('the connector survives an IntrinsicHeight row mid-draw '
+      '(the C8 timeline geometry — a fractional sizer at factor 0 '
+      'reports an infinite intrinsic and crashes)', (tester) async {
+    await tester.pumpApp(
+      IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            const TimelineConnector(state: TimelineDotState.done),
+            SizedBox(width: 40, height: 80, child: Container()),
+          ],
+        ),
+      ),
+    );
+    // Frame one: draw progress 0 — the layout must hold.
+    expect(tester.takeException(), isNull);
+    expect(drawProgressOf(tester), 0);
+    await tester.pump(const Duration(milliseconds: 450));
+    expect(drawProgressOf(tester), 1);
   });
 
   testWidgets('the last row renders no connector', (tester) async {
     await tester.pumpApp(host(TimelineDotState.done, last: true));
     await tester.pump(const Duration(milliseconds: 450));
-    expect(find.byType(FractionallySizedBox), findsNothing);
+    expect(connector(), findsNothing);
   });
 
   testWidgets(

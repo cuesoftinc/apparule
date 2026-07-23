@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/boot_app.dart';
+import '../../helpers/reduced_motion.dart';
 
 /// The feed/orders wave's §5 routes: typed locations and deep-link
 /// resolution (post permalinks arrive as `/post/{id}` app links; order
@@ -31,6 +32,9 @@ void main() {
   testWidgets('deep links resolve their screens over the seeded fakes', (
     tester,
   ) async {
+    // The C8 detail hosts the repeating MI-14 pulse — §5 reduced motion
+    // keeps pumpAndSettle terminating.
+    disableTestAnimations(tester);
     tester.view.physicalSize = const Size(390, 1600);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);

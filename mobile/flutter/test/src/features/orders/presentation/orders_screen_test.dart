@@ -1,9 +1,11 @@
 import 'package:apparule/src/core/ui/empty_state.dart';
+import 'package:apparule/src/core/ui/spring_badge.dart';
 import 'package:apparule/src/core/ui/status_pill.dart';
 import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/features/earnings/data/earnings_repository_fake.dart';
 import 'package:apparule/src/features/orders/data/order_repository_fake.dart';
 import 'package:apparule/src/features/orders/presentation/order_detail_screen.dart';
+import 'package:apparule/src/features/profile/data/notification_repository_fake.dart';
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +14,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/boot_app.dart';
 import '../../../../helpers/notched.dart';
+import '../../../../helpers/reduced_motion.dart';
 
 /// C8 list over the seeded fake: the ten-state chip ladder, contextual
 /// actions, B3 role tabs (designer side only when it exists). 390px
@@ -22,6 +25,9 @@ void main() {
     OrderRepositoryFake? orderRepository,
     EarningsRepositoryFake? earningsRepository,
   }) async {
+    // The C8 detail (a row-tap away) hosts the repeating MI-14 pulse —
+    // §5 reduced motion keeps pumpAndSettle terminating.
+    disableTestAnimations(tester);
     tester.view.physicalSize = const Size(390, 2600);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -146,6 +152,38 @@ void main() {
     expect(find.text('No orders yet'), findsOneWidget);
     expect(find.text('Discover designers'), findsOneWidget);
   });
+  testWidgets('MI-16 (D22): visiting the Orders tab clears the '
+      'order-kind badge; social unreads survive for C10', (tester) async {
+    disableTestAnimations(tester);
+    tester.view.physicalSize = const Size(390, 2600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final notifications = NotificationRepositoryFake();
+    await pumpBootedApp(
+      tester,
+      authRepository: AuthRepositoryFake(
+        initialSession: AuthRepositoryFake.seedSession,
+      ),
+      notificationRepository: notifications,
+    );
+
+    // Seed: one unread order-kind row → the tab badges "1 new".
+    expect(find.byType(SpringBadge), findsOneWidget);
+    expect(await notifications.unreadOrderCount(), 1);
+
+    // The VISIT clears it (web DashboardShell parity) — no trip through
+    // C10 required.
+    await tester.tap(find.bySemanticsLabel('Orders'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SpringBadge), findsNothing);
+    expect(await notifications.unreadOrderCount(), 0);
+
+    // Only order kinds flipped — the social unreads still tint C10.
+    final rows = await notifications.notifications();
+    expect(rows.where((row) => row.unread).length, 2);
+  });
+
   testWidgets('keeps content clear of notch and status-bar top insets', (
     tester,
   ) async {

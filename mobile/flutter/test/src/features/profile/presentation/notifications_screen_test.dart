@@ -17,6 +17,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 
 import '../../../../helpers/boot_app.dart';
 import '../../../../helpers/notched.dart';
+import '../../../../helpers/reduced_motion.dart';
 
 /// C10 over the seeded fake: day grouping, unread tint/dot for the
 /// visit, read-state persisting to the repository (clearing the MI-16
@@ -32,6 +33,9 @@ void main() {
     WidgetTester tester, {
     NotificationRepositoryFake? notificationRepository,
   }) async {
+    // Order-kind rows deep-link into the C8 detail, whose MI-14 pulse
+    // repeats — §5 reduced motion keeps pumpAndSettle terminating.
+    disableTestAnimations(tester);
     tester.view.physicalSize = const Size(390, 1600);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);

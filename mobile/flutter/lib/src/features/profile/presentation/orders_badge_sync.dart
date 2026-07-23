@@ -9,7 +9,10 @@ part 'orders_badge_sync.g.dart';
 /// order-kind notifications read whenever the Orders tab is active and
 /// the badge is non-zero). The shell calls [markVisited] from its badge
 /// effect; only order-kind rows flip, so social unreads survive for C10.
-@riverpod
+///
+/// keepAlive: the controller fires from a post-frame callback with no
+/// watcher — an autoDispose lifecycle would tear the Ref down mid-mark.
+@Riverpod(keepAlive: true)
 class OrdersBadgeSync extends _$OrdersBadgeSync {
   bool _marking = false;
 
@@ -24,6 +27,7 @@ class OrdersBadgeSync extends _$OrdersBadgeSync {
     _marking = true;
     try {
       await ref.read(notificationRepositoryProvider).markOrderKindsRead();
+      if (!ref.mounted) return;
       ref.invalidate(ordersTabBadgeProvider);
     } finally {
       _marking = false;

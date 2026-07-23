@@ -13,6 +13,9 @@ part of 'orders_badge_sync.dart';
 /// order-kind notifications read whenever the Orders tab is active and
 /// the badge is non-zero). The shell calls [markVisited] from its badge
 /// effect; only order-kind rows flip, so social unreads survive for C10.
+///
+/// keepAlive: the controller fires from a post-frame callback with no
+/// watcher — an autoDispose lifecycle would tear the Ref down mid-mark.
 
 @ProviderFor(OrdersBadgeSync)
 final ordersBadgeSyncProvider = OrdersBadgeSyncProvider._();
@@ -22,6 +25,9 @@ final ordersBadgeSyncProvider = OrdersBadgeSyncProvider._();
 /// order-kind notifications read whenever the Orders tab is active and
 /// the badge is non-zero). The shell calls [markVisited] from its badge
 /// effect; only order-kind rows flip, so social unreads survive for C10.
+///
+/// keepAlive: the controller fires from a post-frame callback with no
+/// watcher — an autoDispose lifecycle would tear the Ref down mid-mark.
 final class OrdersBadgeSyncProvider
     extends $NotifierProvider<OrdersBadgeSync, void> {
   /// MI-16 (D22): the Orders-tab badge clears on TAB VISIT, not only when
@@ -29,13 +35,16 @@ final class OrdersBadgeSyncProvider
   /// order-kind notifications read whenever the Orders tab is active and
   /// the badge is non-zero). The shell calls [markVisited] from its badge
   /// effect; only order-kind rows flip, so social unreads survive for C10.
+  ///
+  /// keepAlive: the controller fires from a post-frame callback with no
+  /// watcher — an autoDispose lifecycle would tear the Ref down mid-mark.
   OrdersBadgeSyncProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'ordersBadgeSyncProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -56,13 +65,16 @@ final class OrdersBadgeSyncProvider
   }
 }
 
-String _$ordersBadgeSyncHash() => r'50d205a11654e938411a1b41798784490ffde347';
+String _$ordersBadgeSyncHash() => r'c68c3142e9331cd37f7f51d7b09c15c007f241be';
 
 /// MI-16 (D22): the Orders-tab badge clears on TAB VISIT, not only when
 /// C10 marks everything read — web DashboardShell parity (it marks
 /// order-kind notifications read whenever the Orders tab is active and
 /// the badge is non-zero). The shell calls [markVisited] from its badge
 /// effect; only order-kind rows flip, so social unreads survive for C10.
+///
+/// keepAlive: the controller fires from a post-frame callback with no
+/// watcher — an autoDispose lifecycle would tear the Ref down mid-mark.
 
 abstract class _$OrdersBadgeSync extends $Notifier<void> {
   void build();

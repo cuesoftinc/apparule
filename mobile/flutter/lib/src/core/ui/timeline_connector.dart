@@ -122,15 +122,21 @@ class _TimelineConnectorState extends State<TimelineConnector>
         if (!widget.last)
           Expanded(
             // MI-14: the connector draws downward from the dot — the
-            // line's height grows 0→full, anchored top.
-            child: AnimatedBuilder(
-              animation: _draw,
-              builder: (context, child) => FractionallySizedBox(
-                alignment: Alignment.topCenter,
-                heightFactor: _draw.value,
-                child: child,
+            // line grows 0→full, anchored top. Painted (never sized)
+            // because the C8 rows measure via IntrinsicHeight: a
+            // FractionallySizedBox at heightFactor 0 reports an INFINITE
+            // max intrinsic height (child ÷ 0) and crashes the row.
+            child: SizedBox(
+              width: 2,
+              child: AnimatedBuilder(
+                animation: _draw,
+                builder: (context, _) => CustomPaint(
+                  painter: ConnectorDrawPainter(
+                    color: colors.border,
+                    progress: _draw.value,
+                  ),
+                ),
               ),
-              child: Container(width: 2, color: colors.border),
             ),
           ),
       ],
@@ -147,4 +153,28 @@ class _TimelineConnectorState extends State<TimelineConnector>
       border: ring == null ? null : Border.all(color: ring, width: 2),
     ),
   );
+}
+
+/// The MI-14 connector line at draw [progress] (0 → 1, anchored top).
+/// Public so the unit suite can read the draw state off the render tree.
+class ConnectorDrawPainter extends CustomPainter {
+  const ConnectorDrawPainter({required this.color, required this.progress});
+
+  final Color color;
+
+  /// Fraction of the connector's span drawn so far.
+  final double progress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (progress <= 0) return;
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, size.height * progress),
+      Paint()..color = color,
+    );
+  }
+
+  @override
+  bool shouldRepaint(ConnectorDrawPainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.progress != progress;
 }

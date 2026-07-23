@@ -22,6 +22,25 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'boot_app.dart';
 import 'pump_app.dart';
+import 'reduced_motion.dart';
+
+/// Boots into the C8 detail under reduced motion — the MI-14 current-dot
+/// pulse repeats, so a full-motion pumpAndSettle would never terminate
+/// (the primitive's §5 fallback renders the same anatomy statically).
+Future<void> _bootToOrderDetail(WidgetTester tester, String orderId) async {
+  disableTestAnimations(tester);
+  tester.view.physicalSize = const Size(390, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.reset);
+  await pumpBootedApp(
+    tester,
+    authRepository: AuthRepositoryFake(
+      initialSession: AuthRepositoryFake.seedSession,
+    ),
+  );
+  routerOf(tester).go(OrderDetailRoute(id: orderId).location);
+  await tester.pumpAndSettle();
+}
 
 /// Deterministic 1×1 gray PNG — the component pumps' media stand-in.
 final ImageProvider<Object> pixelImage = MemoryImage(
@@ -206,23 +225,46 @@ final List<MiRegistryEntry> miRegistry = <MiRegistryEntry>[
       );
     },
   ),
-  const MiRegistryEntry(
+  MiRegistryEntry(
     screen: 'C8 order thread',
     mi: 'MI-17 responding pulse',
     primitive: TypingBubble,
-    pendingOwner: 'LANE B (D13)',
+    pump: (tester) async {
+      await _bootToOrderDetail(tester, 'req-apr-1031');
+      await tester.enterText(find.byType(TextField), 'Do you ship to Ibadan?');
+      await tester.tap(find.bySemanticsLabel('Send message'));
+      // Optimistic frame → server echo → the MI-17 hold-back begins:
+      // the TypingBubble is on stage while the scripted reply hides.
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+    },
   ),
-  const MiRegistryEntry(
+  MiRegistryEntry(
     screen: 'C8 order timeline',
     mi: 'MI-14 connector draw + pulse',
     primitive: TimelineConnector,
-    pendingOwner: 'LANE B (D41)',
+    pump: (tester) => _bootToOrderDetail(tester, 'req-apr-1042'),
   ),
-  const MiRegistryEntry(
+  MiRegistryEntry(
     screen: 'C5 request stepper — steps',
     mi: 'MI-10 24px step slide',
     primitive: StepSlide,
-    pendingOwner: 'LANE B (D62)',
+    pump: (tester) async {
+      tester.view.physicalSize = const Size(390, 1800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await pumpBootedApp(
+        tester,
+        authRepository: AuthRepositoryFake(
+          initialSession: AuthRepositoryFake.seedSession,
+        ),
+      );
+      routerOf(
+        tester,
+      ).go(const RequestRoute(postId: 'post-ankara-gown').location);
+      await tester.pumpAndSettle();
+    },
   ),
   MiRegistryEntry(
     screen: 'C6 manual measure row',
