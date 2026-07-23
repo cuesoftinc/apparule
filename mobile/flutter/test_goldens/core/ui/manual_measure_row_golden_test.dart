@@ -50,7 +50,7 @@ void main() {
               valueCm: 205,
               // The canvas error cell: the row's canonical 10–200 cm
               // default band rendered in the inches display (4–79 in).
-              error: 'Out of range — enter 4 to 79 in',
+              error: 'Double-check this one — outside the usual 4–79 in.',
               onChanged: (_) {},
               unit: MeasureUnit.inch,
               onUnitChanged: (_) {},
