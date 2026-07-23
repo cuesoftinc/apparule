@@ -9,6 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Mobile C15 designer post composer (M-11 — the create chooser's second
+  option goes live; canvas 551:2866 / 551:4152 / 552:2):
+  - The composer screen at `/create/post`: centered "New post" bar,
+    media grid (110px tiles with remove dots, dashed add-zone/add-tile),
+    required caption (500 cap), the snapshot-attach toggle card
+    (default ON — the published post carries the vault's latest
+    measurement-snapshot ref, the fit-data differentiator) and the Post
+    CTA's disabled/default/loading cells; the uploading state lays
+    per-tile "Uploading…" strips and null-locks every input. The
+    ratified v1 contract mirrors web B5's media picker (≤10,
+    JPEG/PNG/WebP, ≤10 MB) + caption; style tags / base price /
+    turnaround stay web-only.
+  - `MediaPickerService` seam (the `CameraService` pattern):
+    `image_picker` drives the platform photo picker on prod (pin
+    FLAGGED — pending the standards-research ledger); dev/CI/tests ride
+    the bundled §6 sample pool, so simulators complete the full publish
+    journey without a photo library. Rejections voice the web B5 copy
+    (type → size → count).
+  - `PostRepository.createPost` + `Post.snapshotSessionId` (web store
+    parity, trimmed to v1): the §6 viewer authors the post, the fake
+    simulates the upload beat, and `homeFeed` now unions the viewer's
+    own posts — publish lands the post at the top of the author's feed.
+    The publish routes through `EngagementActions.createPost` inside
+    `runAction` (CLASS 4: a failed publish toasts and keeps the draft)
+    with its DECLARED create fan-out — feed + explore family +
+    own-profile grid — pinned by the two-surface contract test.
+  - The M-11 chooser now routes designers' "Post an outfit" to C15;
+    non-designers keep C13 become-a-designer.
 - Mobile C6 two-pose capture wave (M-10/M-11 — the 2023 guide screens
   die here):
   - Canvas-first guide rebuild: ONE parameterized `GuidePage` module

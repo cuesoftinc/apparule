@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:apparule/src/core/ui/app_switch.dart';
 import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
@@ -248,13 +250,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(HomeFeedScreen), findsOneWidget);
 
-    var feed = await tester.runAsync(() => postRepository.homeFeed());
+    var feed = await tester.runAsync(postRepository.homeFeed);
     expect(feed!.first.snapshotSessionId, newestSessionId);
     // Required alt text defaulted per design.md §5.
     expect(feed.first.media.first.altText, 'Outfit by Kiki Adeyemi');
 
     // Second publish with the toggle OFF.
-    routerOf(tester).push(const ComposerRoute().location);
+    unawaited(routerOf(tester).push(const ComposerRoute().location));
     await tester.pumpAndSettle();
     await addPhotosAndCaption(tester);
     await tester.tap(find.byType(AppSwitch));
@@ -262,7 +264,7 @@ void main() {
     await tester.tap(find.text('Post'));
     await tester.pumpAndSettle();
 
-    feed = await tester.runAsync(() => postRepository.homeFeed());
+    feed = await tester.runAsync(postRepository.homeFeed);
     expect(feed!.first.snapshotSessionId, isNull);
   });
 

@@ -211,9 +211,8 @@ class _ComposerScreenState extends ConsumerState<ComposerScreen> {
               builder: (context, constraints) {
                 // Three-up at the canvas gutter (390: 110px tiles);
                 // narrower devices shrink the tile, never the count.
-                final tileSize =
-                    ((constraints.maxWidth - 2 * _tileGap) / 3)
-                        .floorToDouble();
+                final tileSize = ((constraints.maxWidth - 2 * _tileGap) / 3)
+                    .floorToDouble();
                 return Wrap(
                   spacing: _tileGap,
                   runSpacing: 8,

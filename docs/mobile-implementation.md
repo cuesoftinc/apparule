@@ -240,9 +240,8 @@ Tab shell per pages.md Part C: **Home · Explore · ➕ · Orders · Profile**
 (design.md §3). The centre `➕` tab opens the **two-option create
 chooser** (M-11, both platforms): "Take measurements" pushes the
 `/capture` flow (§10); "Post an outfit" is designer-gated — designers
-open the post composer (`/create/post`, pending C15), non-designers route
-to become-a-designer (`/designer/onboarding`). Until C15 ships, the
-chooser offers capture + become-a-designer only. Deep links (App Links/Universal Links, per
+open the post composer (`/create/post`, C15), non-designers route
+to become-a-designer (`/designer/onboarding`). Deep links (App Links/Universal Links, per
 the standard cookbook) are on by default — a post permalink
 (`apparule.cuesoft.io/p/{post_id}`, web-implementation.md §4) opens the C4
 post-detail screen in-app when the app is installed.
@@ -267,13 +266,12 @@ post-detail screen in-app when the app is installed.
 | `/designer/onboarding` | Designer onboarding & KYC | C13 |
 | `/designer/onboarding/payout` | Payout banking form (Paystack states) — a sibling under the prefix, not a child (the capture-guide precedent: re-verification entries must not stack a stale intro) | C13 |
 | `/earnings` | Earnings & payouts | C14 |
-| `/create/post` | Post composer (designer) — **pending C15 [Designing]**; the route arrives with C15's ratified frames | C15 |
+| `/create/post` | Post composer (designer) — media grid over the `MediaPickerService` seam (image_picker live / bundled-sample fake), caption, snapshot-attach toggle | C15 |
 
 The ➕ tab is an entry **gesture**, not a shell branch: it opens the
 M-11 chooser sheet over the current tab ("Take measurements" →
-`/capture`, §10; "Post an outfit" — designer-gated). The composer route
-(`/create/post`) arrives with C15's ratified frames — no placeholder
-route stands in for it (M-8).
+`/capture`, §10; "Post an outfit" — designer-gated → `/create/post`
+for designers, `/designer/onboarding` otherwise).
 
 ## 6. Data layer & mock-first (TEST_MODE parity)
 

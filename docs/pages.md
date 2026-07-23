@@ -185,8 +185,8 @@ Existing screens (splash/welcome/auth/capture) remain the entry path.
 | C12 | Followers/following **[Directive 2026-07-18]** | = B6 lists; UserRow + Follow morph (MI-7), tabs Followers / Following |
 | C13 | Designer onboarding & KYC **[Directive 2026-07-18]** | = B8: intro → banking form (Paystack resolution states: resolving / resolved-name confirm / mismatch error) → done; KYC-lapse banner state |
 | C14 | Earnings & payouts **[Directive 2026-07-18]** | = B9: EarningsSummary + TransactionRow list; payout push notifications deep-link here |
-| ➕ | Create chooser **[Decided 2026-07-22, M-11]** | tapping the centre tab opens a two-option chooser sheet (both platforms): "Take measurements" → C6 · "Post an outfit" (designer-gated) → C15 for designers, become-a-designer (C13) for non-designers; until C15 ships, the chooser offers capture + become-a-designer only |
-| C15 | Post composer **[Designing — M-11]** | = B5 composer mirrored to mobile (media picker ≤10, caption, style tags, base price / quote-on-request, turnaround, fabric notes, alt text); authorized design-first (M-8) — canvas frames next, built after the frames ratify |
+| ➕ | Create chooser **[Decided 2026-07-22, M-11]** | tapping the centre tab opens a two-option chooser sheet (both platforms): "Take measurements" → C6 · "Post an outfit" (designer-gated) → C15 for designers, become-a-designer (C13) for non-designers |
+| C15 | Post composer **[Decided 2026-07-22, M-11]** | = B5 composer mirrored to mobile, trimmed to the ratified v1 contract: device media picker (≤10, JPEG/PNG/WebP, ≤10 MB), required caption, snapshot-attach toggle **default ON** (the post carries the vault's latest measurement-snapshot ref — buyers request with exact measurements), Post CTA disabled/default/loading with per-tile uploading strips; alt text defaults to "Outfit by {designer}"; style tags / base price / turnaround / fabric notes stay web-B5-only in v1 |
 
 Push notifications **[Proposed]**: quote received, payment confirmed, status
 changes, delivery confirm reminder (customer), new request (designer).
