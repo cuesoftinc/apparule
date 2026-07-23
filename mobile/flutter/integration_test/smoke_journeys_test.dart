@@ -90,14 +90,17 @@ void main() {
       await $('Pose 2 of 2').waitUntilVisible();
 
       // Height interposes after Pose 2 (flows/vault.md §1 — nothing on
-      // file), gated 100–230 cm. The MI-13 value field commits on the
-      // keyboard's done action, not per keystroke — press it like a
-      // user would (the CI-proven repro: skipping it strands the step
-      // on the 100–230 error).
+      // file), gated 100–230 cm. Set it on the MI-13 tape ruler — a
+      // centre tap commits exactly 165 cm (mid-band) through a pure
+      // pointer gesture. Injected keyboard text is NOT reliable here:
+      // the live integration_test binding never registers the test
+      // text input (`registerTestTextInput => false`), so enterText
+      // rides the debug client--1 path against the device's REAL IME
+      // connection — the flutter_test-documented confusion risk, and
+      // this suite's CI-proven repro (runs 29977089254/29977634721).
+      // Typed entry stays covered by the capture widget tests.
       await $('Your height').waitUntilVisible();
-      await $(find.bySemanticsLabel('Height value')).enterText('170');
-      await $.tester.testTextInput.receiveAction(TextInputAction.done);
-      await $.pump();
+      await $(find.bySemanticsLabel('Height slider')).tap();
       await $('Continue').tap();
 
       // Processing resolves into results (§4 confidences)…
