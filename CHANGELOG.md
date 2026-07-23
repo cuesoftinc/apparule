@@ -317,7 +317,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   vault e2e wording; `src/legacy/` as the standing guardrail, no tree
   present), setup.md's Node floor aligned to Node 24 (the web
   Dockerfile's runtime), and decisions.md M-6's body past-tensed under
-  its REVERSED header.
+  its REVERSED header (#171).
 - Mobile core/ui enforces the null-handler prop-contract (CLASS 3: no
   handler ⇒ no control — web hides unwired affordances, mobile was
   rendering dead ones): `PostCard` hides the ⋯ overflow (spacer keeps
