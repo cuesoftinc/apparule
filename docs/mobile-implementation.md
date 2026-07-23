@@ -297,10 +297,13 @@ purges it back to C1 — exactly web TEST_MODE's session behavior, over
 the same boot gate prod will use (§9).
 
 `*Fake` repositories read seeded JSON from `assets/seed/` — the
-dev-flavor asset scope keeps seed data out of prod bundles. Seed files, one per domain (mirrors the mock server's grouping,
-web-implementation.md §6), tell the **same story** as the web dashboard's
+dev-flavor asset scope keeps seed data out of prod bundles. Domain seed
+files (one per domain, mirroring the mock server's grouping,
+web-implementation.md §6) tell the **same story** as the web dashboard's
 seed so a person moving between the phone and the web app sees one
-coherent world, not two disconnected demos:
+coherent world, not two disconnected demos; the C6 capture seam's
+non-domain seeds and the shared photography pool ship alongside them.
+The `assets/seed/dev/` bundle, in full:
 
 | Seed file | Domain | Ties to (web parity) |
 | --- | --- | --- |
@@ -312,7 +315,15 @@ coherent world, not two disconnected demos:
 | `assets/seed/dev/vault_sessions.json` | Scan + manual measurement sessions (the source for `me.json`'s vault and for measurement snapshots frozen into orders) | web §6 vault seed / capture-qc.md |
 | `assets/seed/dev/orders.json` | All ten order-lifecycle states, at least one per role view, incl. an escrow-held payment and a dispute-frozen order | web §6 "all ten states" |
 | `assets/seed/dev/notifications.json` | Every notification kind, part unread | web §6 notifications |
-| `assets/seed/dev/moderation.json` | Two open reports + one actioned exemplar by `mod.sarah` | web §6 moderation queue |
+| `assets/seed/dev/capture_samples.json` | The fake camera's QC scenario catalog — one scenario per fail code plus the happy path and a multi-fault exemplar, carrying the simulated pipeline metrics the real threshold evaluation runs against | capture-qc.md fail-code table |
+| `assets/seed/dev/sample_frontal.png` | The bundled front-pose frame every fake-camera scenario previews/captures | C6 capture (M-10 front pose) |
+| `assets/seed/dev/sample_side.png` | The bundled side-pose frame (right profile) | C6 capture (M-10 side pose) |
+| `assets/seed/dev/demo/` | The CC-licensed outfit photography pool (12 images + `ATTRIBUTIONS.md`), byte-identical to the web mock's `web/public/demo` — seed posts carry the web's `/demo/…` URL form verbatim, resolved to bundle assets by `seed_media` | web §6 media pool / design.md §8.3 sourcing |
+
+The web seed's moderation queue has no mobile counterpart: filing a
+report (`PostRepository.reportPost`, held in-memory by the fake) is the
+only moderation seam shipped — a `moderation.json` joins the bundle
+if/when a queue surface lands.
 
 `*Fake` implementations apply the same invariants the web mock store
 unit-gates (comment counts match comment lists, follower counts mirror the
