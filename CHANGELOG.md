@@ -403,6 +403,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Mobile manual-entry advisory reverts to the soft double-check phrasing
+  — `manualEntryDoubleCheck` reads "Double-check this one — outside the
+  usual {min}–{max} {unit}.", matching web's `manualAdvisory` verbatim.
+  #174 had followed a stale Figma cell into "Out of range — enter {min}
+  to {max} {unit}", which reads as a hard gate; flows/vault.md §2's
+  semantics are advisory (values outside the usual band still save), and
+  the canvas cell has been fixed to match. The C6 height 100–230 hard
+  gate (`captureHeightError`) keeps its own phrasing. The
+  ManualMeasureRow error-state golden re-rendered on Linux (#176).
 - Residual doc drift flagged by the #171 currency lane: decisions.md M-5
   reads `dev`/`prod` entrypoints (there is no `stg` entrypoint);
   web-implementation.md states that no `src/legacy/` tree exists (the

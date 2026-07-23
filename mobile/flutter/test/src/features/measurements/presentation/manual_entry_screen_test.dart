@@ -83,7 +83,7 @@ void main() {
     await tester.pump();
 
     expect(
-      find.text('Out of range — enter 10 to 30 in'),
+      find.text('Double-check this one — outside the usual 10–30 in.'),
       findsOneWidget,
     );
 

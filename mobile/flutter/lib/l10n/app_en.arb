@@ -342,7 +342,7 @@
   "@manualEntryBody": {
     "description": "MI-13 manual-entry explainer (flows/vault.md §2 advisory ranges) — inches are the default display unit (A-9)."
   },
-  "manualEntryDoubleCheck": "Out of range — enter {min} to {max} {unit}",
+  "manualEntryDoubleCheck": "Double-check this one — outside the usual {min}–{max} {unit}.",
   "@manualEntryDoubleCheck": {
     "description": "Advisory out-of-range hint per measure (never a hard block). The range renders in the active display unit; validation stays canonical cm.",
     "placeholders": {
