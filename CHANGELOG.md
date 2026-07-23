@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Root README fleet badge row — License (MIT) + `build-and-test` workflow
+  status (shields.io; the workflow badge links to the actions page),
+  matching the org repo shape (#172).
+- Web co-located `test-mode-provider.test.ts` — unit coverage for the
+  TEST_MODE provider's sign-in / sign-out / restore contract (fleet test
+  shape; corrupted-session and failed-`/me` paths read as signed out,
+  never a throw) (#172).
 - Machine-local iOS code signing for physical-device dev builds:
   `dev.xcconfig` optionally includes a gitignored `signing.local.xcconfig`
   carrying the developer's `DEVELOPMENT_TEAM` (#169).
@@ -103,6 +110,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Residual doc drift flagged by the #171 currency lane: decisions.md M-5
+  reads `dev`/`prod` entrypoints (there is no `stg` entrypoint);
+  web-implementation.md states that no `src/legacy/` tree exists (the
+  eslint + `check-boundaries` guardrail stays armed) instead of
+  "currently empty"; mobile-implementation.md's §6 seed table paths read
+  `assets/seed/dev/` — the only seed directory pubspec declares (#172).
 - Mobile feed/social/profile interaction defects (the audit's Lane A —
   C2/C3/C4/C9/C10/C11/C12 over the Wave-0 infrastructure):
   - Engagement converges on the `EngagementActions` façade: C2/C4
@@ -304,6 +317,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Web toolchain on Node 24 end-to-end: the `build-and-test` web jobs move
+  from Node 22 to 24 and a new `web/.nvmrc` pins 24 — the runtime major
+  the web Dockerfile already ships, and the file dependabot's
+  `@types/node` ignore-comment points at (#172).
+- TEST_MODE auth provider converges on the fleet shape:
+  `test-mode-auth-provider.ts` → `test-mode-provider.ts` (fleet name,
+  storage const `SESSION_KEY`), and the `apparule.test-session`
+  sessionStorage entry now holds the JSON user payload (the account
+  snapshot at sign-in) instead of the `"1"` sentinel — one shape across
+  the fleet's e2e tooling. Restore semantics are unchanged per the org
+  gate canon (loading gate, `/signin` reverse redirect, failed restore →
+  signed_out) and still re-resolve `/me`, so account-state changes are
+  never served stale (#172).
+- Web eslint carries the org restricted-import bans (`@mui/*`,
+  `@emotion/*`, `dayjs`, `moment`) alongside the legacy quarantine, and
+  `eslint-plugin-testing-library` (flat/react preset) now lints the
+  co-located tests — `no-container`/`no-node-access` stay off (the
+  component-reuse policy builds visual components bespoke from the token
+  layer, so their tests assert non-semantic structure by design); the
+  genuine findings it surfaced are fixed (`renderHook` results
+  destructured, a redundant `act` around `fireEvent` dropped) (#172).
+- `mobile-goldens.yml` uploads the regenerated goldens artifact via
+  `actions/upload-artifact@v7` (fleet action floor) (#172).
+- api/common Dockerfile `HEALTHCHECK` `start-period` 5s → 10s (fleet
+  majority; api/measure keeps its model-load-sized 40s) (#172).
+- `web/package.json` declares the `repository` field (org shape), and the
+  Next.js dev indicator pins bottom-right (`devIndicators` — fleet
+  ruling, one position across the fleet) (#172).
 - Docs currency pass — stale claims aligned to the shipped system:
   mobile-implementation.md (riverpod_lint as the native analyzer plugin
   with custom_lint retired upstream; the per-PR unsigned iOS-simulator
