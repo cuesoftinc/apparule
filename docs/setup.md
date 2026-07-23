@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - [Docker](https://www.docker.com/) & Docker Compose (recommended path)
-- For native development: Go 1.26 (see `api/common/go.mod`), Node.js 20+ (`web`),
+- For native development: Go 1.26 (see `api/common/go.mod`), Node.js 24 (`web`),
   Python 3.12 (`api/measure`), Flutter (`mobile/flutter`)
 
 ## Configuration

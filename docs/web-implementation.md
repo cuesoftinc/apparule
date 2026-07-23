@@ -49,12 +49,13 @@
   controllers, mock handlers); Playwright e2e mirroring the design.md §8.4
   prototype journeys, run in TEST_MODE against the mock server; both wired
   into CI build+test (X-6: merge-to-main never deploys).
-- **Legacy / dead-code policy**: before replacement, legacy trees are
-  `git mv`-ed into `web/src/legacy/` (structure preserved, excluded from
-  build & routing) — live paths carry zero dead code; after the replacement
-  passes QA + Playwright, the legacy subtree is deleted in a dedicated
-  `chore(web): retire legacy <area>` PR. No dead code outside `src/legacy/`,
-  ever; `src/legacy/` itself trends to empty. Apparule's application of the
+- **Legacy / dead-code policy**: live paths carry zero dead code, ever.
+  When a replacement is staged, the superseded tree is `git mv`-ed into
+  `web/src/legacy/` (structure preserved, excluded from build & routing)
+  and deleted in a dedicated `chore(web): retire legacy <area>` PR once
+  the replacement passes QA + Playwright. The boundary gates (lint +
+  `check-boundaries`) keep `src/legacy/` imports banned as the standing
+  guardrail — no such tree exists today. Apparule's application of the
   policy: §8.
 - **Process**: stages W0 → W3 (§2), PR per stage; conventional commits; QA
   loops evaluate the implementation against the Figma file (tokens,
@@ -189,7 +190,7 @@ pointer cursor on controls.
   semantic-landmarks sweep across all 15 dashboard screens, plus the §8.4
   journeys — feed like/save/follow → request stepper → quote → pay →
   escrow-held → thread reply; all ten order-lifecycle states rendering
-  from seed; vault webcam QC-failure → retake → capture → save, with
+  from seed; vault upload per-pose QC-failure → re-pick → save, with
   history delete; creator upsell → onboarding (Paystack mismatch + resolve)
   → publish → profile grid; notification-preference persistence + consent
   history; moderation dismiss; dispute-freeze and confirm-delivery-release;
@@ -549,7 +550,7 @@ with full CRUD; contract types shared with `src/models/`.
 | Payments | `POST /requests/{id}/pay` (resolves synchronously to `held` — the mock stands in for the provider round-trip + webhook) · `/confirm-delivery` · `/dispute` |
 | Designer | `POST /designer-profile` (incl. scripted Paystack account-resolution states: resolving → resolved / mismatch, pages.md B8) · `GET /designer/earnings` · `POST /designer/payout-account` |
 | Notifications | `GET /notifications` · `POST /notifications/read` |
-| Capture (B4) | `POST /me/sessions` with multipart image — returns seeded measurement results incl. per-measurement `confidence` and `qc` verdicts (api.md §2 v2 schema); QC-failure codes reproducible via designated fixture images. **Ratified contract (M-10/M-12)**: web capture is **upload-only** — two files (`image_front` + `image_side`), per-pose QC, no webcam flow, with a "best experience: guided capture on the mobile app" hint; the mock's single-image webcam shape is the code as it stands before that build lane |
+| Capture (B4) | `POST /me/sessions` with multipart images — returns seeded measurement results incl. per-measurement `confidence` and `qc` verdicts (api.md §2 v2 schema); QC-failure codes reproducible via designated fixture images. **Ratified contract (M-10/M-12)**: web capture is **upload-only** — two files (`image_front` + `image_side`), per-pose QC, no webcam flow, with a "best experience: guided capture on the mobile app" hint |
 
 **Seed narrative — the docs-coherent Figma dataset.** The store seeds the
 same mock content the Figma screens render, so a TEST_MODE boot looks like
