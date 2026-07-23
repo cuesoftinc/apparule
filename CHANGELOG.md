@@ -304,6 +304,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Docs currency pass — stale claims aligned to the shipped system:
+  mobile-implementation.md (riverpod_lint as the native analyzer plugin
+  with custom_lint retired upstream; the per-PR unsigned iOS-simulator
+  build gate and the deferred coverage gate stated honestly; `intl`
+  `^0.20.2` as the SDK-pinned range; the C6
+  CAMERA/`NSCameraUsageDescription` declarations no longer "missing";
+  dev-only seed scoping; `dev`/`prod` entrypoints; pending
+  firebase_options annotations; C15 in the feed mapping; §11 trimmed to
+  the salvage decisions that still shape the tree), web-implementation.md
+  (the mock's two-photo `image_front`+`image_side` shape; upload-only
+  vault e2e wording; `src/legacy/` as the standing guardrail, no tree
+  present), setup.md's Node floor aligned to Node 24 (the web
+  Dockerfile's runtime), and decisions.md M-6's body past-tensed under
+  its REVERSED header (#171).
 - Mobile core/ui enforces the null-handler prop-contract (CLASS 3: no
   handler ⇒ no control — web hides unwired affordances, mobile was
   rendering dead ones): `PostCard` hides the ⋯ overflow (spacer keeps

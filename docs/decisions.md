@@ -286,15 +286,16 @@ before public launch. Alternative: commission the brand pass first.
   (mobile-implementation.md §9) but gated behind an explicit
   phase-4 go. ☑
 - **M-6 Single-photo measurement reaffirmation (RATIFIED 2026-07-21 —
-  REVERSED by M-10, 2026-07-22; kept for the audit trail)**:
-  the **one frontal photo + height** canon (api.md `POST /measure`;
-  capture-qc.md; flows/vault.md §1) is unchanged by the mobile rebuild —
-  the legacy two-pose `guide_screen.dart` (front + side) is **rewritten**
-  to one pose, not extended (CV-4). C6 owns the silhouette overlay + 3-2-1
-  countdown (the legacy `countdown.dart` is salvaged as-is), the
+  REVERSED by M-10, 2026-07-22; kept for the audit trail)**: reaffirmed
+  the **one frontal photo + height** canon as the docs then stood (api.md
+  `POST /measure`; capture-qc.md; flows/vault.md §1), leaving it
+  unchanged by the mobile rebuild — the legacy two-pose
+  `guide_screen.dart` (front + side) was to be **rewritten** to one
+  pose, not extended (CV-4). C6 kept the silhouette overlay + 3-2-1
+  countdown (the legacy `countdown.dart` salvaged as-is), the
   `mediapipe_2d_v2` height-scale correction, capture-qc.md's
-  first-failure-only QC surfacing, and a manual-entry fallback; results
-  save into the vault (C7). ☑
+  first-failure-only QC surfacing, and the manual-entry fallback — all
+  of which carried into M-10's two-photo flow, the canon now in force. ☑
 - **M-7 Flavor model — two flavors, sandbox is production (RATIFIED
   2026-07-22, user directive)**: mobile ships exactly `dev` (fake
   repositories, `applicationIdSuffix ".dev"`) and `prod` (bare
