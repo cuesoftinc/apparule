@@ -108,6 +108,299 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
     subtitle; routes to C13 become-a-designer for everyone until the
     C15 composer ships) (#164).
 
+### Changed
+
+- Inches are the default measurement display unit on web (A-9 — Nigerian
+  tailors work in inches; storage, API payloads and the QC pipeline stay
+  canonical cm): `formatCm` defaults to `"in"` ("16.7 in", one decimal +
+  tnum kept), MeasurementCard and the MI-13 manual-entry toggle render
+  with "in" active (cm stays one flip away), and the B4 upload flow's
+  height field gains the MI-13 toggle — inches by default, entry converts
+  to canonical cm so the payload stays `user_height_cm` (a prefilled 168
+  survives unit flips and submits as exactly 168). The out-of-range
+  advisory and the height helper speak the active unit, and the marketing
+  accuracy claim reads "±0.8 in" (the canvas's inches display of the
+  pipeline's canonical ±2 cm target). Seeds stay canonical cm (#173).
+- Inches are the default measurement display unit on mobile (A-9 —
+  Nigerian tailors work in inches; storage, payloads and seeds stay
+  canonical cm):
+  `formatCm` and MeasurementCard default to `MeasureUnit.inch`, and the
+  MI-13 unit state in the capture and manual-entry ViewModels boots on
+  `inch` — the toggle renders "in" active first (cm stays one flip away),
+  and C6 results, C7 vault, the order snapshot surfaces and the height
+  tape-ruler all read in inches out of the box; committed values convert
+  through canonical cm (`user_height_cm` payload unchanged). Canvas-truth
+  copy rides along: the manual-entry explainer speaks inches, the
+  out-of-range advisory ("Out of range — enter 4 to 79 in" for the 10–200
+  cm sample band) and the height gate error ("Enter a height between
+  39–91 in.") render their canonical-cm ranges in the active display
+  unit, and the height-step explainer goes unit-neutral ("…pixels into
+  real measurements…"). Screen goldens re-authored on linux/amd64 for
+  every surface whose rendered strings changed (#174).
+- Web toolchain on Node 24 end-to-end: the `build-and-test` web jobs move
+  from Node 22 to 24 and a new `web/.nvmrc` pins 24 — the runtime major
+  the web Dockerfile already ships, and the file dependabot's
+  `@types/node` ignore-comment points at (#172).
+- TEST_MODE auth provider converges on the fleet shape:
+  `test-mode-auth-provider.ts` → `test-mode-provider.ts` (fleet name,
+  storage const `SESSION_KEY`), and the `apparule.test-session`
+  sessionStorage entry now holds the JSON user payload (the account
+  snapshot at sign-in) instead of the `"1"` sentinel — one shape across
+  the fleet's e2e tooling. Restore semantics are unchanged per the org
+  gate canon (loading gate, `/signin` reverse redirect, failed restore →
+  signed_out) and still re-resolve `/me`, so account-state changes are
+  never served stale (#172).
+- Web eslint carries the org restricted-import bans (`@mui/*`,
+  `@emotion/*`, `dayjs`, `moment`) alongside the legacy quarantine, and
+  `eslint-plugin-testing-library` (flat/react preset) now lints the
+  co-located tests — `no-container`/`no-node-access` stay off (the
+  component-reuse policy builds visual components bespoke from the token
+  layer, so their tests assert non-semantic structure by design); the
+  genuine findings it surfaced are fixed (`renderHook` results
+  destructured, a redundant `act` around `fireEvent` dropped) (#172).
+- `mobile-goldens.yml` uploads the regenerated goldens artifact via
+  `actions/upload-artifact@v7` (fleet action floor) (#172).
+- api/common Dockerfile `HEALTHCHECK` `start-period` 5s → 10s (fleet
+  majority; api/measure keeps its model-load-sized 40s) (#172).
+- `web/package.json` declares the `repository` field (org shape), and the
+  Next.js dev indicator pins bottom-right (`devIndicators` — fleet
+  ruling, one position across the fleet) (#172).
+- Docs currency pass — stale claims aligned to the shipped system:
+  mobile-implementation.md (riverpod_lint as the native analyzer plugin
+  with custom_lint retired upstream; the per-PR unsigned iOS-simulator
+  build gate and the deferred coverage gate stated honestly; `intl`
+  `^0.20.2` as the SDK-pinned range; the C6
+  CAMERA/`NSCameraUsageDescription` declarations no longer "missing";
+  dev-only seed scoping; `dev`/`prod` entrypoints; pending
+  firebase_options annotations; C15 in the feed mapping; §11 trimmed to
+  the salvage decisions that still shape the tree), web-implementation.md
+  (the mock's two-photo `image_front`+`image_side` shape; upload-only
+  vault e2e wording; `src/legacy/` as the standing guardrail, no tree
+  present), setup.md's Node floor aligned to Node 24 (the web
+  Dockerfile's runtime), and decisions.md M-6's body past-tensed under
+  its REVERSED header (#171).
+- Mobile core/ui enforces the null-handler prop-contract (CLASS 3: no
+  handler ⇒ no control — web hides unwired affordances, mobile was
+  rendering dead ones): `PostCard` hides the ⋯ overflow (spacer keeps
+  the header anatomy), `PaymentBox` renders a CTA only when its handler
+  exists (the paying spinner still renders — loading is state, not an
+  affordance) and `UserRow` drops the trailing morph without its
+  matching handler; per-component null-callback tests enforce it (#162).
+- Mobile analyzer: `unawaited_futures` + `discarded_futures` at error
+  severity (CLASS 4 — a dropped future is a dropped failure path;
+  deliberate fire-and-forget sites declare `unawaited()`) (#162).
+- Web manual entry carries no height: `input_height_cm` is `null` for
+  `method: manual` (nullable ruling; the fabricated 168 default is
+  gone), out-of-range values prompt the flows/vault.md §2 "double-check"
+  advisory (non-blocking), and the `waist_girth` advisory max aligns to
+  the canonical 150 (#158).
+- Web AppBar sub/over-media titles center on the FULL bar width (M-9):
+  an absolute, full-width, center-aligned layer over the bar — never an
+  in-flow element between the slots; root's left wordmark exempt.
+  Propagates to order detail, the settings sub-screens, /p/{id}, the
+  marketing phone mocks and the dev gallery (#158).
+- Web B7 Account & data delete-all rides the full danger ladder:
+  quiet-danger row rung → armed sheet with typed-DELETE gate, "Export
+  everything first" escape hatch, and Cancel (filled destructive only
+  on the armed surface) (#158).
+
+- Docs ratify the 2026-07-22 user rulings (contracts only — builds
+  follow in their own lanes). **M-10 two-photo capture (reverses
+  M-6)**: the product mechanic is two photos — front + side (right
+  profile) — plus height; api.md `POST /measure` becomes `image_front`
+  + `image_side` + `user_height_cm`, capture-qc.md defines per-pose QC
+  (side pose: `not_side_profile` + arms-relaxed; first-failure-only per
+  pose, pose-2 failures never discard pose 1), flows/vault.md §1 runs
+  the two-capture sequence (QC retry never advances the pose), pages.md
+  C6 and mobile-implementation.md §10 carry the two-pose flow with the
+  5-step guide, and the `mediapipe_2d_v2` formula gains the two-view
+  girth note ([Directive: measurement pipeline recalibration needed]).
+  **M-8 canvas-first**: every shipped screen has a Figma frame —
+  frameless is designed first or dropped. **M-9 centered header-bar
+  titles**: true bar-width centering, chrome-scoped (design.md §8.2b
+  AppBar spec; page-body titles stay left-aligned). **M-11 unified
+  create semantics**: ➕/Create opens a two-option chooser on both
+  platforms — "Take measurements" + "Post an outfit" (designer-gated;
+  non-designers route to become-a-designer); the mobile composer (C15)
+  is authorized design-first, and until it ships mobile's chooser
+  offers capture + become-a-designer only. **M-12 web capture is
+  upload-only**: web users upload the two photos (front + side files,
+  same per-pose QC pipeline); the webcam capture flow is removed
+  (rejected UX — desk-height lens, unreachable controls) and the vault
+  entry hints "best experience: guided capture on the mobile app";
+  mobile keeps the live guided camera; the composer create flow is
+  upload/import on both platforms. **Auth posture**:
+  TEST_MODE-parity fakes are the ratified state until phase 4; Firebase
+  wiring stays documented but gated. **Bio scope**: designer-scoped —
+  C9 edit-profile hides bio for non-designers. **Parity-audit items**:
+  design.md Button `quiet-danger` + the danger-ladder row-rung rule and
+  the entity-navigation rule; pages.md C1b marked mobile-only (web
+  first-run = B1 empty state + freshness card); flows/auth.md §2
+  platform-neutral session-restore ruling; flows/vault.md §2 advisory
+  ranges canonized (waist_girth settled at 150); data-model.md
+  `input_height_cm` nullable for `method: manual` (the web 168
+  fabrication ends); capture-qc.md §6 records the `height_suspect` hint
+  as deferred (unimplemented on both clients) (#157).
+
+- Mobile C14 empty-ledger CTA falls back to the module-canonical
+  "Discover designers" → Explore (the C8-empty precedent): its previous
+  "Create a post" target was the dropped `/create` placeholder; web
+  B9's CTA targets the B5 composer, which mobile ships designed-first (#155).
+
+- The iOS SwiftPM lockfile (`Runner.xcworkspace` `Package.resolved`) is
+  committed for reproducible native resolution; the Xcode project-internal
+  duplicate is gitignored (#154).
+
+- Mobile C6 capture drops the explicit shutter button — the QA-convergence
+  CONTESTED item ruled for canvas+docs (pages.md C6 "silhouette overlay +
+  countdown"; the canvas capture frames 173:574/266:8419 carry no control
+  layer). The viewfinder now arms the 3-2-1 automatically after a short
+  searching beat (`kCaptureAlignDelay`; the fake camera's stand-in for a
+  live alignment signal) and capture fires on countdown completion; Retake
+  re-arms it. Kept: the over-media back chevron as the cancel affordance,
+  the "Enter manually instead" escape, and the ring's per-tick live
+  region — plus new screen-reader announcements when the countdown arms
+  ("Hold still — capturing in 3") and the capture fires ("Photo
+  captured"). The unused shutter label string is gone; camera/countdown
+  goldens re-authored on the Linux gate platform (#152).
+- Mobile flavors collapse to the org's two-environment model (user
+  directive 2026-07-22): `dev` (fakes/TEST_MODE, applicationIdSuffix
+  `.dev`) and `prod` (bare `io.cuesoft.apparule`, Firebase
+  `sandbox-e306a` — CueLABS production runs on the sandbox account; the
+  Doppler config name stays `stg`). `main_stg.dart` and the `stg`/`prd`
+  Android flavors are gone; `main.dart` is the prod entrypoint, and a
+  separate prd tier is added only when a production environment is
+  ratified (#146).
+- Mobile legacy quarantine, wave 2 (mobile-implementation.md §11): all of
+  `lib/src/**`, the superseded `main.dart`, and the old l10n surface
+  (`app_sq.arb` + committed generated localizations) moved
+  structure-preserved to `mobile/flutter/lib/legacy/` — excluded from
+  analysis, codegen, CI, and builds; `countdown.dart` salvaged live to
+  `src/core/ui/` per the §11 KEEP register (C6's 3-2-1 countdown) (#143).
+- Mobile pubspec adopts the ratified dependency set (Riverpod 3 + codegen,
+  go_router + go_router_builder, dio, freezed/json_serializable, Firebase
+  packages added but not initialized, flutter_secure_storage, mocktail/
+  alchemist/patrol), replacing the legacy `provider`/`sms_autofill` pair;
+  documented pin deviations where the ledger's set no longer co-resolves
+  (riverpod_lint is a native analyzer plugin now — custom_lint retired
+  upstream; build_runner ≤2.15.1; freezed 3.2.6-dev.1 as the analyzer-12
+  compatibility build; intl ^0.20.2 per the SDK's own pin) (#143).
+- Mobile CI lane steps up to the full mobile-implementation.md §8 static
+  gate: live-tree format scope, a codegen-fresh check (build_runner + token
+  generation must produce no diff), and `flutter analyze --fatal-infos`
+  over very_good_analysis + riverpod_lint. The coverage gate joins with the
+  feature waves, once there is non-placeholder logic to hold a floor
+  against (#143).
+- Mobile l10n re-keyed en-only (mobile-implementation.md §1): a minimal new
+  `app_en.arb`; generated localizations now land in `lib/l10n/generated/`
+  (gitignored, `nullable-getter: false`) instead of being committed (#143).
+- Regenerated `mobile/flutter/android/` on the Flutter 3.44.7 template
+  (mobile-implementation.md §11, decisions.md M-4): AGP 9.0.1 + Gradle 9.1
+  wrapper + Kotlin 2.3.20 on Java/Kotlin 17, declarative `plugins {}`
+  Kotlin-DSL settings, `namespace`/Kotlin package/manifest renamed off
+  `com.example.apparule` to `io.cuesoft.apparule` (matching the
+  applicationId), an environment-variable release-signing stub replacing the
+  debug-key release config (debug fallback documented, no secrets), the
+  minSdk 24 floor and both launcher mipmap sets carried forward, and the
+  dead ARCore/Sceneform native dependencies dropped (#142).
+- Replaced `mobile/flutter/.gitignore` (previously the Flutter framework
+  repo's own template) with the app template plus the contract additions
+  (`.fvm/`, `env/*.json`, generated l10n, golden `failures/`, Firebase
+  config files); `.metadata` regenerated at the 3.44.7 revision (#142).
+- Mobile legacy quarantine, wave 1 (web-legacy pattern — nothing deleted,
+  phased out when replacements land): the pre-regeneration `android/` tree
+  moved to `mobile/flutter/legacy/android-agp7/`, the unused web scaffold to
+  `mobile/flutter/legacy/web-scaffold/` (platform de-registered from
+  `.metadata`), and eight §11-listed assets to `mobile/flutter/assets/legacy/`
+  (unbundled — outside the pubspec asset list); `legacy/` trees are excluded
+  from analysis and the CI gates (#142).
+- Reformatted the legacy Dart tree with `dart format` (whitespace-only) to
+  seed the CI format gate (#142).
+- External links converge on `rel="noreferrer"` (which implies `noopener`) —
+  the fleet legal-link idiom — across anchors and `window.open` feature
+  strings (#137).
+- The skip-to-content link is now the fleet's byte-identical canonical
+  component: visually hidden via `sr-only` until keyboard focus reveals the
+  pill; the first-Tab/Enter-to-`#main` contract is unchanged (#137).
+- `/docs/api`'s Scalar reference now loads on user intent instead of shipping
+  eagerly with the route, cutting settled pre-intent JS from ~1.38MB to
+  ~223KB decoded (#131).
+- Auth module rehomed from `controllers/auth/` to `src/auth/` for tree-shape
+  parity with the sibling repos (#132).
+
+- Home page LCP: the hero/demo image now loads with `priority` and sized WebP
+  assets instead of blocking on an unoptimized full-size image (#127).
+- Dead-code and env-plumbing cleanup: removed a dead hook, unused scaffold
+  SVGs, and the dead `NEXT_PUBLIC_GOOGLE_CLIENT_ID` env plumbing; piped
+  Playwright's `webServer` output so CI server deaths are diagnosable
+  (#122, #123, #124).
+
+- Mobile-responsive pass across every route, clean at the 390px and 768px
+  breakpoints (scroll containers for wide elements, floating-layer viewport
+  clamping, mobile panel and star-badge fixes).
+- Cross-repo tooling parity with the other CueLABS™ repositories.
+
+- Standard-form Helm chart (deploys api-common, api-measure, web; probes +
+  recommended labels + runAsNonRoot) and cluster-agnostic terraform
+  (kubeconfig-based); per-service README/.gitignore/.env.example added;
+  api/measure requirements pinned to resolved versions (+ requirements-dev);
+  applicationId io.cuesoft.apparule; CORS emits Vary: Origin (#52).
+- README prerequisites aligned to the actual toolchain (Go 1.26, Node.js 24,
+  Python 3.12); optional `envFrom` secret hook in the Helm deployment
+  template (#54).
+- Flutter iOS project migrated by current tooling: minimum deployment target
+  iOS 13, UIScene lifecycle, Swift Package Manager integration (#54).
+- iOS bundle identifier aligned with Android: `com.example.apparule` →
+  `io.cuesoft.apparule` (`.RunnerTests` suffix included) (#55).
+
+- Moved the Python measurement service from `api/common/measurement` to
+  `api/measure`.
+- Aligned `.gitignore`, `.editorconfig`, and `.dockerignore` to the shared
+  standard (#45).
+- Migrated `api/common` to `cmd/server` + `internal/` with singular
+  purpose-based packages and `snake_case.go` files (#47).
+- Standardized web naming (kebab-case folders + modules, PascalCase components)
+  and Flutter to feature-first `lib/src` with `snake_case.dart` (#47).
+- Aligned README + docs (overview, setup) to the shared CueLABS™ section
+  structure; run commands use `make up` / `go run ./cmd/server` (#47).
+
+### Removed
+
+- The mobile legacy quarantine (M-3 staged removal, both conditions met
+  2026-07-22: every replacement shipped per the QA-convergence ledger +
+  the explicit user removal go): `lib/legacy/` (password/phone/OTP auth
+  screens, welcome screen, legacy themes/l10n/persistence/user model),
+  `assets/legacy/` (8 superseded assets), `legacy/web-scaffold/`,
+  `legacy/android-agp7/`, and their analysis/codegen/CI excludes
+  (incl. `build.yaml`, which existed solely for the exclusion). The
+  salvaged countdown widget and promoted guide art were already live
+  outside the quarantine. Also dropped: the unreferenced
+  Flutter-template `ic_launcher.png` mipmaps (the manifest binds
+  `@mipmap/launcher_icon`) (#155).
+- The mobile `/create` placeholder route + screen (canvas-first ruling
+  2026-07-22: frameless screens are designed first or dropped — no
+  pages.md spec, no canvas frame). The ➕ tab keeps its five-slot canvas
+  bar and remains the capture entry gesture over four shell branches;
+  the designer composer arrives designed-first (#155).
+
+- The iOS LaunchImage placeholder README and the dead ARCore/Sceneform
+  native dependencies from the Android build (§11 ledger; the
+  pre-regeneration build files are preserved under `legacy/android-agp7/`).
+  The outer `mobile/android/` and `mobile/ios/` `.gitkeep` placeholders
+  remain — reserved for possible future native (non-Flutter) apps (user
+  directive 2026-07-22); the Flutter app's platform dirs live inside
+  `mobile/flutter/` (#157).
+
+- The legacy quarantine directory (`src/legacy/`), retired now that the
+  system QA gate has passed.
+
+- 4.9MB of unreferenced test images from git; dead Flutter files (empty
+  profile screen, unimported app bar, no-op widget test); 5 unused pubspec
+  dependencies; template web assets (#52).
+
+- GitHub Actions CI workflow, the one-off `scripts/refactor-structure.sh`, stale
+  `docs/devops` planning docs, and a generated pose-detector artifact.
+
 ### Fixed
 
 - Residual doc drift flagged by the #171 currency lane: decisions.md M-5
@@ -314,104 +607,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Web `Button` kind `quiet-danger` — the danger-ladder row rung (quiet
   chrome + error-token label, Figma 501:2), with gallery + test
   coverage (#158).
-
-### Changed
-
-- Inches are the default measurement display unit on web (A-9 — Nigerian
-  tailors work in inches; storage, API payloads and the QC pipeline stay
-  canonical cm): `formatCm` defaults to `"in"` ("16.7 in", one decimal +
-  tnum kept), MeasurementCard and the MI-13 manual-entry toggle render
-  with "in" active (cm stays one flip away), and the B4 upload flow's
-  height field gains the MI-13 toggle — inches by default, entry converts
-  to canonical cm so the payload stays `user_height_cm` (a prefilled 168
-  survives unit flips and submits as exactly 168). The out-of-range
-  advisory and the height helper speak the active unit, and the marketing
-  accuracy claim reads "±0.8 in" (the canvas's inches display of the
-  pipeline's canonical ±2 cm target). Seeds stay canonical cm (#173).
-- Inches are the default measurement display unit on mobile (A-9 —
-  Nigerian tailors work in inches; storage, payloads and seeds stay
-  canonical cm):
-  `formatCm` and MeasurementCard default to `MeasureUnit.inch`, and the
-  MI-13 unit state in the capture and manual-entry ViewModels boots on
-  `inch` — the toggle renders "in" active first (cm stays one flip away),
-  and C6 results, C7 vault, the order snapshot surfaces and the height
-  tape-ruler all read in inches out of the box; committed values convert
-  through canonical cm (`user_height_cm` payload unchanged). Canvas-truth
-  copy rides along: the manual-entry explainer speaks inches, the
-  out-of-range advisory ("Out of range — enter 4 to 79 in" for the 10–200
-  cm sample band) and the height gate error ("Enter a height between
-  39–91 in.") render their canonical-cm ranges in the active display
-  unit, and the height-step explainer goes unit-neutral ("…pixels into
-  real measurements…"). Screen goldens re-authored on linux/amd64 for
-  every surface whose rendered strings changed (#174).
-- Web toolchain on Node 24 end-to-end: the `build-and-test` web jobs move
-  from Node 22 to 24 and a new `web/.nvmrc` pins 24 — the runtime major
-  the web Dockerfile already ships, and the file dependabot's
-  `@types/node` ignore-comment points at (#172).
-- TEST_MODE auth provider converges on the fleet shape:
-  `test-mode-auth-provider.ts` → `test-mode-provider.ts` (fleet name,
-  storage const `SESSION_KEY`), and the `apparule.test-session`
-  sessionStorage entry now holds the JSON user payload (the account
-  snapshot at sign-in) instead of the `"1"` sentinel — one shape across
-  the fleet's e2e tooling. Restore semantics are unchanged per the org
-  gate canon (loading gate, `/signin` reverse redirect, failed restore →
-  signed_out) and still re-resolve `/me`, so account-state changes are
-  never served stale (#172).
-- Web eslint carries the org restricted-import bans (`@mui/*`,
-  `@emotion/*`, `dayjs`, `moment`) alongside the legacy quarantine, and
-  `eslint-plugin-testing-library` (flat/react preset) now lints the
-  co-located tests — `no-container`/`no-node-access` stay off (the
-  component-reuse policy builds visual components bespoke from the token
-  layer, so their tests assert non-semantic structure by design); the
-  genuine findings it surfaced are fixed (`renderHook` results
-  destructured, a redundant `act` around `fireEvent` dropped) (#172).
-- `mobile-goldens.yml` uploads the regenerated goldens artifact via
-  `actions/upload-artifact@v7` (fleet action floor) (#172).
-- api/common Dockerfile `HEALTHCHECK` `start-period` 5s → 10s (fleet
-  majority; api/measure keeps its model-load-sized 40s) (#172).
-- `web/package.json` declares the `repository` field (org shape), and the
-  Next.js dev indicator pins bottom-right (`devIndicators` — fleet
-  ruling, one position across the fleet) (#172).
-- Docs currency pass — stale claims aligned to the shipped system:
-  mobile-implementation.md (riverpod_lint as the native analyzer plugin
-  with custom_lint retired upstream; the per-PR unsigned iOS-simulator
-  build gate and the deferred coverage gate stated honestly; `intl`
-  `^0.20.2` as the SDK-pinned range; the C6
-  CAMERA/`NSCameraUsageDescription` declarations no longer "missing";
-  dev-only seed scoping; `dev`/`prod` entrypoints; pending
-  firebase_options annotations; C15 in the feed mapping; §11 trimmed to
-  the salvage decisions that still shape the tree), web-implementation.md
-  (the mock's two-photo `image_front`+`image_side` shape; upload-only
-  vault e2e wording; `src/legacy/` as the standing guardrail, no tree
-  present), setup.md's Node floor aligned to Node 24 (the web
-  Dockerfile's runtime), and decisions.md M-6's body past-tensed under
-  its REVERSED header (#171).
-- Mobile core/ui enforces the null-handler prop-contract (CLASS 3: no
-  handler ⇒ no control — web hides unwired affordances, mobile was
-  rendering dead ones): `PostCard` hides the ⋯ overflow (spacer keeps
-  the header anatomy), `PaymentBox` renders a CTA only when its handler
-  exists (the paying spinner still renders — loading is state, not an
-  affordance) and `UserRow` drops the trailing morph without its
-  matching handler; per-component null-callback tests enforce it (#162).
-- Mobile analyzer: `unawaited_futures` + `discarded_futures` at error
-  severity (CLASS 4 — a dropped future is a dropped failure path;
-  deliberate fire-and-forget sites declare `unawaited()`) (#162).
-- Web manual entry carries no height: `input_height_cm` is `null` for
-  `method: manual` (nullable ruling; the fabricated 168 default is
-  gone), out-of-range values prompt the flows/vault.md §2 "double-check"
-  advisory (non-blocking), and the `waist_girth` advisory max aligns to
-  the canonical 150 (#158).
-- Web AppBar sub/over-media titles center on the FULL bar width (M-9):
-  an absolute, full-width, center-aligned layer over the bar — never an
-  in-flow element between the slots; root's left wordmark exempt.
-  Propagates to order detail, the settings sub-screens, /p/{id}, the
-  marketing phone mocks and the dev gallery (#158).
-- Web B7 Account & data delete-all rides the full danger ladder:
-  quiet-danger row rung → armed sheet with typed-DELETE gate, "Export
-  everything first" escape hatch, and Cancel (filled destructive only
-  on the armed surface) (#158).
-
-### Fixed
 
 - Web profile counts derive from the follow graph (user-reported live
   bug): completing become-a-designer onboarding zeroed the profile
@@ -831,207 +1026,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   api-measure:8081, web:3000), compose-driven `Makefile`, and `.env.example`
   (#47).
 - Committed `mobile/flutter/pubspec.lock` for reproducible app builds (#54).
-
-### Changed
-
-- Docs ratify the 2026-07-22 user rulings (contracts only — builds
-  follow in their own lanes). **M-10 two-photo capture (reverses
-  M-6)**: the product mechanic is two photos — front + side (right
-  profile) — plus height; api.md `POST /measure` becomes `image_front`
-  + `image_side` + `user_height_cm`, capture-qc.md defines per-pose QC
-  (side pose: `not_side_profile` + arms-relaxed; first-failure-only per
-  pose, pose-2 failures never discard pose 1), flows/vault.md §1 runs
-  the two-capture sequence (QC retry never advances the pose), pages.md
-  C6 and mobile-implementation.md §10 carry the two-pose flow with the
-  5-step guide, and the `mediapipe_2d_v2` formula gains the two-view
-  girth note ([Directive: measurement pipeline recalibration needed]).
-  **M-8 canvas-first**: every shipped screen has a Figma frame —
-  frameless is designed first or dropped. **M-9 centered header-bar
-  titles**: true bar-width centering, chrome-scoped (design.md §8.2b
-  AppBar spec; page-body titles stay left-aligned). **M-11 unified
-  create semantics**: ➕/Create opens a two-option chooser on both
-  platforms — "Take measurements" + "Post an outfit" (designer-gated;
-  non-designers route to become-a-designer); the mobile composer (C15)
-  is authorized design-first, and until it ships mobile's chooser
-  offers capture + become-a-designer only. **M-12 web capture is
-  upload-only**: web users upload the two photos (front + side files,
-  same per-pose QC pipeline); the webcam capture flow is removed
-  (rejected UX — desk-height lens, unreachable controls) and the vault
-  entry hints "best experience: guided capture on the mobile app";
-  mobile keeps the live guided camera; the composer create flow is
-  upload/import on both platforms. **Auth posture**:
-  TEST_MODE-parity fakes are the ratified state until phase 4; Firebase
-  wiring stays documented but gated. **Bio scope**: designer-scoped —
-  C9 edit-profile hides bio for non-designers. **Parity-audit items**:
-  design.md Button `quiet-danger` + the danger-ladder row-rung rule and
-  the entity-navigation rule; pages.md C1b marked mobile-only (web
-  first-run = B1 empty state + freshness card); flows/auth.md §2
-  platform-neutral session-restore ruling; flows/vault.md §2 advisory
-  ranges canonized (waist_girth settled at 150); data-model.md
-  `input_height_cm` nullable for `method: manual` (the web 168
-  fabrication ends); capture-qc.md §6 records the `height_suspect` hint
-  as deferred (unimplemented on both clients) (#157).
-
-- Mobile C14 empty-ledger CTA falls back to the module-canonical
-  "Discover designers" → Explore (the C8-empty precedent): its previous
-  "Create a post" target was the dropped `/create` placeholder; web
-  B9's CTA targets the B5 composer, which mobile ships designed-first (#155).
-
-- The iOS SwiftPM lockfile (`Runner.xcworkspace` `Package.resolved`) is
-  committed for reproducible native resolution; the Xcode project-internal
-  duplicate is gitignored (#154).
-
-- Mobile C6 capture drops the explicit shutter button — the QA-convergence
-  CONTESTED item ruled for canvas+docs (pages.md C6 "silhouette overlay +
-  countdown"; the canvas capture frames 173:574/266:8419 carry no control
-  layer). The viewfinder now arms the 3-2-1 automatically after a short
-  searching beat (`kCaptureAlignDelay`; the fake camera's stand-in for a
-  live alignment signal) and capture fires on countdown completion; Retake
-  re-arms it. Kept: the over-media back chevron as the cancel affordance,
-  the "Enter manually instead" escape, and the ring's per-tick live
-  region — plus new screen-reader announcements when the countdown arms
-  ("Hold still — capturing in 3") and the capture fires ("Photo
-  captured"). The unused shutter label string is gone; camera/countdown
-  goldens re-authored on the Linux gate platform (#152).
-- Mobile flavors collapse to the org's two-environment model (user
-  directive 2026-07-22): `dev` (fakes/TEST_MODE, applicationIdSuffix
-  `.dev`) and `prod` (bare `io.cuesoft.apparule`, Firebase
-  `sandbox-e306a` — CueLABS production runs on the sandbox account; the
-  Doppler config name stays `stg`). `main_stg.dart` and the `stg`/`prd`
-  Android flavors are gone; `main.dart` is the prod entrypoint, and a
-  separate prd tier is added only when a production environment is
-  ratified (#146).
-- Mobile legacy quarantine, wave 2 (mobile-implementation.md §11): all of
-  `lib/src/**`, the superseded `main.dart`, and the old l10n surface
-  (`app_sq.arb` + committed generated localizations) moved
-  structure-preserved to `mobile/flutter/lib/legacy/` — excluded from
-  analysis, codegen, CI, and builds; `countdown.dart` salvaged live to
-  `src/core/ui/` per the §11 KEEP register (C6's 3-2-1 countdown) (#143).
-- Mobile pubspec adopts the ratified dependency set (Riverpod 3 + codegen,
-  go_router + go_router_builder, dio, freezed/json_serializable, Firebase
-  packages added but not initialized, flutter_secure_storage, mocktail/
-  alchemist/patrol), replacing the legacy `provider`/`sms_autofill` pair;
-  documented pin deviations where the ledger's set no longer co-resolves
-  (riverpod_lint is a native analyzer plugin now — custom_lint retired
-  upstream; build_runner ≤2.15.1; freezed 3.2.6-dev.1 as the analyzer-12
-  compatibility build; intl ^0.20.2 per the SDK's own pin) (#143).
-- Mobile CI lane steps up to the full mobile-implementation.md §8 static
-  gate: live-tree format scope, a codegen-fresh check (build_runner + token
-  generation must produce no diff), and `flutter analyze --fatal-infos`
-  over very_good_analysis + riverpod_lint. The coverage gate joins with the
-  feature waves, once there is non-placeholder logic to hold a floor
-  against (#143).
-- Mobile l10n re-keyed en-only (mobile-implementation.md §1): a minimal new
-  `app_en.arb`; generated localizations now land in `lib/l10n/generated/`
-  (gitignored, `nullable-getter: false`) instead of being committed (#143).
-- Regenerated `mobile/flutter/android/` on the Flutter 3.44.7 template
-  (mobile-implementation.md §11, decisions.md M-4): AGP 9.0.1 + Gradle 9.1
-  wrapper + Kotlin 2.3.20 on Java/Kotlin 17, declarative `plugins {}`
-  Kotlin-DSL settings, `namespace`/Kotlin package/manifest renamed off
-  `com.example.apparule` to `io.cuesoft.apparule` (matching the
-  applicationId), an environment-variable release-signing stub replacing the
-  debug-key release config (debug fallback documented, no secrets), the
-  minSdk 24 floor and both launcher mipmap sets carried forward, and the
-  dead ARCore/Sceneform native dependencies dropped (#142).
-- Replaced `mobile/flutter/.gitignore` (previously the Flutter framework
-  repo's own template) with the app template plus the contract additions
-  (`.fvm/`, `env/*.json`, generated l10n, golden `failures/`, Firebase
-  config files); `.metadata` regenerated at the 3.44.7 revision (#142).
-- Mobile legacy quarantine, wave 1 (web-legacy pattern — nothing deleted,
-  phased out when replacements land): the pre-regeneration `android/` tree
-  moved to `mobile/flutter/legacy/android-agp7/`, the unused web scaffold to
-  `mobile/flutter/legacy/web-scaffold/` (platform de-registered from
-  `.metadata`), and eight §11-listed assets to `mobile/flutter/assets/legacy/`
-  (unbundled — outside the pubspec asset list); `legacy/` trees are excluded
-  from analysis and the CI gates (#142).
-- Reformatted the legacy Dart tree with `dart format` (whitespace-only) to
-  seed the CI format gate (#142).
-- External links converge on `rel="noreferrer"` (which implies `noopener`) —
-  the fleet legal-link idiom — across anchors and `window.open` feature
-  strings (#137).
-- The skip-to-content link is now the fleet's byte-identical canonical
-  component: visually hidden via `sr-only` until keyboard focus reveals the
-  pill; the first-Tab/Enter-to-`#main` contract is unchanged (#137).
-- `/docs/api`'s Scalar reference now loads on user intent instead of shipping
-  eagerly with the route, cutting settled pre-intent JS from ~1.38MB to
-  ~223KB decoded (#131).
-- Auth module rehomed from `controllers/auth/` to `src/auth/` for tree-shape
-  parity with the sibling repos (#132).
-
-- Home page LCP: the hero/demo image now loads with `priority` and sized WebP
-  assets instead of blocking on an unoptimized full-size image (#127).
-- Dead-code and env-plumbing cleanup: removed a dead hook, unused scaffold
-  SVGs, and the dead `NEXT_PUBLIC_GOOGLE_CLIENT_ID` env plumbing; piped
-  Playwright's `webServer` output so CI server deaths are diagnosable
-  (#122, #123, #124).
-
-- Mobile-responsive pass across every route, clean at the 390px and 768px
-  breakpoints (scroll containers for wide elements, floating-layer viewport
-  clamping, mobile panel and star-badge fixes).
-- Cross-repo tooling parity with the other CueLABS™ repositories.
-
-- Standard-form Helm chart (deploys api-common, api-measure, web; probes +
-  recommended labels + runAsNonRoot) and cluster-agnostic terraform
-  (kubeconfig-based); per-service README/.gitignore/.env.example added;
-  api/measure requirements pinned to resolved versions (+ requirements-dev);
-  applicationId io.cuesoft.apparule; CORS emits Vary: Origin (#52).
-- README prerequisites aligned to the actual toolchain (Go 1.26, Node.js 24,
-  Python 3.12); optional `envFrom` secret hook in the Helm deployment
-  template (#54).
-- Flutter iOS project migrated by current tooling: minimum deployment target
-  iOS 13, UIScene lifecycle, Swift Package Manager integration (#54).
-- iOS bundle identifier aligned with Android: `com.example.apparule` →
-  `io.cuesoft.apparule` (`.RunnerTests` suffix included) (#55).
-
-- Moved the Python measurement service from `api/common/measurement` to
-  `api/measure`.
-- Aligned `.gitignore`, `.editorconfig`, and `.dockerignore` to the shared
-  standard (#45).
-- Migrated `api/common` to `cmd/server` + `internal/` with singular
-  purpose-based packages and `snake_case.go` files (#47).
-- Standardized web naming (kebab-case folders + modules, PascalCase components)
-  and Flutter to feature-first `lib/src` with `snake_case.dart` (#47).
-- Aligned README + docs (overview, setup) to the shared CueLABS™ section
-  structure; run commands use `make up` / `go run ./cmd/server` (#47).
-
-### Removed
-
-- The mobile legacy quarantine (M-3 staged removal, both conditions met
-  2026-07-22: every replacement shipped per the QA-convergence ledger +
-  the explicit user removal go): `lib/legacy/` (password/phone/OTP auth
-  screens, welcome screen, legacy themes/l10n/persistence/user model),
-  `assets/legacy/` (8 superseded assets), `legacy/web-scaffold/`,
-  `legacy/android-agp7/`, and their analysis/codegen/CI excludes
-  (incl. `build.yaml`, which existed solely for the exclusion). The
-  salvaged countdown widget and promoted guide art were already live
-  outside the quarantine. Also dropped: the unreferenced
-  Flutter-template `ic_launcher.png` mipmaps (the manifest binds
-  `@mipmap/launcher_icon`) (#155).
-- The mobile `/create` placeholder route + screen (canvas-first ruling
-  2026-07-22: frameless screens are designed first or dropped — no
-  pages.md spec, no canvas frame). The ➕ tab keeps its five-slot canvas
-  bar and remains the capture entry gesture over four shell branches;
-  the designer composer arrives designed-first (#155).
-
-- The iOS LaunchImage placeholder README and the dead ARCore/Sceneform
-  native dependencies from the Android build (§11 ledger; the
-  pre-regeneration build files are preserved under `legacy/android-agp7/`).
-  The outer `mobile/android/` and `mobile/ios/` `.gitkeep` placeholders
-  remain — reserved for possible future native (non-Flutter) apps (user
-  directive 2026-07-22); the Flutter app's platform dirs live inside
-  `mobile/flutter/` (#157).
-
-- The legacy quarantine directory (`src/legacy/`), retired now that the
-  system QA gate has passed.
-
-- 4.9MB of unreferenced test images from git; dead Flutter files (empty
-  profile screen, unimported app bar, no-op widget test); 5 unused pubspec
-  dependencies; template web assets (#52).
-
-- GitHub Actions CI workflow, the one-off `scripts/refactor-structure.sh`, stale
-  `docs/devops` planning docs, and a generated pose-detector artifact.
-
-### Fixed
 
 - Mobile live-QA affordance sweep (user-reported on-device, 2026-07-22):
   tapping a designer's avatar or name on a feed PostCard did nothing.
