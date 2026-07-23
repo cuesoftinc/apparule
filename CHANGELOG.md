@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Machine-local iOS code signing for physical-device dev builds:
+  `dev.xcconfig` optionally includes a gitignored `signing.local.xcconfig`
+  carrying the developer's `DEVELOPMENT_TEAM` (#169).
 - Mobile patrol E2E smoke journeys (mobile-implementation.md §8 gate 5 —
   the standing nightly regression net, deferred since the skeleton):
   - `integration_test/smoke_journeys_test.dart` — five journeys over the
@@ -29,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - `mobile-e2e` workflow — nightly + manual dispatch, never per-PR
     (§8's device-farm cost profile): Android API 34 x86_64 emulator
     (KVM-accelerated ubuntu runner) running the journey suite against
-    the dev flavor.
+    the dev flavor (#168).
 - Mobile C15 designer post composer (M-11 — the create chooser's second
   option goes live; canvas 551:2866 / 551:4152 / 552:2):
   - The composer screen at `/create/post`: centered "New post" bar,
@@ -57,7 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
     with its DECLARED create fan-out — feed + explore family +
     own-profile grid — pinned by the two-surface contract test.
   - The M-11 chooser now routes designers' "Post an outfit" to C15;
-    non-designers keep C13 become-a-designer.
+    non-designers keep C13 become-a-designer (#167).
 - Mobile C6 two-pose capture wave (M-10/M-11 — the 2023 guide screens
   die here):
   - Canvas-first guide rebuild: ONE parameterized `GuidePage` module
@@ -96,7 +99,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
     "Take measurements" (primary accent border; the guide-first-run
     logic survives behind it) and "Post an outfit" (designer-gated
     subtitle; routes to C13 become-a-designer for everyone until the
-    C15 composer ships).
+    C15 composer ships) (#164).
 
 ### Fixed
 
@@ -157,7 +160,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - Golden harness provides the app l10n scope (pixel-neutral); the six
     screen goldens that legitimately changed (the ⋯ overflow now
     renders on C2/C4, the C11 reply affordance) were regenerated on
-    Linux per the authoring rule.
+    Linux per the authoring rule (#165).
 
 - Mobile orders/commerce interaction defects (the audit's Lane B —
   C5/C8 plus the D03/D20/D22 earnings & shell items):
@@ -212,7 +215,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
     identity field is empty (D20); the MI-16 Orders-tab badge clears on
     TAB VISIT via the new `markOrderKindsRead` repository seam +
     `OrdersBadgeSync` shell effect — social unreads survive for C10
-    (D22).
+    (D22) (#166).
 
 - Mobile capture/vault interaction defects (the audit's Lane C
   capture-vault cluster): the empty-vault CTA now opens the
@@ -231,7 +234,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   capture so backing out never lands on the dismissed interstitial
   (D72); `CaptureOptionCard`'s axis renamed `photo-upload` with the
   two-photo subtitle (M-12), and the C1b/processing/height copy swept to
-  the two-photo canon.
+  the two-photo canon (#164).
 
 - Mobile Wave 0 interaction infrastructure (the interaction-audit CLASS
   locks — everything the fix lanes build on):
@@ -273,7 +276,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
     disable the CTA.
   - `notificationRoute()` — one exhaustive `NotificationKind → route`
     switch wired through C10's row tap (payout ⇒ Earnings, never
-    OrderDetail), locked by an exhaustive per-kind route test.
+    OrderDetail), locked by an exhaustive per-kind route test (#162).
 - Web B4 two-photo upload capture (M-10 + M-12): the vault measurement
   flow is the two-file upload per the dashboard canvas frame — labeled
   Front/Side dropzones with per-pose states (empty / uploaded thumbnail
@@ -287,17 +290,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   the capture-qc.md table order (pre-checks before pose rows). The
   options sheet and upload view carry the "Best experience: guided
   capture on the Apparule app" hint; `openapi.yaml` POST /me/sessions
-  takes multipart `image_front` + `image_side` + `input_height_cm`.
+  takes multipart `image_front` + `image_side` + `input_height_cm` (#158).
 - Web Create chooser (M-11 unified create semantics): the rail's Create
   pillar opens the two-option chooser — "Take measurements" (primary,
   accent border → B4 capture options via `/dashboard/vault?capture=1`)
   and "Post an outfit" (→ B5; designers see "Share a look with its fit
   data", non-designers "Become a designer to post"). NavRail items gain
   an `onSelect` action form (button + `aria-haspopup`); decorative
-  marketing rails stay inert.
+  marketing rails stay inert (#158).
 - Web `Button` kind `quiet-danger` — the danger-ladder row rung (quiet
   chrome + error-token label, Figma 501:2), with gallery + test
-  coverage.
+  coverage (#158).
 
 ### Changed
 
@@ -307,24 +310,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   the header anatomy), `PaymentBox` renders a CTA only when its handler
   exists (the paying spinner still renders — loading is state, not an
   affordance) and `UserRow` drops the trailing morph without its
-  matching handler; per-component null-callback tests enforce it.
+  matching handler; per-component null-callback tests enforce it (#162).
 - Mobile analyzer: `unawaited_futures` + `discarded_futures` at error
   severity (CLASS 4 — a dropped future is a dropped failure path;
-  deliberate fire-and-forget sites declare `unawaited()`).
+  deliberate fire-and-forget sites declare `unawaited()`) (#162).
 - Web manual entry carries no height: `input_height_cm` is `null` for
   `method: manual` (nullable ruling; the fabricated 168 default is
   gone), out-of-range values prompt the flows/vault.md §2 "double-check"
   advisory (non-blocking), and the `waist_girth` advisory max aligns to
-  the canonical 150.
+  the canonical 150 (#158).
 - Web AppBar sub/over-media titles center on the FULL bar width (M-9):
   an absolute, full-width, center-aligned layer over the bar — never an
   in-flow element between the slots; root's left wordmark exempt.
   Propagates to order detail, the settings sub-screens, /p/{id}, the
-  marketing phone mocks and the dev gallery.
+  marketing phone mocks and the dev gallery (#158).
 - Web B7 Account & data delete-all rides the full danger ladder:
   quiet-danger row rung → armed sheet with typed-DELETE gate, "Export
   everything first" escape hatch, and Cancel (filled destructive only
-  on the armed surface).
+  on the armed surface) (#158).
 
 ### Fixed
 
@@ -343,25 +346,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   sides; posts_count through create+delete — parity with mobile's
   unit-gated invariant) and an e2e assertion that onboarding preserves
   the pre-onboarding counts; documented as the pages.md B6
-  derived-counts rule.
+  derived-counts rule (#163).
 - Web author links (entity-navigation rule; the web sibling of the
   user-found mobile PostCard bug): PostCard header avatar+username and
   the caption's leading username link to the designer profile
   (prop-gated — marketing mocks stay inert), PostDetailView's header
   link wraps the avatar (no dead zone), and CommentRow's avatar +
-  username link to the author profile.
+  username link to the author profile (#158).
 - Web session-restore hardening (flows/auth.md §2): `SignInGate`
   replaces a signed-in visitor to /dashboard (a signed-in user never
   sees /signin), the restore effect catches provider rejections as
   signed-out (no stranded spinner), and the provider contract
   (resolve null, never reject) is documented on
-  `AuthProviderAdapter.restore()`. e2e adds the cold-start pair.
+  `AuthProviderAdapter.restore()`. e2e adds the cold-start pair (#158).
 - Webcam capture flow REMOVED from web (M-12 — rejected UX:
   desk-height lens, unreachable controls): `WebcamCaptureSheet`, its
   idle tips and the webcam-upload option mode are deleted;
   `CaptureOptionCard` renames the axis to `photo-upload` ("Upload
   photos · Two photos — we measure automatically"; mobile thumbs keep
-  the C7 camera title). Mobile keeps the live guided camera.
+  the C7 camera title). Mobile keeps the live guided camera (#158).
 
 - Mobile real boot flow over fakes (user directive 2026-07-22, web
   TEST_MODE parity): cold start → native splash → session-restore gate →
@@ -374,7 +377,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   survives relaunches. The restore runs behind a branded in-app
   `BootScreen` (gradient wordmark on the token `bg`; quiet spinner only
   past ~300ms) so the router mounts with a settled session — never a C1
-  flash. Boot-flow suite + boot-frame goldens + notched coverage.
+  flash. Boot-flow suite + boot-frame goldens + notched coverage (#155).
 - Mobile brand splash + launcher icons from the design.md §2 token
   construction (white Inter-Bold "A" on the accent gradient — the web
   favicon adjudication): `tool/gen_brand_assets.mjs` (web
@@ -386,7 +389,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   Android icon (gradient background + white-A foreground + Android 13
   monochrome), the rounded tile for pre-26 launchers, and the
   full-bleed iOS set — replacing the 2023-era launcher icons. Both
-  flavors share the mark; display names distinguish installs.
+  flavors share the mark; display names distinguish installs (#155).
 
 - Mobile iOS flavor pass (M-7 completes on iOS): `dev`/`prod` shared
   schemes over `Debug/Release/Profile-{dev,prod}` build configurations
@@ -405,7 +408,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   (`SwiftPackageManager.updateMinimumDeployment`), so no generated file
   is hand-patched. CI grows a `mobile-ios` lane (macos runner, unsigned
   dev-flavor simulator build + a bundled-seed assertion) so iOS breakage
-  surfaces at PR time.
+  surfaces at PR time (#153).
 - Mobile display-cutout regression harness: `test/helpers/notched.dart`
   reshapes the test view like the live devices and
   `expectContentClearOfTopInsets` asserts under BOTH platform inset
@@ -415,7 +418,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   screen widget-test suites (the C6 suite asserts the sub-bar height
   step AND the immersive viewfinder). One notched golden per shell
   chrome kind (root bar · sub bar · immersive over-media) pins the
-  inset rendering instead of duplicating every screen golden.
+  inset rendering instead of duplicating every screen golden (#153).
 
 - Mobile QA convergence (screens phase 3 closer — the Figma↔code audit
   loop applied to the complete C-series app; canvas file
@@ -457,7 +460,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   C14 explainer, demo measurement content off the ratified §6 seed
   story, no shutter on the C6 frames) are recorded as canvas ops in the
   audit ledger, not code changes. 8 net-new tests (355 total); goldens re-authored on
-  the Linux container for every touched screen.
+  the Linux container for every touched screen (#151).
 
 - Mobile profile + earnings wave (screens phase 3, the FINAL C-series
   wave — the dev flavor is now a complete C-series app over fakes;
@@ -503,7 +506,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   domain. Four new golden-tested `core/ui` modules (AppTabs, UserRow,
   TransactionRow, AppSwitch) and typed routes `/profile/edit`,
   `/profile/{username}` (+ C12 children), `/settings` (+3 subs),
-  `/designer/onboarding` (+ `/payout` sibling).
+  `/designer/onboarding` (+ `/payout` sibling) (#150).
 
 - Mobile feed + orders wave (screens phase 3, mobile-implementation.md
   §5/§6; pages.md C2–C5, C8, C10, C11; order-lifecycle.md): the
@@ -556,7 +559,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   (repository semantics incl. the transition table edge-for-edge,
   role-gated actions, snapshot freeze, scripted thread reply; widget
   states per screen at the 390px canvas width; router deep links) plus
-  16 Linux-authored screen goldens (both themes). No new dependencies.
+  16 Linux-authored screen goldens (both themes). No new dependencies (#149).
 - Mobile C6 capture wave (screens phase 3 opener, mobile-implementation.md
   §10; pages.md C6/C7; capture-qc.md): the dev-flavor app completes the
   core product journey — one frontal photo + height → measurements → the
@@ -607,7 +610,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   AVFoundation via SwiftPM — no CocoaPods). Known infra note: the
   `tool/update_goldens.sh` docker image has no 3.44.7 tag upstream yet —
   goldens author via the `mobile-goldens` workflow_dispatch fallback the
-  script documents.
+  script documents (#148).
 - Mobile core/ui component wave (design phase 2, mobile-implementation.md
   §7 — one Flutter module per Figma C-series component set, golden-tested
   before any screen consumes it, the web W1 discipline): 23 new modules
@@ -647,7 +650,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   light + dark (platform goldens disabled — images are byte-identical
   across hosts), plus behavior/a11y widget tests (icon-only controls
   carry semantics labels per the named-control canon). Pin-ledger
-  addition: `lucide_icons_flutter ^3.1.15` (design.md §2 iconography).
+  addition: `lucide_icons_flutter ^3.1.15` (design.md §2 iconography) (#147).
 - Mobile Google-only auth cutover (restructure step 4,
   mobile-implementation.md §9, X-1/M-3): the abstract `AuthRepository`
   grows the full contract (silent restore, `signInWithGoogle`, sign-out,
@@ -670,7 +673,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `firebase_options*.dart` generation is pending `firebase login
   --reauth` (expired CLI credentials); `bootstrap(firebaseOptions:)` +
   `firebaseAuthRepositoryOverride()` are the one-diff seam for when it
-  lands. Pin-ledger addition: `url_launcher ^6.3.2` (legal links).
+  lands. Pin-ledger addition: `url_launcher ^6.3.2` (legal links) (#146).
 - Mobile feature-first skeleton (restructure step 3,
   mobile-implementation.md §3–§7): `lib/src/{app,routing,core,features}`
   with the six ratified features (`auth`, `feed`, `measurements`, `orders`,
@@ -682,7 +685,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   (provider overrides per environment across `main_dev` / `main_stg` /
   `main.dart`); the `core/data` seams (configured Dio `api_client`,
   secure-storage `persistence_service`); and `assets/seed/` documenting the
-  §6 narrative to come.
+  §6 narrative to come (#143).
 - Design-token pipeline: `design/tokens/apparule.tokens.json` — the
   37-variable `apparule/tokens` Figma collection (17 color roles in true
   Light/Dark modes, spacing, radii, durations, z-layers), verified against
@@ -690,29 +693,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `tool/gen_tokens.dart`; Material 3 light + true-black dark `ThemeData`
   built from the one token set through five `ThemeExtension`s
   (color/spacing/radius/type/motion); Inter 400/600/700 bundled with its
-  OFL license (never fetched at runtime).
+  OFL license (never fetched at runtime) (#143).
 - Android `dev`/`stg`/`prd` product flavors (`applicationIdSuffix`
   `.dev`/`.stg`, per-flavor launcher label, pubspec `default-flavor: dev`),
   paired with the three flavor entrypoints; iOS schemes/xcconfigs deferred
-  to an Xcode pass.
+  to an Xcode pass (#143).
 - Mobile test suite (18 tests): a `pump_app` helper over the fake override
   set, widget tests for all eight placeholder screens, theme unit tests
   (tokens resolve; light/dark differ; true-black dark), a five-tab router
-  navigation test, and countdown/persistence/api-client unit tests.
+  navigation test, and countdown/persistence/api-client unit tests (#143).
 - Mobile CI lane: a `mobile · format + analyze + test` job in
   `build-and-test.yml` — Flutter pinned by `.fvmrc` via
   `subosito/flutter-action@v2`, gating `dart format`, `flutter analyze`, and
   `flutter test` — closing the audit's no-mobile-CI gap (CV-7/X-6), seeded
-  with the app's first test (a boot smoke test).
+  with the app's first test (a boot smoke test) (#142).
 - `mobile/flutter/.fvmrc` pinning Flutter 3.44.7, mirrored as hard
-  `environment:` pins in `pubspec.yaml` (Dart `^3.12.0`).
+  `environment:` pins in `pubspec.yaml` (Dart `^3.12.0`) (#142).
 - Mobile implementation contract (`docs/mobile-implementation.md`): the
   Flutter rebuild plan for `mobile/flutter` — feature-first MVVM+Repository
   over Riverpod 3, a typed go_router tab shell, a mock-first data layer
   seeded to the same designer/order narrative as the web dashboard, the
   design-token pipeline, CI quality gates, and the legacy salvage/rewrite/
   drop ledger. Docs only — restructure, design/components, and screens land
-  in following stages, with API wiring last.
+  in following stages, with API wiring last (#140).
 - Web app manifest at `/manifest.webmanifest`: product identity ("Apparule —
   Two photos. A perfect fit."), design-token colors, and the committed icon
   set — locked by the shared SEO spec's generic manifest assertion (#137).
@@ -738,13 +741,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `deploy/{docker,helm,terraform}`, `docs`, and `scripts`.
 - Shared community-health files from the CueLABS™ standard (SECURITY,
   CODE_OF_CONDUCT, CONTRIBUTING, CODEOWNERS, PR/issue templates) and a scoped
-  Dependabot config.
+  Dependabot config (#45).
 - `docs/overview.md` and `docs/setup.md`.
 - Production service bootstrap: `/health` + `/ready`, structured `slog` logging,
-  and graceful shutdown (Go); FastAPI `lifespan` startup (measure).
+  and graceful shutdown (Go); FastAPI `lifespan` startup (measure) (#47).
 - Local Docker stack: root `docker-compose.yml` (api-common:8080,
-  api-measure:8081, web:3000), compose-driven `Makefile`, and `.env.example`.
-- Committed `mobile/flutter/pubspec.lock` for reproducible app builds.
+  api-measure:8081, web:3000), compose-driven `Makefile`, and `.env.example`
+  (#47).
+- Committed `mobile/flutter/pubspec.lock` for reproducible app builds (#54).
 
 ### Changed
 
@@ -784,12 +788,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   ranges canonized (waist_girth settled at 150); data-model.md
   `input_height_cm` nullable for `method: manual` (the web 168
   fabrication ends); capture-qc.md §6 records the `height_suspect` hint
-  as deferred (unimplemented on both clients).
+  as deferred (unimplemented on both clients) (#157).
 
 - Mobile C14 empty-ledger CTA falls back to the module-canonical
   "Discover designers" → Explore (the C8-empty precedent): its previous
   "Create a post" target was the dropped `/create` placeholder; web
-  B9's CTA targets the B5 composer, which mobile ships designed-first.
+  B9's CTA targets the B5 composer, which mobile ships designed-first (#155).
 
 - The iOS SwiftPM lockfile (`Runner.xcworkspace` `Package.resolved`) is
   committed for reproducible native resolution; the Xcode project-internal
@@ -806,7 +810,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   region — plus new screen-reader announcements when the countdown arms
   ("Hold still — capturing in 3") and the capture fires ("Photo
   captured"). The unused shutter label string is gone; camera/countdown
-  goldens re-authored on the Linux gate platform.
+  goldens re-authored on the Linux gate platform (#152).
 - Mobile flavors collapse to the org's two-environment model (user
   directive 2026-07-22): `dev` (fakes/TEST_MODE, applicationIdSuffix
   `.dev`) and `prod` (bare `io.cuesoft.apparule`, Firebase
@@ -814,13 +818,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   Doppler config name stays `stg`). `main_stg.dart` and the `stg`/`prd`
   Android flavors are gone; `main.dart` is the prod entrypoint, and a
   separate prd tier is added only when a production environment is
-  ratified.
+  ratified (#146).
 - Mobile legacy quarantine, wave 2 (mobile-implementation.md §11): all of
   `lib/src/**`, the superseded `main.dart`, and the old l10n surface
   (`app_sq.arb` + committed generated localizations) moved
   structure-preserved to `mobile/flutter/lib/legacy/` — excluded from
   analysis, codegen, CI, and builds; `countdown.dart` salvaged live to
-  `src/core/ui/` per the §11 KEEP register (C6's 3-2-1 countdown).
+  `src/core/ui/` per the §11 KEEP register (C6's 3-2-1 countdown) (#143).
 - Mobile pubspec adopts the ratified dependency set (Riverpod 3 + codegen,
   go_router + go_router_builder, dio, freezed/json_serializable, Firebase
   packages added but not initialized, flutter_secure_storage, mocktail/
@@ -828,16 +832,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   documented pin deviations where the ledger's set no longer co-resolves
   (riverpod_lint is a native analyzer plugin now — custom_lint retired
   upstream; build_runner ≤2.15.1; freezed 3.2.6-dev.1 as the analyzer-12
-  compatibility build; intl ^0.20.2 per the SDK's own pin).
+  compatibility build; intl ^0.20.2 per the SDK's own pin) (#143).
 - Mobile CI lane steps up to the full mobile-implementation.md §8 static
   gate: live-tree format scope, a codegen-fresh check (build_runner + token
   generation must produce no diff), and `flutter analyze --fatal-infos`
   over very_good_analysis + riverpod_lint. The coverage gate joins with the
   feature waves, once there is non-placeholder logic to hold a floor
-  against.
+  against (#143).
 - Mobile l10n re-keyed en-only (mobile-implementation.md §1): a minimal new
   `app_en.arb`; generated localizations now land in `lib/l10n/generated/`
-  (gitignored, `nullable-getter: false`) instead of being committed.
+  (gitignored, `nullable-getter: false`) instead of being committed (#143).
 - Regenerated `mobile/flutter/android/` on the Flutter 3.44.7 template
   (mobile-implementation.md §11, decisions.md M-4): AGP 9.0.1 + Gradle 9.1
   wrapper + Kotlin 2.3.20 on Java/Kotlin 17, declarative `plugins {}`
@@ -846,20 +850,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   applicationId), an environment-variable release-signing stub replacing the
   debug-key release config (debug fallback documented, no secrets), the
   minSdk 24 floor and both launcher mipmap sets carried forward, and the
-  dead ARCore/Sceneform native dependencies dropped.
+  dead ARCore/Sceneform native dependencies dropped (#142).
 - Replaced `mobile/flutter/.gitignore` (previously the Flutter framework
   repo's own template) with the app template plus the contract additions
   (`.fvm/`, `env/*.json`, generated l10n, golden `failures/`, Firebase
-  config files); `.metadata` regenerated at the 3.44.7 revision.
+  config files); `.metadata` regenerated at the 3.44.7 revision (#142).
 - Mobile legacy quarantine, wave 1 (web-legacy pattern — nothing deleted,
   phased out when replacements land): the pre-regeneration `android/` tree
   moved to `mobile/flutter/legacy/android-agp7/`, the unused web scaffold to
   `mobile/flutter/legacy/web-scaffold/` (platform de-registered from
   `.metadata`), and eight §11-listed assets to `mobile/flutter/assets/legacy/`
   (unbundled — outside the pubspec asset list); `legacy/` trees are excluded
-  from analysis and the CI gates.
+  from analysis and the CI gates (#142).
 - Reformatted the legacy Dart tree with `dart format` (whitespace-only) to
-  seed the CI format gate.
+  seed the CI format gate (#142).
 - External links converge on `rel="noreferrer"` (which implies `noopener`) —
   the fleet legal-link idiom — across anchors and `window.open` feature
   strings (#137).
@@ -888,24 +892,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   recommended labels + runAsNonRoot) and cluster-agnostic terraform
   (kubeconfig-based); per-service README/.gitignore/.env.example added;
   api/measure requirements pinned to resolved versions (+ requirements-dev);
-  applicationId io.cuesoft.apparule; CORS emits Vary: Origin.
+  applicationId io.cuesoft.apparule; CORS emits Vary: Origin (#52).
 - README prerequisites aligned to the actual toolchain (Go 1.26, Node.js 24,
-  Python 3.12); optional `envFrom` secret hook in the Helm deployment template.
+  Python 3.12); optional `envFrom` secret hook in the Helm deployment
+  template (#54).
 - Flutter iOS project migrated by current tooling: minimum deployment target
-  iOS 13, UIScene lifecycle, Swift Package Manager integration.
+  iOS 13, UIScene lifecycle, Swift Package Manager integration (#54).
 - iOS bundle identifier aligned with Android: `com.example.apparule` →
-  `io.cuesoft.apparule` (`.RunnerTests` suffix included).
+  `io.cuesoft.apparule` (`.RunnerTests` suffix included) (#55).
 
 - Moved the Python measurement service from `api/common/measurement` to
   `api/measure`.
 - Aligned `.gitignore`, `.editorconfig`, and `.dockerignore` to the shared
-  standard.
+  standard (#45).
 - Migrated `api/common` to `cmd/server` + `internal/` with singular
-  purpose-based packages and `snake_case.go` files.
+  purpose-based packages and `snake_case.go` files (#47).
 - Standardized web naming (kebab-case folders + modules, PascalCase components)
-  and Flutter to feature-first `lib/src` with `snake_case.dart`.
+  and Flutter to feature-first `lib/src` with `snake_case.dart` (#47).
 - Aligned README + docs (overview, setup) to the shared CueLABS™ section
-  structure; run commands use `make up` / `go run ./cmd/server`.
+  structure; run commands use `make up` / `go run ./cmd/server` (#47).
 
 ### Removed
 
@@ -919,12 +924,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   salvaged countdown widget and promoted guide art were already live
   outside the quarantine. Also dropped: the unreferenced
   Flutter-template `ic_launcher.png` mipmaps (the manifest binds
-  `@mipmap/launcher_icon`).
+  `@mipmap/launcher_icon`) (#155).
 - The mobile `/create` placeholder route + screen (canvas-first ruling
   2026-07-22: frameless screens are designed first or dropped — no
   pages.md spec, no canvas frame). The ➕ tab keeps its five-slot canvas
   bar and remains the capture entry gesture over four shell branches;
-  the designer composer arrives designed-first.
+  the designer composer arrives designed-first (#155).
 
 - The iOS LaunchImage placeholder README and the dead ARCore/Sceneform
   native dependencies from the Android build (§11 ledger; the
@@ -932,14 +937,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   The outer `mobile/android/` and `mobile/ios/` `.gitkeep` placeholders
   remain — reserved for possible future native (non-Flutter) apps (user
   directive 2026-07-22); the Flutter app's platform dirs live inside
-  `mobile/flutter/`.
+  `mobile/flutter/` (#157).
 
 - The legacy quarantine directory (`src/legacy/`), retired now that the
   system QA gate has passed.
 
 - 4.9MB of unreferenced test images from git; dead Flutter files (empty
   profile screen, unimported app bar, no-op widget test); 5 unused pubspec
-  dependencies; template web assets.
+  dependencies; template web assets (#52).
 
 - GitHub Actions CI workflow, the one-off `scripts/refactor-structure.sh`, stale
   `docs/devops` planning docs, and a generated pose-detector artifact.
@@ -962,25 +967,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   grid + counts, C3 grid tiles; C14 payout rows have no payout-detail
   surface specced. Every new tappable is a single Semantics node
   ("View {username} profile"); widget tests assert tap → route per
-  affordance.
+  affordance (#159).
 - Mobile `AppTopBar` centered-title ruling (user, 2026-07-22): sub and
   over-media titles now center on the BAR's full width — a
   measured-slot layout overlays leading/trailing at the edges and
   insets the title on both sides by the max slot width — instead of
   centering in leftover flow space, which skewed every back-only title
   right and let long titles run under the slots. The root brand bar
-  keeps its left wordmark, exempt per the ruling.
+  keeps its left wordmark, exempt per the ruling (#159).
 - Mobile like/save to web level (user-reported live-QA): MI-20/MI-1
   light haptics on like+save set (un-actions quiet, the MI-2
   asymmetry), the MI-3 "Saved to your looks" first-save toast (once per
   install, persisted gate, View action into the profile), and
   cross-surface read-back — C2/C4 like+save invalidate the C9 profile
   grids, which previously never refreshed while the tab branch stayed
-  alive.
+  alive (#159).
 - Mobile C9 edit profile scopes the Bio field to designer accounts
   ("follow web" ruling: web has no account-level bio edit) —
   non-designer sessions hide the field and persist their existing bio
-  unchanged.
+  unchanged (#159).
 
 - Mobile top chrome under the display cutout (live-device defect,
   2026-07-22 — reproduced on the iPhone 17 Pro simulator AND a Galaxy
@@ -991,20 +996,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   scrim) still extends behind the status bar while the 56px content row
   sits below the inset; no per-screen workarounds. The bottom tab bar
   already handled the home-indicator inset; body-`SafeArea` screens
-  (C1/C1b/C3 comments/explore) were already correct.
+  (C1/C1b/C3 comments/explore) were already correct (#153).
 
 - Mobile golden tooling: `tool/update_goldens.sh` pinned a nonexistent
   `ghcr.io/cirruslabs/flutter:3.44.7` image (upstream's newest 3.44.x
   tag is 3.44.0) — the script now runs a two-stage pin: the fixed
   `:3.44.0` base image plus an in-container git checkout of the exact
-  `.fvmrc` release tag, staying in lockstep with the version CI asserts.
+  `.fvmrc` release tag, staying in lockstep with the version CI asserts
+  (#149).
 - Mobile C1 boot-surface overflow at ~390px (the C6-lane note): the
   GoogleAuthButton label now clamps with an ellipsis instead of
   overflowing its row; the feed/orders widget suites run at the 390px
-  canvas width so any regression fails tests.
+  canvas width so any regression fails tests (#149).
 - Mobile AppTabBar badge semantics: the MI-16 count rides the tab node's
   semantics `value` ("3 new") instead of merging into its label, keeping
-  the named-control contract ("Orders" stays "Orders").
+  the named-control contract ("Orders" stays "Orders") (#149).
 - Accessibility closeout: decorative phone mocks are now truly `inert`
   (keyboard focus can no longer land in invisible mock UI), signin's legal
   links gain underlines, nav landmarks carry distinct labels, and a
@@ -1035,11 +1041,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Flutter: form validation restored (an `if (true)` bypassed it), generated
   l10n rewired (labels rendered as empty strings), password fields start
   obscured, nested `MaterialApp`s unwrapped, persistence load awaited, Android
-  INTERNET permission added, cleartext third-party logo hotlink replaced.
+  INTERNET permission added, cleartext third-party logo hotlink replaced
+  (#52).
 - Flutter: verification screens (email/SMS/account) show the signing-up user's
   contact info from local persistence instead of hardcoded sample text;
   deprecated Material color roles (`background`/`onBackground`) migrated to
-  `surface`/`onSurface`.
+  `surface`/`onSurface` (#54).
 
 ### Security
 
