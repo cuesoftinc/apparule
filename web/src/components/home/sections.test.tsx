@@ -20,7 +20,7 @@ afterEach(() => setAnalyticsTransport(null));
 describe("StatBand (A3)", () => {
   it("renders the three product claims — and only honest ones", () => {
     render(<StatBand />);
-    expect(screen.getByText("±2 cm")).toBeInTheDocument();
+    expect(screen.getByText("±0.8 in")).toBeInTheDocument();
     expect(screen.getByText("2 photos")).toBeInTheDocument();
     expect(screen.getByText("30 days")).toBeInTheDocument();
     expect(

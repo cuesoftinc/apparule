@@ -11,14 +11,19 @@ export function formatNaira(cents: number, currency = "NGN"): string {
   return `${cents < 0 ? "−" : ""}${symbol}${formatted}`;
 }
 
+/** Unit-toggle conversion canon (MI-13): storage is always cm. */
+export const CM_PER_IN = 2.54;
+
 /**
- * 42.5 → "42.5 cm" (or inches when the vault unit toggle flips, MI-13).
- * Always one decimal — the Figma idiom ("58.0 cm") keeps tabular columns
- * aligned; "92 cm" next to "78.5 cm" broke the tnum grid (audit 2026-07-20).
+ * 42.5 → "16.7 in" (inches are the default display unit, A-9 — Nigerian
+ * tailors work in inches; cm stays available via the MI-13 toggle, and
+ * stored values stay canonical cm). Always one decimal — the Figma idiom
+ * ("58.0 cm") keeps tabular columns aligned; "92 cm" next to "78.5 cm"
+ * broke the tnum grid (audit 2026-07-20).
  */
-export function formatCm(valueCm: number, unit: "cm" | "in" = "cm"): string {
+export function formatCm(valueCm: number, unit: "cm" | "in" = "in"): string {
   if (unit === "in") {
-    const inches = valueCm / 2.54;
+    const inches = valueCm / CM_PER_IN;
     return `${inches.toFixed(1)} in`;
   }
   return `${valueCm.toFixed(1)} cm`;

@@ -321,7 +321,8 @@ export function ComponentGallery() {
   const [tabBarKey, setTabBarKey] = useState("home");
   const [countdown, setCountdown] = useState<1 | 2 | 3>(3);
   const [iconTab, setIconTab] = useState<"first" | "second">("first");
-  const [unit, setUnit] = useState<"cm" | "in">("cm");
+  // Inches are the default display unit (A-9) — the gallery mirrors it.
+  const [unit, setUnit] = useState<"cm" | "in">("in");
   const [shoulder, setShoulder] = useState<number | null>(42.5);
   const [selectValue, setSelectValue] = useState<string | undefined>();
   const [date, setDate] = useState<Date | null>(null);
@@ -1116,7 +1117,7 @@ export function ComponentGallery() {
 
       <Section title="Marketing — StatCard / WalkthroughStep">
         <div className="grid max-w-2xl grid-cols-3 gap-4">
-          <StatCard stat="±2 cm" label="target measurement accuracy" />
+          <StatCard stat="±0.8 in" label="target measurement accuracy" />
           <StatCard stat="2" label="photos per capture" />
           <StatCard stat="30 days" label="photo auto-delete" />
         </div>
@@ -1163,7 +1164,7 @@ export function ComponentGallery() {
       <Section title="Marketing — FAQItem">
         <FAQGroup defaultOpenId="faq-1">
           <FAQItem id="faq-1" question="How accurate are the measurements?">
-            The pipeline targets ±2 cm against tape measurements — and every
+            The pipeline targets ±0.8 in against tape measurements — and every
             value carries a confidence score, so you know when to re-measure.
           </FAQItem>
           <FAQItem id="faq-2" question="Who can see my measurements?">

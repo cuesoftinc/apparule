@@ -453,8 +453,10 @@ The pose progress renders as a centered over-media bar title ("Pose 1 of
   upload (`image_front` + `image_side` + height, one request) →
   processing state → results.
 - **Height input**: collected once per session (`user_height_cm`, api.md
-  `POST /measure` form field), feeding the `scale = (user_height_cm × 0.93)
-  / body_height_px` correction from the front image (capture-qc.md §3,
+  `POST /measure` form field — the field displays inches by default per
+  A-9, entry converts to canonical cm), feeding the
+  `scale = (user_height_cm × 0.93) / body_height_px` correction from the
+  front image (capture-qc.md §3,
   `method: mediapipe_2d_v2`); girths estimate from the two views — the
   **[Directive: measurement pipeline recalibration needed]** marker lives
   in capture-qc.md §3 and lands with the backend phase.
@@ -468,7 +470,9 @@ The pose progress renders as a centered over-media bar title ("Pose 1 of
   counter. One actionable retake instruction, never a stacked list.
 - **Results**: measurement cards stagger in with per-measurement
   `confidence` (capture-qc.md §4; values under 0.7 render a "low
-  confidence — consider retaking" chip); "Save to vault" is primary,
+  confidence — consider retaking" chip); values display in inches by
+  default (A-9 — the MI-13 toggle flips to cm; storage stays canonical
+  cm); "Save to vault" is primary,
   "Retake" is quiet; a manual-entry fallback exists for QC that never
   clears. Saved results route into the `measurements` feature's vault
   screen (C7) — the same vault a request's measurement-snapshot picker

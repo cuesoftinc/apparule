@@ -341,10 +341,12 @@ from the Figma ↔ code divergence audit (seed-side details live in §6):
   same-day messages, `MMM d, HH:mm` (the OrderTimelineRow idiom) when
   older, side-aligned under the bubble; delivered messages only — never
   sending or typing bubbles.
-- Measurement values render **one decimal everywhere** ("92.0 cm", the
-  frame's "58.0 cm" idiom) via `formatCm` — MeasurementCard, SessionRow,
-  snapshot chips and the request stepper share the single formatter, so
-  tnum columns stay aligned.
+- Measurement values render **one decimal everywhere** ("16.7 in" —
+  inches are the default display unit, A-9; the frame's "58.0 cm" idiom
+  set the one-decimal rule, and cm stays available via the MI-13 toggle)
+  via `formatCm` — MeasurementCard, SessionRow, snapshot chips and the
+  request stepper share the single formatter, so tnum columns stay
+  aligned. Stored values and payloads stay canonical cm.
 - Profile avatars render PLAIN — the measurement-freshness ring is a
   vault-header affordance (MI-11 **[Decided 2026-07-20]**, design.md §2);
   own profiles (regular-user and designer-self branches) carry no ring

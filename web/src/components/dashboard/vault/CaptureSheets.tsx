@@ -9,6 +9,7 @@
 // sheet. The webcam capture sheet was DELETED per M-12 (full-body webcam
 // capture is rejected UX: desk-height lens, unreachable controls).
 import { useState } from "react";
+import { CM_PER_IN } from "@/lib/format";
 import { Banner } from "@/components/ui/Banner";
 import { Button } from "@/components/ui/Button";
 import { CaptureOptionCard } from "@/components/ui/CaptureOptionCard";
@@ -60,14 +61,23 @@ export const MANUAL_METRICS = [
   { name: "waist_girth", min: 40, max: 150 },
 ] as const;
 
-/** The non-blocking out-of-range advisory (flows/vault.md §2). */
+/**
+ * The non-blocking out-of-range advisory (flows/vault.md §2). Ranges are
+ * canonical cm; the message speaks the active display unit (inches by
+ * default, A-9) so it matches what the user typed.
+ */
 export function manualAdvisory(
   value: number | null,
   min: number,
   max: number,
+  unit: MeasureUnit = "in",
 ): string | undefined {
   if (value === null || (value >= min && value <= max)) return undefined;
-  return `Double-check this one — outside the usual ${min}–${max} cm.`;
+  const range =
+    unit === "cm"
+      ? `${min}–${max} cm`
+      : `${Math.round((min / CM_PER_IN) * 10) / 10}–${Math.round((max / CM_PER_IN) * 10) / 10} in`;
+  return `Double-check this one — outside the usual ${range}.`;
 }
 
 export function ManualEntrySheet({
@@ -79,7 +89,8 @@ export function ManualEntrySheet({
   onOpenChange: (open: boolean) => void;
   onSave: (measurements: { name: string; value_cm: number }[]) => Promise<void>;
 }) {
-  const [unit, setUnit] = useState<MeasureUnit>("cm");
+  // Inches are the default display unit (A-9); stored values stay cm.
+  const [unit, setUnit] = useState<MeasureUnit>("in");
   const [values, setValues] = useState<Record<string, number | null>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -134,6 +145,7 @@ export function ManualEntrySheet({
                 values[metric.name] ?? null,
                 metric.min,
                 metric.max,
+                unit,
               )}
             />
           ))}

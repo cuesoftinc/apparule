@@ -294,11 +294,12 @@ test("B4 vault: two-photo upload — per-pose QC failure → re-pick side only �
     "Best experience: guided capture on the Apparule app",
   );
 
-  // Height prefills from the latest capture session (seed: 168) — never a
-  // fabricated default.
-  const height = page.getByLabel("Height in centimeters");
-  await expect(height).toHaveValue("168");
-  await height.fill("170");
+  // Height prefills from the latest capture session (seed: 168 cm) and
+  // displays in inches — the A-9 default unit — never a fabricated
+  // default. Entry converts back to canonical cm for the payload.
+  const height = page.getByLabel("Height in inches");
+  await expect(height).toHaveValue("66.1");
+  await height.fill("67");
 
   // Front passes; the side file is a designated QC fixture (a file name
   // containing a capture-qc code — per-pose QC, M-10).

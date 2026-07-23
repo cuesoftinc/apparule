@@ -2,10 +2,12 @@
 
 // B4 — Upload measurements (Figma 549:2; M-10 two-photo canon + M-12
 // upload-only): labeled Front/Side dropzones with per-pose states (empty /
-// uploaded thumbnail + Replace / QC-error + QCHintChip), a Height (cm)
-// FormRow (100–230, prefilled from the latest capture session — never a
-// fabricated default), the "Get measurements" CTA into the MI-12 processing
-// constellation, and the results stagger → Save to vault. A QC failure
+// uploaded thumbnail + Replace / QC-error + QCHintChip), a Height FormRow
+// with the MI-13 cm/in toggle — inches active by default (A-9), entry
+// converts to canonical cm before the repository (the payload stays
+// `user_height_cm`, 100–230; prefilled from the latest capture session —
+// never a fabricated default), the "Get measurements" CTA into the MI-12
+// processing constellation, and the results stagger → Save to vault. A QC failure
 // re-opens only the failing pose (per-pose QC, capture-qc.md §2) — the
 // accepted pose's file is kept. Renders as a page takeover of the vault
 // content (in-content left-aligned h1 — the IG-desktop idiom, M-9 scope).
@@ -16,8 +18,9 @@ import type { MeasurementSession } from "@/models";
 import { useCapture, type CapturePose } from "@/controllers/use-capture";
 import { Button } from "@/components/ui/Button";
 import { CaptureResults } from "@/components/ui/CaptureResults";
+import { CM_PER_IN } from "@/lib/format";
 import { FormRow } from "@/components/ui/FormRow";
-import { Input } from "@/components/ui/Input";
+import { Input, type MeasureUnit } from "@/components/ui/Input";
 import { MeasurementCard } from "@/components/ui/MeasurementCard";
 import { ProcessingConstellation } from "@/components/ui/ProcessingConstellation";
 import {
@@ -33,6 +36,22 @@ const ACCEPT = "image/jpeg,image/png,image/heic";
 const POSE_LABEL: Record<CapturePose, string> = {
   front: "Front photo",
   side: "Side photo",
+};
+
+/** Canonical cm → the height field's display string in the active unit
+ * (1-decimal rounding, the MI-13 conversion canon). */
+const heightDisplay = (cm: number, unit: MeasureUnit) =>
+  String(Math.round((unit === "cm" ? cm : cm / CM_PER_IN) * 10) / 10);
+
+/** flows/vault.md §1 height contract: 100–230 cm (39–91 in). */
+const HEIGHT_RANGE: Record<MeasureUnit, string> = {
+  cm: "100–230 cm",
+  in: "39–91 in",
+};
+
+const HEIGHT_UNIT_WORD: Record<MeasureUnit, string> = {
+  cm: "centimeters",
+  in: "inches",
 };
 
 interface PickedImage {
@@ -183,13 +202,42 @@ export function UploadMeasurementsView({
   const [localErrors, setLocalErrors] = useState<
     Record<CapturePose, string | null>
   >({ front: null, side: null });
+  // Height rides in canonical cm; the field displays the active unit —
+  // inches by default (A-9). Keeping the cm number alongside the text means
+  // a prefilled 168 survives unit flips and submits as exactly 168 (the
+  // 1-decimal inch display never round-trips drift into the payload).
+  const [heightUnit, setHeightUnit] = useState<MeasureUnit>("in");
+  const [heightCm, setHeightCm] = useState<number | null>(prefillHeightCm);
   const [height, setHeight] = useState(
-    prefillHeightCm === null ? "" : String(prefillHeightCm),
+    prefillHeightCm === null ? "" : heightDisplay(prefillHeightCm, "in"),
   );
 
-  const heightCm = Number(height);
+  const editHeight = (raw: string) => {
+    setHeight(raw);
+    if (raw.trim() === "") {
+      setHeightCm(null);
+      return;
+    }
+    const num = Number(raw);
+    setHeightCm(
+      Number.isFinite(num)
+        ? heightUnit === "cm"
+          ? num
+          : num * CM_PER_IN
+        : Number.NaN,
+    );
+  };
+
+  const switchHeightUnit = (next: MeasureUnit) => {
+    setHeightUnit(next);
+    // Re-render the entered value in the new unit — same physical height.
+    if (heightCm !== null && Number.isFinite(heightCm)) {
+      setHeight(heightDisplay(heightCm, next));
+    }
+  };
+
   const heightValid =
-    height.trim() !== "" &&
+    heightCm !== null &&
     Number.isFinite(heightCm) &&
     heightCm >= 100 &&
     heightCm <= 230;
@@ -223,7 +271,11 @@ export function UploadMeasurementsView({
     capture.qcFailure === null;
 
   const submit = () => {
-    if (!images.front || !images.side || !heightValid) return;
+    if (!images.front || !images.side || heightCm === null || !heightValid) {
+      return;
+    }
+    // The payload stays canonical cm (`user_height_cm`) whatever the
+    // display unit — conversion happened at input time.
     void capture.upload(images.front.file, images.side.file, heightCm);
   };
 
@@ -327,16 +379,18 @@ export function UploadMeasurementsView({
           </div>
 
           <FormRow
-            label="Height (cm)"
-            helper="Used to scale your photos — 100–230 cm"
+            label={`Height (${heightUnit})`}
+            helper={`Used to scale your photos — ${HEIGHT_RANGE[heightUnit]}`}
             required
             className="max-w-xs"
           >
             <Input
               kind="numeric"
-              aria-label="Height in centimeters"
+              aria-label={`Height in ${HEIGHT_UNIT_WORD[heightUnit]}`}
               value={height}
-              onChange={(e) => setHeight(e.target.value)}
+              onChange={(e) => editHeight(e.target.value)}
+              unit={heightUnit}
+              onUnitChange={switchHeightUnit}
             />
           </FormRow>
 

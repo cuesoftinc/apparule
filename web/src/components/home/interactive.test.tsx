@@ -159,7 +159,7 @@ describe("FaqSection (A9b)", () => {
   it("renders all five product questions with honest answers", () => {
     render(<FaqSection />);
     expect(
-      screen.getByText(/±2 cm of a professional tape measure/),
+      screen.getByText(/±0.8 in of a professional tape measure/),
     ).toBeInTheDocument();
     for (const q of [
       "How accurate are camera measurements?",

@@ -317,6 +317,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Inches are the default measurement display unit on web (A-9 — Nigerian
+  tailors work in inches; storage, API payloads and the QC pipeline stay
+  canonical cm): `formatCm` defaults to `"in"` ("16.7 in", one decimal +
+  tnum kept), MeasurementCard and the MI-13 manual-entry toggle render
+  with "in" active (cm stays one flip away), and the B4 upload flow's
+  height field gains the MI-13 toggle — inches by default, entry converts
+  to canonical cm so the payload stays `user_height_cm` (a prefilled 168
+  survives unit flips and submits as exactly 168). The out-of-range
+  advisory and the height helper speak the active unit, and the marketing
+  accuracy claim reads "±0.8 in" (the canvas's inches display of the
+  pipeline's canonical ±2 cm target). Seeds stay canonical cm (#173).
 - Web toolchain on Node 24 end-to-end: the `build-and-test` web jobs move
   from Node 22 to 24 and a new `web/.nvmrc` pins 24 — the runtime major
   the web Dockerfile already ships, and the file dependabot's

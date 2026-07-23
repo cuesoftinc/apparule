@@ -42,6 +42,22 @@ describe("Input (§8.2 + §8.2b kinds)", () => {
     expect(onUnitChange).toHaveBeenCalledWith("in");
   });
 
+  it("the toggle flips back to cm from the inches default (A-9)", async () => {
+    const onUnitChange = vi.fn();
+    render(
+      <Input
+        kind="numeric"
+        aria-label="shoulder"
+        unit="in"
+        onUnitChange={onUnitChange}
+      />,
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "Switch units (currently in)" }),
+    );
+    expect(onUnitChange).toHaveBeenCalledWith("cm");
+  });
+
   it("currency kind shows the ₦ prefix", () => {
     render(<Input kind="currency" aria-label="budget" />);
     expect(screen.getByText("₦")).toBeInTheDocument();

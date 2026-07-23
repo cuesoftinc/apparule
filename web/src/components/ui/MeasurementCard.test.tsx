@@ -3,12 +3,13 @@ import { render, screen } from "@testing-library/react";
 import { MeasurementCard } from "./MeasurementCard";
 
 describe("MeasurementCard (§8.2)", () => {
-  it("renders name, tabular value, and source chip", () => {
+  it("renders name, tabular value (inches by default, A-9), and source chip", () => {
     render(
       <MeasurementCard name="shoulder_width" valueCm={42.5} source="scan" />,
     );
     expect(screen.getByText("Shoulder Width")).toBeInTheDocument();
-    expect(screen.getByText("42.5 cm")).toBeInTheDocument();
+    // valueCm stays canonical cm; the DEFAULT display unit is inches.
+    expect(screen.getByText("16.7 in")).toBeInTheDocument();
     // Figma master (48:208): sentence-case source chip
     expect(screen.getByText("Scan")).toBeInTheDocument();
   });
@@ -60,15 +61,15 @@ describe("MeasurementCard (§8.2)", () => {
     expect(screen.queryByTestId("sparkline")).not.toBeInTheDocument();
   });
 
-  it("renders inches when the unit toggle flips", () => {
+  it("renders cm when the unit toggle flips (cm stays available)", () => {
     render(
       <MeasurementCard
         name="shoulder_width"
         valueCm={50.8}
-        unit="in"
+        unit="cm"
         source="manual"
       />,
     );
-    expect(screen.getByText("20.0 in")).toBeInTheDocument();
+    expect(screen.getByText("50.8 cm")).toBeInTheDocument();
   });
 });

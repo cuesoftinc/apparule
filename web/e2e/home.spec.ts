@@ -21,7 +21,7 @@ test.describe("Marketing site — home page", () => {
     await expect(page.getByTestId("dev-star-badge")).toContainText("Star");
 
     // A3 stat band — the honest product claims
-    await expect(page.getByText("±2 cm", { exact: true })).toBeVisible();
+    await expect(page.getByText("±0.8 in", { exact: true })).toBeVisible();
     await expect(page.getByText("2 photos", { exact: true })).toBeVisible();
     await expect(page.getByText("30 days")).toBeVisible();
 
@@ -663,7 +663,7 @@ test.describe("type contract — Figma Home frame roles", () => {
       },
       {
         role: "stat value (Display/32 Bold)",
-        locator: page.getByText("±2 cm", { exact: true }),
+        locator: page.getByText("±0.8 in", { exact: true }),
         weight: "700",
         size: "32px",
         lineHeight: "40px",
