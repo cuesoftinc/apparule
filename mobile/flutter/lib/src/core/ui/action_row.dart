@@ -25,6 +25,31 @@ String _lucideSvg(String path, {required Color stroke, Color? fill}) {
       ' <path d="$path"/></svg>';
 }
 
+/// The DS Lucide heart with a fillable body — the liked state FILLS the
+/// glyph (web `fill-like` parity), which the icon font cannot express.
+/// ActionRow's like control and C11's comment hearts share it (D60).
+class LucideHeart extends StatelessWidget {
+  const LucideHeart({
+    required this.color,
+    this.filled = false,
+    this.size = 24,
+    super.key,
+  });
+
+  final Color color;
+  final bool filled;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return SvgPicture.string(
+      _lucideSvg(_heartPath, stroke: color, fill: filled ? color : null),
+      width: size,
+      height: size,
+    );
+  }
+}
+
 /// ActionRow — the Figma `ActionRow` set (46:140); web sibling
 /// `ActionRow.tsx`. Axes: `liked` f/t · `saved` f/t — the PostCard action
 /// row (♥ 💬 ↗ ⌁save). MI-2: the like tap scales 1→0.8→1.15→1 (240ms
@@ -117,14 +142,9 @@ class _ActionRowState extends State<ActionRow> with TickerProviderStateMixin {
           },
           child: ScaleTransition(
             scale: _likeScale,
-            child: SvgPicture.string(
-              _lucideSvg(
-                _heartPath,
-                stroke: widget.liked ? colors.like : colors.text,
-                fill: widget.liked ? colors.like : null,
-              ),
-              width: 24,
-              height: 24,
+            child: LucideHeart(
+              color: widget.liked ? colors.like : colors.text,
+              filled: widget.liked,
             ),
           ),
         ),

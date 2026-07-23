@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:apparule/src/core/async/run_action.dart';
 import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/app_bar.dart';
@@ -7,6 +8,7 @@ import 'package:apparule/src/core/ui/avatar.dart';
 import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/caught_up_divider.dart';
 import 'package:apparule/src/core/ui/empty_state.dart';
+import 'package:apparule/src/core/ui/morph_swap.dart';
 import 'package:apparule/src/core/ui/skeleton.dart';
 import 'package:apparule/src/core/utils/clock.dart';
 import 'package:apparule/src/core/utils/formats.dart';
@@ -305,7 +307,9 @@ class _NotificationRow extends ConsumerWidget {
 /// The follow-kind trailing morph (MI-7): gradient "Follow" until the
 /// viewer follows back, then quiet "Following" whose tap opens the
 /// unfollow confirm — one mutation path through FollowGraphController,
-/// so C12/C9/C3 re-derive with this row.
+/// so C12/C9/C3 re-derive with this row. The optimistic overlay morphs
+/// the button THIS frame (`overlay[username] ?? serverValue`, D58),
+/// cross-morphing 150ms; failure rolls back and toasts via runAction.
 class _FollowBackButton extends ConsumerWidget {
   const _FollowBackButton({required this.username});
 
@@ -315,6 +319,7 @@ class _FollowBackButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final follows =
+        ref.watch(followGraphControllerProvider)[username] ??
         ref.watch(viewerFollowingSetProvider).value?.contains(username) ??
         false;
     final controller = ref.read(followGraphControllerProvider.notifier);
@@ -324,16 +329,29 @@ class _FollowBackButton extends ConsumerWidget {
         context,
         username: username,
       );
-      if (confirmed) await controller.setFollow(username, follow: false);
+      if (confirmed && context.mounted) {
+        await runAction(
+          context,
+          () => controller.setFollow(username, follow: false),
+        );
+      }
     }
 
-    return Button(
-      label: follows ? l10n.exploreFollowing : l10n.exploreFollow,
-      kind: follows ? ButtonKind.quiet : ButtonKind.gradientPrimary,
-      size: ButtonSize.sm,
-      onPressed: follows
-          ? () => unawaited(unfollow())
-          : () => unawaited(controller.setFollow(username, follow: true)),
+    return MorphSwap(
+      child: Button(
+        key: ValueKey<bool>(follows),
+        label: follows ? l10n.exploreFollowing : l10n.exploreFollow,
+        kind: follows ? ButtonKind.quiet : ButtonKind.gradientPrimary,
+        size: ButtonSize.sm,
+        onPressed: follows
+            ? () => unawaited(unfollow())
+            : () => unawaited(
+                runAction(
+                  context,
+                  () => controller.setFollow(username, follow: true),
+                ),
+              ),
+      ),
     );
   }
 }

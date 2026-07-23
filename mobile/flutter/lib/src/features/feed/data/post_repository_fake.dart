@@ -7,6 +7,7 @@ import 'package:apparule/src/features/feed/domain/designer_summary.dart';
 import 'package:apparule/src/features/feed/domain/explore_results.dart';
 import 'package:apparule/src/features/feed/domain/post.dart';
 import 'package:apparule/src/features/feed/domain/public_profile.dart';
+import 'package:apparule/src/features/feed/domain/report_reason.dart';
 import 'package:apparule/src/features/feed/domain/story_rail_entry.dart';
 import 'package:apparule/src/features/feed/domain/user_summary.dart';
 import 'package:flutter/services.dart';
@@ -462,7 +463,11 @@ class PostRepositoryFake with FailNextSeam implements PostRepository {
   }
 
   @override
-  Future<PostComment> addComment(String postId, String body) async {
+  Future<PostComment> addComment(
+    String postId,
+    String body, {
+    String? parentId,
+  }) async {
     await _ensureLoaded();
     maybeFailNext();
     final post = _postById(postId);
@@ -473,6 +478,7 @@ class PostRepositoryFake with FailNextSeam implements PostRepository {
       author: const CommentAuthor(id: 'acc-kiki', username: 'kiki.adeyemi'),
       body: body,
       createdAt: _now(),
+      parentId: parentId,
     );
     _comments.add(comment);
     // The web store's unit-gated invariant: count mirrors the list.
@@ -498,8 +504,34 @@ class PostRepositoryFake with FailNextSeam implements PostRepository {
     return updated.copyWith(liked: liked);
   }
 
+  /// Filed reports, observable by tests (web store `reports` parity —
+  /// the fake keeps them so the flow is a real mutation, not a no-op).
+  final List<({String postId, ReportReason reason, String? detail})>
+  filedReports = <({String postId, ReportReason reason, String? detail})>[];
+
+  @override
+  Future<void> reportPost(
+    String postId,
+    ReportReason reason, {
+    String? detail,
+  }) async {
+    await _ensureLoaded();
+    maybeFailNext();
+    _postById(postId); // unknown post throws, web-store parity
+    filedReports.add((postId: postId, reason: reason, detail: detail));
+  }
+
   // -- profiles & social lists (C9/C12 — web store parity) ------------------
 
+  /// Designer-status seam (recorded, fix-wave Lane A): this list and
+  /// `EarningsRepositoryFake._status` both parse `designers.json`, so
+  /// they agree at load — but `enableDesigner` (C13) mutates ONLY the
+  /// earnings fake, and a session-enabled designer never joins this
+  /// list (no posts yet, so C2/C3/C9-public render identically either
+  /// way). Reconciling to one source means a cross-repository
+  /// dependency the `*Remote` wave dissolves server-side — not worth
+  /// building into the fakes. Compositors (profile_view_model.dart)
+  /// already read designer-side truth from the earnings repository.
   bool _isDesigner(String username) =>
       _designers.any((designer) => designer.username == username);
 

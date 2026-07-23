@@ -20,6 +20,9 @@ class InMemoryPersistenceService extends PersistenceService {
   List<String>? fakeSavedPostIds;
   List<String>? fakeFollows;
 
+  /// The C3 recent-searches slot — in-memory for the same reason.
+  List<String> recentSearches = <String>[];
+
   @override
   Future<String?> readSessionToken() async => sessionToken;
 
@@ -28,6 +31,13 @@ class InMemoryPersistenceService extends PersistenceService {
 
   @override
   Future<void> clearSessionToken() async => sessionToken = null;
+
+  @override
+  Future<List<String>> readRecentSearches() async => recentSearches;
+
+  @override
+  Future<void> writeRecentSearches(List<String> terms) async =>
+      recentSearches = terms;
 
   @override
   Future<({List<String>? liked, List<String>? saved, List<String>? follows})>

@@ -2,6 +2,7 @@ import 'package:apparule/src/features/feed/domain/comment.dart';
 import 'package:apparule/src/features/feed/domain/explore_results.dart';
 import 'package:apparule/src/features/feed/domain/post.dart';
 import 'package:apparule/src/features/feed/domain/public_profile.dart';
+import 'package:apparule/src/features/feed/domain/report_reason.dart';
 import 'package:apparule/src/features/feed/domain/story_rail_entry.dart';
 import 'package:apparule/src/features/feed/domain/user_summary.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -48,11 +49,24 @@ abstract class PostRepository {
   Future<List<PostComment>> comments(String postId);
 
   /// MI-18 composer — appends and bumps the post's comment count (the
-  /// web store's unit-gated count==list invariant).
-  Future<PostComment> addComment(String postId, String body);
+  /// web store's unit-gated count==list invariant). [parentId] marks the
+  /// row a reply to an existing comment (C11 reply-indent).
+  Future<PostComment> addComment(
+    String postId,
+    String body, {
+    String? parentId,
+  });
 
   /// C11 comment heart toggle.
   Future<PostComment> toggleCommentLike(String commentId);
+
+  /// SOC-009 moderation report on a post (web store `fileReport('post',…)`
+  /// parity) — the PostCard ⋯ overflow's report flow.
+  Future<void> reportPost(
+    String postId,
+    ReportReason reason, {
+    String? detail,
+  });
 
   /// The C9 `/profile/{username}` header — counts derive from the same
   /// follow graph the feed re-derives from (the web store's P1 realism

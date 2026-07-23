@@ -8,21 +8,27 @@ part of 'post_detail_view_model.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// C4's ViewModel — one post; like/save mutate the repository and echo
-/// back into this state AND every other engagement surface (C2 feed,
-/// C9 liked/saved grids — the surfaces render the same fake truth).
+/// C4's ViewModel — one post. Like/save route through the
+/// `EngagementActions` façade, whose declared fan-out invalidates this
+/// family instance alongside C2 and the C9 grids (CLASS 1); the screen's
+/// value-preserving body switch keeps the rendered post through the
+/// rebuild (CLASS 2).
 
 @ProviderFor(PostDetailViewModel)
 final postDetailViewModelProvider = PostDetailViewModelFamily._();
 
-/// C4's ViewModel — one post; like/save mutate the repository and echo
-/// back into this state AND every other engagement surface (C2 feed,
-/// C9 liked/saved grids — the surfaces render the same fake truth).
+/// C4's ViewModel — one post. Like/save route through the
+/// `EngagementActions` façade, whose declared fan-out invalidates this
+/// family instance alongside C2 and the C9 grids (CLASS 1); the screen's
+/// value-preserving body switch keeps the rendered post through the
+/// rebuild (CLASS 2).
 final class PostDetailViewModelProvider
     extends $AsyncNotifierProvider<PostDetailViewModel, Post> {
-  /// C4's ViewModel — one post; like/save mutate the repository and echo
-  /// back into this state AND every other engagement surface (C2 feed,
-  /// C9 liked/saved grids — the surfaces render the same fake truth).
+  /// C4's ViewModel — one post. Like/save route through the
+  /// `EngagementActions` façade, whose declared fan-out invalidates this
+  /// family instance alongside C2 and the C9 grids (CLASS 1); the screen's
+  /// value-preserving body switch keeps the rendered post through the
+  /// rebuild (CLASS 2).
   PostDetailViewModelProvider._({
     required PostDetailViewModelFamily super.from,
     required String super.argument,
@@ -60,11 +66,13 @@ final class PostDetailViewModelProvider
 }
 
 String _$postDetailViewModelHash() =>
-    r'45242b1dea53749ed325c6d18a1ecca8fd5e9e5f';
+    r'1d2a6a57ce36b049b449244cb57ff5a4b854ed94';
 
-/// C4's ViewModel — one post; like/save mutate the repository and echo
-/// back into this state AND every other engagement surface (C2 feed,
-/// C9 liked/saved grids — the surfaces render the same fake truth).
+/// C4's ViewModel — one post. Like/save route through the
+/// `EngagementActions` façade, whose declared fan-out invalidates this
+/// family instance alongside C2 and the C9 grids (CLASS 1); the screen's
+/// value-preserving body switch keeps the rendered post through the
+/// rebuild (CLASS 2).
 
 final class PostDetailViewModelFamily extends $Family
     with
@@ -84,9 +92,11 @@ final class PostDetailViewModelFamily extends $Family
         isAutoDispose: true,
       );
 
-  /// C4's ViewModel — one post; like/save mutate the repository and echo
-  /// back into this state AND every other engagement surface (C2 feed,
-  /// C9 liked/saved grids — the surfaces render the same fake truth).
+  /// C4's ViewModel — one post. Like/save route through the
+  /// `EngagementActions` façade, whose declared fan-out invalidates this
+  /// family instance alongside C2 and the C9 grids (CLASS 1); the screen's
+  /// value-preserving body switch keeps the rendered post through the
+  /// rebuild (CLASS 2).
 
   PostDetailViewModelProvider call(String postId) =>
       PostDetailViewModelProvider._(argument: postId, from: this);
@@ -95,9 +105,11 @@ final class PostDetailViewModelFamily extends $Family
   String toString() => r'postDetailViewModelProvider';
 }
 
-/// C4's ViewModel — one post; like/save mutate the repository and echo
-/// back into this state AND every other engagement surface (C2 feed,
-/// C9 liked/saved grids — the surfaces render the same fake truth).
+/// C4's ViewModel — one post. Like/save route through the
+/// `EngagementActions` façade, whose declared fan-out invalidates this
+/// family instance alongside C2 and the C9 grids (CLASS 1); the screen's
+/// value-preserving body switch keeps the rendered post through the
+/// rebuild (CLASS 2).
 
 abstract class _$PostDetailViewModel extends $AsyncNotifier<Post> {
   late final _$args = ref.$arg as String;

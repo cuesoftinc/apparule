@@ -45,6 +45,7 @@ dependencies:
   # package, glyphs referenced as `LucideIcons.*`.
   lucide_icons_flutter: ^3.1.15
   riverpod_annotation: ^4.0.3
+  share_plus: ^13.2.1
   shared_preferences: ^2.5.5
   # Pin-ledger addition (auth cutover): C1's legal links open the
   # canonical Cuesoft policies in the system browser (flows/auth.md §5).

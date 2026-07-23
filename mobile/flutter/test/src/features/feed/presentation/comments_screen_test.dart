@@ -80,12 +80,13 @@ void main() {
     await bootToComments(tester);
 
     // cmt-1 leads with 4 likes ("34 likes" behind the sheet is the
-    // post's own counter — match the comment meta line shape).
-    expect(find.textContaining('4 likes   Reply'), findsOneWidget);
-    await tester.tap(find.byIcon(Icons.favorite_border).first);
+    // post's own counter — match the comment meta line's joined shape).
+    expect(find.textContaining('   4 likes'), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('Like comment').first);
     await tester.pumpAndSettle();
-    expect(find.textContaining('5 likes   Reply'), findsOneWidget);
-    expect(find.byIcon(Icons.favorite), findsOneWidget);
+    expect(find.textContaining('   5 likes'), findsOneWidget);
+    // The filled DS Lucide heart announces the toggled state (D60).
+    expect(find.bySemanticsLabel('Unlike comment'), findsOneWidget);
   });
 
   testWidgets('keeps content clear of notch and status-bar top insets', (

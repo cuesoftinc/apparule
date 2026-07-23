@@ -328,7 +328,33 @@
   },
   "feedErrorLine": "The feed couldn't load — try again.",
   "feedRetry": "Retry",
+  "postOptionsLabel": "More options",
+  "@postOptionsLabel": {
+    "description": "PostCard ⋯ overflow semantics label (opens the post-options sheet)."
+  },
+  "postOptionsTitle": "Post options",
+  "postOptionsCopyLink": "Copy link",
+  "postOptionsReport": "Report post",
+  "reportTitle": "Report post",
+  "reportReasonLabel": "Why are you reporting this?",
+  "reportReasonSpam": "Spam",
+  "reportReasonInappropriate": "Inappropriate content",
+  "reportReasonCounterfeit": "Counterfeit item",
+  "reportReasonHarassment": "Harassment",
+  "reportReasonOther": "Other",
+  "reportDetailHint": "Anything the moderators should know (optional)",
+  "reportBack": "Back",
+  "reportSubmit": "Report",
+  "reportSentToast": "Report sent — thank you",
+  "@reportSentToast": {
+    "description": "SOC-009 report confirmation (web PostOptionsSheet copy parity)."
+  },
+  "reportFailedToast": "Couldn't send the report",
   "exploreSearchHint": "Search designers, styles, tags...",
+  "exploreRecentSearches": "Recent searches",
+  "@exploreRecentSearches": {
+    "description": "C3 recent-searches dropdown semantics label (web ExploreView nav aria-label parity)."
+  },
   "exploreNearMe": "Near me",
   "@exploreNearMe": {
     "description": "C3 proximity re-rank chip (pages.md B2: ranking, not a hard filter)."
@@ -388,6 +414,25 @@
     }
   },
   "commentsReply": "Reply",
+  "commentsReplyLabel": "Reply to {username}",
+  "@commentsReplyLabel": {
+    "description": "C11 reply affordance semantics label.",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "commentsReplyingTo": "Replying to @{username}",
+  "@commentsReplyingTo": {
+    "description": "C11 composer chip while a reply target is armed.",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "commentsCancelReply": "Cancel reply",
   "commentsSendLabel": "Post comment",
   "@commentsSendLabel": {
     "description": "C11 composer send semantics label (icon-only control)."
@@ -653,6 +698,15 @@
   "profileVaultRing": "Open your measurement vault",
   "@profileVaultRing": {
     "description": "Semantic label on the MI-11 ringed header avatar — the C7 entry (pages.md C7)."
+  },
+  "profileVaultTooltip": "Measured {days} days ago — retake?",
+  "@profileVaultTooltip": {
+    "description": "MI-11 freshness-ring tooltip (design.md §4 exact copy) — long-press the ringed avatar.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
   },
   "profilePosts": "posts",
   "profileFollowers": "followers",

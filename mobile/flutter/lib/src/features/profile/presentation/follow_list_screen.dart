@@ -1,3 +1,6 @@
+import 'dart:async' show unawaited;
+
+import 'package:apparule/src/core/async/run_action.dart';
 import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/app_bar.dart';
@@ -88,8 +91,12 @@ class _FollowListScreenState extends ConsumerState<FollowListScreen> {
             ),
           ),
           Expanded(
+            // Value-preserving switch (CLASS 2): the follow fan-out
+            // re-derives the whole family — the rendered rows must
+            // survive it instead of dropping to the skeleton per tap
+            // (D19).
             child: switch (active) {
-              AsyncData(:final value) => _FollowList(
+              AsyncValue(:final value?) => _FollowList(
                 rows: value,
                 kind: _kind,
               ),
@@ -134,40 +141,56 @@ class _FollowList extends ConsumerWidget {
       );
     }
 
+    // The viewer's optimistic follow overlay — a tap morphs its row THIS
+    // frame (`overlay[username] ?? serverValue`, D19), the reconciled
+    // graph lands behind it.
+    final overlay = ref.watch(followGraphControllerProvider);
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: rows.length,
       itemBuilder: (context, index) {
         final row = rows[index];
+        final follows = overlay[row.username] ?? row.viewerFollows;
         // Canvas 205:7203 meta line: display name, designers suffixed.
         final meta = row.isDesigner
             ? l10n.followListDesignerMeta(row.displayName)
             : row.displayName;
         return UserRow(
+          key: ValueKey<String>(row.username),
           username: row.username,
           meta: meta,
           image: seedMediaImageOrNull(row.avatarUrl),
           verified: row.verified,
           trailing: !row.isDesigner
               ? UserRowTrailing.none
-              : row.viewerFollows
+              : follows
               ? UserRowTrailing.following
               : UserRowTrailing.follow,
           onTap: () =>
               PublicProfileRoute(username: row.username).push<void>(context),
-          onFollow: () => ref
-              .read(followGraphControllerProvider.notifier)
-              .setFollow(row.username, follow: true),
+          // Rollback + toast on failure ride runAction (CLASS 4) over
+          // the controller's own overlay rollback.
+          onFollow: () => unawaited(
+            runAction(
+              context,
+              () => ref
+                  .read(followGraphControllerProvider.notifier)
+                  .setFollow(row.username, follow: true),
+            ),
+          ),
           onFollowingTap: () async {
             final confirmed = await showUnfollowConfirmSheet(
               context,
               username: row.username,
               image: seedMediaImageOrNull(row.avatarUrl),
             );
-            if (confirmed) {
-              await ref
-                  .read(followGraphControllerProvider.notifier)
-                  .setFollow(row.username, follow: false);
+            if (confirmed && context.mounted) {
+              await runAction(
+                context,
+                () => ref
+                    .read(followGraphControllerProvider.notifier)
+                    .setFollow(row.username, follow: false),
+              );
             }
           },
         );

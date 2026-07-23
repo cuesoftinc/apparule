@@ -1,13 +1,14 @@
 import 'package:apparule/src/features/feed/data/post_repository.dart';
 import 'package:apparule/src/features/feed/domain/comment.dart';
-import 'package:apparule/src/features/feed/presentation/post_detail_view_model.dart';
+import 'package:apparule/src/features/feed/presentation/engagement_actions.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'comments_view_model.g.dart';
 
 /// C11's ViewModel — a post's comments; posting appends through the
-/// repository (which keeps count == list, the web store invariant) and
-/// refreshes the C4 state beneath the sheet.
+/// `EngagementActions` façade (which keeps count == list at the
+/// repository and fans out to C2/C4/C9 — D33), echoing the returned row
+/// locally so the sheet never refetches under the composer.
 @riverpod
 class CommentsViewModel extends _$CommentsViewModel {
   @override
@@ -16,17 +17,15 @@ class CommentsViewModel extends _$CommentsViewModel {
 
   /// MI-18 composer post — the fake answers instantly, so the appended
   /// row IS the optimistic echo.
-  Future<void> addComment(String body) async {
+  Future<void> addComment(String body, {String? parentId}) async {
     final trimmed = body.trim();
     if (trimmed.isEmpty) return;
     final comment = await ref
-        .read(postRepositoryProvider)
-        .addComment(postId, trimmed);
+        .read(engagementActionsProvider.notifier)
+        .addComment(postId, trimmed, parentId: parentId);
     if (state.value case final current?) {
       state = AsyncData(<PostComment>[...current, comment]);
     }
-    // The C4 "View all N comments" count beneath the sheet re-derives.
-    ref.invalidate(postDetailViewModelProvider(postId));
   }
 
   Future<void> toggleCommentLike(String commentId) async {

@@ -1,6 +1,8 @@
+import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/avatar.dart';
 import 'package:apparule/src/core/ui/button.dart';
+import 'package:apparule/src/core/ui/morph_swap.dart';
 import 'package:flutter/material.dart';
 
 /// The Figma `UserRow` set's `trailing` axis — Follow (gradient) /
@@ -109,13 +111,20 @@ class UserRow extends StatelessWidget {
         if (trailing != UserRowTrailing.none &&
             _trailingHandler != null) ...<Widget>[
           const SizedBox(width: 12),
-          Button(
-            label: trailing == UserRowTrailing.follow ? 'Follow' : 'Following',
-            kind: trailing == UserRowTrailing.follow
-                ? ButtonKind.gradientPrimary
-                : ButtonKind.quiet,
-            size: ButtonSize.sm,
-            onPressed: _trailingHandler,
+          // MI-7: the state swap cross-morphs 150ms (D55), labels off
+          // the l10n catalog like every consumer surface (D69).
+          MorphSwap(
+            child: Button(
+              key: ValueKey<UserRowTrailing>(trailing),
+              label: trailing == UserRowTrailing.follow
+                  ? context.l10n.exploreFollow
+                  : context.l10n.exploreFollowing,
+              kind: trailing == UserRowTrailing.follow
+                  ? ButtonKind.gradientPrimary
+                  : ButtonKind.quiet,
+              size: ButtonSize.sm,
+              onPressed: _trailingHandler,
+            ),
           ),
         ],
       ],

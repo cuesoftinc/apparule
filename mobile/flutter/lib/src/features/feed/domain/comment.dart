@@ -25,5 +25,9 @@ abstract class PostComment with _$PostComment {
 
     /// Viewer-scoped comment like (C11 heart).
     @Default(false) bool liked,
+
+    /// Non-null on replies — the parent comment this row indents under
+    /// (C11 reply-indent, design.md CommentRow spec).
+    String? parentId,
   }) = _PostComment;
 }

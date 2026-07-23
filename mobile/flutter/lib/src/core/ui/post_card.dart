@@ -3,6 +3,7 @@ import 'package:apparule/src/core/ui/action_row.dart';
 import 'package:apparule/src/core/ui/app_haptics.dart';
 import 'package:apparule/src/core/ui/avatar.dart';
 import 'package:apparule/src/core/ui/button.dart';
+import 'package:apparule/src/core/ui/edge_resist_physics.dart';
 import 'package:apparule/src/core/ui/skeleton.dart';
 import 'package:flutter/gestures.dart' show TapGestureRecognizer;
 import 'package:flutter/material.dart';
@@ -177,6 +178,10 @@ class _PostCardState extends State<PostCard> {
                     if (carousel)
                       _ZeroIntrinsics(
                         child: PageView(
+                          // MI-4: edge-resist bounce at the carousel
+                          // ends on BOTH platforms (D59 — Android's
+                          // default clamps and glows instead).
+                          physics: const EdgeResistPhysics(),
                           onPageChanged: (index) =>
                               setState(() => _slide = index),
                           children: <Widget>[

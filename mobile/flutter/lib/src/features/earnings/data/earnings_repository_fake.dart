@@ -57,6 +57,12 @@ class EarningsRepositoryFake with FailNextSeam implements EarningsRepository {
   /// findings — the same trap as the C6 rootBundle string cache).
   bool _loaded = false;
   Future<void>? _loading;
+
+  /// Designer-status seam (recorded, fix-wave Lane A): parsed from the
+  /// same `designers.json` as `PostRepositoryFake._designers`, so both
+  /// agree at load; `enableDesigner` mutates only this side — see the
+  /// post fake's `_isDesigner` note for why that divergence is
+  /// acceptable until the `*Remote` wave.
   DesignerStatus _status = const DesignerStatus();
   String _viewerDisplayName = '';
   int _availableCents = 0;
