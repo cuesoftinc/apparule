@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
     deviceSizes: [384, 640, 960],
     imageSizes: [128],
   },
+  // Fleet ruling: the dev indicator's default bottom-left position can sit
+  // over app chrome during local `next dev` runs — bottom-right stays clear
+  // of content (one position across the fleet).
+  devIndicators: { position: "bottom-right" },
 };
 
 export default nextConfig;

@@ -33,10 +33,10 @@ describe("useGithubStars", () => {
 
   it("fetches once and shares the cache across subscribers", async () => {
     stars.mockResolvedValue(77);
-    const a = renderHook(() => useGithubStars());
-    const b = renderHook(() => useGithubStars());
-    await waitFor(() => expect(a.result.current).toBe(77), { timeout: 4000 });
-    await waitFor(() => expect(b.result.current).toBe(77), { timeout: 4000 });
+    const { result: a } = renderHook(() => useGithubStars());
+    const { result: b } = renderHook(() => useGithubStars());
+    await waitFor(() => expect(a.current).toBe(77), { timeout: 4000 });
+    await waitFor(() => expect(b.current).toBe(77), { timeout: 4000 });
     expect(stars).toHaveBeenCalledTimes(1);
   });
 });
