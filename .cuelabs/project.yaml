@@ -1,0 +1,23 @@
+schemaVersion: 1
+name: apparule
+profile: cuelabs
+
+surfaces:
+  web: active
+  backend:
+    common: planned
+    measure: planned
+  mobile:
+    flutter: active
+
+capabilities:
+  grpc: absent
+  firebaseAuth: planned
+
+deployment:
+  web: firebase-app-hosting
+  api: none
+  selfHost: helm
+  infrastructure: terraform
+
+deviations: []
