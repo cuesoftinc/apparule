@@ -23,13 +23,29 @@ void main() {
   });
 
   group('formatCm', () {
-    test('always renders one decimal (tnum grid idiom)', () {
-      expect(formatCm(42.5), '42.5 cm');
-      expect(formatCm(42), '42.0 cm');
+    test('defaults to inches display (A-9), always one decimal', () {
+      expect(formatCm(42.5), '16.7 in');
+      expect(formatCm(42), '16.5 in');
     });
 
-    test('inch display converts at 2.54 (MI-13)', () {
-      expect(formatCm(42.5, MeasureUnit.inch), '16.7 in');
+    test('cm renders when the unit toggle flips (MI-13), one decimal '
+        '(tnum grid idiom)', () {
+      expect(formatCm(42.5, MeasureUnit.cm), '42.5 cm');
+      expect(formatCm(42, MeasureUnit.cm), '42.0 cm');
+    });
+  });
+
+  group('displayBound', () {
+    test('renders canonical-cm range bounds in the active display unit', () {
+      // The height gate band (flows/vault.md §1): 100–230 cm ↔ 39–91 in.
+      expect(displayBound(100, MeasureUnit.inch), 39);
+      expect(displayBound(230, MeasureUnit.inch), 91);
+      expect(displayBound(100, MeasureUnit.cm), 100);
+      expect(displayBound(230, MeasureUnit.cm), 230);
+      // The ManualMeasureRow default band (canvas error cell):
+      // 10–200 cm ↔ 4–79 in.
+      expect(displayBound(10, MeasureUnit.inch), 4);
+      expect(displayBound(200, MeasureUnit.inch), 79);
     });
   });
 

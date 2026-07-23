@@ -7,9 +7,8 @@ import '../../../helpers/pump_app.dart';
 
 void main() {
   group('MeasurementCard', () {
-    testWidgets('renders the humanized name and one-decimal value', (
-      tester,
-    ) async {
+    testWidgets('renders the humanized name and one-decimal value — '
+        'inches by default (A-9)', (tester) async {
       await tester.pumpApp(
         const Center(
           child: SizedBox(
@@ -25,12 +24,14 @@ void main() {
       );
 
       expect(find.text('Shoulder Width'), findsOneWidget);
-      expect(find.text('42.5 cm'), findsOneWidget);
+      expect(find.text('16.7 in'), findsOneWidget);
       expect(find.text('Scan'), findsOneWidget);
       expect(find.textContaining('Low confidence'), findsNothing);
     });
 
-    testWidgets('inch display converts (MI-13)', (tester) async {
+    testWidgets('cm display converts when the toggle flips (MI-13)', (
+      tester,
+    ) async {
       await tester.pumpApp(
         const Center(
           child: SizedBox(
@@ -38,14 +39,14 @@ void main() {
             child: MeasurementCard(
               name: 'waist',
               valueCm: 81,
-              unit: MeasureUnit.inch,
+              unit: MeasureUnit.cm,
               source: MeasurementSource.manual,
             ),
           ),
         ),
       );
 
-      expect(find.text('31.9 in'), findsOneWidget);
+      expect(find.text('81.0 cm'), findsOneWidget);
       expect(find.text('Manual'), findsOneWidget);
     });
 

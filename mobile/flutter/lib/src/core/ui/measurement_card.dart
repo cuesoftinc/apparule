@@ -18,7 +18,7 @@ class MeasurementCard extends StatelessWidget {
     required this.name,
     required this.valueCm,
     required this.source,
-    this.unit = MeasureUnit.cm,
+    this.unit = MeasureUnit.inch,
     this.confidence,
     this.history,
     this.updatedLabel,

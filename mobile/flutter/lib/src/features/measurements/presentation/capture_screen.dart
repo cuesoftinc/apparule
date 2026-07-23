@@ -16,6 +16,7 @@ import 'package:apparule/src/core/ui/processing_constellation.dart';
 import 'package:apparule/src/core/ui/qc_hint_chip.dart';
 import 'package:apparule/src/core/ui/sheet.dart';
 import 'package:apparule/src/core/utils/capture_pose.dart';
+import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/features/measurements/data/camera_service.dart';
 import 'package:apparule/src/features/measurements/data/camera_service_fake.dart';
 import 'package:apparule/src/features/measurements/data/capture_sample_catalog.dart';
@@ -214,7 +215,16 @@ class _HeightStep extends StatelessWidget {
             unit: state.unit,
             onChanged: viewModel.setHeight,
             onUnitChanged: viewModel.setUnit,
-            error: state.heightInvalid ? l10n.captureHeightError : null,
+            // The gate stays canonical cm (100–230); the error copy
+            // renders the band in the active display unit (39–91 in by
+            // default, A-9).
+            error: state.heightInvalid
+                ? l10n.captureHeightError(
+                    displayBound(kMinHeightCm, state.unit),
+                    displayBound(kMaxHeightCm, state.unit),
+                    state.unit == MeasureUnit.cm ? 'cm' : 'in',
+                  )
+                : null,
           ),
           const Spacer(),
           Button(

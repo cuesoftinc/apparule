@@ -24,9 +24,10 @@ const List<ManualMeasureSpec> kManualMeasures = <ManualMeasureSpec>[
 @freezed
 abstract class ManualEntryState with _$ManualEntryState {
   const factory ManualEntryState({
-    /// Entered values, canonical cm (MI-13: unit is display-only).
+    /// Entered values, canonical cm (MI-13: unit is display-only,
+    /// inches by default — A-9).
     @Default(<String, double>{}) Map<String, double> valuesCm,
-    @Default(MeasureUnit.cm) MeasureUnit unit,
+    @Default(MeasureUnit.inch) MeasureUnit unit,
     @Default(false) bool saving,
 
     /// Save landed — the screen routes to the vault (C7).

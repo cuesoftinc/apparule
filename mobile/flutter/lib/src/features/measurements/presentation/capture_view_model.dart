@@ -59,11 +59,11 @@ abstract class CaptureState with _$CaptureState {
     CapturePhoto? frontPhoto,
     CapturePhoto? sidePhoto,
 
-    /// Height is canonical cm; the unit is a display preference (MI-13).
-    /// Pre-filled from the newest session — when on file, the height
-    /// step is skipped (flows/vault.md §1).
+    /// Height is canonical cm; the unit is a display preference (MI-13,
+    /// inches by default — A-9). Pre-filled from the newest session —
+    /// when on file, the height step is skipped (flows/vault.md §1).
     double? heightCm,
-    @Default(MeasureUnit.cm) MeasureUnit unit,
+    @Default(MeasureUnit.inch) MeasureUnit unit,
     @Default(false) bool heightInvalid,
 
     /// The `pending_save` result (results step).

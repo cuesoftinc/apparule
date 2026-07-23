@@ -328,6 +328,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   advisory and the height helper speak the active unit, and the marketing
   accuracy claim reads "±0.8 in" (the canvas's inches display of the
   pipeline's canonical ±2 cm target). Seeds stay canonical cm (#173).
+- Inches are the default measurement display unit on mobile (A-9 —
+  Nigerian tailors work in inches; storage, payloads and seeds stay
+  canonical cm):
+  `formatCm` and MeasurementCard default to `MeasureUnit.inch`, and the
+  MI-13 unit state in the capture and manual-entry ViewModels boots on
+  `inch` — the toggle renders "in" active first (cm stays one flip away),
+  and C6 results, C7 vault, the order snapshot surfaces and the height
+  tape-ruler all read in inches out of the box; committed values convert
+  through canonical cm (`user_height_cm` payload unchanged). Canvas-truth
+  copy rides along: the manual-entry explainer speaks inches, the
+  out-of-range advisory ("Out of range — enter 4 to 79 in" for the 10–200
+  cm sample band) and the height gate error ("Enter a height between
+  39–91 in.") render their canonical-cm ranges in the active display
+  unit, and the height-step explainer goes unit-neutral ("…pixels into
+  real measurements…"). Screen goldens re-authored on linux/amd64 for
+  every surface whose rendered strings changed.
 - Web toolchain on Node 24 end-to-end: the `build-and-test` web jobs move
   from Node 22 to 24 and a new `web/.nvmrc` pins 24 — the runtime major
   the web Dockerfile already ships, and the file dependabot's

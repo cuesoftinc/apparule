@@ -50,6 +50,7 @@ void main() {
   testWidgets('saving a value creates a manual vault session', (tester) async {
     await bootToManualEntry(tester);
 
+    // Entry is inches by default (A-9): 43 in stores 109.2 canonical cm.
     await tester.enterText(
       find.bySemanticsLabel('Shoulder Width value'),
       '43',
@@ -63,7 +64,7 @@ void main() {
     expect(find.byType(VaultScreen), findsOneWidget);
     // The shoulder card re-derives to the just-saved manual value.
     expect(find.text('Measured today'), findsOneWidget);
-    expect(find.text('43.0 cm'), findsOneWidget);
+    expect(find.text('43.0 in'), findsOneWidget);
     expect(find.text('Manual'), findsWidgets);
   });
 
@@ -72,6 +73,8 @@ void main() {
   ) async {
     await bootToManualEntry(tester);
 
+    // 90 in = 228.6 cm — outside the canonical 25–75 cm shoulder
+    // advisory; the copy renders the range in the active display unit.
     await tester.enterText(
       find.bySemanticsLabel('Shoulder Width value'),
       '90',
@@ -80,7 +83,7 @@ void main() {
     await tester.pump();
 
     expect(
-      find.text('Double-check this one — outside the usual 25–75 cm.'),
+      find.text('Out of range — enter 10 to 30 in'),
       findsOneWidget,
     );
 
@@ -88,7 +91,7 @@ void main() {
     await tester.tap(find.text('Save to vault'));
     await tester.pumpAndSettle();
     expect(find.byType(VaultScreen), findsOneWidget);
-    expect(find.text('90.0 cm'), findsOneWidget);
+    expect(find.text('90.0 in'), findsOneWidget);
   });
 
   testWidgets('keeps content clear of notch and status-bar top insets', (

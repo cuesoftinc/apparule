@@ -279,13 +279,24 @@
     }
   },
   "captureHeightTitle": "Your height",
-  "captureHeightBody": "Height turns your photos' pixels into centimetres — it's collected once per capture and frozen into the session.",
+  "captureHeightBody": "Height turns your photos’ pixels into real measurements — it’s collected once per capture and frozen into the session.",
   "@captureHeightBody": {
-    "description": "Height-step explainer (capture-qc.md §3 scale; flows/vault.md §1)."
+    "description": "Height-step explainer (capture-qc.md §3 scale; flows/vault.md §1) — unit-neutral canvas copy (typographic apostrophes are canvas-exact); the pipeline stays canonical cm internally."
   },
-  "captureHeightError": "Enter a height between 100–230 cm (39–91 in).",
+  "captureHeightError": "Enter a height between {min}–{max} {unit}.",
   "@captureHeightError": {
-    "description": "Height validation copy — the flows/vault.md §1 bounds."
+    "description": "Height validation copy — the flows/vault.md §1 bounds (canonical 100–230 cm), rendered in the active display unit (39–91 in by default, A-9).",
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
   },
   "captureHeightContinue": "Continue",
   "captureCountdownA11y": "Hold still — capturing in 3",
@@ -327,19 +338,22 @@
     "description": "Dev QC-selector group headers — scenarios apply per pose (M-10 per-pose QC)."
   },
   "manualEntryTitle": "Enter measurements manually",
-  "manualEntryBody": "Use a tape measure and enter values in cm. Out-of-range values just ask for a double-check — bodies vary.",
+  "manualEntryBody": "Use a tape measure and enter values in inches. Out-of-range values just ask for a double-check — bodies vary.",
   "@manualEntryBody": {
-    "description": "MI-13 manual-entry explainer (flows/vault.md §2 advisory ranges)."
+    "description": "MI-13 manual-entry explainer (flows/vault.md §2 advisory ranges) — inches are the default display unit (A-9)."
   },
-  "manualEntryDoubleCheck": "Double-check this one — outside the usual {min}–{max} cm.",
+  "manualEntryDoubleCheck": "Out of range — enter {min} to {max} {unit}",
   "@manualEntryDoubleCheck": {
-    "description": "Advisory out-of-range hint per measure (never a hard block).",
+    "description": "Advisory out-of-range hint per measure (never a hard block). The range renders in the active display unit; validation stays canonical cm.",
     "placeholders": {
       "min": {
         "type": "int"
       },
       "max": {
         "type": "int"
+      },
+      "unit": {
+        "type": "String"
       }
     }
   },

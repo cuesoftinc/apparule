@@ -3,6 +3,7 @@ import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/app_bar.dart';
 import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/manual_measure_row.dart';
+import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_session.dart';
 import 'package:apparule/src/features/measurements/presentation/manual_entry_view_model.dart';
 import 'package:apparule/src/features/measurements/presentation/vault_view_model.dart';
@@ -82,7 +83,12 @@ class ManualEntryScreen extends ConsumerWidget {
                 history: histories[spec.name] ?? const <double>[],
                 onChanged: (value) => viewModel.setValue(spec.name, value),
                 onUnitChanged: viewModel.setUnit,
-                error: _advisory(l10n, state.valuesCm[spec.name], spec),
+                error: _advisory(
+                  l10n,
+                  state.valuesCm[spec.name],
+                  spec,
+                  state.unit,
+                ),
               ),
               const SizedBox(height: 12),
             ],
@@ -108,15 +114,22 @@ class ManualEntryScreen extends ConsumerWidget {
   }
 
   /// The flows/vault.md §2 advisory: out-of-range asks for a double-check
-  /// — bodies vary, so it never blocks the save.
+  /// — bodies vary, so it never blocks the save. The range checks
+  /// canonical cm; the copy renders it in the active display unit
+  /// (inches by default, A-9).
   String? _advisory(
     AppLocalizations l10n,
     double? valueCm,
     ManualMeasureSpec spec,
+    MeasureUnit unit,
   ) {
     if (valueCm == null || (valueCm >= spec.min && valueCm <= spec.max)) {
       return null;
     }
-    return l10n.manualEntryDoubleCheck(spec.min.round(), spec.max.round());
+    return l10n.manualEntryDoubleCheck(
+      displayBound(spec.min, unit),
+      displayBound(spec.max, unit),
+      unit == MeasureUnit.cm ? 'cm' : 'in',
+    );
   }
 }
