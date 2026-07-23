@@ -118,7 +118,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   semantics are advisory (values outside the usual band still save), and
   the canvas cell has been fixed to match. The C6 height 100–230 hard
   gate (`captureHeightError`) keeps its own phrasing. The
-  ManualMeasureRow error-state golden re-rendered on Linux.
+  ManualMeasureRow error-state golden re-rendered on Linux (#176).
 - Residual doc drift flagged by the #171 currency lane: decisions.md M-5
   reads `dev`/`prod` entrypoints (there is no `stg` entrypoint);
   web-implementation.md states that no `src/legacy/` tree exists (the
