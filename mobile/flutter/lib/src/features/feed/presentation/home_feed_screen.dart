@@ -375,17 +375,18 @@ class _FeedPostCard extends ConsumerWidget {
       onToggleLike: () => unawaited(
         runAction(
           context,
-          () => ref
-              .read(engagementActionsProvider.notifier)
-              .toggleLike(post.id),
+          () =>
+              ref.read(engagementActionsProvider.notifier).toggleLike(post.id),
         ),
       ),
-      onToggleSave: () => unawaited(toggleSaveWithFirstSaveToast(
-        context,
-        ref,
-        postId: post.id,
-        wasSaved: post.saved,
-      )),
+      onToggleSave: () => unawaited(
+        toggleSaveWithFirstSaveToast(
+          context,
+          ref,
+          postId: post.id,
+          wasSaved: post.saved,
+        ),
+      ),
       onComment: () => PostCommentsRoute(id: post.id).push<void>(context),
       onShare: () => unawaited(sharePostLink(context, post.id)),
       onOverflow: () =>

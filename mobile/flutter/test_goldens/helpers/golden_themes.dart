@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:alchemist/alchemist.dart';
+import 'package:apparule/l10n/generated/app_localizations.dart';
 import 'package:apparule/src/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -34,7 +35,15 @@ void themedGoldenTest(
           constraints: constraints,
           pumpBeforeTest: pumpBeforeTest,
           whilePerforming: whilePerforming,
-          builder: builder,
+          // The app's l10n scope rides every component pump — catalog-
+          // driven modules (UserRow's Follow/Following) resolve their
+          // copy the way every screen host provides it. Renders nothing:
+          // pixel-neutral for the committed CI goldens.
+          builder: () => Localizations(
+            locale: const Locale('en'),
+            delegates: AppLocalizations.localizationsDelegates,
+            child: builder(),
+          ),
         ),
       ),
     );

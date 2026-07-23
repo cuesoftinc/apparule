@@ -1,9 +1,11 @@
+import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/caught_up_divider.dart';
 import 'package:apparule/src/core/ui/empty_state.dart';
 import 'package:apparule/src/core/ui/post_card.dart';
 import 'package:apparule/src/core/ui/story_rail_item.dart';
 import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/features/feed/data/post_repository_fake.dart';
+import 'package:apparule/src/features/feed/domain/report_reason.dart';
 import 'package:apparule/src/features/profile/presentation/notifications_screen.dart';
 import 'package:apparule/src/features/profile/presentation/public_profile_screen.dart';
 import 'package:apparule/src/routing/routes.dart';
@@ -128,6 +130,75 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text("You're all caught up"), findsOneWidget);
+  });
+
+  testWidgets('the ⋯ overflow opens the post options sheet, and the '
+      'report CTA arms only after a reason (D23 + CLASS 5)', (
+    tester,
+  ) async {
+    final repository = PostRepositoryFake();
+    await bootToFeed(tester, postRepository: repository);
+
+    await tester.tap(find.bySemanticsLabel('More options').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Post options'), findsOneWidget);
+    expect(find.text('Copy link'), findsOneWidget);
+
+    await tester.tap(find.text('Report post'));
+    await tester.pumpAndSettle();
+
+    // Born disarmed: the destructive CTA stays disabled until a reason
+    // is deliberately picked.
+    final reportCta = find.widgetWithText(Button, 'Report');
+    expect(tester.widget<Button>(reportCta).onPressed, isNull);
+
+    await tester.tap(find.text('Spam'));
+    await tester.pumpAndSettle();
+    expect(tester.widget<Button>(reportCta).onPressed, isNotNull);
+
+    await tester.tap(reportCta);
+    await tester.pumpAndSettle();
+    expect(find.text('Report sent — thank you'), findsOneWidget);
+    expect(repository.filedReports, hasLength(1));
+    expect(repository.filedReports.single.reason, ReportReason.spam);
+  });
+
+  testWidgets('MI-5 refresh keeps the rendered feed — no skeleton '
+      'mid-gesture (D28)', (tester) async {
+    await bootToFeed(tester);
+    expect(find.byType(PostCard), findsWidgets);
+
+    // Pull past the 72px threshold and release.
+    await tester.drag(
+      find.byType(Scrollable).first,
+      const Offset(0, 160),
+    );
+    await tester.pump();
+
+    // Mid-refresh: the list is still on stage, never the skeleton.
+    expect(find.byType(PostCard), findsWidgets);
+    expect(
+      tester
+          .widgetList<PostCard>(find.byType(PostCard))
+          .where((card) => card.skeleton),
+      isEmpty,
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(PostCard), findsWidgets);
+  });
+
+  testWidgets('a failed like toasts and leaves the card at the old '
+      'truth (MI-18/CLASS 4)', (tester) async {
+    final repository = PostRepositoryFake()..failNext = Exception('500');
+    await bootToFeed(tester, postRepository: repository);
+
+    expect(find.text('18 likes'), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('Like').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Something went wrong — try again.'), findsOneWidget);
+    expect(find.text('18 likes'), findsOneWidget);
+    expect(find.text('19 likes'), findsNothing);
   });
 
   testWidgets('a PostCard header identity opens the designer C9 profile', (

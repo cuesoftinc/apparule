@@ -3,6 +3,7 @@ import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/features/feed/presentation/post_detail_screen.dart';
 import 'package:apparule/src/features/profile/presentation/public_profile_screen.dart';
 import 'package:apparule/src/routing/routes.dart';
+import 'package:flutter/gestures.dart' show kLongPressTimeout;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -97,6 +98,61 @@ void main() {
     expect(find.byType(EmptyState), findsOneWidget);
     expect(find.text('No results for "zzzz"'), findsOneWidget);
     expect(find.text('Clear search'), findsOneWidget);
+  });
+
+  testWidgets('long-press peeks a grid tile: scale 0.97 + dim (D24)', (
+    tester,
+  ) async {
+    await bootToExplore(tester);
+
+    final tile = find.bySemanticsLabel(
+      'Model in an ankara maxi skirt on the runway',
+    );
+    final gesture = await tester.startGesture(tester.getCenter(tile));
+    // Past the long-press timeout — the peek engages.
+    await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
+    await tester.pump(const Duration(milliseconds: 200));
+
+    final scale = tester.widget<AnimatedScale>(
+      find.descendant(of: tile, matching: find.byType(AnimatedScale)).first,
+    );
+    expect(scale.scale, 0.97);
+
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<AnimatedScale>(
+            find
+                .descendant(of: tile, matching: find.byType(AnimatedScale))
+                .first,
+          )
+          .scale,
+      1,
+    );
+  });
+
+  testWidgets('submitted queries persist into the recent-searches '
+      'dropdown; the in-field × clears (D36)', (tester) async {
+    await bootToExplore(tester);
+    await search(tester, 'ankara');
+
+    // The in-field clear replaces the empty-state-only escape.
+    await tester.tap(find.bySemanticsLabel('Clear search'));
+    await tester.pumpAndSettle();
+    expect(find.text('Designers'), findsNothing);
+
+    // Focus with an empty field → the dropdown lists the recent term
+    // (the field itself is empty, so the text can only be the row).
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+    expect(find.text('ankara'), findsOneWidget);
+
+    // Tapping it re-submits the search.
+    await tester.tap(find.text('ankara'));
+    await tester.pumpAndSettle();
+    expect(find.text('Designers'), findsOneWidget);
+    expect(find.text('amara.designs'), findsOneWidget);
   });
 
   testWidgets('keeps content clear of notch and status-bar top insets', (

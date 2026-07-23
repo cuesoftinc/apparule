@@ -184,6 +184,9 @@ class _CommentsScreenState extends ConsumerState<CommentsScreen> {
                                       ),
                                     ),
                                     Semantics(
+                                      // Own boundary — never merged
+                                      // into the sheet title's node.
+                                      container: true,
                                       label: 'Close',
                                       button: true,
                                       child: InkResponse(
@@ -279,8 +282,7 @@ class _CommentsScreenState extends ConsumerState<CommentsScreen> {
                             left: 16,
                             right: 8,
                             top: 8,
-                            bottom:
-                                8 + MediaQuery.viewInsetsOf(context).bottom,
+                            bottom: 8 + MediaQuery.viewInsetsOf(context).bottom,
                           ),
                           decoration: BoxDecoration(
                             border: Border(
@@ -306,11 +308,10 @@ class _CommentsScreenState extends ConsumerState<CommentsScreen> {
                                     isDense: true,
                                     filled: true,
                                     fillColor: colors.bg,
-                                    contentPadding:
-                                        const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 12,
-                                        ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(
                                         radii.card,
@@ -477,10 +478,15 @@ class _CommentRowState extends ConsumerState<_CommentRow> {
                     ),
                     const SizedBox(width: 12),
                     // A real reply affordance (D27) — prefills the
-                    // composer and arms the parent target.
+                    // composer and arms the parent target. One node
+                    // (the avatar pattern): the visual "Reply" text
+                    // folds into the labelled affordance.
                     Semantics(
+                      container: true,
+                      excludeSemantics: true,
                       label: l10n.commentsReplyLabel(comment.author.username),
                       button: true,
+                      onTap: () => widget.onReply(comment),
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTap: () => widget.onReply(comment),
@@ -503,6 +509,9 @@ class _CommentRowState extends ConsumerState<_CommentRow> {
           ),
           const SizedBox(width: 12),
           Semantics(
+            // Own boundary — the heart must never merge into the meta
+            // line's node (named-control canon).
+            container: true,
             label: comment.liked
                 ? l10n.commentsUnlikeLabel
                 : l10n.commentsLikeLabel,

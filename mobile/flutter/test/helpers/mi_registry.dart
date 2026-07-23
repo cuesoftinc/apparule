@@ -1,15 +1,19 @@
+import 'dart:typed_data';
+
 import 'package:apparule/src/core/ui/confetti_burst.dart';
 import 'package:apparule/src/core/ui/edge_resist_physics.dart';
 import 'package:apparule/src/core/ui/flip_unit_toggle.dart';
 import 'package:apparule/src/core/ui/gradient_refresh_spinner.dart';
 import 'package:apparule/src/core/ui/manual_measure_row.dart';
 import 'package:apparule/src/core/ui/morph_swap.dart';
+import 'package:apparule/src/core/ui/post_card.dart';
 import 'package:apparule/src/core/ui/spring_badge.dart';
 import 'package:apparule/src/core/ui/status_pill.dart';
 import 'package:apparule/src/core/ui/step_slide.dart';
 import 'package:apparule/src/core/ui/tab_bar.dart';
 import 'package:apparule/src/core/ui/timeline_connector.dart';
 import 'package:apparule/src/core/ui/typing_bubble.dart';
+import 'package:apparule/src/core/ui/user_row.dart';
 import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/routing/routes.dart';
@@ -18,6 +22,18 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'boot_app.dart';
 import 'pump_app.dart';
+
+/// Deterministic 1×1 gray PNG — the component pumps' media stand-in.
+final ImageProvider<Object> pixelImage = MemoryImage(
+  Uint8List.fromList(const <int>[
+    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, //
+    0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+    0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xde, 0x00, 0x00, 0x00,
+    0x0c, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9c, 0x63, 0xe8, 0xe8, 0xe8, 0x00,
+    0x00, 0x03, 0x34, 0x01, 0x99, 0xc1, 0xac, 0xc0, 0xb1, 0x00, 0x00, 0x00,
+    0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
+  ]),
+);
 
 /// One screen×MI row of the conformance registry (the interaction
 /// audit's CLASS 6 lock): pages.md marks the MI active on the screen,
@@ -36,6 +52,7 @@ class MiRegistryEntry {
     required this.primitive,
     this.pump,
     this.pendingOwner,
+    this.finder,
   }) : assert(
          (pump == null) != (pendingOwner == null),
          'a row is either wired (pump) or pending (pendingOwner)',
@@ -55,6 +72,11 @@ class MiRegistryEntry {
 
   /// The fix-wave lane that owns the wiring while pending.
   final String? pendingOwner;
+
+  /// Overrides the default `find.byType(primitive)` for primitives that
+  /// aren't widgets (EdgeResistPhysics is a ScrollPhysics — the harness
+  /// asserts it by type on the host scrollable instead).
+  final Finder Function()? finder;
 }
 
 /// The screen→active-MI table, derived from pages.md Part C and the
@@ -106,29 +128,83 @@ final List<MiRegistryEntry> miRegistry = <MiRegistryEntry>[
     },
   ),
   // -- pending rows: the lanes' wiring ledger -------------------------------
-  const MiRegistryEntry(
+  MiRegistryEntry(
     screen: 'C2 home feed',
     mi: 'MI-5 pull-to-refresh',
     primitive: GradientRefreshSpinner,
-    pendingOwner: 'LANE A (D28)',
+    pump: (tester) async {
+      tester.view.physicalSize = const Size(390, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await pumpBootedApp(
+        tester,
+        authRepository: AuthRepositoryFake(
+          initialSession: AuthRepositoryFake.seedSession,
+        ),
+      );
+    },
   ),
-  const MiRegistryEntry(
+  MiRegistryEntry(
     screen: 'C3 explore',
     mi: 'MI-5 pull-to-refresh',
     primitive: GradientRefreshSpinner,
-    pendingOwner: 'LANE A (D25)',
+    pump: (tester) async {
+      tester.view.physicalSize = const Size(390, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await pumpBootedApp(
+        tester,
+        authRepository: AuthRepositoryFake(
+          initialSession: AuthRepositoryFake.seedSession,
+        ),
+      );
+      routerOf(tester).go(const ExploreRoute().location);
+      await tester.pumpAndSettle();
+    },
   ),
-  const MiRegistryEntry(
+  MiRegistryEntry(
     screen: 'C2/C4 post card carousel',
     mi: 'MI-4 edge-resist',
     primitive: EdgeResistPhysics,
-    pendingOwner: 'LANE A (D59)',
+    pump: (tester) async {
+      await tester.pumpApp(
+        SingleChildScrollView(
+          child: SizedBox(
+            width: 390,
+            child: PostCard(
+              username: 'eniola.stitches',
+              media: List<ImageProvider<Object>>.filled(2, pixelImage),
+              liked: false,
+              saved: false,
+              likeCount: 12,
+              caption: 'Ankara two-piece.',
+              onToggleLike: () {},
+              onToggleSave: () {},
+            ),
+          ),
+        ),
+      );
+    },
+    // The physics is not a widget — assert it by type on the carousel.
+    finder: () => find.byWidgetPredicate(
+      (widget) => widget is PageView && widget.physics is EdgeResistPhysics,
+      description: 'PageView with EdgeResistPhysics',
+    ),
   ),
-  const MiRegistryEntry(
+  MiRegistryEntry(
     screen: 'C9/C12 user rows',
     mi: 'MI-7 150ms follow morph',
     primitive: MorphSwap,
-    pendingOwner: 'LANE A (D55)',
+    pump: (tester) async {
+      await tester.pumpApp(
+        UserRow(
+          username: 'amara.designs',
+          meta: 'Amara Okafor · designer',
+          trailing: UserRowTrailing.follow,
+          onFollow: () {},
+        ),
+      );
+    },
   ),
   const MiRegistryEntry(
     screen: 'C8 order thread',

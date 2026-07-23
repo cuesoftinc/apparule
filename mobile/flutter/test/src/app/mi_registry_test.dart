@@ -17,7 +17,8 @@ void main() {
       testWidgets(title, (tester) async {
         await pump(tester);
         expect(
-          find.byType(entry.primitive, skipOffstage: false),
+          entry.finder?.call() ??
+              find.byType(entry.primitive, skipOffstage: false),
           findsWidgets,
           reason:
               '${entry.screen} marks ${entry.mi} active — the '

@@ -60,6 +60,65 @@ void main() {
     expect(comments, hasLength(4));
   });
 
+  testWidgets('Reply prefills the composer, arms the parent, and the '
+      'posted row indents under it (D27)', (tester) async {
+    final repository = PostRepositoryFake();
+    await bootToComments(tester, postRepository: repository);
+
+    await tester.tap(find.bySemanticsLabel('Reply to maisonbisi'));
+    await tester.pumpAndSettle();
+
+    // Prefill + the replying-to chip.
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller?.text,
+      '@maisonbisi ',
+    );
+    expect(find.text('Replying to @maisonbisi'), findsOneWidget);
+
+    await tester.enterText(
+      find.byType(TextField),
+      '@maisonbisi so good right?',
+    );
+    await tester.tap(find.bySemanticsLabel('Post comment'));
+    await tester.pumpAndSettle();
+
+    // The reply landed threaded under its parent at the repository.
+    final comments = await repository.comments('post-ankara-gown');
+    final reply = comments.singleWhere(
+      (comment) => comment.body == '@maisonbisi so good right?',
+    );
+    final parent = comments.singleWhere(
+      (comment) => comment.id == reply.parentId,
+    );
+    expect(parent.author.username, 'maisonbisi');
+
+    // …and renders indented one avatar column deep.
+    expect(find.textContaining('so good right?'), findsOneWidget);
+    // The chip disarmed after the successful post.
+    expect(find.text('Replying to @maisonbisi'), findsNothing);
+  });
+
+  testWidgets('a failed post toasts and keeps the composer text '
+      '(D34/CLASS 4)', (tester) async {
+    final repository = PostRepositoryFake();
+    await bootToComments(tester, postRepository: repository);
+    repository.failNext = Exception('500');
+
+    await tester.enterText(find.byType(TextField), 'Lovely tailoring');
+    await tester.tap(find.bySemanticsLabel('Post comment'));
+    await tester.pumpAndSettle();
+
+    // The toast text renders once per live Scaffold (C4 sits beneath
+    // the transparent C11 route) — presence is the contract.
+    expect(find.text('Something went wrong — try again.'), findsWidgets);
+    // The user's text is preserved — clear only happens on success.
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller?.text,
+      'Lovely tailoring',
+    );
+    expect(find.text('Comments · 3'), findsOneWidget);
+  });
+
   testWidgets('a commenter identity opens their C9 profile', (
     tester,
   ) async {
