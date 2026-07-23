@@ -343,7 +343,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   39–91 in.") render their canonical-cm ranges in the active display
   unit, and the height-step explainer goes unit-neutral ("…pixels into
   real measurements…"). Screen goldens re-authored on linux/amd64 for
-  every surface whose rendered strings changed.
+  every surface whose rendered strings changed (#174).
 - Web toolchain on Node 24 end-to-end: the `build-and-test` web jobs move
   from Node 22 to 24 and a new `web/.nvmrc` pins 24 — the runtime major
   the web Dockerfile already ships, and the file dependabot's
