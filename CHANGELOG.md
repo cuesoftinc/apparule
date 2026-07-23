@@ -51,6 +51,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Mobile feed/social/profile interaction defects (the audit's Lane A —
+  C2/C3/C4/C9/C10/C11/C12 over the Wave-0 infrastructure):
+  - Engagement converges on the `EngagementActions` façade: C2/C4
+    like/save and the C11 composer all mutate through it inside
+    `runAction`, so a comment posted over the feed echoes into "View
+    all N comments" everywhere (D33), a failed toggle toasts at the old
+    truth, and the composer clears only after a successful post — a
+    failed send keeps the user's text (D34). The interim per-ViewModel
+    invalidations from the live-QA wave are gone (D01 convergence), and
+    every engagement body switch is value-preserving: a refresh or
+    fan-out rebuild never drops rendered content to a skeleton (D28's
+    CLASS 2 rule, applied to C2/C4/C11/C9/C12).
+  - Follow morphs are optimistic everywhere they render: C3's designer
+    rows converge on `FollowGraphController` (its fan-out re-derives
+    the mounted home feed — D02), and C9 public headers, C12 rows and
+    C10 follow rows read the controller's overlay
+    (`overlay[username] ?? serverValue`) through `MorphSwap`, so the
+    150ms morph lands the frame of the tap with rollback + toast on
+    failure (D18/D19/D58/D55); `UserRow` labels come off the l10n
+    catalog (D69). Pending-future morph tests pin C9 and C12.
+  - The PostCard ⋯ overflow is live on C2 and C4: a post-options sheet
+    with Copy link and the SOC-009 report flow (reason born unpicked,
+    destructive CTA disarmed until one is chosen — CLASS 5) over the
+    new `reportPost` repository seam (D23).
+  - MI-5/MI-6 on the feed surfaces: C2 and C3 pull-to-refresh through
+    `GradientRefreshSpinner` (72px threshold, haptic on trigger —
+    MI-registry rows un-skipped, D28/D25); the C2 column is a builder
+    with per-post identity keys (D61), a 4-post page window with
+    prefetch at 3 cards from the end and ×2 fetch skeletons across the
+    (stubbed-until-API) page seam, and the caught-up divider gated on
+    the 48h freshness boundary instead of unconditional (D32).
+  - MI-9 share is the native platform sheet via `share_plus` (^13.2.1,
+    new dependency), degrading to the clipboard-copy idiom where no
+    sheet exists (D30); the PostCard carousel rides `EdgeResistPhysics`
+    so Android ends resist instead of glowing (D59).
+  - C11: Reply is a real affordance — it prefills the composer with the
+    author handle, arms the parent, and posted replies thread indented
+    under their parent (`PostComment.parentId`, D27); the comment heart
+    is the DS Lucide fill idiom shared with ActionRow (D60); the
+    grabber drags the sheet to dismiss and C4 opens it on swipe-up
+    (D37); heart/Close semantics own their nodes instead of merging
+    into neighbours.
+  - C3: long-press peeks a grid tile (scale 0.97 + dim + light haptic,
+    D24); the search field grows the persisted recent-searches dropdown
+    on focus (cap 5, key-value store) and an in-field clear (D36).
+  - C9: edit-profile Save disarms on a blank display name and the
+    ViewModel guards the API, with failures toasting instead of
+    vanishing (D54); the own-profile freshness ring long-presses into
+    the "Measured N days ago — retake?" tooltip so the MI-11 ladder is
+    never color-only (D68).
+  - Cross-fake designer-identity seam recorded: both the post and
+    earnings fakes parse `designers.json`, and `enableDesigner`'s
+    session-scoped divergence is documented at both sites (dissolves
+    server-side with the `*Remote` wave).
+  - Golden harness provides the app l10n scope (pixel-neutral); the six
+    screen goldens that legitimately changed (the ⋯ overflow now
+    renders on C2/C4, the C11 reply affordance) were regenerated on
+    Linux per the authoring rule.
+
 - Mobile capture/vault interaction defects (the audit's Lane C
   capture-vault cluster): the empty-vault CTA now opens the
   capture-options sheet so manual entry is reachable from an empty vault

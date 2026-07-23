@@ -17,18 +17,9 @@ Future<ExploreResults> exploreViewModel(
     .watch(postRepositoryProvider)
     .explore(query: query, tag: tag, nearMe: nearMe);
 
-/// MI-7 follow morph from the C3 designers section — mutates the graph,
-/// then invalidates every explore derivation so `viewer_follows` (and
-/// the C2 feed on its next build) re-derive. keepAlive: the controller
-/// is read-only orchestration (no watched state), so autoDispose would
-/// unmount its Ref across the repository await.
-@Riverpod(keepAlive: true)
-class ExploreFollowController extends _$ExploreFollowController {
-  @override
-  void build() {}
-
-  Future<void> setFollow(String username, {required bool follow}) async {
-    await ref.read(postRepositoryProvider).setFollow(username, follow: follow);
-    ref.invalidate(exploreViewModelProvider);
-  }
-}
+// The C3 follow morph routes through `FollowGraphController`
+// (follow_list_view_model.dart) — the ONE optimistic mutation path into
+// the social graph (CLASS 1/2; D02 convergence). Its declared fan-out
+// invalidates this family alongside C2's feed, so `viewer_follows` and
+// the home feed re-derive without a restart. The interim
+// `ExploreFollowController` (explore-family-only invalidation) is gone.

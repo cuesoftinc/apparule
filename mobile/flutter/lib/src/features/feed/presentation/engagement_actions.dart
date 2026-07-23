@@ -46,11 +46,16 @@ class EngagementActions extends _$EngagementActions {
   }
 
   /// MI-18 comment post — the count echoes into C2's "View all N
-  /// comments" and C4 beneath the sheet (D33).
-  Future<PostComment> addComment(String postId, String body) async {
+  /// comments" and C4 beneath the sheet (D33). [parentId] threads a
+  /// reply under its parent row (C11 reply-indent, D27).
+  Future<PostComment> addComment(
+    String postId,
+    String body, {
+    String? parentId,
+  }) async {
     final comment = await ref
         .read(postRepositoryProvider)
-        .addComment(postId, body);
+        .addComment(postId, body, parentId: parentId);
     _fanOut(postId);
     return comment;
   }

@@ -22,6 +22,7 @@ class PersistenceService {
   static const String _captureGuideSeenKey = 'capture_guide_seen';
   static const String _firstActionSeenKey = 'first_action_seen';
   static const String _firstSaveToastKey = 'first_save_toast_shown';
+  static const String _recentSearchesKey = 'explore_recent_searches';
   static const String _fakeLikedPostIdsKey = 'fake_liked_post_ids';
   static const String _fakeSavedPostIdsKey = 'fake_saved_post_ids';
   static const String _fakeFollowsKey = 'fake_follows';
@@ -84,6 +85,19 @@ class PersistenceService {
   Future<void> writeFirstSaveToastShown() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_firstSaveToastKey, true);
+  }
+
+  /// The C3 recent-searches list, newest first, capped at 5 by the
+  /// writer (web `apparule.explore.recent` localStorage parity — a local
+  /// view preference, never server state).
+  Future<List<String>> readRecentSearches() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList(_recentSearchesKey) ?? const <String>[];
+  }
+
+  Future<void> writeRecentSearches(List<String> terms) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_recentSearchesKey, terms);
   }
 
   // -- seed-fake engagement overlay (CLASS 1, D01's restart half) ------------

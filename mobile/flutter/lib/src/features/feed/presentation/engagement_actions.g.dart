@@ -92,7 +92,7 @@ final class EngagementActionsProvider
   }
 }
 
-String _$engagementActionsHash() => r'63b48cdaf0055d8ee664b7d975d9222dabac945f';
+String _$engagementActionsHash() => r'1e04b897ef6711f2eb639b49a8d8823a5e5a9411';
 
 /// The engagement mutation façade (the interaction audit's CLASS 1 lock):
 /// every like/save/comment mutation routes through here, and ONLY here —

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:apparule/src/core/ui/avatar.dart';
 import 'package:apparule/src/core/utils/clock.dart';
 import 'package:apparule/src/features/feed/data/post_repository_fake.dart';
@@ -7,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 
 import '../../../../helpers/notched.dart';
+import '../../../../helpers/pending_morph.dart';
 import '../../../../helpers/pump_app.dart';
 
 /// C9 designer public profile: the B6 header off the graph, the MI-7
@@ -71,6 +74,32 @@ void main() {
     expect(find.text('Follow'), findsNothing);
   });
 
+  testWidgets('MI-18: the Follow morph lands while the repository is '
+      'still pending — the header never skeletons (D18)', (tester) async {
+    tester.view.physicalSize = const Size(390, 1600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpApp(
+      const PublicProfileScreen(username: 'tunde.o'),
+      postRepository: _GatedPostRepository(pinned),
+      overrides: <Override>[
+        clockProvider.overrideWith(
+          (ref) =>
+              () => pinned,
+        ),
+      ],
+    );
+    await tester.pumpAndSettle();
+
+    await expectMorphsWhilePending(
+      tester,
+      trigger: find.text('Follow'),
+      expectMorphed: () => expect(find.text('Following'), findsOneWidget),
+    );
+    // The header stayed rendered through the optimistic frame.
+    expect(find.text('tunde.o'), findsWidgets);
+  });
+
   testWidgets('unfollow is never a blind toggle — the confirm sheet '
       'gates it', (tester) async {
     await pump(tester, 'amara.designs');
@@ -128,4 +157,16 @@ void main() {
     await pump(tester, 'amara.designs');
     await expectContentClearOfTopInsets(tester);
   });
+}
+
+/// The CLASS 2 gate: `setFollow` blocks on a completer the test never
+/// completes — optimism must land without the round-trip.
+class _GatedPostRepository extends PostRepositoryFake {
+  _GatedPostRepository(DateTime pinned) : super(now: () => pinned);
+
+  final Completer<void> _gate = Completer<void>();
+
+  @override
+  Future<void> setFollow(String username, {required bool follow}) =>
+      _gate.future;
 }

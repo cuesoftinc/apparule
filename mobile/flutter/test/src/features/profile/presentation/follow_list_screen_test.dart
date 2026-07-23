@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:apparule/src/core/ui/user_row.dart';
 import 'package:apparule/src/features/feed/data/post_repository_fake.dart';
 import 'package:apparule/src/features/profile/presentation/follow_list_screen.dart';
@@ -6,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/notched.dart';
+import '../../../../helpers/pending_morph.dart';
 import '../../../../helpers/pump_app.dart';
 
 /// C12 followers/following: count-titled tabs over UserRow lists, the
@@ -69,6 +72,30 @@ void main() {
     expect(find.text('Following'), findsNWidgets(2));
   });
 
+  testWidgets('MI-18: the row morph lands while the repository is still '
+      'pending — the list never skeletons (D19)', (tester) async {
+    tester.view.physicalSize = const Size(390, 1600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpApp(
+      const FollowListScreen(
+        username: 'amara.designs',
+        initialKind: FollowListKind.following,
+      ),
+      postRepository: _GatedPostRepository(pinned),
+    );
+    await tester.pumpAndSettle();
+
+    // tunde.o is not followed by the viewer → gradient Follow.
+    await expectMorphsWhilePending(
+      tester,
+      trigger: find.text('Follow'),
+      expectMorphed: () => expect(find.text('Following'), findsNWidgets(2)),
+    );
+    // Both rows stayed rendered through the optimistic frame.
+    expect(find.byType(UserRow), findsNWidgets(2));
+  });
+
   testWidgets('unfollow from a row goes through the confirm sheet', (
     tester,
   ) async {
@@ -91,4 +118,16 @@ void main() {
     await pump(tester);
     await expectContentClearOfTopInsets(tester);
   });
+}
+
+/// The CLASS 2 gate: `setFollow` blocks on a completer the test never
+/// completes — the per-row morph must land without the round-trip.
+class _GatedPostRepository extends PostRepositoryFake {
+  _GatedPostRepository(DateTime pinned) : super(now: () => pinned);
+
+  final Completer<void> _gate = Completer<void>();
+
+  @override
+  Future<void> setFollow(String username, {required bool follow}) =>
+      _gate.future;
 }

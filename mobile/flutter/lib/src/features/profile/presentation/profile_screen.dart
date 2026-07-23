@@ -131,17 +131,26 @@ class _ProfileBody extends ConsumerWidget {
             child: Row(
               children: <Widget>[
                 // MI-11: the freshness ring is the vault affordance —
-                // tapping the ringed avatar opens C7 (pages.md C7).
-                Semantics(
-                  button: true,
-                  label: l10n.profileVaultRing,
-                  child: GestureDetector(
-                    onTap: () => const VaultRoute().push<void>(context),
-                    child: Avatar(
-                      name: profile.displayName,
-                      image: seedMediaImageOrNull(profile.avatarUrl),
-                      size: AvatarSize.s96,
-                      ring: Avatar.freshnessRing(state.vaultFreshness),
+                // tapping the ringed avatar opens C7 (pages.md C7); a
+                // long-press surfaces the measurement-age tooltip
+                // ("Measured N days ago — retake?", D68) so the ladder
+                // is never color-only.
+                _MaybeTooltip(
+                  message: switch (state.vaultMeasuredDaysAgo) {
+                    final days? => l10n.profileVaultTooltip(days),
+                    null => null,
+                  },
+                  child: Semantics(
+                    button: true,
+                    label: l10n.profileVaultRing,
+                    child: GestureDetector(
+                      onTap: () => const VaultRoute().push<void>(context),
+                      child: Avatar(
+                        name: profile.displayName,
+                        image: seedMediaImageOrNull(profile.avatarUrl),
+                        size: AvatarSize.s96,
+                        ring: Avatar.freshnessRing(state.vaultFreshness),
+                      ),
                     ),
                   ),
                 ),
@@ -274,6 +283,27 @@ class _ProfileBody extends ConsumerWidget {
           ),
       ],
     );
+  }
+}
+
+/// Wraps [child] in a long-press [Tooltip] when [message] exists — an
+/// empty vault has no measurement age to surface (D68).
+class _MaybeTooltip extends StatelessWidget {
+  const _MaybeTooltip({required this.message, required this.child});
+
+  final String? message;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (message case final message?) {
+      return Tooltip(
+        message: message,
+        triggerMode: TooltipTriggerMode.longPress,
+        child: child,
+      );
+    }
+    return child;
   }
 }
 

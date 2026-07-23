@@ -1,3 +1,4 @@
+import 'package:apparule/src/core/async/run_action.dart';
 import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/app_bar.dart';
@@ -33,6 +34,19 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   bool _saving = false;
 
   @override
+  void initState() {
+    super.initState();
+    // The display-name gate (D54) re-evaluates per keystroke. Deferred a
+    // frame because hydration writes the controller during the first
+    // build (setState mid-build is illegal there).
+    _displayName.addListener(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() {});
+      });
+    });
+  }
+
+  @override
   void dispose() {
     _displayName.dispose();
     _bio.dispose();
@@ -52,25 +66,28 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
   Future<void> _save() async {
     setState(() => _saving = true);
-    try {
-      await ref
+    // CLASS 4: a failed save toasts and keeps the form; the screen pops
+    // only after the repository accepted the edit.
+    final ok = await runAction(
+      context,
+      () => ref
           .read(editProfileViewModelProvider.notifier)
           .save(
             displayName: _displayName.text,
             bio: _bio.text,
             city: _city.text,
             state: _state.text,
-          );
-      if (mounted) {
-        if (context.canPop()) {
-          context.pop();
-        } else {
-          // Deep-linked with an empty stack: back to the profile tab.
-          const ProfileRoute().go(context);
-        }
+          ),
+    );
+    if (!mounted) return;
+    setState(() => _saving = false);
+    if (ok) {
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        // Deep-linked with an empty stack: back to the profile tab.
+        const ProfileRoute().go(context);
       }
-    } finally {
-      if (mounted) setState(() => _saving = false);
     }
   }
 
@@ -104,6 +121,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           state: _state,
           showBio: isDesigner,
           saving: _saving,
+          // D54: a cleared display name never persists — the CTA
+          // disarms (web "Display name is required" parity).
+          canSave: _displayName.text.trim().isNotEmpty || !_hydrated,
           onHydrate: _hydrate,
           onSave: _save,
         ),
@@ -124,6 +144,7 @@ class _EditForm extends StatelessWidget {
     required this.state,
     required this.showBio,
     required this.saving,
+    required this.canSave,
     required this.onHydrate,
     required this.onSave,
   });
@@ -139,6 +160,10 @@ class _EditForm extends StatelessWidget {
   final bool showBio;
 
   final bool saving;
+
+  /// D54: false while the display name is blank — Save disarms.
+  final bool canSave;
+
   final ValueChanged<Profile> onHydrate;
   final VoidCallback onSave;
 
@@ -228,7 +253,7 @@ class _EditForm extends StatelessWidget {
           label: l10n.editProfileSave,
           loading: saving,
           expand: true,
-          onPressed: onSave,
+          onPressed: canSave ? onSave : null,
         ),
       ],
     );

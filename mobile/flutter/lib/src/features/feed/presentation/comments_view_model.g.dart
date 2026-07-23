@@ -9,20 +9,23 @@ part of 'comments_view_model.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// C11's ViewModel — a post's comments; posting appends through the
-/// repository (which keeps count == list, the web store invariant) and
-/// refreshes the C4 state beneath the sheet.
+/// `EngagementActions` façade (which keeps count == list at the
+/// repository and fans out to C2/C4/C9 — D33), echoing the returned row
+/// locally so the sheet never refetches under the composer.
 
 @ProviderFor(CommentsViewModel)
 final commentsViewModelProvider = CommentsViewModelFamily._();
 
 /// C11's ViewModel — a post's comments; posting appends through the
-/// repository (which keeps count == list, the web store invariant) and
-/// refreshes the C4 state beneath the sheet.
+/// `EngagementActions` façade (which keeps count == list at the
+/// repository and fans out to C2/C4/C9 — D33), echoing the returned row
+/// locally so the sheet never refetches under the composer.
 final class CommentsViewModelProvider
     extends $AsyncNotifierProvider<CommentsViewModel, List<PostComment>> {
   /// C11's ViewModel — a post's comments; posting appends through the
-  /// repository (which keeps count == list, the web store invariant) and
-  /// refreshes the C4 state beneath the sheet.
+  /// `EngagementActions` façade (which keeps count == list at the
+  /// repository and fans out to C2/C4/C9 — D33), echoing the returned row
+  /// locally so the sheet never refetches under the composer.
   CommentsViewModelProvider._({
     required CommentsViewModelFamily super.from,
     required String super.argument,
@@ -59,11 +62,12 @@ final class CommentsViewModelProvider
   }
 }
 
-String _$commentsViewModelHash() => r'43d908124965edbc3544eba5a75e4fb37b813608';
+String _$commentsViewModelHash() => r'c774e2b3a3f976953cd6c51546741db3d4527ec4';
 
 /// C11's ViewModel — a post's comments; posting appends through the
-/// repository (which keeps count == list, the web store invariant) and
-/// refreshes the C4 state beneath the sheet.
+/// `EngagementActions` façade (which keeps count == list at the
+/// repository and fans out to C2/C4/C9 — D33), echoing the returned row
+/// locally so the sheet never refetches under the composer.
 
 final class CommentsViewModelFamily extends $Family
     with
@@ -84,8 +88,9 @@ final class CommentsViewModelFamily extends $Family
       );
 
   /// C11's ViewModel — a post's comments; posting appends through the
-  /// repository (which keeps count == list, the web store invariant) and
-  /// refreshes the C4 state beneath the sheet.
+  /// `EngagementActions` façade (which keeps count == list at the
+  /// repository and fans out to C2/C4/C9 — D33), echoing the returned row
+  /// locally so the sheet never refetches under the composer.
 
   CommentsViewModelProvider call(String postId) =>
       CommentsViewModelProvider._(argument: postId, from: this);
@@ -95,8 +100,9 @@ final class CommentsViewModelFamily extends $Family
 }
 
 /// C11's ViewModel — a post's comments; posting appends through the
-/// repository (which keeps count == list, the web store invariant) and
-/// refreshes the C4 state beneath the sheet.
+/// `EngagementActions` façade (which keeps count == list at the
+/// repository and fans out to C2/C4/C9 — D33), echoing the returned row
+/// locally so the sheet never refetches under the composer.
 
 abstract class _$CommentsViewModel extends $AsyncNotifier<List<PostComment>> {
   late final _$args = ref.$arg as String;

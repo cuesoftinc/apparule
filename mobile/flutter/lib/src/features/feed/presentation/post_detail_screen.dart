@@ -1,5 +1,6 @@
 import 'dart:async' show unawaited;
 
+import 'package:apparule/src/core/async/run_action.dart';
 import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/app_bar.dart';
@@ -9,8 +10,10 @@ import 'package:apparule/src/core/utils/clock.dart';
 import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/core/utils/seed_media.dart';
 import 'package:apparule/src/features/feed/domain/post.dart';
+import 'package:apparule/src/features/feed/presentation/engagement_actions.dart';
 import 'package:apparule/src/features/feed/presentation/home_feed_screen.dart';
 import 'package:apparule/src/features/feed/presentation/post_detail_view_model.dart';
+import 'package:apparule/src/features/feed/presentation/post_options_sheet.dart';
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,8 +46,11 @@ class PostDetailScreen extends ConsumerWidget {
           }
         },
       ),
+      // Value-preserving switch (CLASS 2): the engagement façade
+      // invalidates this family on every like/save — the rendered post
+      // must survive the rebuild instead of flashing the spinner.
       body: switch (state) {
-        AsyncData(:final value) => _PostDetailBody(post: value),
+        AsyncValue(:final value?) => _PostDetailBody(post: value),
         AsyncError(:final error) => Center(child: Text('$error')),
         _ => const Center(child: CircularProgressIndicator()),
       },
@@ -64,71 +70,91 @@ class _PostDetailBody extends ConsumerWidget {
     final colors = theme.extension<AppColors>()!;
     final radii = theme.extension<AppRadii>()!;
     final typography = theme.extension<AppTypography>()!;
-    final viewModel = ref.read(postDetailViewModelProvider(post.id).notifier);
 
     return Column(
       children: <Widget>[
         Expanded(
-          child: ListView(
-            children: <Widget>[
-              PostCard(
-                username: post.designer.username,
-                avatarImage: seedMediaImageOrNull(post.designer.avatarUrl),
-                verified: post.designer.verified,
-                media: <ImageProvider<Object>>[
-                  for (final media in post.media) seedMediaImage(media.url),
-                ],
-                liked: post.liked,
-                saved: post.saved,
-                likeCount: post.likeCount,
-                commentCount: post.commentCount,
-                caption: post.caption,
-                timestampLabel: formatAgo(
-                  post.createdAt,
-                  now: ref.watch(clockProvider)(),
-                ),
-                onToggleLike: viewModel.toggleLike,
-                onToggleSave: () {
-                  unawaited(viewModel.toggleSave());
-                  unawaited(
-                    maybeShowFirstSaveToast(
+          // pages.md C4: "comments sheet (swipe-up)" — a swipe up over
+          // the post body opens C11, same destination as the taps.
+          child: GestureDetector(
+            onVerticalDragEnd: (details) {
+              if ((details.primaryVelocity ?? 0) < -600) {
+                unawaited(
+                  PostCommentsRoute(id: post.id).push<void>(context),
+                );
+              }
+            },
+            child: ListView(
+              children: <Widget>[
+                PostCard(
+                  username: post.designer.username,
+                  avatarImage: seedMediaImageOrNull(post.designer.avatarUrl),
+                  verified: post.designer.verified,
+                  media: <ImageProvider<Object>>[
+                    for (final media in post.media) seedMediaImage(media.url),
+                  ],
+                  liked: post.liked,
+                  saved: post.saved,
+                  likeCount: post.likeCount,
+                  commentCount: post.commentCount,
+                  caption: post.caption,
+                  timestampLabel: formatAgo(
+                    post.createdAt,
+                    now: ref.watch(clockProvider)(),
+                  ),
+                  // Engagement routes through the façade (CLASS 1)
+                  // inside runAction (CLASS 4).
+                  onToggleLike: () => unawaited(
+                    runAction(
+                      context,
+                      () => ref
+                          .read(engagementActionsProvider.notifier)
+                          .toggleLike(post.id),
+                    ),
+                  ),
+                  onToggleSave: () => unawaited(
+                    toggleSaveWithFirstSaveToast(
                       context,
                       ref,
+                      postId: post.id,
                       wasSaved: post.saved,
                     ),
-                  );
-                },
-                onComment: () =>
-                    PostCommentsRoute(id: post.id).push<void>(context),
-                onShare: () => sharePostLink(context, post.id),
-                onProfileTap: () => PublicProfileRoute(
-                  username: post.designer.username,
-                ).push<void>(context),
-              ),
-              // The composer affordance — tapping opens the C11 sheet
-              // with the keyboard-ready composer.
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: GestureDetector(
-                  onTap: () =>
+                  ),
+                  onComment: () =>
                       PostCommentsRoute(id: post.id).push<void>(context),
-                  child: Container(
-                    height: 44,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    alignment: Alignment.centerLeft,
-                    decoration: BoxDecoration(
-                      color: colors.bgElev,
-                      border: Border.all(color: colors.border),
-                      borderRadius: BorderRadius.circular(radii.card),
-                    ),
-                    child: Text(
-                      l10n.postAddComment,
-                      style: typography.body14.copyWith(color: colors.text2),
+                  onShare: () => unawaited(sharePostLink(context, post.id)),
+                  onOverflow: () => unawaited(
+                    showPostOptionsSheet(context, postId: post.id),
+                  ),
+                  onProfileTap: () => PublicProfileRoute(
+                    username: post.designer.username,
+                  ).push<void>(context),
+                ),
+                // The composer affordance — tapping opens the C11 sheet
+                // with the keyboard-ready composer.
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: GestureDetector(
+                    onTap: () =>
+                        PostCommentsRoute(id: post.id).push<void>(context),
+                    child: Container(
+                      height: 44,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      alignment: Alignment.centerLeft,
+                      decoration: BoxDecoration(
+                        color: colors.bgElev,
+                        border: Border.all(color: colors.border),
+                        borderRadius: BorderRadius.circular(radii.card),
+                      ),
+                      child: Text(
+                        l10n.postAddComment,
+                        style: typography.body14.copyWith(color: colors.text2),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         // Request CTA pinned bottom (safe-area) → the C5 stepper.

@@ -18,6 +18,16 @@ class EditProfileViewModel extends _$EditProfileViewModel {
     required String city,
     required String state,
   }) async {
+    // D54: an empty display name never persists — the C9 header would
+    // render a blank identity line (web "Display name is required"
+    // parity; the screen disarms Save, this guards the API).
+    if (displayName.trim().isEmpty) {
+      throw ArgumentError.value(
+        displayName,
+        'displayName',
+        'Display name is required',
+      );
+    }
     final repository = ref.read(profileRepositoryProvider);
     final trimmedCity = city.trim();
     final trimmedState = state.trim();

@@ -36,7 +36,7 @@ final class ProfileViewModelProvider
   ProfileViewModel create() => ProfileViewModel();
 }
 
-String _$profileViewModelHash() => r'afc268667ad4d656da1f30c1f77efb60a2281b21';
+String _$profileViewModelHash() => r'608a71fe4a3eb196b7f177ed19dd523224ec3fea';
 
 /// C9 own — null when signed out (the router redirect owns that case).
 

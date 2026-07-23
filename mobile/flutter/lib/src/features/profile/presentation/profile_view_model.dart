@@ -30,6 +30,10 @@ abstract class OwnProfileState with _$OwnProfileState {
     /// empty vault — the ring is the C7 entry affordance either way.
     String? vaultFreshness,
 
+    /// Days since the newest vault session — the MI-11 tooltip's
+    /// "Measured N days ago — retake?" value (null with an empty vault).
+    int? vaultMeasuredDaysAgo,
+
     /// First grid tab: the designer side's published posts; a regular
     /// user's liked grid (pages.md C9 "grid of liked/saved").
     @Default(<Post>[]) List<Post> gridPosts,
@@ -59,11 +63,13 @@ class ProfileViewModel extends _$ProfileViewModel {
         .vaultSessions();
 
     String? freshness;
+    int? measuredDaysAgo;
     if (sessions.isNotEmpty) {
       final newest = sessions
           .map((session) => session.createdAt)
           .reduce((a, b) => a.isAfter(b) ? a : b);
       final days = ref.watch(clockProvider)().difference(newest).inDays;
+      measuredDaysAgo = days;
       freshness = days < 30
           ? 'fresh'
           : days < 90
@@ -78,6 +84,7 @@ class ProfileViewModel extends _$ProfileViewModel {
       postsCount: status.enabled ? gridPosts.length : 0,
       designerEnabled: status.enabled,
       vaultFreshness: freshness,
+      vaultMeasuredDaysAgo: measuredDaysAgo,
       gridPosts: gridPosts,
       savedPosts: saved,
     );

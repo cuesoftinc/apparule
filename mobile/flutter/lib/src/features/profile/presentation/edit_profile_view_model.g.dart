@@ -40,7 +40,7 @@ final class EditProfileViewModelProvider
 }
 
 String _$editProfileViewModelHash() =>
-    r'1ab8dd945c889ae97c8450e2c70e61f30d995286';
+    r'109253189d2ba8e4d00111d2557a1abe552a4e5a';
 
 /// The C9 edit-profile ViewModel — loads the current account for the
 /// form's initial values; [save] persists and re-derives the C9 header.

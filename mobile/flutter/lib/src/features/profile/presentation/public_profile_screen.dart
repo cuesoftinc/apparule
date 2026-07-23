@@ -1,8 +1,12 @@
+import 'dart:async' show unawaited;
+
+import 'package:apparule/src/core/async/run_action.dart';
 import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/app_bar.dart';
 import 'package:apparule/src/core/ui/avatar.dart';
 import 'package:apparule/src/core/ui/button.dart';
+import 'package:apparule/src/core/ui/morph_swap.dart';
 import 'package:apparule/src/core/ui/skeleton.dart';
 import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/core/utils/seed_media.dart';
@@ -46,8 +50,11 @@ class PublicProfileScreen extends ConsumerWidget {
           }
         },
       ),
+      // Value-preserving switch (CLASS 2): the follow fan-out
+      // invalidates this family — the rendered header/grid must survive
+      // the rebuild instead of flashing to skeleton per tap (D18).
       body: switch (state) {
-        AsyncData(:final value) => _PublicProfileBody(state: value),
+        AsyncValue(:final value?) => _PublicProfileBody(state: value),
         AsyncError() => Center(child: Text(l10n.profileNotFound(username))),
         _ => ListView(
           padding: const EdgeInsets.all(16),
@@ -80,21 +87,33 @@ class _PublicProfileBody extends ConsumerWidget {
     final colors = theme.extension<AppColors>()!;
     final typography = theme.extension<AppTypography>()!;
     final profile = state.profile;
+    // The optimistic overlay morphs the button THIS frame (D18); the
+    // reconciled profile (follower count tick) lands behind it.
+    final viewerFollows =
+        ref.watch(followGraphControllerProvider)[profile.username] ??
+        profile.viewerFollows;
 
     Future<void> toggleFollow() async {
       final controller = ref.read(followGraphControllerProvider.notifier);
-      if (profile.viewerFollows) {
+      if (viewerFollows) {
         // MI-7: unfollow is never a blind toggle.
         final confirmed = await showUnfollowConfirmSheet(
           context,
           username: profile.username,
           image: seedMediaImageOrNull(profile.avatarUrl),
         );
-        if (confirmed) {
-          await controller.setFollow(profile.username, follow: false);
+        if (confirmed && context.mounted) {
+          // Rollback + toast on failure (CLASS 4/MI-18).
+          await runAction(
+            context,
+            () => controller.setFollow(profile.username, follow: false),
+          );
         }
       } else {
-        await controller.setFollow(profile.username, follow: true);
+        await runAction(
+          context,
+          () => controller.setFollow(profile.username, follow: true),
+        );
       }
     }
 
@@ -213,17 +232,21 @@ class _PublicProfileBody extends ConsumerWidget {
               child: Row(
                 children: <Widget>[
                   // Canvas 267:8539: Follow carries the gradient; the
-                  // Request CTA is quiet.
+                  // Request CTA is quiet. MI-7: the swap cross-morphs
+                  // 150ms (MorphSwap) off the optimistic overlay.
                   Expanded(
-                    child: Button(
-                      label: profile.viewerFollows
-                          ? l10n.exploreFollowing
-                          : l10n.exploreFollow,
-                      kind: profile.viewerFollows
-                          ? ButtonKind.quiet
-                          : ButtonKind.gradientPrimary,
-                      expand: true,
-                      onPressed: toggleFollow,
+                    child: MorphSwap(
+                      child: Button(
+                        key: ValueKey<bool>(viewerFollows),
+                        label: viewerFollows
+                            ? l10n.exploreFollowing
+                            : l10n.exploreFollow,
+                        kind: viewerFollows
+                            ? ButtonKind.quiet
+                            : ButtonKind.gradientPrimary,
+                        expand: true,
+                        onPressed: () => unawaited(toggleFollow()),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
