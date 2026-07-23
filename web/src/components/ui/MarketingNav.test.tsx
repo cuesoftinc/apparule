@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MarketingNav } from "./MarketingNav";
 
@@ -142,10 +142,9 @@ describe("MarketingNav (§8.2b marketing)", () => {
     render(<MarketingNav />);
     const nav = screen.getByRole("navigation", { name: "Home" });
     expect(nav).toHaveAttribute("data-state", "top");
-    act(() => {
-      window.scrollY = 100;
-      fireEvent.scroll(window);
-    });
+    // fireEvent is already act-wrapped by Testing Library.
+    window.scrollY = 100;
+    fireEvent.scroll(window);
     expect(nav).toHaveAttribute("data-state", "stuck-blurred");
   });
 });

@@ -14,6 +14,6 @@ COPY --from=builder /app/app .
 USER appuser
 # App listens on :8080 (see main.go). Cloud Run overrides via PORT.
 EXPOSE 8080
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD wget -qO- "http://127.0.0.1:${PORT:-8080}/health" || exit 1
 CMD ["./app"]

@@ -15,7 +15,7 @@ import {
 import { env } from "@/config/env";
 import type { Account } from "@/models";
 import type { AuthProviderAdapter, SignInResult } from "./types";
-import { TestModeAuthProvider } from "./test-mode-auth-provider";
+import { TestModeAuthProvider } from "./test-mode-provider";
 import { StubAuthProvider } from "./stub-auth-provider";
 
 export type AuthStatus = "loading" | "signed_out" | "signed_in";

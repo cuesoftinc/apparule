@@ -64,6 +64,9 @@ describe("useThread", () => {
       await act(async () => {
         await vi.runOnlyPendingTimersAsync();
       });
+      // False positive: `vi.waitFor` is vitest's util, not Testing Library's;
+      // the act() wraps the send() state updates, which is required.
+      // eslint-disable-next-line testing-library/no-unnecessary-act
       await act(async () => {
         const sendPromise = result.current.send("hi");
         await vi.waitFor(() => expect(sendMessage).toHaveBeenCalled());

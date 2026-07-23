@@ -5,5 +5,5 @@
 
 export { AuthProvider, useAuth, type AuthStatus } from "./AuthContext";
 export type { AuthProviderAdapter, AuthSession, SignInResult } from "./types";
-export { TestModeAuthProvider } from "./test-mode-auth-provider";
+export { TestModeAuthProvider } from "./test-mode-provider";
 export { StubAuthProvider } from "./stub-auth-provider";
