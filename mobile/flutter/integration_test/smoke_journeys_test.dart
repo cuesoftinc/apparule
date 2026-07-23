@@ -90,9 +90,14 @@ void main() {
       await $('Pose 2 of 2').waitUntilVisible();
 
       // Height interposes after Pose 2 (flows/vault.md §1 — nothing on
-      // file), gated 100–230 cm.
+      // file), gated 100–230 cm. The MI-13 value field commits on the
+      // keyboard's done action, not per keystroke — press it like a
+      // user would (the CI-proven repro: skipping it strands the step
+      // on the 100–230 error).
       await $('Your height').waitUntilVisible();
       await $(find.bySemanticsLabel('Height value')).enterText('170');
+      await $.tester.testTextInput.receiveAction(TextInputAction.done);
+      await $.pump();
       await $('Continue').tap();
 
       // Processing resolves into results (§4 confidences)…
