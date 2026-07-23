@@ -2128,7 +2128,9 @@ as int,
 mixin _$Order {
 
  String get id; String get orderNumber; OrderPostSummary get post; OrderParty get customer; OrderParty get designer; OrderStatus get status; OrderSnapshot get snapshot; List<OrderEvent> get events; DateTime get createdAt;/// The signed-in viewer's side (drives the C8 role tabs + actions).
- OrderRole get viewerRole; String get notes; int? get budgetCents; int? get quoteCents; String get currency; DateTime? get dueAt; String? get tracking; DeclineReason? get declineReason; OrderDispute? get dispute; DeliveryAddress? get delivery; OrderPayment? get payment;
+ OrderRole get viewerRole; String get notes; int? get budgetCents; int? get quoteCents; String get currency; DateTime? get dueAt; String? get tracking; DeclineReason? get declineReason;/// The optional note the designer attached when declining (D04 —
+/// pages.md B3 "reason enum + optional note").
+ String? get declineNote; OrderDispute? get dispute; DeliveryAddress? get delivery; OrderPayment? get payment;
 /// Create a copy of Order
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2139,16 +2141,16 @@ $OrderCopyWith<Order> get copyWith => _$OrderCopyWithImpl<Order>(this as Order, 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Order&&(identical(other.id, id) || other.id == id)&&(identical(other.orderNumber, orderNumber) || other.orderNumber == orderNumber)&&(identical(other.post, post) || other.post == post)&&(identical(other.customer, customer) || other.customer == customer)&&(identical(other.designer, designer) || other.designer == designer)&&(identical(other.status, status) || other.status == status)&&(identical(other.snapshot, snapshot) || other.snapshot == snapshot)&&const DeepCollectionEquality().equals(other.events, events)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.viewerRole, viewerRole) || other.viewerRole == viewerRole)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.budgetCents, budgetCents) || other.budgetCents == budgetCents)&&(identical(other.quoteCents, quoteCents) || other.quoteCents == quoteCents)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.dueAt, dueAt) || other.dueAt == dueAt)&&(identical(other.tracking, tracking) || other.tracking == tracking)&&(identical(other.declineReason, declineReason) || other.declineReason == declineReason)&&(identical(other.dispute, dispute) || other.dispute == dispute)&&(identical(other.delivery, delivery) || other.delivery == delivery)&&(identical(other.payment, payment) || other.payment == payment));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Order&&(identical(other.id, id) || other.id == id)&&(identical(other.orderNumber, orderNumber) || other.orderNumber == orderNumber)&&(identical(other.post, post) || other.post == post)&&(identical(other.customer, customer) || other.customer == customer)&&(identical(other.designer, designer) || other.designer == designer)&&(identical(other.status, status) || other.status == status)&&(identical(other.snapshot, snapshot) || other.snapshot == snapshot)&&const DeepCollectionEquality().equals(other.events, events)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.viewerRole, viewerRole) || other.viewerRole == viewerRole)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.budgetCents, budgetCents) || other.budgetCents == budgetCents)&&(identical(other.quoteCents, quoteCents) || other.quoteCents == quoteCents)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.dueAt, dueAt) || other.dueAt == dueAt)&&(identical(other.tracking, tracking) || other.tracking == tracking)&&(identical(other.declineReason, declineReason) || other.declineReason == declineReason)&&(identical(other.declineNote, declineNote) || other.declineNote == declineNote)&&(identical(other.dispute, dispute) || other.dispute == dispute)&&(identical(other.delivery, delivery) || other.delivery == delivery)&&(identical(other.payment, payment) || other.payment == payment));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,id,orderNumber,post,customer,designer,status,snapshot,const DeepCollectionEquality().hash(events),createdAt,viewerRole,notes,budgetCents,quoteCents,currency,dueAt,tracking,declineReason,dispute,delivery,payment]);
+int get hashCode => Object.hashAll([runtimeType,id,orderNumber,post,customer,designer,status,snapshot,const DeepCollectionEquality().hash(events),createdAt,viewerRole,notes,budgetCents,quoteCents,currency,dueAt,tracking,declineReason,declineNote,dispute,delivery,payment]);
 
 @override
 String toString() {
-  return 'Order(id: $id, orderNumber: $orderNumber, post: $post, customer: $customer, designer: $designer, status: $status, snapshot: $snapshot, events: $events, createdAt: $createdAt, viewerRole: $viewerRole, notes: $notes, budgetCents: $budgetCents, quoteCents: $quoteCents, currency: $currency, dueAt: $dueAt, tracking: $tracking, declineReason: $declineReason, dispute: $dispute, delivery: $delivery, payment: $payment)';
+  return 'Order(id: $id, orderNumber: $orderNumber, post: $post, customer: $customer, designer: $designer, status: $status, snapshot: $snapshot, events: $events, createdAt: $createdAt, viewerRole: $viewerRole, notes: $notes, budgetCents: $budgetCents, quoteCents: $quoteCents, currency: $currency, dueAt: $dueAt, tracking: $tracking, declineReason: $declineReason, declineNote: $declineNote, dispute: $dispute, delivery: $delivery, payment: $payment)';
 }
 
 
@@ -2159,7 +2161,7 @@ abstract mixin class $OrderCopyWith<$Res>  {
   factory $OrderCopyWith(Order value, $Res Function(Order) _then) = _$OrderCopyWithImpl;
 @useResult
 $Res call({
- String id, String orderNumber, OrderPostSummary post, OrderParty customer, OrderParty designer, OrderStatus status, OrderSnapshot snapshot, List<OrderEvent> events, DateTime createdAt, OrderRole viewerRole, String notes, int? budgetCents, int? quoteCents, String currency, DateTime? dueAt, String? tracking, DeclineReason? declineReason, OrderDispute? dispute, DeliveryAddress? delivery, OrderPayment? payment
+ String id, String orderNumber, OrderPostSummary post, OrderParty customer, OrderParty designer, OrderStatus status, OrderSnapshot snapshot, List<OrderEvent> events, DateTime createdAt, OrderRole viewerRole, String notes, int? budgetCents, int? quoteCents, String currency, DateTime? dueAt, String? tracking, DeclineReason? declineReason, String? declineNote, OrderDispute? dispute, DeliveryAddress? delivery, OrderPayment? payment
 });
 
 
@@ -2176,7 +2178,7 @@ class _$OrderCopyWithImpl<$Res>
 
 /// Create a copy of Order
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? orderNumber = null,Object? post = null,Object? customer = null,Object? designer = null,Object? status = null,Object? snapshot = null,Object? events = null,Object? createdAt = null,Object? viewerRole = null,Object? notes = null,Object? budgetCents = freezed,Object? quoteCents = freezed,Object? currency = null,Object? dueAt = freezed,Object? tracking = freezed,Object? declineReason = freezed,Object? dispute = freezed,Object? delivery = freezed,Object? payment = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? orderNumber = null,Object? post = null,Object? customer = null,Object? designer = null,Object? status = null,Object? snapshot = null,Object? events = null,Object? createdAt = null,Object? viewerRole = null,Object? notes = null,Object? budgetCents = freezed,Object? quoteCents = freezed,Object? currency = null,Object? dueAt = freezed,Object? tracking = freezed,Object? declineReason = freezed,Object? declineNote = freezed,Object? dispute = freezed,Object? delivery = freezed,Object? payment = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,orderNumber: null == orderNumber ? _self.orderNumber : orderNumber // ignore: cast_nullable_to_non_nullable
@@ -2195,7 +2197,8 @@ as int?,currency: null == currency ? _self.currency : currency // ignore: cast_n
 as String,dueAt: freezed == dueAt ? _self.dueAt : dueAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,tracking: freezed == tracking ? _self.tracking : tracking // ignore: cast_nullable_to_non_nullable
 as String?,declineReason: freezed == declineReason ? _self.declineReason : declineReason // ignore: cast_nullable_to_non_nullable
-as DeclineReason?,dispute: freezed == dispute ? _self.dispute : dispute // ignore: cast_nullable_to_non_nullable
+as DeclineReason?,declineNote: freezed == declineNote ? _self.declineNote : declineNote // ignore: cast_nullable_to_non_nullable
+as String?,dispute: freezed == dispute ? _self.dispute : dispute // ignore: cast_nullable_to_non_nullable
 as OrderDispute?,delivery: freezed == delivery ? _self.delivery : delivery // ignore: cast_nullable_to_non_nullable
 as DeliveryAddress?,payment: freezed == payment ? _self.payment : payment // ignore: cast_nullable_to_non_nullable
 as OrderPayment?,
@@ -2355,10 +2358,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String orderNumber,  OrderPostSummary post,  OrderParty customer,  OrderParty designer,  OrderStatus status,  OrderSnapshot snapshot,  List<OrderEvent> events,  DateTime createdAt,  OrderRole viewerRole,  String notes,  int? budgetCents,  int? quoteCents,  String currency,  DateTime? dueAt,  String? tracking,  DeclineReason? declineReason,  OrderDispute? dispute,  DeliveryAddress? delivery,  OrderPayment? payment)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String orderNumber,  OrderPostSummary post,  OrderParty customer,  OrderParty designer,  OrderStatus status,  OrderSnapshot snapshot,  List<OrderEvent> events,  DateTime createdAt,  OrderRole viewerRole,  String notes,  int? budgetCents,  int? quoteCents,  String currency,  DateTime? dueAt,  String? tracking,  DeclineReason? declineReason,  String? declineNote,  OrderDispute? dispute,  DeliveryAddress? delivery,  OrderPayment? payment)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Order() when $default != null:
-return $default(_that.id,_that.orderNumber,_that.post,_that.customer,_that.designer,_that.status,_that.snapshot,_that.events,_that.createdAt,_that.viewerRole,_that.notes,_that.budgetCents,_that.quoteCents,_that.currency,_that.dueAt,_that.tracking,_that.declineReason,_that.dispute,_that.delivery,_that.payment);case _:
+return $default(_that.id,_that.orderNumber,_that.post,_that.customer,_that.designer,_that.status,_that.snapshot,_that.events,_that.createdAt,_that.viewerRole,_that.notes,_that.budgetCents,_that.quoteCents,_that.currency,_that.dueAt,_that.tracking,_that.declineReason,_that.declineNote,_that.dispute,_that.delivery,_that.payment);case _:
   return orElse();
 
 }
@@ -2376,10 +2379,10 @@ return $default(_that.id,_that.orderNumber,_that.post,_that.customer,_that.desig
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String orderNumber,  OrderPostSummary post,  OrderParty customer,  OrderParty designer,  OrderStatus status,  OrderSnapshot snapshot,  List<OrderEvent> events,  DateTime createdAt,  OrderRole viewerRole,  String notes,  int? budgetCents,  int? quoteCents,  String currency,  DateTime? dueAt,  String? tracking,  DeclineReason? declineReason,  OrderDispute? dispute,  DeliveryAddress? delivery,  OrderPayment? payment)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String orderNumber,  OrderPostSummary post,  OrderParty customer,  OrderParty designer,  OrderStatus status,  OrderSnapshot snapshot,  List<OrderEvent> events,  DateTime createdAt,  OrderRole viewerRole,  String notes,  int? budgetCents,  int? quoteCents,  String currency,  DateTime? dueAt,  String? tracking,  DeclineReason? declineReason,  String? declineNote,  OrderDispute? dispute,  DeliveryAddress? delivery,  OrderPayment? payment)  $default,) {final _that = this;
 switch (_that) {
 case _Order():
-return $default(_that.id,_that.orderNumber,_that.post,_that.customer,_that.designer,_that.status,_that.snapshot,_that.events,_that.createdAt,_that.viewerRole,_that.notes,_that.budgetCents,_that.quoteCents,_that.currency,_that.dueAt,_that.tracking,_that.declineReason,_that.dispute,_that.delivery,_that.payment);case _:
+return $default(_that.id,_that.orderNumber,_that.post,_that.customer,_that.designer,_that.status,_that.snapshot,_that.events,_that.createdAt,_that.viewerRole,_that.notes,_that.budgetCents,_that.quoteCents,_that.currency,_that.dueAt,_that.tracking,_that.declineReason,_that.declineNote,_that.dispute,_that.delivery,_that.payment);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -2396,10 +2399,10 @@ return $default(_that.id,_that.orderNumber,_that.post,_that.customer,_that.desig
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String orderNumber,  OrderPostSummary post,  OrderParty customer,  OrderParty designer,  OrderStatus status,  OrderSnapshot snapshot,  List<OrderEvent> events,  DateTime createdAt,  OrderRole viewerRole,  String notes,  int? budgetCents,  int? quoteCents,  String currency,  DateTime? dueAt,  String? tracking,  DeclineReason? declineReason,  OrderDispute? dispute,  DeliveryAddress? delivery,  OrderPayment? payment)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String orderNumber,  OrderPostSummary post,  OrderParty customer,  OrderParty designer,  OrderStatus status,  OrderSnapshot snapshot,  List<OrderEvent> events,  DateTime createdAt,  OrderRole viewerRole,  String notes,  int? budgetCents,  int? quoteCents,  String currency,  DateTime? dueAt,  String? tracking,  DeclineReason? declineReason,  String? declineNote,  OrderDispute? dispute,  DeliveryAddress? delivery,  OrderPayment? payment)?  $default,) {final _that = this;
 switch (_that) {
 case _Order() when $default != null:
-return $default(_that.id,_that.orderNumber,_that.post,_that.customer,_that.designer,_that.status,_that.snapshot,_that.events,_that.createdAt,_that.viewerRole,_that.notes,_that.budgetCents,_that.quoteCents,_that.currency,_that.dueAt,_that.tracking,_that.declineReason,_that.dispute,_that.delivery,_that.payment);case _:
+return $default(_that.id,_that.orderNumber,_that.post,_that.customer,_that.designer,_that.status,_that.snapshot,_that.events,_that.createdAt,_that.viewerRole,_that.notes,_that.budgetCents,_that.quoteCents,_that.currency,_that.dueAt,_that.tracking,_that.declineReason,_that.declineNote,_that.dispute,_that.delivery,_that.payment);case _:
   return null;
 
 }
@@ -2411,7 +2414,7 @@ return $default(_that.id,_that.orderNumber,_that.post,_that.customer,_that.desig
 
 
 class _Order extends Order {
-  const _Order({required this.id, required this.orderNumber, required this.post, required this.customer, required this.designer, required this.status, required this.snapshot, required final  List<OrderEvent> events, required this.createdAt, required this.viewerRole, this.notes = '', this.budgetCents, this.quoteCents, this.currency = 'NGN', this.dueAt, this.tracking, this.declineReason, this.dispute, this.delivery, this.payment}): _events = events,super._();
+  const _Order({required this.id, required this.orderNumber, required this.post, required this.customer, required this.designer, required this.status, required this.snapshot, required final  List<OrderEvent> events, required this.createdAt, required this.viewerRole, this.notes = '', this.budgetCents, this.quoteCents, this.currency = 'NGN', this.dueAt, this.tracking, this.declineReason, this.declineNote, this.dispute, this.delivery, this.payment}): _events = events,super._();
   
 
 @override final  String id;
@@ -2438,6 +2441,9 @@ class _Order extends Order {
 @override final  DateTime? dueAt;
 @override final  String? tracking;
 @override final  DeclineReason? declineReason;
+/// The optional note the designer attached when declining (D04 —
+/// pages.md B3 "reason enum + optional note").
+@override final  String? declineNote;
 @override final  OrderDispute? dispute;
 @override final  DeliveryAddress? delivery;
 @override final  OrderPayment? payment;
@@ -2452,16 +2458,16 @@ _$OrderCopyWith<_Order> get copyWith => __$OrderCopyWithImpl<_Order>(this, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Order&&(identical(other.id, id) || other.id == id)&&(identical(other.orderNumber, orderNumber) || other.orderNumber == orderNumber)&&(identical(other.post, post) || other.post == post)&&(identical(other.customer, customer) || other.customer == customer)&&(identical(other.designer, designer) || other.designer == designer)&&(identical(other.status, status) || other.status == status)&&(identical(other.snapshot, snapshot) || other.snapshot == snapshot)&&const DeepCollectionEquality().equals(other._events, _events)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.viewerRole, viewerRole) || other.viewerRole == viewerRole)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.budgetCents, budgetCents) || other.budgetCents == budgetCents)&&(identical(other.quoteCents, quoteCents) || other.quoteCents == quoteCents)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.dueAt, dueAt) || other.dueAt == dueAt)&&(identical(other.tracking, tracking) || other.tracking == tracking)&&(identical(other.declineReason, declineReason) || other.declineReason == declineReason)&&(identical(other.dispute, dispute) || other.dispute == dispute)&&(identical(other.delivery, delivery) || other.delivery == delivery)&&(identical(other.payment, payment) || other.payment == payment));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Order&&(identical(other.id, id) || other.id == id)&&(identical(other.orderNumber, orderNumber) || other.orderNumber == orderNumber)&&(identical(other.post, post) || other.post == post)&&(identical(other.customer, customer) || other.customer == customer)&&(identical(other.designer, designer) || other.designer == designer)&&(identical(other.status, status) || other.status == status)&&(identical(other.snapshot, snapshot) || other.snapshot == snapshot)&&const DeepCollectionEquality().equals(other._events, _events)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.viewerRole, viewerRole) || other.viewerRole == viewerRole)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.budgetCents, budgetCents) || other.budgetCents == budgetCents)&&(identical(other.quoteCents, quoteCents) || other.quoteCents == quoteCents)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.dueAt, dueAt) || other.dueAt == dueAt)&&(identical(other.tracking, tracking) || other.tracking == tracking)&&(identical(other.declineReason, declineReason) || other.declineReason == declineReason)&&(identical(other.declineNote, declineNote) || other.declineNote == declineNote)&&(identical(other.dispute, dispute) || other.dispute == dispute)&&(identical(other.delivery, delivery) || other.delivery == delivery)&&(identical(other.payment, payment) || other.payment == payment));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,id,orderNumber,post,customer,designer,status,snapshot,const DeepCollectionEquality().hash(_events),createdAt,viewerRole,notes,budgetCents,quoteCents,currency,dueAt,tracking,declineReason,dispute,delivery,payment]);
+int get hashCode => Object.hashAll([runtimeType,id,orderNumber,post,customer,designer,status,snapshot,const DeepCollectionEquality().hash(_events),createdAt,viewerRole,notes,budgetCents,quoteCents,currency,dueAt,tracking,declineReason,declineNote,dispute,delivery,payment]);
 
 @override
 String toString() {
-  return 'Order(id: $id, orderNumber: $orderNumber, post: $post, customer: $customer, designer: $designer, status: $status, snapshot: $snapshot, events: $events, createdAt: $createdAt, viewerRole: $viewerRole, notes: $notes, budgetCents: $budgetCents, quoteCents: $quoteCents, currency: $currency, dueAt: $dueAt, tracking: $tracking, declineReason: $declineReason, dispute: $dispute, delivery: $delivery, payment: $payment)';
+  return 'Order(id: $id, orderNumber: $orderNumber, post: $post, customer: $customer, designer: $designer, status: $status, snapshot: $snapshot, events: $events, createdAt: $createdAt, viewerRole: $viewerRole, notes: $notes, budgetCents: $budgetCents, quoteCents: $quoteCents, currency: $currency, dueAt: $dueAt, tracking: $tracking, declineReason: $declineReason, declineNote: $declineNote, dispute: $dispute, delivery: $delivery, payment: $payment)';
 }
 
 
@@ -2472,7 +2478,7 @@ abstract mixin class _$OrderCopyWith<$Res> implements $OrderCopyWith<$Res> {
   factory _$OrderCopyWith(_Order value, $Res Function(_Order) _then) = __$OrderCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String orderNumber, OrderPostSummary post, OrderParty customer, OrderParty designer, OrderStatus status, OrderSnapshot snapshot, List<OrderEvent> events, DateTime createdAt, OrderRole viewerRole, String notes, int? budgetCents, int? quoteCents, String currency, DateTime? dueAt, String? tracking, DeclineReason? declineReason, OrderDispute? dispute, DeliveryAddress? delivery, OrderPayment? payment
+ String id, String orderNumber, OrderPostSummary post, OrderParty customer, OrderParty designer, OrderStatus status, OrderSnapshot snapshot, List<OrderEvent> events, DateTime createdAt, OrderRole viewerRole, String notes, int? budgetCents, int? quoteCents, String currency, DateTime? dueAt, String? tracking, DeclineReason? declineReason, String? declineNote, OrderDispute? dispute, DeliveryAddress? delivery, OrderPayment? payment
 });
 
 
@@ -2489,7 +2495,7 @@ class __$OrderCopyWithImpl<$Res>
 
 /// Create a copy of Order
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? orderNumber = null,Object? post = null,Object? customer = null,Object? designer = null,Object? status = null,Object? snapshot = null,Object? events = null,Object? createdAt = null,Object? viewerRole = null,Object? notes = null,Object? budgetCents = freezed,Object? quoteCents = freezed,Object? currency = null,Object? dueAt = freezed,Object? tracking = freezed,Object? declineReason = freezed,Object? dispute = freezed,Object? delivery = freezed,Object? payment = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? orderNumber = null,Object? post = null,Object? customer = null,Object? designer = null,Object? status = null,Object? snapshot = null,Object? events = null,Object? createdAt = null,Object? viewerRole = null,Object? notes = null,Object? budgetCents = freezed,Object? quoteCents = freezed,Object? currency = null,Object? dueAt = freezed,Object? tracking = freezed,Object? declineReason = freezed,Object? declineNote = freezed,Object? dispute = freezed,Object? delivery = freezed,Object? payment = freezed,}) {
   return _then(_Order(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,orderNumber: null == orderNumber ? _self.orderNumber : orderNumber // ignore: cast_nullable_to_non_nullable
@@ -2508,7 +2514,8 @@ as int?,currency: null == currency ? _self.currency : currency // ignore: cast_n
 as String,dueAt: freezed == dueAt ? _self.dueAt : dueAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,tracking: freezed == tracking ? _self.tracking : tracking // ignore: cast_nullable_to_non_nullable
 as String?,declineReason: freezed == declineReason ? _self.declineReason : declineReason // ignore: cast_nullable_to_non_nullable
-as DeclineReason?,dispute: freezed == dispute ? _self.dispute : dispute // ignore: cast_nullable_to_non_nullable
+as DeclineReason?,declineNote: freezed == declineNote ? _self.declineNote : declineNote // ignore: cast_nullable_to_non_nullable
+as String?,dispute: freezed == dispute ? _self.dispute : dispute // ignore: cast_nullable_to_non_nullable
 as OrderDispute?,delivery: freezed == delivery ? _self.delivery : delivery // ignore: cast_nullable_to_non_nullable
 as DeliveryAddress?,payment: freezed == payment ? _self.payment : payment // ignore: cast_nullable_to_non_nullable
 as OrderPayment?,

@@ -219,6 +219,10 @@ abstract class Order with _$Order {
     DateTime? dueAt,
     String? tracking,
     DeclineReason? declineReason,
+
+    /// The optional note the designer attached when declining (D04 —
+    /// pages.md B3 "reason enum + optional note").
+    String? declineNote,
     OrderDispute? dispute,
     DeliveryAddress? delivery,
     OrderPayment? payment,

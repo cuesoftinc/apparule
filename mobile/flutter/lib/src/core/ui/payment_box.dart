@@ -139,39 +139,52 @@ class PaymentBox extends StatelessWidget {
                     : () => onAction!(cta.label),
               ),
             ],
-            if (showEscrowExplainer) ...<Widget>[
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: colors.border.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(radii.card),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2, right: 8),
-                      child: Icon(
-                        LucideIcons.info,
-                        size: 16,
-                        color: colors.text2,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        'Your money stays with Apparule — not the designer '
-                        '— until you confirm delivery. If anything goes '
-                        'wrong, you can open a dispute and get refunded.',
-                        style: typography.caption13.copyWith(
-                          color: colors.text2,
+            // MI-15 (D64): the escrow explainer EXPANDS beneath on first
+            // payment — the size animates open when [showEscrowExplainer]
+            // flips at the just-paid moment (reduced motion snaps).
+            AnimatedSize(
+              duration: MediaQuery.disableAnimationsOf(context)
+                  ? Duration.zero
+                  : theme.extension<AppMotion>()!.base,
+              curve: theme.extension<AppMotion>()!.standardEasing,
+              alignment: Alignment.topCenter,
+              child: !showEscrowExplainer
+                  ? const SizedBox(width: double.infinity)
+                  : Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: colors.border.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(radii.card),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2, right: 8),
+                              child: Icon(
+                                LucideIcons.info,
+                                size: 16,
+                                color: colors.text2,
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                'Your money stays with Apparule — not the '
+                                'designer — until you confirm delivery. If '
+                                'anything goes wrong, you can open a dispute '
+                                'and get refunded.',
+                                style: typography.caption13.copyWith(
+                                  color: colors.text2,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ],
         ),
       ),

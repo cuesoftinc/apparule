@@ -1,3 +1,4 @@
+import 'package:apparule/src/core/async/run_action.dart';
 import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/app_bar.dart';
@@ -39,17 +40,25 @@ class _DesignerOnboardingScreenState
     super.dispose();
   }
 
+  /// D20 (CLASS 4): the create call runs through `runAction` — a
+  /// repository failure rolls into the shared toast instead of a silent
+  /// loading-flash reset; the typed form survives untouched. Empty
+  /// username/display name never reach the repository at all (the CTA is
+  /// disabled by construction — web "Display name is required" parity).
   Future<void> _create() async {
     setState(() => _creating = true);
     try {
-      await ref
-          .read(designerOnboardingViewModelProvider.notifier)
-          .create(
-            username: _username.text,
-            displayName: _displayName.text,
-            bio: _bio.text,
-          );
-      if (mounted) {
+      final created = await runAction(
+        context,
+        () => ref
+            .read(designerOnboardingViewModelProvider.notifier)
+            .create(
+              username: _username.text,
+              displayName: _displayName.text,
+              bio: _bio.text,
+            ),
+      );
+      if (created && mounted) {
         // B8: intro → banking form. replace() keeps back = the gear.
         const PayoutAccountRoute().pushReplacement(context);
       }
@@ -169,6 +178,7 @@ class _DesignerOnboardingScreenState
             controller: _displayName,
             style: fieldStyle,
             decoration: decoration(),
+            onChanged: (_) => setState(() {}),
           ),
           helper(l10n.designerOnboardingDisplayNameHelper),
           label(l10n.designerOnboardingBio),
@@ -183,7 +193,14 @@ class _DesignerOnboardingScreenState
             label: l10n.designerOnboardingCreate,
             loading: _creating,
             expand: true,
-            onPressed: _create,
+            // D20: disabled until both required identity fields exist —
+            // an empty create can never fire (and so never silently
+            // no-op).
+            onPressed:
+                _username.text.trim().isEmpty ||
+                    _displayName.text.trim().isEmpty
+                ? null
+                : _create,
           ),
           const SizedBox(height: 12),
           Text(

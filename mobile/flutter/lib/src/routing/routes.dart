@@ -25,6 +25,7 @@ import 'package:apparule/src/features/profile/presentation/follow_list_view_mode
 import 'package:apparule/src/features/profile/presentation/notification_settings_screen.dart';
 import 'package:apparule/src/features/profile/presentation/notifications_screen.dart';
 import 'package:apparule/src/features/profile/presentation/notifications_view_model.dart';
+import 'package:apparule/src/features/profile/presentation/orders_badge_sync.dart';
 import 'package:apparule/src/features/profile/presentation/privacy_settings_screen.dart';
 import 'package:apparule/src/features/profile/presentation/profile_screen.dart';
 import 'package:apparule/src/features/profile/presentation/public_profile_screen.dart';
@@ -71,6 +72,9 @@ part 'routes.g.dart';
 class AppShellRoute extends StatefulShellRouteData {
   const AppShellRoute();
 
+  /// The Orders branch's position in the shell's branch list.
+  static const int _ordersBranchIndex = 2;
+
   @override
   Widget builder(
     BuildContext context,
@@ -78,16 +82,30 @@ class AppShellRoute extends StatefulShellRouteData {
     StatefulNavigationShell navigationShell,
   ) {
     return Consumer(
-      builder: (context, ref, _) => AppShell(
-        navigationShell: navigationShell,
+      builder: (context, ref, _) {
         // MI-16: unread order-kind notifications badge the Orders tab;
         // opening C10 marks them read and clears it.
-        ordersBadge: ref.watch(ordersTabBadgeProvider).value,
-        // ➕ = the unified create chooser (M-11, canvas 548:2725):
-        // "Take measurements" (guide on first run, §10) · "Post an
-        // outfit" (designer-gated → C13 until the C15 composer ships).
-        onCreate: () => unawaited(showCreateChooser(context)),
-      ),
+        final ordersBadge = ref.watch(ordersTabBadgeProvider).value;
+        // MI-16 (D22): the badge ALSO clears on Orders tab visit — the
+        // web DashboardShell effect, mirrored: whenever the Orders
+        // branch is active with a non-zero badge, mark order kinds read
+        // post-frame (mutating providers inside build is off-limits).
+        if (navigationShell.currentIndex == _ordersBranchIndex &&
+            (ordersBadge ?? 0) > 0) {
+          final sync = ref.read(ordersBadgeSyncProvider.notifier);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            unawaited(sync.markVisited());
+          });
+        }
+        return AppShell(
+          navigationShell: navigationShell,
+          ordersBadge: ordersBadge,
+          // ➕ = the unified create chooser (M-11, canvas 548:2725):
+          // "Take measurements" (guide on first run, §10) · "Post an
+          // outfit" (designer-gated → C13 until the C15 composer ships).
+          onCreate: () => unawaited(showCreateChooser(context)),
+        );
+      },
     );
   }
 }

@@ -1,13 +1,17 @@
+import 'dart:async' show unawaited;
+
+import 'package:apparule/src/core/async/run_action.dart';
 import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/app_bar.dart';
 import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/payment_box.dart';
 import 'package:apparule/src/core/ui/status_pill.dart';
+import 'package:apparule/src/core/ui/timeline_connector.dart';
+import 'package:apparule/src/core/ui/typing_bubble.dart';
 import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/core/utils/seed_media.dart';
 import 'package:apparule/src/features/orders/domain/order.dart';
-import 'package:apparule/src/features/orders/domain/thread_message.dart';
 import 'package:apparule/src/features/orders/presentation/order_action_sheets.dart';
 import 'package:apparule/src/features/orders/presentation/order_detail_view_model.dart';
 import 'package:apparule/src/features/orders/presentation/orders_screen.dart';
@@ -17,10 +21,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-/// C8 detail (pages.md B3): outfit summary · timeline (MI-14) ·
-/// measurement snapshot (immutable) · payment box (MI-15) · role-scoped
-/// actions (danger ladder: quiet-danger rows, filled-destructive sheet
-/// confirms) · thread (MI-17) with composer.
+/// C8 detail (pages.md B3): outfit summary · timeline (MI-14, the
+/// TimelineConnector ladder with the terminal-error rung) · measurement
+/// snapshot (immutable) · payment box (MI-15: paying state + just-paid
+/// escrow explainer) · role-scoped actions (danger ladder: quiet-danger
+/// rows, armed sheet confirms, every transition through `runAction`) ·
+/// thread (MI-17 typing hold-back, MI-18 optimistic send) with composer.
 class OrderDetailScreen extends ConsumerWidget {
   const OrderDetailScreen({required this.orderId, super.key});
 
@@ -44,10 +50,7 @@ class OrderDetailScreen extends ConsumerWidget {
         },
       ),
       body: switch (state) {
-        AsyncData(:final value) => _OrderDetailBody(
-          order: value.order,
-          messages: value.messages,
-        ),
+        AsyncData(:final value) => _OrderDetailBody(state: value),
         AsyncError(:final error) => Center(child: Text('$error')),
         _ => const Center(child: CircularProgressIndicator()),
       },
@@ -55,17 +58,71 @@ class OrderDetailScreen extends ConsumerWidget {
   }
 }
 
-class _OrderDetailBody extends ConsumerWidget {
-  const _OrderDetailBody({required this.order, required this.messages});
+class _OrderDetailBody extends ConsumerStatefulWidget {
+  const _OrderDetailBody({required this.state});
 
-  final Order order;
-  final List<ThreadMessage> messages;
+  final OrderDetailState state;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final viewModel = ref.read(
-      orderDetailViewModelProvider(order.id).notifier,
+  ConsumerState<_OrderDetailBody> createState() => _OrderDetailBodyState();
+}
+
+class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
+  /// D42: the payment box's "View dispute" / "Respond to dispute" CTA
+  /// scrolls the dispute section on stage.
+  final GlobalKey _disputeSectionKey = GlobalKey();
+
+  Order get _order => widget.state.order;
+
+  OrderDetailViewModel get _viewModel =>
+      ref.read(orderDetailViewModelProvider(_order.id).notifier);
+
+  /// D06/D42: the quiet payment-box CTA per state — requote for the
+  /// quoted designer, payout detail for the released designer, and the
+  /// dispute section for the frozen box.
+  Future<void> _onPaymentAction(PaymentBoxState paymentState) async {
+    switch (paymentState) {
+      case PaymentBoxState.quoted:
+        await _requote();
+      case PaymentBoxState.released:
+        await const EarningsRoute().push<void>(context);
+      case PaymentBoxState.disputeFrozen:
+        if (_disputeSectionKey.currentContext case final target?) {
+          await Scrollable.ensureVisible(
+            target,
+            duration: const Duration(milliseconds: 200),
+          );
+        }
+      case PaymentBoxState.paying ||
+          PaymentBoxState.escrowHeld ||
+          PaymentBoxState.refunded:
+        break; // No quiet CTA in these states.
+    }
+  }
+
+  /// D06: requote while quoted — the sheet opens prefilled with the
+  /// current amount and `quote()` replaces it without a transition
+  /// (flows/designer.md §2; web "Edit quote" parity).
+  Future<void> _requote() async {
+    final result = await showQuoteSheet(
+      context,
+      suggestedCents: _order.quoteCents ?? _order.budgetCents,
     );
+    if (result != null && mounted) {
+      await runAction(
+        context,
+        () => _viewModel.sendQuote(result.$1, dueAt: result.$2),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = widget.state;
+    final order = state.order;
+    final paymentState = state.paying
+        ? PaymentBoxState.paying
+        : _paymentStateOf(order);
 
     return Column(
       children: <Widget>[
@@ -76,7 +133,7 @@ class _OrderDetailBody extends ConsumerWidget {
               _SummaryCard(order: order),
               const SizedBox(height: 16),
               _Timeline(order: order),
-              if (_paymentStateOf(order) case final paymentState?) ...<Widget>[
+              if (paymentState case final paymentState?) ...<Widget>[
                 const SizedBox(height: 16),
                 PaymentBox(
                   state: paymentState,
@@ -84,26 +141,65 @@ class _OrderDetailBody extends ConsumerWidget {
                       ? PaymentRole.designer
                       : PaymentRole.customer,
                   quoteCents: order.quoteCents ?? 0,
-                  // MI-15: the escrow explainer expands on first payment.
+                  // MI-15 (D64): the explainer expands on the just-paid
+                  // moment only — never on every re-entry to a paid order.
                   showEscrowExplainer:
-                      order.status == OrderStatus.paid &&
+                      state.justPaid &&
+                      paymentState == PaymentBoxState.escrowHeld &&
                       order.viewerRole == OrderRole.customer,
-                  onPay: viewModel.pay,
+                  onPay: order.viewerRole == OrderRole.customer
+                      ? () => unawaited(
+                          runAction(
+                            context,
+                            _viewModel.pay,
+                            failureText: context.l10n.payFailedToast,
+                          ),
+                        )
+                      : null,
+                  onAction: (_) => unawaited(_onPaymentAction(paymentState)),
                 ),
               ],
               const SizedBox(height: 16),
               _SnapshotCard(order: order),
+              // D43: the decline reason / open dispute surface to the
+              // counterparty (web OrderDetailView parity).
+              if (order.declineReason case final reason?) ...<Widget>[
+                const SizedBox(height: 16),
+                _DeclinedNote(reason: reason, note: order.declineNote),
+              ],
+              if (order.dispute case final dispute?) ...<Widget>[
+                const SizedBox(height: 16),
+                _DisputeNote(key: _disputeSectionKey, dispute: dispute),
+              ],
               const SizedBox(height: 16),
-              _Actions(order: order, viewModel: viewModel),
-              if (messages.isNotEmpty) const SizedBox(height: 8),
-              for (final message in messages) _MessageBubble(message: message),
+              _Actions(order: order, viewModel: _viewModel),
+              if (state.messages.isNotEmpty) const SizedBox(height: 8),
+              for (final entry in state.messages)
+                _MessageBubble(
+                  entry: entry,
+                  onRetry: entry.sendState == ThreadSendState.failed
+                      ? () => unawaited(
+                          _viewModel.retryMessage(entry.message.id),
+                        )
+                      : null,
+                ),
+              // MI-17 (D13): the counterparty "responding…" pulse while
+              // the scripted reply is held back.
+              if (state.typing)
+                const Padding(
+                  padding: EdgeInsets.only(top: 12),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: TypingBubble(),
+                  ),
+                ),
             ],
           ),
         ),
         // Threads stay open from `requested` until 30 days after the
         // terminal state (order-lifecycle.md §5) — every seeded terminal
         // order sits inside that window.
-        _Composer(order: order, viewModel: viewModel),
+        _Composer(order: order, viewModel: _viewModel),
       ],
     );
   }
@@ -122,6 +218,65 @@ class _OrderDetailBody extends ConsumerWidget {
       PaymentState.refunded => PaymentBoxState.refunded,
       null => null,
     };
+  }
+}
+
+/// D43 — "Declined: {reason}" (plus the designer's optional note when one
+/// was left) so the customer sees WHY, not just a bare pill.
+class _DeclinedNote extends StatelessWidget {
+  const _DeclinedNote({required this.reason, this.note});
+
+  final DeclineReason reason;
+  final String? note;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final colors = theme.extension<AppColors>()!;
+    final typography = theme.extension<AppTypography>()!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          l10n.orderDeclinedReason(declineReasonLabel(context, reason)),
+          style: typography.body14.copyWith(color: colors.text2),
+        ),
+        if (note case final note?) ...<Widget>[
+          const SizedBox(height: 4),
+          Text(
+            '“$note”',
+            style: typography.body14.copyWith(color: colors.text2),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// D43 — the open dispute's reason + detail (web parity: "Dispute open
+/// ({reason}) — {detail}. Support resolves disputes…").
+class _DisputeNote extends StatelessWidget {
+  const _DisputeNote({required this.dispute, super.key});
+
+  final OrderDispute dispute;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final colors = theme.extension<AppColors>()!;
+    final typography = theme.extension<AppTypography>()!;
+    final detail = dispute.detail;
+    return Text(
+      l10n.orderDisputeOpen(
+        disputeReasonLabel(context, dispute.reason),
+        // The web template strips any trailing period — its own sentence
+        // punctuation follows.
+        detail == null ? '' : ' — ${detail.replaceAll(RegExp(r'\.$'), '')}',
+      ),
+      style: typography.body14.copyWith(color: colors.text2),
+    );
   }
 }
 
@@ -227,9 +382,12 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
-/// MI-14 — the vertical event timeline: done dots in success, the
-/// current event on the accent gradient, the next happy-path step
-/// pending (hollow).
+/// MI-14 — the vertical event timeline over the TimelineConnector ladder
+/// (D41): done dots in success, the current event on the accent gradient
+/// with the §4 pulse, connectors drawing 400ms, the next happy-path step
+/// pending (hollow), and declined/disputed/refunded/cancelled events on
+/// the terminal-error rung — never a green ✓ (web OrderDetailView
+/// ERROR_KINDS parity).
 class _Timeline extends StatelessWidget {
   const _Timeline({required this.order});
 
@@ -243,6 +401,35 @@ class _Timeline extends StatelessWidget {
     OrderStatus.shipped,
     OrderStatus.delivered,
   ];
+
+  /// Event kinds that wear the terminal-error dot (web ERROR_KINDS).
+  static const Set<String> _errorKinds = <String>{
+    'declined',
+    'disputed',
+    'refunded',
+    'cancelled',
+  };
+
+  /// Statuses whose latest event is settled — `done`, not `current`
+  /// (web TERMINAL; disputed stays `current`, it can still move).
+  static const Set<OrderStatus> _terminal = <OrderStatus>{
+    OrderStatus.delivered,
+    OrderStatus.refunded,
+    OrderStatus.declined,
+    OrderStatus.cancelled,
+  };
+
+  /// The web dot mapping, verbatim: error kinds are terminal-error at any
+  /// position; the last event is `current` unless the order is settled.
+  TimelineDotState _dotOf(OrderEvent event, {required bool lastEvent}) {
+    if (_errorKinds.contains(event.kind)) {
+      return TimelineDotState.terminalError;
+    }
+    if (!lastEvent) return TimelineDotState.done;
+    return _terminal.contains(order.status)
+        ? TimelineDotState.done
+        : TimelineDotState.current;
+  }
 
   String _labelOf(BuildContext context, OrderEvent event) {
     final l10n = context.l10n;
@@ -290,7 +477,7 @@ class _Timeline extends StatelessWidget {
     final pending = _pendingLabel(context);
 
     Widget row({
-      required Widget dot,
+      required TimelineDotState dot,
       required String label,
       required String meta,
       required bool last,
@@ -300,15 +487,9 @@ class _Timeline extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Column(
-              children: <Widget>[
-                dot,
-                if (!last)
-                  Expanded(
-                    child: Container(width: 2, color: colors.border),
-                  ),
-              ],
-            ),
+            // MI-14 (D41): the 400ms connector draw + current-dot pulse
+            // live in the shared primitive.
+            TimelineConnector(state: dot, last: last),
             const SizedBox(width: 12),
             Expanded(
               child: Padding(
@@ -344,36 +525,11 @@ class _Timeline extends StatelessWidget {
       );
     }
 
-    Widget doneDot() => Container(
-      width: 14,
-      height: 14,
-      decoration: BoxDecoration(
-        color: colors.success,
-        shape: BoxShape.circle,
-      ),
-    );
-    Widget currentDot() => Container(
-      width: 14,
-      height: 14,
-      decoration: BoxDecoration(
-        gradient: colors.accentGradient,
-        shape: BoxShape.circle,
-      ),
-    );
-    Widget pendingDot() => Container(
-      width: 14,
-      height: 14,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: colors.border, width: 2),
-      ),
-    );
-
     return Column(
       children: <Widget>[
         for (final (index, event) in order.events.indexed)
           row(
-            dot: index == order.events.length - 1 ? currentDot() : doneDot(),
+            dot: _dotOf(event, lastEvent: index == order.events.length - 1),
             label: _labelOf(context, event),
             meta: formatDateClock(event.createdAt),
             emphasize: index == order.events.length - 1,
@@ -381,7 +537,7 @@ class _Timeline extends StatelessWidget {
           ),
         if (pending != null)
           row(
-            dot: pendingDot(),
+            dot: TimelineDotState.upcoming,
             label: pending,
             meta: l10n.timelinePending,
             last: true,
@@ -467,6 +623,10 @@ class _SnapshotCard extends StatelessWidget {
 }
 
 /// Role-scoped actions per lifecycle state (order-lifecycle.md §2).
+/// Danger ladder (CLASS 5): the rows here are quiet(-danger) rungs;
+/// every irreversible transition passes an ARMED sheet first — and every
+/// transition runs inside `runAction`, so a race/double-tap surfaces as
+/// the failure toast instead of a silent StateError (D39).
 class _Actions extends StatelessWidget {
   const _Actions({required this.order, required this.viewModel});
 
@@ -475,14 +635,23 @@ class _Actions extends StatelessWidget {
 
   Future<void> _dispute(BuildContext context) async {
     final result = await showDisputeSheet(context);
-    if (result != null) {
-      await viewModel.openDispute(result.$1, detail: result.$2);
+    if (result != null && context.mounted) {
+      await runAction(
+        context,
+        () => viewModel.openDispute(result.$1, detail: result.$2),
+      );
     }
   }
 
   Future<void> _decline(BuildContext context) async {
-    final reason = await showDeclineSheet(context);
-    if (reason != null) await viewModel.decline(reason);
+    final result = await showDeclineSheet(context);
+    if (result != null && context.mounted) {
+      // D04: the optional note rides the repository call.
+      await runAction(
+        context,
+        () => viewModel.decline(result.$1, note: result.$2),
+      );
+    }
   }
 
   Future<void> _quote(BuildContext context) async {
@@ -490,8 +659,57 @@ class _Actions extends StatelessWidget {
       context,
       suggestedCents: order.budgetCents,
     );
-    if (result != null) {
-      await viewModel.sendQuote(result.$1, dueAt: result.$2);
+    if (result != null && context.mounted) {
+      await runAction(
+        context,
+        () => viewModel.sendQuote(result.$1, dueAt: result.$2),
+      );
+    }
+  }
+
+  /// D08: confirming delivery releases the payout irreversibly — the
+  /// armed sheet spells that out before anything moves (web ConfirmSheet
+  /// copy).
+  Future<void> _confirmDelivery(BuildContext context) async {
+    final l10n = context.l10n;
+    final confirmed = await showOrderConfirmSheet(
+      context,
+      title: l10n.confirmDeliveryTitle,
+      body: l10n.confirmDeliveryBody(order.designer.username),
+      confirmLabel: l10n.ordersConfirmDelivery,
+    );
+    if ((confirmed ?? false) && context.mounted) {
+      await runAction(context, viewModel.confirmDelivery);
+    }
+  }
+
+  /// D09: withdraw (requested) / reject quote (quoted) — one-tap cancel
+  /// becomes a destructive armed sheet, with the quoted state named for
+  /// what it is (web "Reject quote" parity).
+  Future<void> _withdraw(BuildContext context) async {
+    final l10n = context.l10n;
+    final quoted = order.status == OrderStatus.quoted;
+    final confirmed = await showOrderConfirmSheet(
+      context,
+      title: quoted ? l10n.rejectQuoteSheetTitle : l10n.withdrawSheetTitle,
+      body: quoted ? l10n.rejectQuoteSheetBody : l10n.withdrawSheetBody,
+      confirmLabel: quoted ? l10n.orderRejectQuote : l10n.orderWithdraw,
+      destructive: true,
+    );
+    if ((confirmed ?? false) && context.mounted) {
+      await runAction(context, viewModel.withdraw);
+    }
+  }
+
+  /// D10: mark shipped through the ship sheet — tracking is optional but
+  /// finally ENTERABLE (web ShipSheet parity).
+  Future<void> _ship(BuildContext context) async {
+    final result = await showShipSheet(context);
+    if (result != null && context.mounted) {
+      await runAction(
+        context,
+        () => viewModel.ship(tracking: result.tracking),
+      );
     }
   }
 
@@ -510,7 +728,7 @@ class _Actions extends StatelessWidget {
           Button(
             label: l10n.ordersConfirmDelivery,
             expand: true,
-            onPressed: viewModel.confirmDelivery,
+            onPressed: () => unawaited(_confirmDelivery(context)),
           ),
         );
       }
@@ -520,10 +738,12 @@ class _Actions extends StatelessWidget {
         // bare destructive fill outside an armed sheet.
         children.add(
           Button(
-            label: l10n.orderWithdraw,
+            label: order.status == OrderStatus.quoted
+                ? l10n.orderRejectQuote
+                : l10n.orderWithdraw,
             kind: ButtonKind.quietDanger,
             expand: true,
-            onPressed: viewModel.withdraw,
+            onPressed: () => unawaited(_withdraw(context)),
           ),
         );
       }
@@ -534,7 +754,7 @@ class _Actions extends StatelessWidget {
             Button(
               label: l10n.ordersSendQuote,
               expand: true,
-              onPressed: () => _quote(context),
+              onPressed: () => unawaited(_quote(context)),
             ),
           )
           ..add(
@@ -542,7 +762,7 @@ class _Actions extends StatelessWidget {
               label: l10n.declineSubmit,
               kind: ButtonKind.quietDanger,
               expand: true,
-              onPressed: () => _decline(context),
+              onPressed: () => unawaited(_decline(context)),
             ),
           );
       }
@@ -552,7 +772,8 @@ class _Actions extends StatelessWidget {
             label: l10n.orderStartWork,
             kind: ButtonKind.quiet,
             expand: true,
-            onPressed: viewModel.startProgress,
+            onPressed: () =>
+                unawaited(runAction(context, viewModel.startProgress)),
           ),
         );
       }
@@ -562,7 +783,7 @@ class _Actions extends StatelessWidget {
             label: l10n.orderMarkShipped,
             kind: ButtonKind.quiet,
             expand: true,
-            onPressed: viewModel.ship,
+            onPressed: () => unawaited(_ship(context)),
           ),
         );
       }
@@ -587,7 +808,7 @@ class _Actions extends StatelessWidget {
           Semantics(
             button: true,
             child: GestureDetector(
-              onTap: () => _dispute(context),
+              onTap: () => unawaited(_dispute(context)),
               child: Text(
                 l10n.orderSomethingWrong,
                 style: typography.body14.copyWith(
@@ -603,19 +824,50 @@ class _Actions extends StatelessWidget {
 }
 
 /// MI-17 thread bubble — own messages right on the text fill, the
-/// counterparty left on the elevated surface.
+/// counterparty left on the elevated surface. Carries the MI-18 send
+/// ladder (D40): `sending` dims the bubble, `failed` swaps the timestamp
+/// for the retry affordance so the text is never silently lost.
 class _MessageBubble extends StatelessWidget {
-  const _MessageBubble({required this.message});
+  const _MessageBubble({required this.entry, this.onRetry});
 
-  final ThreadMessage message;
+  final ThreadEntry entry;
+
+  /// Non-null only for failed rows — tapping re-sends the same body.
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final message = entry.message;
     final theme = Theme.of(context);
     final colors = theme.extension<AppColors>()!;
     final radii = theme.extension<AppRadii>()!;
     final typography = theme.extension<AppTypography>()!;
     final own = message.own;
+
+    final meta = switch (entry.sendState) {
+      ThreadSendState.sending => Text(
+        l10n.threadSending,
+        style: typography.micro12.copyWith(color: colors.text2),
+      ),
+      ThreadSendState.failed => Semantics(
+        button: true,
+        child: GestureDetector(
+          onTap: onRetry,
+          child: Text(
+            l10n.threadFailedRetry,
+            style: typography.micro12.copyWith(
+              fontWeight: FontWeight.w600,
+              color: colors.error,
+            ),
+          ),
+        ),
+      ),
+      ThreadSendState.sent => Text(
+        formatClock(message.createdAt),
+        style: typography.micro12.copyWith(color: colors.text2),
+      ),
+    };
 
     return Padding(
       padding: const EdgeInsets.only(top: 12),
@@ -624,48 +876,50 @@ class _MessageBubble extends StatelessWidget {
             ? CrossAxisAlignment.end
             : CrossAxisAlignment.start,
         children: <Widget>[
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 280),
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 10,
-              ),
-              decoration: BoxDecoration(
-                color: own ? colors.text : colors.bgElev,
-                border: own ? null : Border.all(color: colors.border),
-                borderRadius: BorderRadius.circular(radii.card * 1.5),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  if (message.imageUrl case final image?) ...<Widget>[
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(radii.card),
-                      child: Image(
-                        image: seedMediaImage(image),
-                        width: 200,
-                        height: 150,
-                        fit: BoxFit.cover,
+          Opacity(
+            // MI-18: the optimistic bubble reads in-flight until the
+            // server echo lands.
+            opacity: entry.sendState == ThreadSendState.sending ? 0.6 : 1,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 280),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: own ? colors.text : colors.bgElev,
+                  border: own ? null : Border.all(color: colors.border),
+                  borderRadius: BorderRadius.circular(radii.card * 1.5),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    if (message.imageUrl case final image?) ...<Widget>[
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(radii.card),
+                        child: Image(
+                          image: seedMediaImage(image),
+                          width: 200,
+                          height: 150,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    Text(
+                      message.body,
+                      style: typography.body14.copyWith(
+                        color: own ? colors.bg : colors.text,
                       ),
                     ),
-                    const SizedBox(height: 8),
                   ],
-                  Text(
-                    message.body,
-                    style: typography.body14.copyWith(
-                      color: own ? colors.bg : colors.text,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
           const SizedBox(height: 2),
-          Text(
-            formatClock(message.createdAt),
-            style: typography.micro12.copyWith(color: colors.text2),
-          ),
+          meta,
         ],
       ),
     );
@@ -693,6 +947,11 @@ class _ComposerState extends State<_Composer> {
 
   Future<void> _send() async {
     final body = _controller.text;
+    if (body.trim().isEmpty) return;
+    // MI-18 (D40): the optimistic bubble takes custody of the text in
+    // the same frame (web parity — the composer clears at send; a failed
+    // send keeps the text alive in the failed bubble with retry, so
+    // nothing is ever silently lost).
     _controller.clear();
     await widget.viewModel.sendMessage(body);
   }

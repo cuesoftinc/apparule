@@ -15,6 +15,11 @@ abstract class NotificationRepository {
   /// next visit renders (and the MI-16 Orders-tab badge).
   Future<void> markAllRead();
 
+  /// Marks only the ORDER-kind rows read — visiting the Orders tab
+  /// clears the MI-16 badge without touching social unreads (web
+  /// `markOrderKindsRead` / DashboardShell parity).
+  Future<void> markOrderKindsRead();
+
   /// C10 swipe-to-clear.
   Future<void> remove(String id);
 

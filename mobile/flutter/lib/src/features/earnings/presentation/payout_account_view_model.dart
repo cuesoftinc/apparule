@@ -32,8 +32,20 @@ abstract class PayoutFormState with _$PayoutFormState {
 /// C13 payout form — resolve on a complete (bank, 10-digit) pair;
 /// save attaches the resolved account and re-derives the status
 /// surfaces (C8 banner, C14 chip, settings row).
+///
+/// In-flight semantics (CLASS 8, D03): edits SUPERSEDE — every input
+/// change while a resolve is in flight starts a fresh resolve owning a
+/// new token, and a completed resolve whose token is stale is simply
+/// dropped (the newer one owns the state). `resolving` therefore always
+/// terminates in resolved/failed/idle; the phase can never wedge with
+/// the spinner up and no Save or Retry in reach.
 @riverpod
 class PayoutAccountViewModel extends _$PayoutAccountViewModel {
+  /// The supersede token — bumped by every resolve start AND every
+  /// incomplete-input reset, so an in-flight result can always tell it
+  /// has been overtaken.
+  int _resolveToken = 0;
+
   @override
   PayoutFormState build() {
     unawaited(_loadBanks());
@@ -56,11 +68,13 @@ class PayoutAccountViewModel extends _$PayoutAccountViewModel {
   }
 
   /// The failed state's "Retry verification".
-  Future<void> retry() => _maybeResolve(force: true);
+  Future<void> retry() => _maybeResolve();
 
-  Future<void> _maybeResolve({bool force = false}) async {
+  Future<void> _maybeResolve() async {
     final bank = state.bank;
     if (bank == null || state.accountNumber.length != 10) {
+      // Incomplete pair: invalidate any in-flight resolve and rest idle.
+      _resolveToken++;
       if (state.phase != PayoutFormPhase.idle) {
         state = state.copyWith(
           phase: PayoutFormPhase.idle,
@@ -69,24 +83,23 @@ class PayoutAccountViewModel extends _$PayoutAccountViewModel {
       }
       return;
     }
-    if (state.phase == PayoutFormPhase.resolving && !force) return;
+    final token = ++_resolveToken;
     state = state.copyWith(
       phase: PayoutFormPhase.resolving,
       resolution: null,
     );
-    final requested = (bank.code, state.accountNumber);
     try {
       final resolution = await ref
           .read(earningsRepositoryProvider)
           .resolveBank(bank.code, state.accountNumber);
-      // Inputs changed mid-flight — the newer resolve owns the state.
-      if ((state.bank?.code, state.accountNumber) != requested) return;
+      // Superseded mid-flight — the newer resolve owns the state.
+      if (token != _resolveToken) return;
       state = state.copyWith(
         phase: PayoutFormPhase.resolved,
         resolution: resolution,
       );
     } on EarningsException {
-      if ((state.bank?.code, state.accountNumber) != requested) return;
+      if (token != _resolveToken) return;
       state = state.copyWith(
         phase: PayoutFormPhase.failed,
         failCount: state.failCount + 1,

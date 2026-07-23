@@ -11,6 +11,13 @@ part of 'payout_account_view_model.dart';
 /// C13 payout form — resolve on a complete (bank, 10-digit) pair;
 /// save attaches the resolved account and re-derives the status
 /// surfaces (C8 banner, C14 chip, settings row).
+///
+/// In-flight semantics (CLASS 8, D03): edits SUPERSEDE — every input
+/// change while a resolve is in flight starts a fresh resolve owning a
+/// new token, and a completed resolve whose token is stale is simply
+/// dropped (the newer one owns the state). `resolving` therefore always
+/// terminates in resolved/failed/idle; the phase can never wedge with
+/// the spinner up and no Save or Retry in reach.
 
 @ProviderFor(PayoutAccountViewModel)
 final payoutAccountViewModelProvider = PayoutAccountViewModelProvider._();
@@ -18,11 +25,25 @@ final payoutAccountViewModelProvider = PayoutAccountViewModelProvider._();
 /// C13 payout form — resolve on a complete (bank, 10-digit) pair;
 /// save attaches the resolved account and re-derives the status
 /// surfaces (C8 banner, C14 chip, settings row).
+///
+/// In-flight semantics (CLASS 8, D03): edits SUPERSEDE — every input
+/// change while a resolve is in flight starts a fresh resolve owning a
+/// new token, and a completed resolve whose token is stale is simply
+/// dropped (the newer one owns the state). `resolving` therefore always
+/// terminates in resolved/failed/idle; the phase can never wedge with
+/// the spinner up and no Save or Retry in reach.
 final class PayoutAccountViewModelProvider
     extends $NotifierProvider<PayoutAccountViewModel, PayoutFormState> {
   /// C13 payout form — resolve on a complete (bank, 10-digit) pair;
   /// save attaches the resolved account and re-derives the status
   /// surfaces (C8 banner, C14 chip, settings row).
+  ///
+  /// In-flight semantics (CLASS 8, D03): edits SUPERSEDE — every input
+  /// change while a resolve is in flight starts a fresh resolve owning a
+  /// new token, and a completed resolve whose token is stale is simply
+  /// dropped (the newer one owns the state). `resolving` therefore always
+  /// terminates in resolved/failed/idle; the phase can never wedge with
+  /// the spinner up and no Save or Retry in reach.
   PayoutAccountViewModelProvider._()
     : super(
         from: null,
@@ -51,11 +72,18 @@ final class PayoutAccountViewModelProvider
 }
 
 String _$payoutAccountViewModelHash() =>
-    r'3d32c5c8d44507f5895a4747edeb82a02c358339';
+    r'd012635faa99fb4f771fd6f7c673f1de5a155d09';
 
 /// C13 payout form — resolve on a complete (bank, 10-digit) pair;
 /// save attaches the resolved account and re-derives the status
 /// surfaces (C8 banner, C14 chip, settings row).
+///
+/// In-flight semantics (CLASS 8, D03): edits SUPERSEDE — every input
+/// change while a resolve is in flight starts a fresh resolve owning a
+/// new token, and a completed resolve whose token is stale is simply
+/// dropped (the newer one owns the state). `resolving` therefore always
+/// terminates in resolved/failed/idle; the phase can never wedge with
+/// the spinner up and no Save or Retry in reach.
 
 abstract class _$PayoutAccountViewModel extends $Notifier<PayoutFormState> {
   PayoutFormState build();

@@ -1,7 +1,10 @@
-/// The C8 dispute/decline/quote sheets (canvas C8-dispute, C8-decline).
-/// Sheets are the armed rung of the danger ladder — their confirm
-/// buttons are FILLED destructive; the row-level entries on the detail
-/// screen stay quiet-danger (ButtonKind.quietDanger).
+/// The C8 dispute/decline/quote/ship/confirm sheets (canvas C8-dispute,
+/// C8-decline; web sibling `OrderActionSheets.tsx`). Sheets are the armed
+/// rung of the danger ladder — their confirm buttons are FILLED
+/// destructive and the danger sheets are born DISARMED (CLASS 5: the
+/// reason starts null and the destructive CTA stays disabled until one is
+/// deliberately picked); the row-level entries on the detail screen stay
+/// quiet-danger (ButtonKind.quietDanger).
 library;
 
 import 'package:apparule/src/core/l10n/l10n.dart';
@@ -45,12 +48,47 @@ Future<(DisputeReason, String?)?> showDisputeSheet(BuildContext context) {
   );
 }
 
-/// C8 decline sheet (designer) — resolves with the reason, or null.
-Future<DeclineReason?> showDeclineSheet(BuildContext context) {
-  return Sheet.show<DeclineReason>(
+/// C8 decline sheet (designer) — resolves with the picked reason + the
+/// optional note to the customer (D04 — the note rides the repository
+/// call, web `DeclineSheet` parity), or null.
+Future<(DeclineReason, String?)?> showDeclineSheet(BuildContext context) {
+  return Sheet.show<(DeclineReason, String?)>(
     context,
     title: context.l10n.declineTitle,
     child: const _DeclineForm(),
+  );
+}
+
+/// C8 ship sheet (designer) — resolves with the optional tracking number
+/// (D10 — web `ShipSheet` parity; a null record field means "shipped
+/// without tracking", a null result means dismissed).
+Future<({String? tracking})?> showShipSheet(BuildContext context) {
+  return Sheet.show<({String? tracking})>(
+    context,
+    title: context.l10n.shipSheetTitle,
+    child: const _ShipForm(),
+  );
+}
+
+/// Generic armed confirm (web `ConfirmSheet` parity) — the rung between
+/// a quiet(-danger) row and an irreversible transition (D08/D09):
+/// confirm-delivery releases the payout, withdraw/reject cancels the
+/// order. Resolves true only on the explicit confirm tap.
+Future<bool?> showOrderConfirmSheet(
+  BuildContext context, {
+  required String title,
+  required String body,
+  required String confirmLabel,
+  bool destructive = false,
+}) {
+  return Sheet.show<bool>(
+    context,
+    title: title,
+    child: _ConfirmForm(
+      body: body,
+      confirmLabel: confirmLabel,
+      destructive: destructive,
+    ),
   );
 }
 
@@ -104,19 +142,23 @@ InputDecoration _fieldDecoration(BuildContext context, {String? hint}) {
   );
 }
 
-/// Reason dropdown shared by the two danger sheets.
+/// Reason dropdown shared by the two danger sheets. [value] starts null
+/// (CLASS 5: the sheet is born disarmed — no default reason ever lands
+/// silently); [hint] renders as the unpicked placeholder.
 class _ReasonSelect<T> extends StatelessWidget {
   const _ReasonSelect({
     required this.value,
     required this.values,
     required this.labelOf,
     required this.onChanged,
+    required this.hint,
   });
 
-  final T value;
+  final T? value;
   final List<T> values;
   final String Function(BuildContext, T) labelOf;
   final ValueChanged<T> onChanged;
+  final String hint;
 
   @override
   Widget build(BuildContext context) {
@@ -144,7 +186,7 @@ class _ReasonSelect<T> extends StatelessWidget {
       style: typography.body14.copyWith(color: colors.text),
       icon: Icon(LucideIcons.chevronDown, size: 18, color: colors.text2),
       dropdownColor: colors.bgElev,
-      decoration: _fieldDecoration(context),
+      decoration: _fieldDecoration(context, hint: hint),
     );
   }
 }
@@ -235,7 +277,9 @@ class _DisputeForm extends StatefulWidget {
 }
 
 class _DisputeFormState extends State<_DisputeForm> {
-  DisputeReason _reason = DisputeReason.sizeWrong;
+  // CLASS 5 (D11): born disarmed — the destructive confirm stays disabled
+  // until a reason is deliberately picked (web DisputeSheet parity).
+  DisputeReason? _reason;
   final TextEditingController _detail = TextEditingController();
 
   @override
@@ -261,6 +305,7 @@ class _DisputeFormState extends State<_DisputeForm> {
           values: DisputeReason.values,
           labelOf: disputeReasonLabel,
           onChanged: (reason) => setState(() => _reason = reason),
+          hint: l10n.disputeReasonPlaceholder,
         ),
         const SizedBox(height: 16),
         _fieldLabel(context, l10n.disputeDetailLabel),
@@ -282,12 +327,15 @@ class _DisputeFormState extends State<_DisputeForm> {
           label: l10n.disputeSubmit,
           kind: ButtonKind.destructive,
           expand: true,
-          onPressed: () => Navigator.of(context).pop(
-            (
-              _reason,
-              _detail.text.trim().isEmpty ? null : _detail.text.trim(),
-            ),
-          ),
+          // Arms only once a reason exists — never enabled on frame one.
+          onPressed: _reason == null
+              ? null
+              : () => Navigator.of(context).pop(
+                  (
+                    _reason!,
+                    _detail.text.trim().isEmpty ? null : _detail.text.trim(),
+                  ),
+                ),
         ),
         const SizedBox(height: 12),
         Text(
@@ -307,7 +355,9 @@ class _DeclineForm extends StatefulWidget {
 }
 
 class _DeclineFormState extends State<_DeclineForm> {
-  DeclineReason _reason = DeclineReason.workload;
+  // CLASS 5 (D12): "reason required" means REQUIRED — no default applies
+  // silently; the destructive confirm arms only on a deliberate pick.
+  DeclineReason? _reason;
   final TextEditingController _note = TextEditingController();
 
   @override
@@ -333,6 +383,7 @@ class _DeclineFormState extends State<_DeclineForm> {
           values: DeclineReason.values,
           labelOf: declineReasonLabel,
           onChanged: (reason) => setState(() => _reason = reason),
+          hint: l10n.declineReasonPlaceholder,
         ),
         const SizedBox(height: 16),
         _fieldLabel(context, l10n.declineNoteLabel),
@@ -348,7 +399,15 @@ class _DeclineFormState extends State<_DeclineForm> {
           label: l10n.declineSubmit,
           kind: ButtonKind.destructive,
           expand: true,
-          onPressed: () => Navigator.of(context).pop(_reason),
+          // D04: the note rides along; D12: disarmed until a reason lands.
+          onPressed: _reason == null
+              ? null
+              : () => Navigator.of(context).pop(
+                  (
+                    _reason!,
+                    _note.text.trim().isEmpty ? null : _note.text.trim(),
+                  ),
+                ),
         ),
         const SizedBox(height: 12),
         Text(
@@ -441,6 +500,113 @@ class _QuoteFormState extends State<_QuoteForm> {
         Text(
           l10n.quoteFooter,
           style: typography.caption13.copyWith(color: colors.text2),
+        ),
+      ],
+    );
+  }
+}
+
+/// D10 — the mark-shipped form: one optional tracking field (web
+/// `ShipSheet` parity; the CTA is primary, not destructive — shipping is
+/// the happy path).
+class _ShipForm extends StatefulWidget {
+  const _ShipForm();
+
+  @override
+  State<_ShipForm> createState() => _ShipFormState();
+}
+
+class _ShipFormState extends State<_ShipForm> {
+  final TextEditingController _tracking = TextEditingController();
+
+  @override
+  void dispose() {
+    _tracking.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final colors = theme.extension<AppColors>()!;
+    final typography = theme.extension<AppTypography>()!;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        _fieldLabel(context, l10n.shipTrackingLabel),
+        TextField(
+          controller: _tracking,
+          autocorrect: false,
+          style: typography.body14.copyWith(color: colors.text),
+          decoration: _fieldDecoration(context, hint: 'GIG-0000-LAG'),
+        ),
+        const SizedBox(height: 16),
+        Button(
+          label: l10n.shipSubmit,
+          expand: true,
+          onPressed: () {
+            final tracking = _tracking.text.trim();
+            Navigator.of(
+              context,
+            ).pop((tracking: tracking.isEmpty ? null : tracking));
+          },
+        ),
+        const SizedBox(height: 12),
+        Text(
+          l10n.shipFooter,
+          style: typography.caption13.copyWith(color: colors.text2),
+        ),
+      ],
+    );
+  }
+}
+
+/// D08/D09 — the generic armed confirm body: explainer copy over a
+/// Cancel/confirm pair (web `ConfirmSheet` parity).
+class _ConfirmForm extends StatelessWidget {
+  const _ConfirmForm({
+    required this.body,
+    required this.confirmLabel,
+    required this.destructive,
+  });
+
+  final String body;
+  final String confirmLabel;
+  final bool destructive;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final colors = theme.extension<AppColors>()!;
+    final typography = theme.extension<AppTypography>()!;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Text(
+          body,
+          style: typography.body14.copyWith(color: colors.text2),
+        ),
+        const SizedBox(height: 16),
+        Button(
+          label: confirmLabel,
+          kind: destructive
+              ? ButtonKind.destructive
+              : ButtonKind.gradientPrimary,
+          expand: true,
+          onPressed: () => Navigator.of(context).pop(true),
+        ),
+        const SizedBox(height: 12),
+        Button(
+          label: l10n.sheetCancel,
+          kind: ButtonKind.quiet,
+          expand: true,
+          onPressed: () => Navigator.of(context).pop(false),
         ),
       ],
     );

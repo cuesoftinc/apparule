@@ -11,7 +11,9 @@ part of 'order_detail_view_model.dart';
 /// C8's detail ViewModel — every action is a REAL lifecycle transition on
 /// the repository (validated against order-lifecycle.md §1); the updated
 /// order echoes into this state and invalidates the list so its pill
-/// pulses to the new state (MI-14).
+/// pulses to the new state (MI-14). Lifecycle actions rethrow — the
+/// screen wraps them in `runAction` (CLASS 4), so races/double-taps
+/// surface as a toast instead of a silent unhandled StateError (D39).
 
 @ProviderFor(OrderDetailViewModel)
 final orderDetailViewModelProvider = OrderDetailViewModelFamily._();
@@ -19,13 +21,17 @@ final orderDetailViewModelProvider = OrderDetailViewModelFamily._();
 /// C8's detail ViewModel — every action is a REAL lifecycle transition on
 /// the repository (validated against order-lifecycle.md §1); the updated
 /// order echoes into this state and invalidates the list so its pill
-/// pulses to the new state (MI-14).
+/// pulses to the new state (MI-14). Lifecycle actions rethrow — the
+/// screen wraps them in `runAction` (CLASS 4), so races/double-taps
+/// surface as a toast instead of a silent unhandled StateError (D39).
 final class OrderDetailViewModelProvider
     extends $AsyncNotifierProvider<OrderDetailViewModel, OrderDetailState> {
   /// C8's detail ViewModel — every action is a REAL lifecycle transition on
   /// the repository (validated against order-lifecycle.md §1); the updated
   /// order echoes into this state and invalidates the list so its pill
-  /// pulses to the new state (MI-14).
+  /// pulses to the new state (MI-14). Lifecycle actions rethrow — the
+  /// screen wraps them in `runAction` (CLASS 4), so races/double-taps
+  /// surface as a toast instead of a silent unhandled StateError (D39).
   OrderDetailViewModelProvider._({
     required OrderDetailViewModelFamily super.from,
     required String super.argument,
@@ -63,12 +69,14 @@ final class OrderDetailViewModelProvider
 }
 
 String _$orderDetailViewModelHash() =>
-    r'fcc6a74a65f04b9e8ea72d3086179ea3dc9f63db';
+    r'96d190928cf4b55b532a779a8ecd72d64325b3e2';
 
 /// C8's detail ViewModel — every action is a REAL lifecycle transition on
 /// the repository (validated against order-lifecycle.md §1); the updated
 /// order echoes into this state and invalidates the list so its pill
-/// pulses to the new state (MI-14).
+/// pulses to the new state (MI-14). Lifecycle actions rethrow — the
+/// screen wraps them in `runAction` (CLASS 4), so races/double-taps
+/// surface as a toast instead of a silent unhandled StateError (D39).
 
 final class OrderDetailViewModelFamily extends $Family
     with
@@ -91,7 +99,9 @@ final class OrderDetailViewModelFamily extends $Family
   /// C8's detail ViewModel — every action is a REAL lifecycle transition on
   /// the repository (validated against order-lifecycle.md §1); the updated
   /// order echoes into this state and invalidates the list so its pill
-  /// pulses to the new state (MI-14).
+  /// pulses to the new state (MI-14). Lifecycle actions rethrow — the
+  /// screen wraps them in `runAction` (CLASS 4), so races/double-taps
+  /// surface as a toast instead of a silent unhandled StateError (D39).
 
   OrderDetailViewModelProvider call(String orderId) =>
       OrderDetailViewModelProvider._(argument: orderId, from: this);
@@ -103,7 +113,9 @@ final class OrderDetailViewModelFamily extends $Family
 /// C8's detail ViewModel — every action is a REAL lifecycle transition on
 /// the repository (validated against order-lifecycle.md §1); the updated
 /// order echoes into this state and invalidates the list so its pill
-/// pulses to the new state (MI-14).
+/// pulses to the new state (MI-14). Lifecycle actions rethrow — the
+/// screen wraps them in `runAction` (CLASS 4), so races/double-taps
+/// surface as a toast instead of a silent unhandled StateError (D39).
 
 abstract class _$OrderDetailViewModel extends $AsyncNotifier<OrderDetailState> {
   late final _$args = ref.$arg as String;
