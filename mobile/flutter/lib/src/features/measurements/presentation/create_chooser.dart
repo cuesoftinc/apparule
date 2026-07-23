@@ -14,11 +14,9 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 /// two-option Sheet on the C1b choice-card language — "Take measurements"
 /// (primary, accent border) hands off to the capture entry gesture
 /// (guide on first run, camera once the persisted flag is set), "Post an
-/// outfit" is designer-gated: non-designers route to C13
-/// become-a-designer ("Become a designer to post"); designers see the
-/// fit-data subtitle and take the same route until the C15 composer
-/// ships (M-11: the chooser offers capture + become-a-designer only
-/// until then).
+/// outfit" is designer-gated: designers see the fit-data subtitle and
+/// route to the C15 composer; non-designers route to C13
+/// become-a-designer ("Become a designer to post").
 Future<void> showCreateChooser(BuildContext context) {
   return Sheet.show<void>(
     context,
@@ -63,8 +61,12 @@ class _CreateChooserBody extends ConsumerWidget {
                 : l10n.createChooserPostMetaNonDesigner,
             onTap: () {
               Navigator.of(context).pop();
+              // Designer-gated (M-11): designers compose (C15),
+              // everyone else lands on become-a-designer (C13).
               unawaited(
-                const DesignerOnboardingRoute().push<void>(context),
+                designer
+                    ? const ComposerRoute().push<void>(context)
+                    : const DesignerOnboardingRoute().push<void>(context),
               );
             },
           ),

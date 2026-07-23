@@ -4,6 +4,7 @@ import 'package:apparule/src/core/data/persistence_service.dart';
 import 'package:apparule/src/core/theme/app_theme.dart';
 import 'package:apparule/src/features/auth/data/auth_repository.dart';
 import 'package:apparule/src/features/earnings/data/earnings_repository.dart';
+import 'package:apparule/src/features/feed/data/media_picker_service.dart';
 import 'package:apparule/src/features/feed/data/post_repository.dart';
 import 'package:apparule/src/features/measurements/data/camera_service.dart';
 import 'package:apparule/src/features/measurements/data/measurement_repository.dart';
@@ -33,6 +34,7 @@ extension PumpApp on WidgetTester {
     List<Override> overrides = const <Override>[],
     AuthRepository? authRepository,
     CameraService? cameraService,
+    MediaPickerService? mediaPickerService,
     MeasurementRepository? measurementRepository,
     PostRepository? postRepository,
     OrderRepository? orderRepository,
@@ -52,6 +54,7 @@ extension PumpApp on WidgetTester {
             persistenceService:
                 persistenceService ?? InMemoryPersistenceService(),
             cameraService: cameraService,
+            mediaPickerService: mediaPickerService,
             measurementRepository: measurementRepository,
             postRepository: postRepository,
             orderRepository: orderRepository,

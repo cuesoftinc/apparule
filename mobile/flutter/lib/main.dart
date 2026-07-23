@@ -1,6 +1,7 @@
 import 'package:apparule/src/app/bootstrap.dart';
 import 'package:apparule/src/app/di.dart';
 import 'package:apparule/src/core/utils/app_flavor.dart';
+import 'package:apparule/src/features/feed/data/media_picker_service_live.dart';
 import 'package:apparule/src/features/measurements/data/camera_service_live.dart';
 
 /// prod entrypoint (the default) — CueLABS production runs on the sandbox
@@ -28,8 +29,12 @@ import 'package:apparule/src/features/measurements/data/camera_service_live.dart
 /// the API wave (§1 phase 4) the same way.
 Future<void> main() => bootstrap(
   flavor: AppFlavor.prod,
-  // The real C6 viewfinder (hardware isn't env-gated the way `*Remote`
-  // repositories are); measurements still ride the fake set until the
-  // API wave.
-  overrides: fakeRepositoryOverrides(cameraService: CameraServiceLive()),
+  // The real C6 viewfinder and the real C15 photo picker (hardware and
+  // the photo library aren't env-gated the way `*Remote` repositories
+  // are); measurements and posts still ride the fake set until the API
+  // wave.
+  overrides: fakeRepositoryOverrides(
+    cameraService: CameraServiceLive(),
+    mediaPickerService: MediaPickerServiceLive(),
+  ),
 );

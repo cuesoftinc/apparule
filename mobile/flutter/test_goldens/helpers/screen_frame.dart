@@ -2,6 +2,7 @@ import 'package:apparule/l10n/generated/app_localizations.dart';
 import 'package:apparule/src/app/di.dart';
 import 'package:apparule/src/features/auth/data/auth_repository.dart';
 import 'package:apparule/src/features/earnings/data/earnings_repository.dart';
+import 'package:apparule/src/features/feed/data/media_picker_service.dart';
 import 'package:apparule/src/features/feed/data/post_repository.dart';
 import 'package:apparule/src/features/measurements/data/camera_service.dart';
 import 'package:apparule/src/features/measurements/data/measurement_repository.dart';
@@ -22,6 +23,7 @@ Widget screenFrame(
   List<Override> overrides = const <Override>[],
   AuthRepository? authRepository,
   CameraService? cameraService,
+  MediaPickerService? mediaPickerService,
   MeasurementRepository? measurementRepository,
   PostRepository? postRepository,
   OrderRepository? orderRepository,
@@ -37,6 +39,7 @@ Widget screenFrame(
         // in-memory stand-in keeps the fake auth lifecycle hermetic.
         persistenceService: InMemoryPersistenceService(),
         cameraService: cameraService,
+        mediaPickerService: mediaPickerService,
         measurementRepository: measurementRepository,
         postRepository: postRepository,
         orderRepository: orderRepository,

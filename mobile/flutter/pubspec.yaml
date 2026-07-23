@@ -36,6 +36,12 @@ dependencies:
   freezed_annotation: ^3.1.0
   go_router: ^17.3.0
   google_sign_in: ^7.2.0
+  # Pin-ledger addition (C15 composer wave) — FLAGGED: not yet in the
+  # ratified standards-research ledger. The first-party media picker
+  # (Android Photo Picker / iOS PHPicker) behind the abstract
+  # `MediaPickerService` seam; dev/CI ride `MediaPickerServiceFake`
+  # (bundled §6 sample images, no photo library).
+  image_picker: ^1.2.0
   # Ledger says ^0.20.3, but flutter_localizations (SDK 3.44.7) pins intl
   # 0.20.2 exactly — ^0.20.2 is the widest range the SDK admits.
   intl: ^0.20.2

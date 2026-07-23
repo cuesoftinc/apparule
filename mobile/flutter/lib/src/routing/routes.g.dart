@@ -16,6 +16,7 @@ List<RouteBase> get $appRoutes => [
   $vaultRoute,
   $earningsRoute,
   $postDetailRoute,
+  $composerRoute,
   $requestRoute,
   $orderDetailRoute,
   $notificationsRoute,
@@ -383,6 +384,32 @@ mixin $PostCommentsRoute on GoRouteData {
   @override
   String get location =>
       GoRouteData.$location('/post/${Uri.encodeComponent(_self.id)}/comments');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $composerRoute => GoRouteData.$route(
+  path: '/create/post',
+  hasOverriddenOnExit: false,
+  factory: $ComposerRoute._fromState,
+);
+
+mixin $ComposerRoute on GoRouteData {
+  static ComposerRoute _fromState(GoRouterState state) => const ComposerRoute();
+
+  @override
+  String get location => GoRouteData.$location('/create/post');
 
   @override
   void go(BuildContext context) => context.go(location);

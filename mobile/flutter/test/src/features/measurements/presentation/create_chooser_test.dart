@@ -2,6 +2,7 @@ import 'package:apparule/src/core/ui/choice_card.dart';
 import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/features/earnings/data/earnings_repository_fake.dart';
 import 'package:apparule/src/features/earnings/presentation/designer_onboarding_screen.dart';
+import 'package:apparule/src/features/feed/presentation/composer_screen.dart';
 import 'package:apparule/src/features/measurements/presentation/capture_screen.dart';
 import 'package:apparule/src/features/measurements/presentation/guide_screen.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,8 +12,8 @@ import '../../../../helpers/boot_app.dart';
 /// The ➕ create chooser (M-11, canvas 548:2725): the centre tab opens a
 /// two-option sheet — "Take measurements" preserves the guide-first-run
 /// capture entry; "Post an outfit" is designer-gated (C13 for
-/// non-designers; designers see the fit-data subtitle and take the same
-/// route until C15 ships).
+/// non-designers; designers see the fit-data subtitle and route to the
+/// C15 composer).
 void main() {
   Future<void> bootAndOpenChooser(
     WidgetTester tester, {
@@ -88,7 +89,7 @@ void main() {
   });
 
   testWidgets('Post an outfit (designer) carries the fit-data subtitle and '
-      'takes the same route until C15 ships', (tester) async {
+      'routes to the C15 composer', (tester) async {
     await bootAndOpenChooser(tester, viewer: 'amara.designs');
 
     expect(find.text('Share a look with its fit data'), findsOneWidget);
@@ -97,6 +98,7 @@ void main() {
     await tester.tap(find.text('Post an outfit'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(DesignerOnboardingScreen), findsOneWidget);
+    expect(find.byType(ComposerScreen), findsOneWidget);
+    expect(find.byType(DesignerOnboardingScreen), findsNothing);
   });
 }
