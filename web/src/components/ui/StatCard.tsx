@@ -2,13 +2,14 @@
 
 // StatCard — design.md §8.2b Home section kit: 3 stat cards, fade-up on
 // scroll-into-view (once, pages.md A3). Accuracy standard (2026-07-18):
-// product claims only — ±2 cm target accuracy · 2 photos · 30-day photo
-// auto-delete — never invented research statistics.
+// product claims only — ±0.8 in target accuracy (the A-9 inches display of
+// the pipeline's canonical ±2 cm) · 2 photos · 30-day photo auto-delete —
+// never invented research statistics.
 import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 
 export interface StatCardProps {
-  /** The claim headline, e.g. "±2 cm". */
+  /** The claim headline, e.g. "±0.8 in". */
   stat: string;
   label: string;
   className?: string;

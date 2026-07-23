@@ -27,7 +27,7 @@ export interface MeasurementCardProps {
 export function MeasurementCard({
   name,
   valueCm,
-  unit = "cm",
+  unit = "in",
   source,
   confidence = null,
   history,

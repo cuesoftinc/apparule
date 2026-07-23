@@ -15,7 +15,7 @@ const FAQS = [
     id: "faq-1",
     question: "How accurate are camera measurements?",
     answer:
-      "We target within ±2 cm of a professional tape measure for most values. Good lighting and a full-body frame matter — the capture guide checks both, and you can correct any value manually.",
+      "We target within ±0.8 in of a professional tape measure for most values. Good lighting and a full-body frame matter — the capture guide checks both, and you can correct any value manually.",
   },
   {
     id: "faq-2",

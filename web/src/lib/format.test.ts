@@ -17,11 +17,17 @@ describe("format utilities", () => {
     expect(formatNaira(-620_000)).toBe("−₦6,200");
   });
 
-  it("formats centimetres and inches — always one decimal (Figma '58.0 cm' idiom)", () => {
-    expect(formatCm(42.5)).toBe("42.5 cm");
-    expect(formatCm(42)).toBe("42.0 cm");
-    expect(formatCm(92)).toBe("92.0 cm");
+  it("defaults to inches (A-9) — always one decimal (Figma '58.0 cm' idiom)", () => {
+    // Values are canonical cm in; inches are the default display out.
+    expect(formatCm(42.5)).toBe("16.7 in");
+    expect(formatCm(50.8)).toBe("20.0 in");
     expect(formatCm(50.8, "in")).toBe("20.0 in");
+  });
+
+  it("keeps cm available via the unit toggle (storage stays canonical cm)", () => {
+    expect(formatCm(42.5, "cm")).toBe("42.5 cm");
+    expect(formatCm(42, "cm")).toBe("42.0 cm");
+    expect(formatCm(92, "cm")).toBe("92.0 cm");
   });
 
   it("formats relative ages", () => {

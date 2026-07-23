@@ -7,7 +7,7 @@ function renderGroup() {
   return render(
     <FAQGroup defaultOpenId="faq-1">
       <FAQItem id="faq-1" question="How accurate are the measurements?">
-        ±2 cm target.
+        ±0.8 in target.
       </FAQItem>
       <FAQItem id="faq-2" question="Who can see my measurements?">
         No one.
@@ -35,7 +35,7 @@ describe("FAQItem (§8.2b as built)", () => {
       screen.getByRole("button", { name: "Who can see my measurements?" }),
     );
     expect(screen.getByText("No one.")).toBeInTheDocument();
-    expect(screen.queryByText("±2 cm target.")).not.toBeInTheDocument();
+    expect(screen.queryByText("±0.8 in target.")).not.toBeInTheDocument();
   });
 
   it("rows are deep-linkable via DOM ids (#faq-n)", () => {
@@ -51,6 +51,6 @@ describe("FAQItem (§8.2b as built)", () => {
     });
     await userEvent.click(first);
     expect(first).toHaveAttribute("aria-expanded", "false");
-    expect(screen.queryByText("±2 cm target.")).not.toBeInTheDocument();
+    expect(screen.queryByText("±0.8 in target.")).not.toBeInTheDocument();
   });
 });

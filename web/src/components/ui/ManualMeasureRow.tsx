@@ -5,6 +5,7 @@
 // state default / active / error (MI-13). Value changes animate the
 // caller's sparkline preview via onChange.
 import clsx from "clsx";
+import { CM_PER_IN } from "@/lib/format";
 import { Input, type MeasureUnit } from "./Input";
 
 export interface ManualMeasureRowProps {
@@ -28,8 +29,6 @@ export function humanizeMeasureName(name: string): string {
     .map((w) => w[0]?.toUpperCase() + w.slice(1))
     .join(" ");
 }
-
-const CM_PER_IN = 2.54;
 
 export function ManualMeasureRow({
   name,

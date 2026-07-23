@@ -135,7 +135,7 @@ Numbered so pages.md can reference them as `MI-n`.
 | MI-10 | **Request stepper** | 3-step sheet (Measurements → Notes/Budget → Review); progress bar fills with 300ms ease; step transitions slide 24px; final CTA shows inline spinner then ✓ morph + confetti burst ≤ 800ms (once per order) |
 | MI-11 | **Measurement freshness ring** | vault-header avatar ring: gradient if measured <30d, amber 30–90d, gray >90d; tooltip "Measured 12 days ago — retake?" — the ring is a vault affordance; profile avatars, including the viewer's own B6 profile, render plain **[Decided 2026-07-20]** |
 | MI-12 | **Capture flow** | camera overlay silhouette guide pulses gently; countdown 3-2-1 rings; processing state: landmark constellation animates over photo (the "AI is working" moment — also the SMPL demo asset); results cards stagger-in 60ms apart |
-| MI-13 | **Manual measure input** | tape-measure themed slider + numeric field; value change animates sparkline preview; unit toggle cm/in flips with 3D x-rotation 200ms |
+| MI-13 | **Manual measure input** | tape-measure themed slider + numeric field; value change animates sparkline preview; unit toggle cm/in flips with 3D x-rotation 200ms — inches active by default (A-9), the toggle persists the user's choice; storage stays canonical cm |
 | MI-14 | **Order status pill** | status changes pulse once (scale 1→1.06→1) + color crossfade; timeline dot draws its connector line 400ms |
 | MI-15 | **Payment states** | pay button → inline spinner → shield-check morph; escrow explainer expands beneath on first payment |
 | MI-16 | **Badge counts** | Orders tab badge increments with springy scale; clears on tab visit |
@@ -354,8 +354,9 @@ Stage 5 and non-blocking; everything else feeds Stages 1–4.
 | FAQItem | question + chevron · state: collapsed / expanded · one-open-at-a-time group, rows deep-linkable (pages.md A9b) · theme ×2 · **as built (2026-07-18):** ≈720px accordion row; chevron rotates 180° on expand/collapse (`base` 200ms) — the iteration addition the note below anticipated |
 
 *Accuracy standard (2026-07-18):* the marketing stat band (StatCard ×3,
-pages.md A3) carries **product claims only** — ±2 cm target accuracy · 2
-photos · 30-day photo auto-delete — never invented research statistics; the
+pages.md A3) carries **product claims only** — ±0.8 in target accuracy (the
+A-9 inches display of the pipeline's canonical ±2 cm target) · 2 photos ·
+30-day photo auto-delete — never invented research statistics; the
 same rule keeps master badges neutral (no star or member counts on canvases).
 
 *Iteration note (2026-07-18):* the home FAQ section (pages.md A9b) implies a

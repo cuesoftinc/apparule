@@ -90,6 +90,17 @@ before public launch. Alternative: commission the brand pass first.
 
 ☑ Ratified
 
+## A-9 · Inches are the default display unit
+
+**Recommendation ⭐:** inches as the default measurement DISPLAY unit —
+Nigerian tailors work in inches. Scope: display + input defaults on web AND
+mobile (formatters, measurement cards, manual entry, the capture height
+field); cm stays canonical in storage, API payloads (`value_cm`,
+`user_height_cm`), and the QC pipeline; the MI-13 cm/in toggle persists the
+user's choice.
+
+☑ Ratified 2026-07-23
+
 ## Cross-cutting (shared with expendit/upstat)
 
 - **X-1 account.cuesoft.io / identity (RATIFIED)**: interim + sandbox identity
