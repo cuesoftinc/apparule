@@ -108,6 +108,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
     subtitle; routes to C13 become-a-designer for everyone until the
     C15 composer ships) (#164).
 
+- `.cuelabs/project.yaml` — the CueLABS project manifest (standards
+  catalog v2): declares surface truth — web and mobile flutter active; `api/common` + `api/measure` planned pending the backend go —
+  so standards tooling audits declared state instead of inferring it.
+
 ### Changed
 
 - Inches are the default measurement display unit on web (A-9 — Nigerian
@@ -363,6 +367,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   and Flutter to feature-first `lib/src` with `snake_case.dart` (#47).
 - Aligned README + docs (overview, setup) to the shared CueLABS™ section
   structure; run commands use `make up` / `go run ./cmd/server` (#47).
+
+- `SECURITY.md` and `CONTRIBUTING.md` synced to the v2 standards
+  templates: the security policy gains the private-vulnerability-reporting
+  flow with the dedicated `security@cuesoft.io` mailbox, and contributor
+  setup routes through the README, `.env.example`, and `make help`.
 
 ### Removed
 
