@@ -516,8 +516,9 @@ on it:
 1. **Auth**: the `AuthProvider` resolves to `TestModeAuthProvider` —
    GoogleAuthButton navigates straight to `/dashboard` as the seeded test
    user (§6), no Firebase SDK loaded, no popup. Session stickiness within
-   the tab is a sessionStorage flag keyed `apparule.test-session` (fleet
-   P16 key convention: `<product>.test-session`). The interface is identical
+   the tab is a sessionStorage entry keyed `apparule.test-session` holding
+   the JSON user payload (fleet P16 convention: `<product>.test-session`,
+   sessionStorage, JSON user). The interface is identical
    to the future `FirebaseAuthProvider` (X-1 Google-only, bearer-token
    shape preserved), so backend integration swaps the provider, not the
    views.

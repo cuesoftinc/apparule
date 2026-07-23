@@ -34,7 +34,7 @@ test("dashboard: first Tab is the skip link; Enter focuses <main>", async ({
   // Fresh document load: "first Tab" is a fresh-load guarantee (after a
   // client-side nav Chromium keeps its sequential-focus starting point at
   // the removed element's position). The reload also exercises session
-  // restore via the P16 sessionStorage flag (`apparule.test-session`).
+  // restore via the P16 sessionStorage key (`apparule.test-session`).
   await page.goto("/dashboard");
   await expect(page.locator("main#main")).toBeVisible();
   await expectSkipLinkWorks(page);

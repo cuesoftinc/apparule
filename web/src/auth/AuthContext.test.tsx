@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 
 const restore = vi.fn();
-vi.mock("./test-mode-auth-provider", () => ({
+vi.mock("./test-mode-provider", () => ({
   TestModeAuthProvider: class {
     name = "test-mode" as const;
     restore = (...a: unknown[]) => restore(...a);
