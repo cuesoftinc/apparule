@@ -18,6 +18,12 @@ enum MeasureUnit {
 /// Centimetres per inch — the MI-13 display conversion factor.
 const double cmPerInch = 2.54;
 
+/// A canonical-cm range bound → the active display unit's whole-number
+/// label value (gate/advisory range copy: 100–230 cm ↔ 39–91 in).
+/// Validation itself stays canonical cm — this only feeds display text.
+int displayBound(double valueCm, MeasureUnit unit) =>
+    unit == MeasureUnit.cm ? valueCm.round() : (valueCm / cmPerInch).round();
+
 /// Kobo/cents → `₦45,000` (whole naira; v1 amounts are whole-naira).
 String formatNaira(int cents, {String currency = 'NGN'}) {
   final naira = cents / 100;
@@ -41,11 +47,12 @@ String _groupThousands(String digits) {
   return parts.length > 1 ? '$grouped.${parts[1]}' : grouped.toString();
 }
 
-/// 42.5 → `42.5 cm` (or inches when the vault unit toggle flips, MI-13).
-/// Always one decimal — the Figma idiom ("58.0 cm") keeps tabular columns
-/// aligned ("92 cm" next to "78.5 cm" broke the tnum grid, audit
+/// 42.5 → `16.7 in` — inches are the default DISPLAY unit (A-9); cm
+/// renders when the unit toggle flips (MI-13). Storage stays canonical
+/// cm. Always one decimal — the Figma idiom ("58.0 cm") keeps tabular
+/// columns aligned ("92 cm" next to "78.5 cm" broke the tnum grid, audit
 /// 2026-07-20).
-String formatCm(double valueCm, [MeasureUnit unit = MeasureUnit.cm]) {
+String formatCm(double valueCm, [MeasureUnit unit = MeasureUnit.inch]) {
   if (unit == MeasureUnit.inch) {
     return '${(valueCm / cmPerInch).toStringAsFixed(1)} in';
   }

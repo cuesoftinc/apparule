@@ -109,12 +109,13 @@ void main() {
       await bootToCapture(tester);
       await shootBothPosesThroughProcessing(tester);
 
-      // Results: scaled values (168 cm over the sample metrics) with the
+      // Results: scaled values (168 cm over the sample metrics — 42.6/
+      // 35.5 cm canonical, inches display by default, A-9) with the
       // low-confidence chip on the 0.62 hip (capture-qc.md §4).
       expect(find.byType(CaptureResults), findsOneWidget);
       expect(find.byType(MeasurementCard), findsNWidgets(2));
-      expect(find.text('42.6 cm'), findsOneWidget);
-      expect(find.text('35.5 cm'), findsOneWidget);
+      expect(find.text('16.8 in'), findsOneWidget);
+      expect(find.text('14.0 in'), findsOneWidget);
       expect(find.text('1 low confidence'), findsOneWidget);
       expect(find.text('Low confidence · 0.62'), findsOneWidget);
 
@@ -124,7 +125,7 @@ void main() {
       // C7 lists the saved session on arrival.
       expect(find.byType(VaultScreen), findsOneWidget);
       expect(find.text('Measured today'), findsOneWidget);
-      expect(find.text('42.6 cm'), findsOneWidget);
+      expect(find.text('16.8 in'), findsOneWidget);
     });
 
     testWidgets('retake from results discards and restarts at Pose 1', (
@@ -165,17 +166,21 @@ void main() {
       // The height step (canvas 530:4) — no stored height to prefill.
       expect(find.text('Your height'), findsOneWidget);
 
-      await tester.enterText(find.bySemanticsLabel('Height value'), '90');
+      // Entry is inches by default (A-9): 30 in = 76.2 cm, under the
+      // canonical 100 cm floor — the gate copy renders the band in the
+      // active display unit.
+      await tester.enterText(find.bySemanticsLabel('Height value'), '30');
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pump();
       await tester.tap(find.text('Continue'));
       await tester.pump();
       expect(
-        find.text('Enter a height between 100–230 cm (39–91 in).'),
+        find.text('Enter a height between 39–91 in.'),
         findsOneWidget,
       );
 
-      await tester.enterText(find.bySemanticsLabel('Height value'), '170');
+      // 67 in = 170.2 cm — inside the band; the submit proceeds.
+      await tester.enterText(find.bySemanticsLabel('Height value'), '67');
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pump();
       await tester.tap(find.text('Continue'));
@@ -185,9 +190,8 @@ void main() {
       expect(find.byType(CaptureResults), findsOneWidget);
     });
 
-    testWidgets('the unit toggle converts the display, storage stays cm', (
-      tester,
-    ) async {
+    testWidgets('the toggle defaults to inches (A-9) and converts the '
+        'display both ways, storage stays cm', (tester) async {
       await bootToCapture(
         tester,
         measurementRepository: MeasurementRepositoryFake(
@@ -198,13 +202,19 @@ void main() {
       await shootPose(tester);
       await shootPose(tester);
 
+      // Inches active by default — the toggle offers the flip to cm.
+      expect(find.bySemanticsLabel('Switch to cm'), findsOneWidget);
+      await tester.tap(find.bySemanticsLabel('Switch to cm'));
+      await tester.pumpAndSettle();
+
       await tester.enterText(find.bySemanticsLabel('Height value'), '168');
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pump();
       await tester.tap(find.bySemanticsLabel('Switch to in'));
       await tester.pumpAndSettle();
 
-      // 168 cm = 66.1 in (one decimal, MI-13 display conversion).
+      // 168 cm = 66.1 in (one decimal, MI-13 display conversion) — the
+      // committed value round-trips through canonical cm.
       expect(find.text('66.1'), findsOneWidget);
     });
   });

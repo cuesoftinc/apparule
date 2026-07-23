@@ -14,7 +14,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ManualEntryState {
 
-/// Entered values, canonical cm (MI-13: unit is display-only).
+/// Entered values, canonical cm (MI-13: unit is display-only,
+/// inches by default — A-9).
  Map<String, double> get valuesCm; MeasureUnit get unit; bool get saving;/// Save landed — the screen routes to the vault (C7).
  bool get saved;
 /// Create a copy of ManualEntryState
@@ -211,12 +212,14 @@ return $default(_that.valuesCm,_that.unit,_that.saving,_that.saved);case _:
 
 
 class _ManualEntryState implements ManualEntryState {
-  const _ManualEntryState({final  Map<String, double> valuesCm = const <String, double>{}, this.unit = MeasureUnit.cm, this.saving = false, this.saved = false}): _valuesCm = valuesCm;
+  const _ManualEntryState({final  Map<String, double> valuesCm = const <String, double>{}, this.unit = MeasureUnit.inch, this.saving = false, this.saved = false}): _valuesCm = valuesCm;
   
 
-/// Entered values, canonical cm (MI-13: unit is display-only).
+/// Entered values, canonical cm (MI-13: unit is display-only,
+/// inches by default — A-9).
  final  Map<String, double> _valuesCm;
-/// Entered values, canonical cm (MI-13: unit is display-only).
+/// Entered values, canonical cm (MI-13: unit is display-only,
+/// inches by default — A-9).
 @override@JsonKey() Map<String, double> get valuesCm {
   if (_valuesCm is EqualUnmodifiableMapView) return _valuesCm;
   // ignore: implicit_dynamic_type

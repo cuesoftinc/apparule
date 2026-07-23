@@ -21,9 +21,9 @@ mixin _$CaptureState {
  CountdownCount? get countdown;/// Accepted frames — a pose-2 QC failure keeps [frontPhoto] (M-10:
 /// an accepted pose is never discarded; the retake resubmits it
 /// with the fresh side frame).
- CapturePhoto? get frontPhoto; CapturePhoto? get sidePhoto;/// Height is canonical cm; the unit is a display preference (MI-13).
-/// Pre-filled from the newest session — when on file, the height
-/// step is skipped (flows/vault.md §1).
+ CapturePhoto? get frontPhoto; CapturePhoto? get sidePhoto;/// Height is canonical cm; the unit is a display preference (MI-13,
+/// inches by default — A-9). Pre-filled from the newest session —
+/// when on file, the height step is skipped (flows/vault.md §1).
  double? get heightCm; MeasureUnit get unit; bool get heightInvalid;/// The `pending_save` result (results step).
  MeasurementSession? get session;/// First-failure-only QC wire code + its failing pose (qc-fail step).
  String? get qcFailCode; CapturePose? get qcFailPose; bool get saving;/// Save landed — the screen routes to the vault (C7).
@@ -268,7 +268,7 @@ return $default(_that.step,_that.pose,_that.cameraReady,_that.countdown,_that.fr
 
 
 class _CaptureState extends CaptureState {
-  const _CaptureState({this.step = CaptureStep.camera, this.pose = CapturePose.front, this.cameraReady = false, this.countdown, this.frontPhoto, this.sidePhoto, this.heightCm, this.unit = MeasureUnit.cm, this.heightInvalid = false, this.session, this.qcFailCode, this.qcFailPose, this.saving = false, this.saved = false}): super._();
+  const _CaptureState({this.step = CaptureStep.camera, this.pose = CapturePose.front, this.cameraReady = false, this.countdown, this.frontPhoto, this.sidePhoto, this.heightCm, this.unit = MeasureUnit.inch, this.heightInvalid = false, this.session, this.qcFailCode, this.qcFailPose, this.saving = false, this.saved = false}): super._();
   
 
 @override@JsonKey() final  CaptureStep step;
@@ -284,9 +284,9 @@ class _CaptureState extends CaptureState {
 /// with the fresh side frame).
 @override final  CapturePhoto? frontPhoto;
 @override final  CapturePhoto? sidePhoto;
-/// Height is canonical cm; the unit is a display preference (MI-13).
-/// Pre-filled from the newest session — when on file, the height
-/// step is skipped (flows/vault.md §1).
+/// Height is canonical cm; the unit is a display preference (MI-13,
+/// inches by default — A-9). Pre-filled from the newest session —
+/// when on file, the height step is skipped (flows/vault.md §1).
 @override final  double? heightCm;
 @override@JsonKey() final  MeasureUnit unit;
 @override@JsonKey() final  bool heightInvalid;

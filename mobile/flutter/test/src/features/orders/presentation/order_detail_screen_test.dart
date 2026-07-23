@@ -78,10 +78,11 @@ void main() {
       // MI-15 escrow-held box.
       expect(find.text('₦45,000 held in escrow'), findsOneWidget);
 
-      // The immutable snapshot (order-lifecycle.md §2 privacy core).
+      // The immutable snapshot (order-lifecycle.md §2 privacy core) —
+      // canonical 42.5/36.8 cm, inches display by default (A-9).
       expect(find.text('Measurement snapshot'), findsOneWidget);
-      expect(find.text('42.5 cm'), findsOneWidget);
-      expect(find.text('36.8 cm'), findsOneWidget);
+      expect(find.text('16.7 in'), findsOneWidget);
+      expect(find.text('14.5 in'), findsOneWidget);
 
       // MI-17 thread narrates the order.
       expect(

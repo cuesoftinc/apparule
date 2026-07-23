@@ -71,13 +71,13 @@ void main() {
           ),
         ),
         GoldenTestScenario(
-          name: 'manual · inches display (MI-13)',
+          name: 'manual · cm display (MI-13 toggle)',
           child: const SizedBox(
             width: 240,
             child: MeasurementCard(
               name: 'waist',
               valueCm: 81,
-              unit: MeasureUnit.inch,
+              unit: MeasureUnit.cm,
               source: MeasurementSource.manual,
             ),
           ),

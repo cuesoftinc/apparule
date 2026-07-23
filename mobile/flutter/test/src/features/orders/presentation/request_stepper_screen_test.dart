@@ -294,13 +294,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Snapshot · 2 values'), findsOneWidget);
-    expect(find.text('42.5 cm'), findsNothing);
+    expect(find.text('16.7 in'), findsNothing);
 
+    // Canonical 42.5/36.8 cm — inches display by default (A-9).
     await tester.tap(find.text('Snapshot · 2 values'));
     await tester.pumpAndSettle();
     expect(find.text('Shoulder Width'), findsOneWidget);
-    expect(find.text('42.5 cm'), findsOneWidget);
-    expect(find.text('36.8 cm'), findsOneWidget);
+    expect(find.text('16.7 in'), findsOneWidget);
+    expect(find.text('14.5 in'), findsOneWidget);
   });
 
   testWidgets('keeps content clear of notch and status-bar top insets', (

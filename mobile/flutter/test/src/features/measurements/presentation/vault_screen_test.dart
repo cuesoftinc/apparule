@@ -52,9 +52,10 @@ void main() {
     // Metric-centric: 4 distinct measures across the 3 seeded sessions.
     expect(find.byType(MeasurementCard), findsNWidgets(4));
 
-    // Latest values lead their cards; the 0.62 hip renders its
-    // low-confidence chip (web-parity numbers).
-    expect(find.text('42.5 cm'), findsOneWidget);
+    // Latest values lead their cards (42.5 cm canonical → inches
+    // display by default, A-9); the 0.62 hip renders its low-confidence
+    // chip (web-parity numbers).
+    expect(find.text('16.7 in'), findsOneWidget);
     expect(find.text('Low confidence · 0.62'), findsOneWidget);
 
     // Consent note + the B4 rights links.
@@ -109,8 +110,9 @@ void main() {
     expect(find.text('Shoulder Width history'), findsOneWidget);
     expect(find.bySemanticsLabel('Delete session'), findsNWidgets(3));
 
-    // Delete the newest (42.5) session → the card re-derives to the
-    // manual session's 42.0 and the header ages to the 58-day manual.
+    // Delete the newest (42.5 cm / 16.7 in) session → the card
+    // re-derives to the manual session's 42.0 cm (16.5 in) and the
+    // header ages to the 58-day manual.
     await tester.tap(find.bySemanticsLabel('Delete session').first);
     await tester.pumpAndSettle();
     expect(find.bySemanticsLabel('Delete session'), findsNWidgets(2));
@@ -120,8 +122,8 @@ void main() {
     await tester.tapAt(const Offset(20, 20));
     await tester.pumpAndSettle();
 
-    expect(find.text('42.0 cm'), findsOneWidget);
-    expect(find.text('42.5 cm'), findsNothing);
+    expect(find.text('16.5 in'), findsOneWidget);
+    expect(find.text('16.7 in'), findsNothing);
     expect(find.text('Measured 58 days ago'), findsOneWidget);
     expect(find.text('Aging · 4 measurements'), findsOneWidget);
   });
