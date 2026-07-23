@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Mobile patrol E2E smoke journeys (mobile-implementation.md §8 gate 5 —
+  the standing nightly regression net, deferred since the skeleton):
+  - `integration_test/smoke_journeys_test.dart` — five journeys over the
+    dev flavor's fake set, asserting user-visible outcomes only (screens
+    reached, data shown): cold start signed-out → C1 → fake Google
+    sign-in → C1b → the seeded home feed; ➕ → chooser → the five-step
+    guide → front pose → side pose → height → processing → results →
+    save → the vault shows the session; explore → post detail → the
+    request stepper (snapshot · delivery · review) → submit → confetti →
+    order detail reads Requested; a designer session → C14's seeded
+    balances (₦82,500 available / ₦45,000 escrow) → a payout request
+    moves the balance into a processing row; Settings → Account & data →
+    Log out → C1.
+  - `patrol_finders` (3.6.0, promoted to a direct dev dependency from
+    the ratified patrol 4.7.1 pin) drives the SDK's own
+    `integration_test` binding — plain `flutter test integration_test
+    --flavor dev` on a device, no native-automation runner.
+  - `mobile-e2e` workflow — nightly + manual dispatch, never per-PR
+    (§8's device-farm cost profile): Android API 34 x86_64 emulator
+    (KVM-accelerated ubuntu runner) running the journey suite against
+    the dev flavor.
 - Mobile C15 designer post composer (M-11 — the create chooser's second
   option goes live; canvas 551:2866 / 551:4152 / 552:2):
   - The composer screen at `/create/post`: centered "New post" bar,
