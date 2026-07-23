@@ -6,15 +6,14 @@ import '../../../helpers/pump_app.dart';
 
 void main() {
   group('CaptureOptionCard', () {
-    testWidgets('webcam-upload carries the canonical camera copy', (
-      tester,
-    ) async {
+    testWidgets('photo-upload carries the two-photo camera copy (M-10 + '
+        'the M-12 axis rename)', (tester) async {
       await tester.pumpApp(
         Center(
           child: SizedBox(
             width: 340,
             child: CaptureOptionCard(
-              mode: CaptureOptionMode.webcamUpload,
+              mode: CaptureOptionMode.photoUpload,
               onTap: () {},
             ),
           ),
@@ -23,7 +22,7 @@ void main() {
 
       expect(find.text('Use your camera'), findsOneWidget);
       expect(
-        find.text('Full-body photo, we measure automatically'),
+        find.text('Two photos — we measure automatically'),
         findsOneWidget,
       );
     });

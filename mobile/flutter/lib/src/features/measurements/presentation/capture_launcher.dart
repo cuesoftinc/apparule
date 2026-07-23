@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// The one capture entry gesture (mobile-implementation.md §10): guide on
 /// first run, straight to the viewfinder once the persisted flag is set.
-/// Shared by the ➕ tab (customer branch, §5 route map) and the vault's
-/// camera option card.
+/// Shared by the ➕ chooser's "Take measurements" card (M-11), the C1b
+/// interstitial, and the vault's capture option cards.
 Future<void> launchCaptureFlow(BuildContext context, WidgetRef ref) async {
   final guideSeen = await ref.read(captureGuideFlagProvider.future);
   if (!context.mounted) return;

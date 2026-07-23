@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:apparule/src/core/ui/caught_up_divider.dart';
 import 'package:apparule/src/core/ui/empty_state.dart';
 import 'package:apparule/src/core/ui/tab_bar.dart';
+import 'package:apparule/src/core/utils/clock.dart';
 import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/features/orders/presentation/order_detail_screen.dart';
 import 'package:apparule/src/features/profile/data/notification_repository_fake.dart';
@@ -12,6 +13,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 
 import '../../../../helpers/boot_app.dart';
 import '../../../../helpers/notched.dart';
@@ -20,6 +22,12 @@ import '../../../../helpers/notched.dart';
 /// visit, read-state persisting to the repository (clearing the MI-16
 /// badge), swipe-to-clear, deep links. 390px width.
 void main() {
+  // Pinned midday instant for the seed AND the rendering pass — the
+  // calendar-day grouping (Today/Yesterday) otherwise flakes when the
+  // wall clock sits within `created_hours_ago` of local midnight (the
+  // seeded 3h-ago row slides onto Yesterday).
+  DateTime fixedNow() => DateTime(2026, 7, 22, 12);
+
   Future<void> boot(
     WidgetTester tester, {
     NotificationRepositoryFake? notificationRepository,
@@ -32,7 +40,9 @@ void main() {
       authRepository: AuthRepositoryFake(
         initialSession: AuthRepositoryFake.seedSession,
       ),
-      notificationRepository: notificationRepository,
+      notificationRepository:
+          notificationRepository ?? NotificationRepositoryFake(now: fixedNow),
+      overrides: <Override>[clockProvider.overrideWith((ref) => fixedNow)],
     );
   }
 
@@ -61,7 +71,7 @@ void main() {
 
   testWidgets('opening the sheet marks everything read in the repository '
       'and clears the MI-16 Orders badge', (tester) async {
-    final repository = NotificationRepositoryFake();
+    final repository = NotificationRepositoryFake(now: fixedNow);
     await boot(tester, notificationRepository: repository);
 
     // The unread quote badges the Orders tab from boot.
@@ -92,7 +102,7 @@ void main() {
   testWidgets('swipe-to-clear removes the row from the repository', (
     tester,
   ) async {
-    final repository = NotificationRepositoryFake();
+    final repository = NotificationRepositoryFake(now: fixedNow);
     await boot(tester, notificationRepository: repository);
     await openNotifications(tester);
 
@@ -128,6 +138,7 @@ void main() {
     await boot(
       tester,
       notificationRepository: NotificationRepositoryFake(
+        now: fixedNow,
         audienceIds: const <String>{'des-tunde'},
       ),
     );
@@ -151,6 +162,7 @@ void main() {
     await boot(
       tester,
       notificationRepository: NotificationRepositoryFake(
+        now: fixedNow,
         audienceIds: const <String>{'des-tunde'},
       ),
     );
@@ -168,6 +180,7 @@ void main() {
     await boot(
       tester,
       notificationRepository: NotificationRepositoryFake(
+        now: fixedNow,
         bundle: _EmptyAssetBundle(),
       ),
     );

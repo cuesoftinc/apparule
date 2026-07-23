@@ -19,13 +19,17 @@ abstract class MeasurementRepository {
   /// never retro-scales old sessions).
   Future<double?> lastInputHeightCm();
 
-  /// Submits one frontal photo + height to the measure pipeline
-  /// (api.md `POST /measure`: `image` + `user_height_cm`). Resolves to a
-  /// `pending_save` session with per-measurement confidence
-  /// (capture-qc.md §4); throws [CaptureQcException] with the FIRST
-  /// failing capture-qc.md code when QC rejects the frame.
+  /// Submits the two-pose capture + height to the measure pipeline
+  /// (api.md `POST /measure`: multipart `image_front` + `image_side` +
+  /// `user_height_cm` — both images ride one request, M-10). Resolves to
+  /// a `pending_save` session with per-measurement confidence
+  /// (capture-qc.md §4); throws [CaptureQcException] naming the FIRST
+  /// failing capture-qc.md code **and the failing pose** when QC rejects
+  /// a frame — QC is per pose, front table first, and an accepted pose
+  /// is never discarded by the other pose's failure.
   Future<MeasurementSession> submitCapture({
-    required CapturePhoto photo,
+    required CapturePhoto front,
+    required CapturePhoto side,
     required double userHeightCm,
   });
 
@@ -44,6 +48,12 @@ abstract class MeasurementRepository {
   /// delete, pages.md C7 = B4). Unknown ids are a no-op — deletes are
   /// idempotent.
   Future<void> deleteSession(String sessionId);
+
+  /// Per-session export (features.md F2-9; api.md
+  /// `POST /sessions/{id}/exports`) — resolves to the session's CSV
+  /// document. The `*Remote` twin requests the served export; the fake
+  /// renders the same shape locally.
+  Future<String> exportSessionCsv(String sessionId);
 }
 
 /// Overridden per entrypoint (di.dart) — no default implementation exists

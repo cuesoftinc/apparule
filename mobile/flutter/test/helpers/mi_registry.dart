@@ -2,6 +2,7 @@ import 'package:apparule/src/core/ui/confetti_burst.dart';
 import 'package:apparule/src/core/ui/edge_resist_physics.dart';
 import 'package:apparule/src/core/ui/flip_unit_toggle.dart';
 import 'package:apparule/src/core/ui/gradient_refresh_spinner.dart';
+import 'package:apparule/src/core/ui/manual_measure_row.dart';
 import 'package:apparule/src/core/ui/morph_swap.dart';
 import 'package:apparule/src/core/ui/spring_badge.dart';
 import 'package:apparule/src/core/ui/status_pill.dart';
@@ -9,6 +10,7 @@ import 'package:apparule/src/core/ui/step_slide.dart';
 import 'package:apparule/src/core/ui/tab_bar.dart';
 import 'package:apparule/src/core/ui/timeline_connector.dart';
 import 'package:apparule/src/core/ui/typing_bubble.dart';
+import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/material.dart';
@@ -146,10 +148,25 @@ final List<MiRegistryEntry> miRegistry = <MiRegistryEntry>[
     primitive: StepSlide,
     pendingOwner: 'LANE B (D62)',
   ),
-  const MiRegistryEntry(
+  MiRegistryEntry(
     screen: 'C6 manual measure row',
     mi: 'MI-13 unit flip',
     primitive: FlipUnitToggle,
-    pendingOwner: 'LANE C (D49)',
+    pump: (tester) async {
+      await tester.pumpApp(
+        Center(
+          child: SizedBox(
+            width: 358,
+            child: ManualMeasureRow(
+              name: 'shoulder_width',
+              valueCm: 43,
+              unit: MeasureUnit.cm,
+              onChanged: (_) {},
+              onUnitChanged: (_) {},
+            ),
+          ),
+        ),
+      );
+    },
   ),
 ];

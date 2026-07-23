@@ -15,6 +15,7 @@ import 'package:apparule/src/core/ui/measurement_card.dart';
 import 'package:apparule/src/core/ui/processing_constellation.dart';
 import 'package:apparule/src/core/ui/qc_hint_chip.dart';
 import 'package:apparule/src/core/ui/sheet.dart';
+import 'package:apparule/src/core/utils/capture_pose.dart';
 import 'package:apparule/src/features/measurements/data/camera_service.dart';
 import 'package:apparule/src/features/measurements/data/camera_service_fake.dart';
 import 'package:apparule/src/features/measurements/data/capture_sample_catalog.dart';
@@ -27,10 +28,12 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// C6 — measurement capture (mobile-implementation.md §10; pages.md C6):
-/// height step → viewfinder (Capture Kit silhouette overlay + 3-2-1) →
-/// processing constellation → results stagger | first-failure QC hint,
-/// with the camera-permission dead end and the MI-13 manual fallback.
+/// C6 — measurement capture (mobile-implementation.md §10; pages.md C6;
+/// M-10 two-pose): front viewfinder "Pose 1 of 2" → side viewfinder
+/// "Pose 2 of 2" (Capture Kit silhouette per pose + 3-2-1) → height step
+/// when not on file → processing constellation → results stagger |
+/// first-failure per-pose QC hint, with the camera-permission dead end
+/// and the MI-13 manual fallback.
 class CaptureScreen extends ConsumerWidget {
   const CaptureScreen({super.key});
 
@@ -63,13 +66,24 @@ class CaptureScreen extends ConsumerWidget {
           ),
         );
       }
-      if (wasCounting &&
-          next.countdown == null &&
-          next.step == CaptureStep.processing) {
+      if (wasCounting && next.countdown == null) {
         unawaited(
           SemanticsService.sendAnnouncement(
             View.of(context),
             l10n.captureCapturedA11y,
+            Directionality.of(context),
+          ),
+        );
+      }
+      // The pose advance (front → side) — the sighted cue is the bar
+      // title + silhouette swap; announce it for everyone else.
+      if (previous?.pose == CapturePose.front &&
+          next.pose == CapturePose.side &&
+          next.step == CaptureStep.camera) {
+        unawaited(
+          SemanticsService.sendAnnouncement(
+            View.of(context),
+            l10n.capturePoseSideA11y,
             Directionality.of(context),
           ),
         );
@@ -80,13 +94,14 @@ class CaptureScreen extends ConsumerWidget {
     // seam. Prod's live camera never renders it.
     final camera = ref.watch(cameraServiceProvider);
     final devSelector = camera is CameraServiceFake
-        ? _DevScenarioAction(camera: camera)
+        ? const _DevScenarioAction()
         : null;
 
     // The camera/countdown, QC-hint and processing steps are FULL-BLEED
-    // on-media surfaces (canvas 173:574 / 266:8419 / 266:8446): true-black
-    // ground, transparent over-media chrome, controls overlaid — the
-    // screen is the viewport. Height/results/permission keep the sub bar.
+    // on-media surfaces (canvas 173:574 / 266:8419 / 540:9224 /
+    // 266:8446): true-black ground, transparent over-media chrome,
+    // controls overlaid — the screen is the viewport. Height/results/
+    // permission keep the sub bar.
     final immersive = switch (state.step) {
       CaptureStep.camera ||
       CaptureStep.qcFail ||
@@ -104,20 +119,29 @@ class CaptureScreen extends ConsumerWidget {
       }
     }
 
+    // The centered over-media pose bar (M-9/M-10): "Pose 1 of 2" /
+    // "Pose 2 of 2" on the viewfinder; QC-fail and processing keep a
+    // title-less bar (a QC retry doesn't advance the pose counter).
+    final title = switch (state.step) {
+      CaptureStep.camera => l10n.capturePoseProgress(state.pose.number, 2),
+      CaptureStep.qcFail || CaptureStep.processing => null,
+      _ => l10n.captureTitle,
+    };
+
     return Scaffold(
       backgroundColor: immersive ? const Color(0xFF000000) : null,
       extendBodyBehindAppBar: immersive,
       appBar: AppTopBar(
         kind: immersive ? AppTopBarKind.overMedia : AppTopBarKind.sub,
-        title: immersive ? null : l10n.captureTitle,
+        title: title,
         onBack: processing ? null : back,
         trailing: processing ? null : devSelector,
       ),
       body: switch (state.step) {
+        CaptureStep.camera => _CameraStep(state: state, camera: camera),
         CaptureStep.height => SafeArea(
           child: _HeightStep(state: state, viewModel: viewModel),
         ),
-        CaptureStep.camera => _CameraStep(state: state, camera: camera),
         CaptureStep.processing => _ProcessingStep(state: state),
         CaptureStep.qcFail => _QcFailStep(state: state, viewModel: viewModel),
         CaptureStep.results => SafeArea(
@@ -149,10 +173,11 @@ class CaptureScreen extends ConsumerWidget {
   }
 }
 
-/// Height step — collected once per session (`user_height_cm`, api.md
-/// `POST /measure`), pre-filled from the newest session, hard-gated to
-/// the flows/vault.md 100–230 cm band (an implausible scale input breaks
-/// every output; manual-entry ranges stay advisory by contrast).
+/// Height step (canvas 530:4) — interposes AFTER the two poses when no
+/// height is on file (`user_height_cm`, api.md `POST /measure`),
+/// hard-gated to the flows/vault.md 100–230 cm band (an implausible
+/// scale input breaks every output; manual-entry ranges stay advisory by
+/// contrast). Continue submits the one-request upload.
 class _HeightStep extends StatelessWidget {
   const _HeightStep({required this.state, required this.viewModel});
 
@@ -195,7 +220,7 @@ class _HeightStep extends StatelessWidget {
           Button(
             label: l10n.captureHeightContinue,
             expand: true,
-            onPressed: viewModel.continueToCamera,
+            onPressed: viewModel.continueFromHeight,
           ),
         ],
       ),
@@ -241,12 +266,14 @@ class _OnMediaTextAction extends StatelessWidget {
   }
 }
 
-/// Viewfinder step — the Capture Kit overlay (silhouette, MI-12) FULL
-/// BLEED over the camera seam's preview (canvas 173:574/266:8419). No
-/// shutter exists (QA-convergence ruling, canvas+docs): the ViewModel
-/// arms the 3-2-1 once the camera is live and capture fires on
-/// completion; the controls layer keeps only the manual-entry escape,
-/// and the over-media AppBar's back chevron cancels out of the flow.
+/// Viewfinder step — the Capture Kit overlay (per-pose silhouette,
+/// MI-12) FULL BLEED over the camera seam's preview (canvas
+/// 173:574/266:8419 front, 540:9224 side). No shutter exists
+/// (QA-convergence ruling, canvas+docs): the ViewModel arms the 3-2-1
+/// once the camera is live and capture fires on completion — twice,
+/// front then side; the controls layer keeps only the manual-entry
+/// escape, and the over-media AppBar's back chevron cancels out of the
+/// flow.
 class _CameraStep extends StatelessWidget {
   const _CameraStep({
     required this.state,
@@ -267,9 +294,12 @@ class _CameraStep extends StatelessWidget {
       children: <Widget>[
         CaptureOverlay(
           expand: true,
+          pose: state.pose,
           guide: counting ? CaptureGuide.countdown : CaptureGuide.searching,
           countdown: state.countdown ?? CountdownCount.three,
-          child: state.cameraReady ? camera.buildPreview() : null,
+          child: state.cameraReady
+              ? camera.buildPreview(pose: state.pose)
+              : null,
         ),
         Align(
           alignment: Alignment.bottomCenter,
@@ -317,9 +347,9 @@ class _ProcessingStep extends StatelessWidget {
                     child: ProcessingConstellation(
                       state: ProcessingState.processing,
                       showStatus: false,
-                      image: state.photoBytes == null
+                      image: state.displayBytes == null
                           ? null
-                          : MemoryImage(state.photoBytes!),
+                          : MemoryImage(state.displayBytes!),
                     ),
                   ),
                   const SizedBox(height: 48),
@@ -350,8 +380,11 @@ class _ProcessingStep extends StatelessWidget {
 }
 
 /// QC-fail step — ONE actionable retake instruction (first failure only,
-/// capture-qc.md reporting rule), mapped 1:1 onto the QCHintChip codes,
-/// full-bleed over the rejected frame like the viewfinder it returns to.
+/// per pose — capture-qc.md reporting rule), mapped 1:1 onto the
+/// QCHintChip codes with the pose-contextual `arms_position` copy,
+/// full-bleed over the rejected frame. Retake re-enters the FAILING
+/// pose only (title-less over-media bar — the counter never advances on
+/// retry, canvas 530:9017).
 class _QcFailStep extends StatelessWidget {
   const _QcFailStep({required this.state, required this.viewModel});
 
@@ -363,7 +396,8 @@ class _QcFailStep extends StatelessWidget {
     final l10n = context.l10n;
     final wire = state.qcFailCode;
     final code = wire == null ? null : QcFailCode.fromWireName(wire);
-    final bytes = state.photoBytes;
+    final pose = state.qcFailPose ?? CapturePose.front;
+    final bytes = state.displayBytes;
 
     return Stack(
       fit: StackFit.expand,
@@ -374,6 +408,7 @@ class _QcFailStep extends StatelessWidget {
           bottom: 128,
           child: CaptureOverlay(
             expand: true,
+            pose: pose,
             guide: CaptureGuide.qcHint,
             qcCode: code,
             child: bytes == null
@@ -393,7 +428,7 @@ class _QcFailStep extends StatelessWidget {
                   Button(
                     label: l10n.captureRetake,
                     expand: true,
-                    onPressed: viewModel.retake,
+                    onPressed: viewModel.retakeFailedPose,
                   ),
                   const SizedBox(height: 8),
                   // Manual fallback for QC that never clears (§10).
@@ -413,7 +448,8 @@ class _QcFailStep extends StatelessWidget {
 }
 
 /// Results step — MeasurementCards stagger in with per-measurement
-/// confidence (capture-qc.md §4); "Save to vault" primary, "Retake" quiet.
+/// confidence (capture-qc.md §4); "Save to vault" primary, "Retake"
+/// (quiet) discards and restarts the two-pose sequence.
 class _ResultsStep extends StatelessWidget {
   const _ResultsStep({required this.state, required this.viewModel});
 
@@ -440,7 +476,7 @@ class _ResultsStep extends StatelessWidget {
                 ?measurement.confidence,
             ],
             onSave: viewModel.save,
-            onRetake: viewModel.retake,
+            onRetake: viewModel.retakeSession,
             saving: state.saving,
             children: <Widget>[
               for (final measurement in session.measurements)
@@ -466,12 +502,11 @@ class _ResultsStep extends StatelessWidget {
 }
 
 /// Dev-flavor-only QC selector (§10 documented seam): swaps which
-/// `capture_samples.json` scenario the fake camera captures, so the
-/// seeded happy path and all 11 fail codes are reproducible on demand.
+/// `capture_samples.json` scenario each pose's fake capture carries, so
+/// the seeded happy path and every fail code — BOTH poses' tables — are
+/// reproducible on demand.
 class _DevScenarioAction extends ConsumerWidget {
-  const _DevScenarioAction({required this.camera});
-
-  final CameraServiceFake camera;
+  const _DevScenarioAction();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -500,47 +535,68 @@ class _DevScenarioList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final colors = theme.extension<AppColors>()!;
     final typography = theme.extension<AppTypography>()!;
     final catalog = ref.watch(captureSampleCatalogProvider);
     final viewModel = ref.read(captureViewModelProvider.notifier);
     final camera = ref.read(cameraServiceProvider);
-    final current = camera is CameraServiceFake ? camera.sampleId : null;
+    final fake = camera is CameraServiceFake ? camera : null;
 
     return switch (catalog) {
       AsyncData(:final value) => ListView(
         shrinkWrap: true,
         children: <Widget>[
-          for (final sample in value.samples)
-            InkWell(
-              onTap: () {
-                viewModel.selectDevSample(sample.id);
-                Navigator.of(context).pop();
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Text(
-                        sample.label,
-                        style: typography.body14.copyWith(color: colors.text),
-                      ),
-                    ),
-                    if (sample.id == current)
-                      Icon(
-                        LucideIcons.check,
-                        size: 16,
-                        color: colors.accentStart,
-                      ),
-                  ],
+          for (final (pose, header) in <(CapturePose, String)>[
+            (CapturePose.front, l10n.captureDevScenarioFront),
+            (CapturePose.side, l10n.captureDevScenarioSide),
+          ]) ...<Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: Text(
+                header,
+                style: typography.micro12.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: colors.text2,
                 ),
               ),
             ),
+            for (final sample in value.samplesFor(pose))
+              InkWell(
+                onTap: () {
+                  viewModel.selectDevSample(sample);
+                  Navigator.of(context).pop();
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          sample.label,
+                          style: typography.body14.copyWith(
+                            color: colors.text,
+                          ),
+                        ),
+                      ),
+                      if (sample.id ==
+                          (pose == CapturePose.front
+                              ? fake?.frontSampleId
+                              : fake?.sideSampleId))
+                        Icon(
+                          LucideIcons.check,
+                          size: 16,
+                          color: colors.accentStart,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
         ],
       ),
       AsyncError() => const SizedBox.shrink(),

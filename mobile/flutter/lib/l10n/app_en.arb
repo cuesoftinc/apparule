@@ -54,15 +54,26 @@
   "@firstActionTitle": {
     "description": "C1b interstitial title (canvas 266:2) — first name from the Google profile.",
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "firstActionSubtitle": "Two ways to start — you can always do the other later.",
   "firstActionMeasure": "Take your first measurement",
-  "firstActionMeasureMeta": "One photo — about a minute",
+  "firstActionMeasureMeta": "Two photos — about a minute",
   "firstActionExplore": "Explore outfits",
   "firstActionExploreMeta": "Browse Lagos designers first",
   "firstActionSkip": "Skip for now",
+  "createChooserTitle": "Create",
+  "createChooserMeasureTitle": "Take measurements",
+  "createChooserMeasureMeta": "Two photos — about a minute",
+  "createChooserPostTitle": "Post an outfit",
+  "createChooserPostMetaNonDesigner": "Become a designer to post",
+  "createChooserPostMetaDesigner": "Share a look with its fit data",
+  "@createChooserPostMetaDesigner": {
+    "description": "M-11 create chooser (canvas 548:2725): the ➕ tab's two-option sheet. Non-designers route Post-an-outfit to C13 become-a-designer; designers see the fit-data subtitle and take the same route until C15 ships."
+  },
   "vaultTitle": "Measurement vault",
   "vaultSessionScan": "Scan",
   "@vaultSessionScan": {
@@ -76,22 +87,30 @@
   "@vaultMeasuredDaysAgo": {
     "description": "C7 card meta line — social relative idiom (web parity).",
     "placeholders": {
-      "days": { "type": "int" }
+      "days": {
+        "type": "int"
+      }
     }
   },
   "vaultMeasuredDaysAgoLong": "Measured {days} days ago",
   "@vaultMeasuredDaysAgoLong": {
     "description": "C7 header title (canvas 173:698; MI-11 tooltip idiom).",
     "placeholders": {
-      "days": {"type": "int"}
+      "days": {
+        "type": "int"
+      }
     }
   },
   "vaultHeaderMeta": "{state} · {count} measurements",
   "@vaultHeaderMeta": {
     "description": "C7 header meta line — freshness state · measurement count (canvas 173:698).",
     "placeholders": {
-      "state": {"type": "String"},
-      "count": {"type": "int"}
+      "state": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
     }
   },
   "vaultFreshnessFresh": "Up to date",
@@ -106,7 +125,9 @@
   "@vaultUpdatedAgo": {
     "description": "MeasurementCard meta line (canvas 173:698 'Updated 12d ago').",
     "placeholders": {
-      "ago": {"type": "String"}
+      "ago": {
+        "type": "String"
+      }
     }
   },
   "vaultUpdatedJustNow": "Updated just now",
@@ -123,10 +144,20 @@
   "@vaultHistoryTitle": {
     "description": "C7 metric history sheet title (pages.md C7 = B4: sessions list, method chips, delete session).",
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "vaultDeleteSession": "Delete session",
+  "vaultSessionDeleted": "Session deleted",
+  "vaultExportSession": "Export session",
+  "vaultExportedToast": "Session exported — CSV copied to clipboard",
+  "@vaultExportedToast": {
+    "description": "C7 per-session export (F2-9): the fake export lands on the clipboard until a share seam is ratified."
+  },
+  "vaultLoadError": "The vault couldn't load — try again",
+  "vaultRetry": "Retry",
   "vaultMeasuredToday": "Measured today",
   "@vaultMeasuredToday": {
     "description": "C7 card meta line for a session saved under a day ago."
@@ -148,30 +179,56 @@
   "@guidePageLabel": {
     "description": "Guide page-indicator semantics label.",
     "placeholders": {
-      "current": { "type": "int" },
-      "total": { "type": "int" }
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "guideStep1Title": "Guide A-Z",
-  "guideStep1Body1": "How to take your body measurement accurately — one frontal photo plus your height is all it takes.",
+  "guideStep1Body1": "How to take your body measurement accurately — two photos (front and side) plus your height is all it takes.",
   "@guideStep1Body1": {
-    "description": "Guide intro — legacy copy extended with the §10 one-photo canon."
+    "description": "GuidePage step=intro body (canvas 529:2441 — two-photo canon, M-10)."
   },
   "guideStep2Title": "Get ready",
-  "guideStep2Body1": "Your clothes must fit skin tight around your body, and if you have long hair please tie it back.",
-  "guideStep2Body2": "You must be bare feet, but socks are allowed.",
+  "guideStep2Body1": "Wear fitted clothes — loose fabric hides your shape. Tie long hair back.",
+  "guideStep2Body2": "Bare feet on the floor — socks are fine.",
   "guideStep3Title": "Set your phone up",
-  "guideStep3Body1": "Place your phone vertically straight on a flat surface with the camera facing you, and stand 5–6 feet away.",
-  "guideStep3Body2": "No other person should be in the frame.",
+  "guideStep3Body1": "Stand your phone upright on a flat surface, camera facing you, and step 5–6 feet back.",
+  "guideStep3Body2": "Make sure no one else is in the frame.",
+  "guideStep3Body3": "Face the light — even, bright lighting keeps the photo sharp.",
+  "@guideStep3Body3": {
+    "description": "GuidePage step=setup lighting bullet — NEW canvas copy (529:8935): teaches the poor_lighting/blurry QC checks before the camera opens."
+  },
   "guideStep4Title": "Strike the pose",
-  "guideStep4Body1": "Stand straight in front of your phone with your head high, facing the camera.",
-  "guideStep4Body2": "Raise both arms slightly — about 45 degrees — with your feet one foot apart.",
+  "guideStep4Body1": "Stand tall facing the camera, head high.",
+  "guideStep4Body2": "Raise both arms to about 45 degrees and keep your feet about a foot apart.",
+  "guideStep5Title": "Turn to the side",
+  "guideStep5Body1": "Turn right 90 degrees — your side to the camera.",
+  "guideStep5Body2": "Stand straight with your arms relaxed at your sides.",
+  "@guideStep5Body2": {
+    "description": "GuidePage step=pose-side (canvas 540:9172, M-10) — the side pose teaches the arms-relaxed QC rule."
+  },
   "captureTitle": "Measure",
   "@captureTitle": {
     "description": "C6 top-bar title across the capture steps."
   },
+  "capturePoseProgress": "Pose {current} of {total}",
+  "@capturePoseProgress": {
+    "description": "The centered over-media pose bar title (M-9/M-10; canvas 173:574 / 540:9224).",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "captureHeightTitle": "Your height",
-  "captureHeightBody": "Height turns your photo's pixels into centimetres — it's collected once per capture and frozen into the session.",
+  "captureHeightBody": "Height turns your photos' pixels into centimetres — it's collected once per capture and frozen into the session.",
   "@captureHeightBody": {
     "description": "Height-step explainer (capture-qc.md §3 scale; flows/vault.md §1)."
   },
@@ -188,11 +245,15 @@
   "@captureCapturedA11y": {
     "description": "Screen-reader announcement when the countdown completes and the capture fires; the processing live region follows with \"Measuring…\"."
   },
+  "capturePoseSideA11y": "Front photo captured — now turn your right side to the camera",
+  "@capturePoseSideA11y": {
+    "description": "Screen-reader announcement when the flow advances from Pose 1 to Pose 2 (M-10)."
+  },
   "captureProcessingTitle": "Measuring…",
   "@captureProcessingTitle": {
     "description": "C6 processing screen title (canvas 266:8446) — on-media white over the true-black processing surface."
   },
-  "captureProcessingBody": "Mapping 33 landmarks from your photo — about 15 seconds.",
+  "captureProcessingBody": "Mapping 33 landmarks from your two photos — about 15 seconds.",
   "@captureProcessingBody": {
     "description": "C6 processing detail line (canvas 266:8446; capture-qc.md: 33 pose landmarks)."
   },
@@ -209,6 +270,11 @@
   "@captureDevScenarioLabel": {
     "description": "Dev-flavor-only debug selector: picks the fake camera's capture-qc.md sample scenario."
   },
+  "captureDevScenarioFront": "Pose 1 — front",
+  "captureDevScenarioSide": "Pose 2 — side",
+  "@captureDevScenarioSide": {
+    "description": "Dev QC-selector group headers — scenarios apply per pose (M-10 per-pose QC)."
+  },
   "manualEntryTitle": "Enter measurements manually",
   "manualEntryBody": "Use a tape measure and enter values in cm. Out-of-range values just ask for a double-check — bodies vary.",
   "@manualEntryBody": {
@@ -218,8 +284,12 @@
   "@manualEntryDoubleCheck": {
     "description": "Advisory out-of-range hint per measure (never a hard block).",
     "placeholders": {
-      "min": { "type": "int" },
-      "max": { "type": "int" }
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
     }
   },
   "manualEntrySave": "Save to vault",
@@ -267,7 +337,9 @@
   "exploreOutfitsSection": "Outfits · {count} results",
   "@exploreOutfitsSection": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "exploreFollow": "Follow",
@@ -275,7 +347,9 @@
   "exploreNoResults": "No results for \"{query}\"",
   "@exploreNoResults": {
     "placeholders": {
-      "query": { "type": "String" }
+      "query": {
+        "type": "String"
+      }
     }
   },
   "exploreClearSearch": "Clear search",
@@ -283,7 +357,9 @@
   "exploreNoDesigners": "No designers match \"{query}\"",
   "@exploreNoDesigners": {
     "placeholders": {
-      "query": { "type": "String" }
+      "query": {
+        "type": "String"
+      }
     }
   },
   "postDetailTitle": "Post",
@@ -295,7 +371,9 @@
   "commentsTitle": "Comments · {count}",
   "@commentsTitle": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "commentsLikeLabel": "Like comment",
@@ -304,7 +382,9 @@
   "@commentsLikeCount": {
     "description": "Comment meta segment; the count renders per the social idiom (1 like reads '1 likes' on web too — parity over grammar until the shared copy pass).",
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "commentsReply": "Reply",
@@ -327,8 +407,12 @@
   "@requestStepTitle": {
     "description": "C5 stepper top-bar title.",
     "placeholders": {
-      "step": { "type": "int" },
-      "total": { "type": "int" }
+      "step": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "requestStep1Heading": "Pick a measurement snapshot",
@@ -336,8 +420,12 @@
   "@requestSnapshotMeta": {
     "description": "C5 snapshot-row meta line, e.g. '2 measurements · shoulder 42.5 · hip 36.8'.",
     "placeholders": {
-      "count": { "type": "int" },
-      "preview": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "preview": {
+        "type": "String"
+      }
     }
   },
   "requestStaleWarning": "This snapshot is over 90 days old — a fresh scan gives a better fit.",
@@ -377,7 +465,9 @@
   "requestReviewBudget": "Budget · {amount}",
   "@requestReviewBudget": {
     "placeholders": {
-      "amount": { "type": "String" }
+      "amount": {
+        "type": "String"
+      }
     }
   },
   "requestBudgetExplainer": "Optional — the designer quotes after reviewing your request",
@@ -385,17 +475,27 @@
   "@requestOutfitByDesigner": {
     "description": "C5 review 'Outfit' row value.",
     "placeholders": {
-      "caption": { "type": "String" },
-      "designer": { "type": "String" }
+      "caption": {
+        "type": "String"
+      },
+      "designer": {
+        "type": "String"
+      }
     }
   },
   "requestSnapshotSummary": "{date} {method} · {count} measurements",
   "@requestSnapshotSummary": {
     "description": "C5 review 'Snapshot' row value, e.g. 'Jul 12 scan · 2 measurements'.",
     "placeholders": {
-      "date": { "type": "String" },
-      "method": { "type": "String" },
-      "count": { "type": "int" }
+      "date": {
+        "type": "String"
+      },
+      "method": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
     }
   },
   "requestSubmit": "Submit request",
@@ -403,7 +503,9 @@
   "requestSuccessBody": "{designer} usually replies with a quote within a day. We'll notify you the moment it lands.",
   "@requestSuccessBody": {
     "placeholders": {
-      "designer": { "type": "String" }
+      "designer": {
+        "type": "String"
+      }
     }
   },
   "requestViewOrder": "View order",
@@ -413,19 +515,25 @@
   "ordersDesignerLine": "Designer · {name}",
   "@ordersDesignerLine": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
   "ordersCustomerLine": "Customer · {name}",
   "@ordersCustomerLine": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
   "ordersPayCta": "Pay {amount}",
   "@ordersPayCta": {
     "placeholders": {
-      "amount": { "type": "String" }
+      "amount": {
+        "type": "String"
+      }
     }
   },
   "ordersConfirmDelivery": "Confirm delivery",
@@ -436,7 +544,9 @@
   "orderSnapshotFrozen": "Frozen {date} — vault changes never modify an order.",
   "@orderSnapshotFrozen": {
     "placeholders": {
-      "date": { "type": "String" }
+      "date": {
+        "type": "String"
+      }
     }
   },
   "orderSomethingWrong": "Something wrong?",
@@ -452,7 +562,9 @@
   "orderThreadHint": "Message {username}...",
   "@orderThreadHint": {
     "placeholders": {
-      "username": { "type": "String" }
+      "username": {
+        "type": "String"
+      }
     }
   },
   "orderThreadSendLabel": "Send message",
@@ -460,7 +572,9 @@
   "timelineQuoted": "Quote sent · {amount}",
   "@timelineQuoted": {
     "placeholders": {
-      "amount": { "type": "String" }
+      "amount": {
+        "type": "String"
+      }
     }
   },
   "timelineQuotedPending": "Quote sent",
@@ -473,7 +587,9 @@
   "timelineShippedTracking": "Shipped · {tracking}",
   "@timelineShippedTracking": {
     "placeholders": {
-      "tracking": { "type": "String" }
+      "tracking": {
+        "type": "String"
+      }
     }
   },
   "timelineDelivered": "Delivered",
@@ -492,7 +608,9 @@
   "disputeDetailCounter": "{count}/500",
   "@disputeDetailCounter": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "disputeEvidenceLabel": "Evidence (photos)",
@@ -560,7 +678,9 @@
   "@profileNotFound": {
     "description": "C9 public profile miss — web ProfileView copy.",
     "placeholders": {
-      "username": { "type": "String" }
+      "username": {
+        "type": "String"
+      }
     }
   },
   "profileMeasurementsPrivate": "Measurements are private — shared only inside a request.",
@@ -573,7 +693,9 @@
   "unfollowConfirm": "Unfollow @{username}",
   "@unfollowConfirm": {
     "placeholders": {
-      "username": { "type": "String" }
+      "username": {
+        "type": "String"
+      }
     }
   },
   "unfollowCancel": "Cancel",
@@ -581,13 +703,17 @@
   "@followListFollowersTab": {
     "description": "C12 tab title (canvas 205:7203).",
     "placeholders": {
-      "count": { "type": "String" }
+      "count": {
+        "type": "String"
+      }
     }
   },
   "followListFollowingTab": "{count} following",
   "@followListFollowingTab": {
     "placeholders": {
-      "count": { "type": "String" }
+      "count": {
+        "type": "String"
+      }
     }
   },
   "followListNoFollowers": "No followers yet.",
@@ -596,7 +722,9 @@
   "@followListDesignerMeta": {
     "description": "C12 row meta for designer accounts (canvas 205:7203).",
     "placeholders": {
-      "displayName": { "type": "String" }
+      "displayName": {
+        "type": "String"
+      }
     }
   },
   "editProfileDisplayName": "Display name",
@@ -621,7 +749,9 @@
   "@settingsGoogleIdentity": {
     "description": "X-1: Google is the only identity — the email renders as fact, not editable.",
     "placeholders": {
-      "email": { "type": "String" }
+      "email": {
+        "type": "String"
+      }
     }
   },
   "settingsCreatorSection": "Creator profile",
@@ -670,8 +800,12 @@
   "privacyConsentLine": "{document} — accepted {date}",
   "@privacyConsentLine": {
     "placeholders": {
-      "document": { "type": "String" },
-      "date": { "type": "String" }
+      "document": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
     }
   },
   "privacyConsentTos": "Terms of service",
@@ -708,7 +842,9 @@
   "designerOnboardingUsernameHelper": "Your page: apparule.cuesoft.io/{username}",
   "@designerOnboardingUsernameHelper": {
     "placeholders": {
-      "username": { "type": "String" }
+      "username": {
+        "type": "String"
+      }
     }
   },
   "designerOnboardingDisplayName": "Display name",
@@ -759,7 +895,9 @@
   "earningsRequestPayoutBody": "Move {amount} to your bank account now? Standard payouts release automatically when deliveries confirm.",
   "@earningsRequestPayoutBody": {
     "placeholders": {
-      "amount": { "type": "String" }
+      "amount": {
+        "type": "String"
+      }
     }
   },
   "earningsRequestPayoutConfirm": "Request payout",

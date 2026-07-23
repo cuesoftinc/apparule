@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:apparule/src/core/ui/app_shell.dart';
 import 'package:apparule/src/features/auth/presentation/first_action_screen.dart';
 import 'package:apparule/src/features/auth/presentation/sign_in_screen.dart';
@@ -8,8 +10,8 @@ import 'package:apparule/src/features/feed/presentation/comments_screen.dart';
 import 'package:apparule/src/features/feed/presentation/explore_screen.dart';
 import 'package:apparule/src/features/feed/presentation/home_feed_screen.dart';
 import 'package:apparule/src/features/feed/presentation/post_detail_screen.dart';
-import 'package:apparule/src/features/measurements/presentation/capture_launcher.dart';
 import 'package:apparule/src/features/measurements/presentation/capture_screen.dart';
+import 'package:apparule/src/features/measurements/presentation/create_chooser.dart';
 import 'package:apparule/src/features/measurements/presentation/guide_screen.dart';
 import 'package:apparule/src/features/measurements/presentation/manual_entry_screen.dart';
 import 'package:apparule/src/features/measurements/presentation/vault_screen.dart';
@@ -81,11 +83,10 @@ class AppShellRoute extends StatefulShellRouteData {
         // MI-16: unread order-kind notifications badge the Orders tab;
         // opening C10 marks them read and clears it.
         ordersBadge: ref.watch(ordersTabBadgeProvider).value,
-        // ➕ = the capture entry (§5: `/capture` is the ➕ tab's customer
-        // branch): guide on first run, camera once the persisted flag is
-        // set (§10). The seeded §6 user is a non-designer; the designer
-        // composer joins designed-first (canvas-first ruling 2026-07-22).
-        onCreate: () => launchCaptureFlow(context, ref),
+        // ➕ = the unified create chooser (M-11, canvas 548:2725):
+        // "Take measurements" (guide on first run, §10) · "Post an
+        // outfit" (designer-gated → C13 until the C15 composer ships).
+        onCreate: () => unawaited(showCreateChooser(context)),
       ),
     );
   }

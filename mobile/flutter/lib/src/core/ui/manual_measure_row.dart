@@ -1,4 +1,5 @@
 import 'package:apparule/src/core/theme/theme_extensions.dart';
+import 'package:apparule/src/core/ui/flip_unit_toggle.dart';
 import 'package:apparule/src/core/utils/formats.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,11 +7,13 @@ import 'package:flutter/services.dart';
 /// ManualMeasureRow — the Figma `ManualMeasureRow` set (66:695); web
 /// sibling `ManualMeasureRow.tsx`. Axes: `state` default/active/error
 /// (border binds border/accent-start/error). MI-13: tape-measure slider
-/// (tick ruler + accent thumb) + numeric field + cm/in toggle. The value
-/// is canonical cm; the display converts. Out-of-range renders a
-/// double-check hint, never a hard block (c-series inventory note) —
-/// [error] is advisory copy from the consumer's sanity range
-/// (flows/vault.md §2).
+/// (tick ruler + accent thumb) + numeric field + cm/in toggle (the
+/// 200ms x-rotation flip rides the shared [FlipUnitToggle]) + the
+/// sparkline preview animating on value change when [history] is
+/// provided. The value is canonical cm; the display converts.
+/// Out-of-range renders a double-check hint, never a hard block
+/// (c-series inventory note) — [error] is advisory copy from the
+/// consumer's sanity range (flows/vault.md §2).
 class ManualMeasureRow extends StatelessWidget {
   const ManualMeasureRow({
     required this.name,
@@ -20,6 +23,7 @@ class ManualMeasureRow extends StatelessWidget {
     required this.onUnitChanged,
     this.min = 10,
     this.max = 200,
+    this.history = const <double>[],
     this.error,
     this.active = false,
     super.key,
@@ -37,6 +41,11 @@ class ManualMeasureRow extends StatelessWidget {
   /// Sanity range in cm (slider bounds).
   final double min;
   final double max;
+
+  /// Prior session values (oldest → newest, canonical cm) — non-empty
+  /// renders the MI-13 sparkline preview: the entered value becomes the
+  /// line's animated last point.
+  final List<double> history;
 
   /// The `error` state — advisory double-check copy.
   final String? error;
@@ -109,6 +118,20 @@ class ManualMeasureRow extends StatelessWidget {
             tickColor: colors.text2.withValues(alpha: 0.6),
             thumbColor: colors.accentStart,
           ),
+          if (history.isNotEmpty && valueCm != null) ...<Widget>[
+            const SizedBox(height: 8),
+            // MI-13: the sparkline preview — prior sessions' values with
+            // the entered value as the animated last point.
+            Align(
+              alignment: Alignment.centerRight,
+              child: _PreviewSparkline(
+                history: history,
+                valueCm: valueCm!,
+                stroke: colors.accentStart,
+                endDot: colors.accentEnd,
+              ),
+            ),
+          ],
           if (error != null) ...<Widget>[
             const SizedBox(height: 8),
             Text(
@@ -241,11 +264,17 @@ class _ValueFieldState extends State<_ValueField> {
                   horizontal: 8,
                   vertical: 4,
                 ),
-                child: Text(
-                  widget.unit == MeasureUnit.cm ? 'cm' : 'in',
-                  style: typography.micro12.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colors.text2,
+                // MI-13: the label flips with the 200ms x-rotation
+                // (shared primitive — keyed by unit so the switcher
+                // sees the swap).
+                child: FlipUnitToggle(
+                  child: Text(
+                    widget.unit == MeasureUnit.cm ? 'cm' : 'in',
+                    key: ValueKey<MeasureUnit>(widget.unit),
+                    style: typography.micro12.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: colors.text2,
+                    ),
                   ),
                 ),
               ),
@@ -286,6 +315,12 @@ class _TapeSlider extends StatelessWidget {
     onChanged((raw * 2).round() / 2);
   }
 
+  /// The assistive-technology step (one slider tick — the same 0.5cm the
+  /// drag snaps to); mirrors the web sibling's keyboard-operable
+  /// `input[type=range]`.
+  void _step(double direction) =>
+      onChanged((value + direction * 0.5).clamp(min, max));
+
   @override
   Widget build(BuildContext context) {
     final fraction = max == min ? 0.0 : (value - min) / (max - min);
@@ -293,6 +328,10 @@ class _TapeSlider extends StatelessWidget {
       label: semanticLabel,
       slider: true,
       value: value.toStringAsFixed(1),
+      increasedValue: (value + 0.5).clamp(min, max).toStringAsFixed(1),
+      decreasedValue: (value - 0.5).clamp(min, max).toStringAsFixed(1),
+      onIncrease: () => _step(1),
+      onDecrease: () => _step(-1),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTapDown: (details) => _handle(context, details.localPosition),
@@ -325,6 +364,97 @@ class _TapeSlider extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The MI-13 sparkline preview — a 96×20 polyline of the metric's prior
+/// sessions with the entered value as the last point, which TWEENS to
+/// each new value (design.md §4: "value change animates sparkline
+/// preview"). Reduced motion snaps.
+class _PreviewSparkline extends StatelessWidget {
+  const _PreviewSparkline({
+    required this.history,
+    required this.valueCm,
+    required this.stroke,
+    required this.endDot,
+  });
+
+  final List<double> history;
+  final double valueCm;
+  final Color stroke;
+  final Color endDot;
+
+  @override
+  Widget build(BuildContext context) {
+    final motion = Theme.of(context).extension<AppMotion>()!;
+    final reducedMotion = MediaQuery.disableAnimationsOf(context);
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(end: valueCm),
+      duration: reducedMotion ? Duration.zero : motion.base,
+      curve: motion.standardEasing,
+      builder: (context, animated, _) => CustomPaint(
+        size: const Size(96, 20),
+        painter: _PreviewSparklinePainter(
+          values: <double>[...history, animated],
+          stroke: stroke,
+          endDot: endDot,
+        ),
+      ),
+    );
+  }
+}
+
+/// The MeasurementCard sparkline idiom at preview scale: 2px vertical
+/// inset, accent-start stroke 1.5, accent-end end dot.
+class _PreviewSparklinePainter extends CustomPainter {
+  const _PreviewSparklinePainter({
+    required this.values,
+    required this.stroke,
+    required this.endDot,
+  });
+
+  final List<double> values;
+  final Color stroke;
+  final Color endDot;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (values.length < 2) return;
+    final min = values.reduce((a, b) => a < b ? a : b);
+    final max = values.reduce((a, b) => a > b ? a : b);
+    final range = (max - min) == 0 ? 1.0 : max - min;
+    final step = size.width / (values.length - 1);
+
+    Offset point(int i) => Offset(
+      i * step,
+      size.height - 2 - ((values[i] - min) / range) * (size.height - 4),
+    );
+
+    final path = Path()..moveTo(point(0).dx, point(0).dy);
+    for (var i = 1; i < values.length; i++) {
+      path.lineTo(point(i).dx, point(i).dy);
+    }
+    canvas
+      ..drawPath(
+        path,
+        Paint()
+          ..color = stroke
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round,
+      )
+      ..drawCircle(
+        point(values.length - 1),
+        2.5,
+        Paint()..color = endDot,
+      );
+  }
+
+  @override
+  bool shouldRepaint(_PreviewSparklinePainter oldDelegate) =>
+      oldDelegate.values != values ||
+      oldDelegate.stroke != stroke ||
+      oldDelegate.endDot != endDot;
 }
 
 /// 41 tick marks, every fifth tall (the web sibling's ruler strip).

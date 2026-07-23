@@ -117,9 +117,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(ExploreScreen), findsOneWidget);
 
-    // ➕ is an entry gesture, not a branch switch (§5 customer branch):
-    // it pushes the full-screen capture flow over the shell.
+    // ➕ is an entry gesture, not a branch switch (M-11): it opens the
+    // create chooser sheet; "Take measurements" pushes the full-screen
+    // capture flow over the shell.
     await tester.tap(tab('Create'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Take measurements'));
     // Bounded pumps: the viewfinder silhouette pulses (MI-12), so
     // pumpAndSettle would never settle on the capture screen.
     await tester.pump();
@@ -143,9 +146,8 @@ void main() {
   });
 
   group('C6 capture routing (mobile-implementation.md §10)', () {
-    testWidgets('➕ opens the guide on first run (no persisted flag)', (
-      tester,
-    ) async {
+    testWidgets('➕ opens the chooser; Take measurements → the guide on '
+        'first run (no persisted flag)', (tester) async {
       await pumpBootedApp(tester, authRepository: _signedIn());
 
       await tester.tap(
@@ -154,6 +156,8 @@ void main() {
           matching: find.bySemanticsLabel('Create'),
         ),
       );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Take measurements'));
       await tester.pumpAndSettle();
 
       expect(find.byType(CaptureGuideScreen), findsOneWidget);

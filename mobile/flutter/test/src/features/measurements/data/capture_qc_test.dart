@@ -1,9 +1,12 @@
+import 'package:apparule/src/core/utils/capture_pose.dart';
 import 'package:apparule/src/features/measurements/data/capture_qc.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// The capture-qc.md contract, rule by rule: every §1/§2 fail code fires
-/// from its documented threshold, multiple faults report the first by
-/// table order, and the §3/§4 formulas produce the spec'd numbers.
+/// from its documented threshold **per pose** (M-10: the side table swaps
+/// the orientation and arms rows in place), multiple faults report the
+/// first by table order within the pose, and the §3/§4 formulas produce
+/// the spec'd numbers.
 void main() {
   group('firstQcFailure — §1 image pre-checks', () {
     test('passing defaults pass', () {
@@ -126,6 +129,118 @@ void main() {
       expect(
         firstQcFailure(const CaptureFrameMetrics(bodyHeightFraction: 0.39)),
         'too_far',
+      );
+    });
+  });
+
+  group('firstQcFailure — §2 side-pose deltas (M-10)', () {
+    // A side-on subject: stacked shoulders in depth, foreshortened
+    // width, arms hanging at the sides.
+    const passingSide = CaptureFrameMetrics.passingSide();
+
+    test('side passing defaults pass the side table', () {
+      expect(firstQcFailure(passingSide, pose: CapturePose.side), isNull);
+    });
+
+    test('the front-passing frame is exactly what the side table rejects', () {
+      expect(
+        firstQcFailure(const CaptureFrameMetrics(), pose: CapturePose.side),
+        'not_side_profile',
+      );
+    });
+
+    test('not side profile — shoulders spread in x (ratio ≥ 0.9)', () {
+      expect(
+        firstQcFailure(
+          const CaptureFrameMetrics(
+            shoulderHipRatio: 0.9,
+            shoulderZDelta: 0.28,
+            wristHipClearancePct: 2,
+          ),
+          pose: CapturePose.side,
+        ),
+        'not_side_profile',
+      );
+    });
+
+    test('not side profile — shoulders not separated in depth '
+        '(z-delta < 0.15)', () {
+      expect(
+        firstQcFailure(
+          const CaptureFrameMetrics(
+            shoulderHipRatio: 0.72,
+            shoulderZDelta: 0.14,
+            wristHipClearancePct: 2,
+          ),
+          pose: CapturePose.side,
+        ),
+        'not_side_profile',
+      );
+    });
+
+    test('arms position — the rule INVERTS on the side pose: wrists must '
+        'hang within 5% of the hips', () {
+      expect(
+        firstQcFailure(
+          const CaptureFrameMetrics(
+            shoulderHipRatio: 0.72,
+            shoulderZDelta: 0.28,
+            wristHipClearancePct: 5.1,
+          ),
+          pose: CapturePose.side,
+        ),
+        'arms_position',
+      );
+    });
+
+    test('§1 pre-checks and shared body rows run unchanged on the side '
+        'frame', () {
+      expect(
+        firstQcFailure(
+          const CaptureFrameMetrics(
+            meanLuma: 24,
+            shoulderHipRatio: 0.72,
+            shoulderZDelta: 0.28,
+            wristHipClearancePct: 2,
+          ),
+          pose: CapturePose.side,
+        ),
+        'poor_lighting',
+      );
+      expect(
+        firstQcFailure(
+          const CaptureFrameMetrics(
+            posesDetected: 2,
+            shoulderHipRatio: 0.72,
+            shoulderZDelta: 0.28,
+            wristHipClearancePct: 2,
+          ),
+          pose: CapturePose.side,
+        ),
+        'multiple_bodies',
+      );
+      expect(
+        firstQcFailure(
+          const CaptureFrameMetrics(
+            bodyHeightFraction: 0.28,
+            shoulderHipRatio: 0.72,
+            shoulderZDelta: 0.28,
+            wristHipClearancePct: 2,
+          ),
+          pose: CapturePose.side,
+        ),
+        'too_far',
+      );
+    });
+
+    test('side multi-fault reports the orientation row first (table '
+        'order: not_side_profile before arms_position and too_far)', () {
+      expect(
+        firstQcFailure(
+          const CaptureFrameMetrics(bodyHeightFraction: 0.28),
+          pose: CapturePose.side,
+        ),
+        'not_side_profile',
       );
     });
   });

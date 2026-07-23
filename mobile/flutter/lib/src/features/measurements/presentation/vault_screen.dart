@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:apparule/src/core/async/run_action.dart';
 import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/app_bar.dart';
@@ -13,12 +14,15 @@ import 'package:apparule/src/core/ui/skeleton.dart';
 import 'package:apparule/src/core/utils/clock.dart';
 import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/core/utils/seed_media.dart';
+import 'package:apparule/src/features/measurements/data/measurement_repository.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_session.dart';
 import 'package:apparule/src/features/measurements/presentation/capture_launcher.dart';
+import 'package:apparule/src/features/measurements/presentation/vault_actions.dart';
 import 'package:apparule/src/features/measurements/presentation/vault_view_model.dart';
 import 'package:apparule/src/features/profile/presentation/profile_view_model.dart';
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -52,11 +56,81 @@ class VaultScreen extends ConsumerWidget {
       ),
       body: switch (state) {
         AsyncData(:final value) => _VaultBody(sessions: value),
-        AsyncError(:final error) => Center(child: Text('$error')),
+        // Load-error recovery (D47, web VaultView parity): recovery copy
+        // + Retry, never raw error text.
+        AsyncError() => const _VaultLoadError(),
         _ => const _VaultSkeleton(),
       },
     );
   }
+}
+
+/// The C7 load-error state — "The vault couldn't load — try again" with
+/// a quiet Retry re-deriving the list (MI-19: skeletons never spin
+/// forever; errors land on a recovery state).
+class _VaultLoadError extends ConsumerWidget {
+  const _VaultLoadError();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final colors = theme.extension<AppColors>()!;
+    final typography = theme.extension<AppTypography>()!;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text(
+              l10n.vaultLoadError,
+              textAlign: TextAlign.center,
+              style: typography.body14.copyWith(color: colors.text2),
+            ),
+            const SizedBox(height: 16),
+            Button(
+              label: l10n.vaultRetry,
+              kind: ButtonKind.quiet,
+              onPressed: () => ref.invalidate(vaultViewModelProvider),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The B4/C7 capture-options sheet — camera / manual entry (MI-13);
+/// shared by the header Retake AND the empty-vault CTA (D17: manual
+/// entry must be reachable from an empty vault too).
+Future<void> _showCaptureOptionsSheet(BuildContext context, WidgetRef ref) {
+  final l10n = context.l10n;
+  return Sheet.show<void>(
+    context,
+    title: l10n.vaultRetakeSheetTitle,
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        CaptureOptionCard(
+          mode: CaptureOptionMode.photoUpload,
+          onTap: () {
+            Navigator.of(context).pop();
+            unawaited(launchCaptureFlow(context, ref));
+          },
+        ),
+        const SizedBox(height: 12),
+        CaptureOptionCard(
+          mode: CaptureOptionMode.manualEntry,
+          onTap: () {
+            Navigator.of(context).pop();
+            unawaited(const ManualEntryRoute().push<void>(context));
+          },
+        ),
+      ],
+    ),
+  );
 }
 
 /// The C7-loading frame (canvas 212:5983): header block over card blocks
@@ -142,13 +216,14 @@ class _VaultBody extends ConsumerWidget {
 
     if (sessions.isEmpty) {
       // Canvas 212:5925: the empty vault is the EmptyState alone — the
-      // capture options live behind its CTA, not above it.
+      // capture options live behind its CTA (D17: the CTA opens the
+      // options sheet, so manual entry is reachable here too).
       return Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: EmptyState(
             kind: EmptyStateKind.vault,
-            onCta: () => unawaited(launchCaptureFlow(context, ref)),
+            onCta: () => unawaited(_showCaptureOptionsSheet(context, ref)),
           ),
         ),
       );
@@ -290,42 +365,14 @@ class _VaultHeader extends ConsumerWidget {
                   label: l10n.vaultRetake,
                   kind: ButtonKind.quiet,
                   size: ButtonSize.sm,
-                  onPressed: () => unawaited(_showRetakeSheet(context, ref)),
+                  onPressed: () =>
+                      unawaited(_showCaptureOptionsSheet(context, ref)),
                 ),
               ),
             ],
           ),
         ),
       ],
-    );
-  }
-
-  /// The B4 "Retake → capture options" sheet: camera / manual entry.
-  Future<void> _showRetakeSheet(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
-    return Sheet.show<void>(
-      context,
-      title: l10n.vaultRetakeSheetTitle,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          CaptureOptionCard(
-            mode: CaptureOptionMode.webcamUpload,
-            onTap: () {
-              Navigator.of(context).pop();
-              unawaited(launchCaptureFlow(context, ref));
-            },
-          ),
-          const SizedBox(height: 12),
-          CaptureOptionCard(
-            mode: CaptureOptionMode.manualEntry,
-            onTap: () {
-              Navigator.of(context).pop();
-              unawaited(const ManualEntryRoute().push<void>(context));
-            },
-          ),
-        ],
-      ),
     );
   }
 }
@@ -404,17 +451,34 @@ class _HistorySheet extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
+                // Per-session export (D50, features.md F2-9): the CSV
+                // lands on the clipboard until a share seam is ratified
+                // into the pin ledger.
+                Semantics(
+                  label: l10n.vaultExportSession,
+                  button: true,
+                  child: InkResponse(
+                    radius: 20,
+                    borderRadius: BorderRadius.circular(radii.pill),
+                    onTap: () => unawaited(_export(context, ref, session.id)),
+                    child: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: Icon(
+                        LucideIcons.download,
+                        size: 18,
+                        color: colors.text2,
+                      ),
+                    ),
+                  ),
+                ),
                 Semantics(
                   label: l10n.vaultDeleteSession,
                   button: true,
                   child: InkResponse(
                     radius: 20,
                     borderRadius: BorderRadius.circular(radii.pill),
-                    onTap: () => unawaited(
-                      ref
-                          .read(vaultViewModelProvider.notifier)
-                          .deleteSession(session.id),
-                    ),
+                    onTap: () => unawaited(_delete(context, ref, session.id)),
                     child: SizedBox(
                       width: 40,
                       height: 40,
@@ -431,6 +495,44 @@ class _HistorySheet extends ConsumerWidget {
           ),
       ],
     );
+  }
+
+  /// Delete through the VaultActions façade inside `runAction` (D48 +
+  /// D16): success lands the "Session deleted" toast, failure the shared
+  /// rollback toast — never silent either way.
+  Future<void> _delete(
+    BuildContext context,
+    WidgetRef ref,
+    String sessionId,
+  ) async {
+    final l10n = context.l10n;
+    final ok = await runAction(
+      context,
+      () => ref.read(vaultActionsProvider.notifier).deleteSession(sessionId),
+    );
+    if (ok && context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.vaultSessionDeleted)));
+    }
+  }
+
+  Future<void> _export(
+    BuildContext context,
+    WidgetRef ref,
+    String sessionId,
+  ) async {
+    final l10n = context.l10n;
+    final repository = ref.read(measurementRepositoryProvider);
+    final ok = await runAction(context, () async {
+      final csv = await repository.exportSessionCsv(sessionId);
+      await Clipboard.setData(ClipboardData(text: csv));
+    });
+    if (ok && context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.vaultExportedToast)));
+    }
   }
 }
 

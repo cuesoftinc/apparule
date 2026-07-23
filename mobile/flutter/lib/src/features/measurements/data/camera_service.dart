@@ -1,3 +1,4 @@
+import 'package:apparule/src/core/utils/capture_pose.dart';
 import 'package:apparule/src/features/measurements/domain/capture_photo.dart';
 import 'package:flutter/widgets.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -29,11 +30,14 @@ abstract class CameraService {
   /// Whether [initialize] completed and the preview/capture are usable.
   bool get isReady;
 
-  /// The live viewfinder — fills the CaptureOverlay's 9:16 viewport slot.
-  Widget buildPreview();
+  /// The live viewfinder — fills the CaptureOverlay's 9:16 viewport
+  /// slot. [pose] is the two-pose flow's current pose (M-10): hardware
+  /// ignores it (one lens sees both poses); the fake serves its per-pose
+  /// sample feed.
+  Widget buildPreview({CapturePose pose = CapturePose.front});
 
-  /// Captures one frame.
-  Future<CapturePhoto> takePhoto();
+  /// Captures one frame for [pose].
+  Future<CapturePhoto> takePhoto({CapturePose pose = CapturePose.front});
 
   /// Releases the camera (screen dispose).
   Future<void> release();

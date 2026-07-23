@@ -72,12 +72,14 @@ class FirstActionScreen extends ConsumerWidget {
               icon: LucideIcons.camera,
               title: l10n.firstActionMeasure,
               meta: l10n.firstActionMeasureMeta,
-              // → C6: the ➕ capture entry gesture (guide on first run).
-              onTap: () => _leave(
-                context,
-                ref,
-                (context) => launchCaptureFlow(context, ref),
-              ),
+              // → C6: the capture entry gesture (guide on first run).
+              // Interstitial exits always `go()` first (D72 — the audit's
+              // CLASS 7 convention): backing out of capture must land on
+              // home, never on the already-dismissed C1b.
+              onTap: () => _leave(context, ref, (context) {
+                const HomeRoute().go(context);
+                unawaited(launchCaptureFlow(context, ref));
+              }),
             ),
             SizedBox(height: spacing.s8),
             _ChoiceCard(

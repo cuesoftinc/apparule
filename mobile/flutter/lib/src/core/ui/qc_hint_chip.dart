@@ -1,12 +1,15 @@
 import 'package:apparule/src/core/theme/theme_extensions.dart';
+import 'package:apparule/src/core/utils/capture_pose.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// The Figma `QCHintChip` set's `code` axis (62:634) — 1:1 with the
-/// capture-qc.md §1–2 fail codes. Each value carries its canonical
-/// guidance copy (flows/vault.md QC-failures row, verbatim — the same
-/// strings the 422 envelope carries) and the glyph naming the failure
-/// family.
+/// capture-qc.md §1–2 fail codes, `not_side_profile` included (M-10
+/// side-pose QC). Each value carries its canonical guidance copy
+/// (flows/vault.md QC-failures row, verbatim — the same strings the 422
+/// envelope carries) and the glyph naming the failure family;
+/// `arms_position` copy is pose-contextual (front clearance vs side
+/// relaxed) via [guidanceFor].
 enum QcFailCode {
   noBody('no_body', 'Make sure your whole body is visible', LucideIcons.user),
   multipleBodies(
@@ -46,6 +49,11 @@ enum QcFailCode {
     'too_far',
     'Move closer — fill more of the frame',
     LucideIcons.search,
+  ),
+  notSideProfile(
+    'not_side_profile',
+    'Turn your right side to the camera',
+    LucideIcons.user,
   );
 
   const QcFailCode(this.wireName, this.guidance, this.icon);
@@ -58,6 +66,18 @@ enum QcFailCode {
   final String guidance;
 
   final IconData icon;
+
+  /// The side-pose `arms_position` copy (flows/vault.md QC-failures row:
+  /// the arms rule inverts on the side pose — relaxed, not slightly out).
+  static const String _armsRelaxedGuidance =
+      'Let your arms hang relaxed at your sides';
+
+  /// Pose-contextual guidance (capture-qc.md §2: `arms_position` copy is
+  /// per pose); every other code reads the same on both poses.
+  String guidanceFor(CapturePose pose) =>
+      this == QcFailCode.armsPosition && pose == CapturePose.side
+      ? _armsRelaxedGuidance
+      : guidance;
 
   /// Maps a wire code (`not_frontal`) to its enum value; `null` when the
   /// code is unknown (forward-compatible with additive QC codes).
@@ -72,11 +92,19 @@ enum QcFailCode {
 /// QCHintChip — the Figma `QCHintChip` set (62:634); web sibling
 /// `QCHintChip.tsx`. Inverse surface (text-token fill, bg-token content —
 /// the Toast technique), 13px semibold, pill radius. Consumed by the C6
-/// QC states through the CaptureOverlay's qc-hint slot.
+/// QC states through the CaptureOverlay's qc-hint slot; [pose] picks the
+/// pose-contextual `arms_position` copy (M-10).
 class QCHintChip extends StatelessWidget {
-  const QCHintChip({required this.code, super.key});
+  const QCHintChip({
+    required this.code,
+    this.pose = CapturePose.front,
+    super.key,
+  });
 
   final QcFailCode code;
+
+  /// The failing pose — `arms_position` guidance is per pose.
+  final CapturePose pose;
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +135,7 @@ class QCHintChip extends StatelessWidget {
             const SizedBox(width: 8),
             Flexible(
               child: Text(
-                code.guidance,
+                code.guidanceFor(pose),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: typography.caption13.copyWith(
