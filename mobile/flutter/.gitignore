@@ -60,3 +60,6 @@ ios/Runner/GoogleService-Info.plist
 # appears when the bare project is built directly — the committed lockfile is
 # Runner.xcworkspace/xcshareddata/swiftpm/Package.resolved)
 **/project.xcworkspace/xcshareddata/swiftpm/
+
+# machine-local signing for device builds
+ios/Flutter/signing.local.xcconfig
