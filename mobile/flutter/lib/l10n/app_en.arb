@@ -72,7 +72,58 @@
   "createChooserPostMetaNonDesigner": "Become a designer to post",
   "createChooserPostMetaDesigner": "Share a look with its fit data",
   "@createChooserPostMetaDesigner": {
-    "description": "M-11 create chooser (canvas 548:2725): the ➕ tab's two-option sheet. Non-designers route Post-an-outfit to C13 become-a-designer; designers see the fit-data subtitle and take the same route until C15 ships."
+    "description": "M-11 create chooser (canvas 548:2725): the ➕ tab's two-option sheet. Non-designers route Post-an-outfit to C13 become-a-designer; designers see the fit-data subtitle and route to the C15 composer."
+  },
+  "composerTitle": "New post",
+  "composerPhotosLabel": "Photos ({count}/10)",
+  "@composerPhotosLabel": {
+    "description": "C15 media-grid section label (canvas 551:2866/551:4152) — count moves with the picked set; 10 is the ratified cap.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "composerAddPhotos": "Add photos",
+  "composerLimitsHelper": "Up to 10 photos — JPEG, PNG or WebP, 10 MB max.",
+  "@composerLimitsHelper": {
+    "description": "C15 empty-state helper under the dashed add-zone — the ratified media contract in canvas voice."
+  },
+  "composerCaptionLabel": "Caption",
+  "composerCaptionHint": "Tell customers about the piece — fabric, fit, occasion…",
+  "composerSnapshotTitle": "Attach measurement snapshot",
+  "composerSnapshotHelper": "Posts carry the fit data this look was tailored for — buyers request with exact measurements.",
+  "@composerSnapshotHelper": {
+    "description": "C15 snapshot-attach card helper (canvas 551:4251) — the M-11 differentiator copy."
+  },
+  "composerPost": "Post",
+  "composerUploading": "Uploading…",
+  "@composerUploading": {
+    "description": "C15 per-tile strip while the publish is in flight (canvas 552:2)."
+  },
+  "composerRemovePhoto": "Remove photo {position}",
+  "@composerRemovePhoto": {
+    "description": "C15 media-tile remove-dot semantics label (icon-only control).",
+    "placeholders": {
+      "position": {
+        "type": "int"
+      }
+    }
+  },
+  "composerRejectedType": "Images must be JPEG, PNG, or WebP",
+  "@composerRejectedType": {
+    "description": "C15 pick rejection — web B5 composer copy verbatim."
+  },
+  "composerRejectedSize": "Images must be 10 MB or smaller",
+  "composerRejectedCount": "Posts carry at most 10 images",
+  "composerAltTextDefault": "Outfit by {designer}",
+  "@composerAltTextDefault": {
+    "description": "Required alt text default (design.md §5; web B5 parity) — applied when the designer supplies none (mobile v1 has no alt-text field).",
+    "placeholders": {
+      "designer": {
+        "type": "String"
+      }
+    }
   },
   "vaultTitle": "Measurement vault",
   "vaultSessionScan": "Scan",

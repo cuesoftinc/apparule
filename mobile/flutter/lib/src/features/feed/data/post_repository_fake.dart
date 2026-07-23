@@ -28,6 +28,7 @@ class PostRepositoryFake with FailNextSeam implements PostRepository {
     AssetBundle? bundle,
     DateTime Function()? now,
     this._persistence,
+    this.uploadDelay = const Duration(milliseconds: 900),
   })
     // Instance-scoped bundle, never the global rootBundle — its string
     // cache pins futures to the zone that first loaded them, which
@@ -46,6 +47,13 @@ class PostRepositoryFake with FailNextSeam implements PostRepository {
   final AssetBundle _bundle;
   final DateTime Function() _now;
   final PersistenceService? _persistence;
+
+  /// The C15 publish's simulated upload beat: [createPost] resolves
+  /// after this pause, so the composer's per-tile "Uploading…" strips
+  /// and loading CTA are a lived state on the dev flavor
+  /// (`EarningsRepositoryFake.resolveDelay` precedent — zero in tests
+  /// that drive real async).
+  final Duration uploadDelay;
 
   /// The one in-flight load — concurrent first callers (two providers
   /// watching one keepAlive fake) must all await the SAME parse instead
@@ -86,7 +94,9 @@ class PostRepositoryFake with FailNextSeam implements PostRepository {
   final List<(String, String)> _graphEdges = <(String, String)>[];
 
   String _viewerUsername = 'kiki.adeyemi';
+  String _viewerId = 'acc-kiki';
   int _commentSequence = 0;
+  int _postSequence = 0;
 
   Future<void> _ensureLoaded() {
     if (_loaded) return Future<void>.value();
@@ -101,6 +111,7 @@ class PostRepositoryFake with FailNextSeam implements PostRepository {
 
     if (await loadSeedJson(_bundle, _meAsset) case final me?) {
       _viewerUsername = me['username'] as String? ?? _viewerUsername;
+      _viewerId = me['id'] as String? ?? _viewerId;
       _accounts[_viewerUsername] = (
         displayName: me['display_name'] as String? ?? _viewerUsername,
         avatarUrl: me['avatar_url'] as String?,
@@ -297,9 +308,16 @@ class PostRepositoryFake with FailNextSeam implements PostRepository {
   @override
   Future<List<Post>> homeFeed() async {
     await _ensureLoaded();
+    // Followed designers PLUS the viewer's own posts: the C15 publish
+    // lands at the top of the author's feed (web B5 "publish → the post
+    // lands at the top of the feed"; the two-surface contract test pins
+    // it). Seed posts are all designer-authored, so the union is
+    // invisible until the viewer publishes.
     return <Post>[
       for (final post in _posts)
-        if (_follows.contains(post.designer.username)) _view(post),
+        if (_follows.contains(post.designer.username) ||
+            post.designer.username == _viewerUsername)
+          _view(post),
     ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 
@@ -632,5 +650,51 @@ class PostRepositoryFake with FailNextSeam implements PostRepository {
       for (final edge in _graphEdges)
         if (edge.$1 == username) _summaryOf(edge.$2),
     ];
+  }
+
+  // -- C15 composer (web store `createPost` parity) --------------------------
+
+  @override
+  Future<Post> createPost({
+    required String caption,
+    required List<PostMedia> media,
+    String? snapshotSessionId,
+  }) async {
+    await _ensureLoaded();
+    maybeFailNext();
+    // Web-store `validation_failed` parity — the composer gates the CTA
+    // on ≥1 photo, but the repository re-asserts its own invariant.
+    if (media.isEmpty || media.length > 10) {
+      throw StateError('Posts carry 1-10 images');
+    }
+    // The simulated upload beat (dev flavor sees the uploading state);
+    // rides the fake timer in widget tests, zero in async unit tests.
+    if (uploadDelay > Duration.zero) {
+      await Future<void>.delayed(uploadDelay);
+    }
+    // The signed-in viewer authors composer posts. Designer gating lives
+    // at the chooser (M-11) — this fake cannot see the earnings side's
+    // session-enabled designer flag (the recorded designer-status seam
+    // above), so it never re-gates, unlike the web store's
+    // `designer_profile_required`.
+    final account = _accounts[_viewerUsername];
+    final post = Post(
+      id: 'post-local-${++_postSequence}',
+      designer: PostDesigner(
+        id: _viewerId,
+        username: _viewerUsername,
+        displayName: account?.displayName ?? _viewerUsername,
+        avatarUrl: account?.avatarUrl,
+      ),
+      caption: caption,
+      styleTags: const <String>[],
+      media: media,
+      likeCount: 0,
+      commentCount: 0,
+      createdAt: _now(),
+      snapshotSessionId: snapshotSessionId,
+    );
+    _posts.insert(0, post);
+    return _view(post);
   }
 }

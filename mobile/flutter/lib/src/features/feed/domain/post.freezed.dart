@@ -549,7 +549,11 @@ mixin _$Post {
 
  String get id; PostDesigner get designer; String get caption; List<String> get styleTags; List<PostMedia> get media; int get likeCount; int get commentCount; DateTime get createdAt;/// Base price in kobo; `null` = "quote on request".
  int? get basePriceCents; String get currency; int get turnaroundDays;/// Viewer-scoped engagement (web `viewPost` parity).
- bool get liked; bool get saved;
+ bool get liked; bool get saved;/// The measurement-snapshot ref a C15 composer post carries when the
+/// attach toggle is ON (M-11: posts carry the fit data this look was
+/// tailored for) — the vault session's id at publish time. Seed
+/// posts and snapshot-less publishes carry `null`.
+ String? get snapshotSessionId;
 /// Create a copy of Post
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -560,16 +564,16 @@ $PostCopyWith<Post> get copyWith => _$PostCopyWithImpl<Post>(this as Post, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Post&&(identical(other.id, id) || other.id == id)&&(identical(other.designer, designer) || other.designer == designer)&&(identical(other.caption, caption) || other.caption == caption)&&const DeepCollectionEquality().equals(other.styleTags, styleTags)&&const DeepCollectionEquality().equals(other.media, media)&&(identical(other.likeCount, likeCount) || other.likeCount == likeCount)&&(identical(other.commentCount, commentCount) || other.commentCount == commentCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.basePriceCents, basePriceCents) || other.basePriceCents == basePriceCents)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.turnaroundDays, turnaroundDays) || other.turnaroundDays == turnaroundDays)&&(identical(other.liked, liked) || other.liked == liked)&&(identical(other.saved, saved) || other.saved == saved));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Post&&(identical(other.id, id) || other.id == id)&&(identical(other.designer, designer) || other.designer == designer)&&(identical(other.caption, caption) || other.caption == caption)&&const DeepCollectionEquality().equals(other.styleTags, styleTags)&&const DeepCollectionEquality().equals(other.media, media)&&(identical(other.likeCount, likeCount) || other.likeCount == likeCount)&&(identical(other.commentCount, commentCount) || other.commentCount == commentCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.basePriceCents, basePriceCents) || other.basePriceCents == basePriceCents)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.turnaroundDays, turnaroundDays) || other.turnaroundDays == turnaroundDays)&&(identical(other.liked, liked) || other.liked == liked)&&(identical(other.saved, saved) || other.saved == saved)&&(identical(other.snapshotSessionId, snapshotSessionId) || other.snapshotSessionId == snapshotSessionId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,designer,caption,const DeepCollectionEquality().hash(styleTags),const DeepCollectionEquality().hash(media),likeCount,commentCount,createdAt,basePriceCents,currency,turnaroundDays,liked,saved);
+int get hashCode => Object.hash(runtimeType,id,designer,caption,const DeepCollectionEquality().hash(styleTags),const DeepCollectionEquality().hash(media),likeCount,commentCount,createdAt,basePriceCents,currency,turnaroundDays,liked,saved,snapshotSessionId);
 
 @override
 String toString() {
-  return 'Post(id: $id, designer: $designer, caption: $caption, styleTags: $styleTags, media: $media, likeCount: $likeCount, commentCount: $commentCount, createdAt: $createdAt, basePriceCents: $basePriceCents, currency: $currency, turnaroundDays: $turnaroundDays, liked: $liked, saved: $saved)';
+  return 'Post(id: $id, designer: $designer, caption: $caption, styleTags: $styleTags, media: $media, likeCount: $likeCount, commentCount: $commentCount, createdAt: $createdAt, basePriceCents: $basePriceCents, currency: $currency, turnaroundDays: $turnaroundDays, liked: $liked, saved: $saved, snapshotSessionId: $snapshotSessionId)';
 }
 
 
@@ -580,7 +584,7 @@ abstract mixin class $PostCopyWith<$Res>  {
   factory $PostCopyWith(Post value, $Res Function(Post) _then) = _$PostCopyWithImpl;
 @useResult
 $Res call({
- String id, PostDesigner designer, String caption, List<String> styleTags, List<PostMedia> media, int likeCount, int commentCount, DateTime createdAt, int? basePriceCents, String currency, int turnaroundDays, bool liked, bool saved
+ String id, PostDesigner designer, String caption, List<String> styleTags, List<PostMedia> media, int likeCount, int commentCount, DateTime createdAt, int? basePriceCents, String currency, int turnaroundDays, bool liked, bool saved, String? snapshotSessionId
 });
 
 
@@ -597,7 +601,7 @@ class _$PostCopyWithImpl<$Res>
 
 /// Create a copy of Post
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? designer = null,Object? caption = null,Object? styleTags = null,Object? media = null,Object? likeCount = null,Object? commentCount = null,Object? createdAt = null,Object? basePriceCents = freezed,Object? currency = null,Object? turnaroundDays = null,Object? liked = null,Object? saved = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? designer = null,Object? caption = null,Object? styleTags = null,Object? media = null,Object? likeCount = null,Object? commentCount = null,Object? createdAt = null,Object? basePriceCents = freezed,Object? currency = null,Object? turnaroundDays = null,Object? liked = null,Object? saved = null,Object? snapshotSessionId = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,designer: null == designer ? _self.designer : designer // ignore: cast_nullable_to_non_nullable
@@ -612,7 +616,8 @@ as int?,currency: null == currency ? _self.currency : currency // ignore: cast_n
 as String,turnaroundDays: null == turnaroundDays ? _self.turnaroundDays : turnaroundDays // ignore: cast_nullable_to_non_nullable
 as int,liked: null == liked ? _self.liked : liked // ignore: cast_nullable_to_non_nullable
 as bool,saved: null == saved ? _self.saved : saved // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,snapshotSessionId: freezed == snapshotSessionId ? _self.snapshotSessionId : snapshotSessionId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 /// Create a copy of Post
@@ -706,10 +711,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  PostDesigner designer,  String caption,  List<String> styleTags,  List<PostMedia> media,  int likeCount,  int commentCount,  DateTime createdAt,  int? basePriceCents,  String currency,  int turnaroundDays,  bool liked,  bool saved)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  PostDesigner designer,  String caption,  List<String> styleTags,  List<PostMedia> media,  int likeCount,  int commentCount,  DateTime createdAt,  int? basePriceCents,  String currency,  int turnaroundDays,  bool liked,  bool saved,  String? snapshotSessionId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Post() when $default != null:
-return $default(_that.id,_that.designer,_that.caption,_that.styleTags,_that.media,_that.likeCount,_that.commentCount,_that.createdAt,_that.basePriceCents,_that.currency,_that.turnaroundDays,_that.liked,_that.saved);case _:
+return $default(_that.id,_that.designer,_that.caption,_that.styleTags,_that.media,_that.likeCount,_that.commentCount,_that.createdAt,_that.basePriceCents,_that.currency,_that.turnaroundDays,_that.liked,_that.saved,_that.snapshotSessionId);case _:
   return orElse();
 
 }
@@ -727,10 +732,10 @@ return $default(_that.id,_that.designer,_that.caption,_that.styleTags,_that.medi
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  PostDesigner designer,  String caption,  List<String> styleTags,  List<PostMedia> media,  int likeCount,  int commentCount,  DateTime createdAt,  int? basePriceCents,  String currency,  int turnaroundDays,  bool liked,  bool saved)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  PostDesigner designer,  String caption,  List<String> styleTags,  List<PostMedia> media,  int likeCount,  int commentCount,  DateTime createdAt,  int? basePriceCents,  String currency,  int turnaroundDays,  bool liked,  bool saved,  String? snapshotSessionId)  $default,) {final _that = this;
 switch (_that) {
 case _Post():
-return $default(_that.id,_that.designer,_that.caption,_that.styleTags,_that.media,_that.likeCount,_that.commentCount,_that.createdAt,_that.basePriceCents,_that.currency,_that.turnaroundDays,_that.liked,_that.saved);case _:
+return $default(_that.id,_that.designer,_that.caption,_that.styleTags,_that.media,_that.likeCount,_that.commentCount,_that.createdAt,_that.basePriceCents,_that.currency,_that.turnaroundDays,_that.liked,_that.saved,_that.snapshotSessionId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -747,10 +752,10 @@ return $default(_that.id,_that.designer,_that.caption,_that.styleTags,_that.medi
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  PostDesigner designer,  String caption,  List<String> styleTags,  List<PostMedia> media,  int likeCount,  int commentCount,  DateTime createdAt,  int? basePriceCents,  String currency,  int turnaroundDays,  bool liked,  bool saved)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  PostDesigner designer,  String caption,  List<String> styleTags,  List<PostMedia> media,  int likeCount,  int commentCount,  DateTime createdAt,  int? basePriceCents,  String currency,  int turnaroundDays,  bool liked,  bool saved,  String? snapshotSessionId)?  $default,) {final _that = this;
 switch (_that) {
 case _Post() when $default != null:
-return $default(_that.id,_that.designer,_that.caption,_that.styleTags,_that.media,_that.likeCount,_that.commentCount,_that.createdAt,_that.basePriceCents,_that.currency,_that.turnaroundDays,_that.liked,_that.saved);case _:
+return $default(_that.id,_that.designer,_that.caption,_that.styleTags,_that.media,_that.likeCount,_that.commentCount,_that.createdAt,_that.basePriceCents,_that.currency,_that.turnaroundDays,_that.liked,_that.saved,_that.snapshotSessionId);case _:
   return null;
 
 }
@@ -762,7 +767,7 @@ return $default(_that.id,_that.designer,_that.caption,_that.styleTags,_that.medi
 
 
 class _Post implements Post {
-  const _Post({required this.id, required this.designer, required this.caption, required final  List<String> styleTags, required final  List<PostMedia> media, required this.likeCount, required this.commentCount, required this.createdAt, this.basePriceCents, this.currency = 'NGN', this.turnaroundDays = 0, this.liked = false, this.saved = false}): _styleTags = styleTags,_media = media;
+  const _Post({required this.id, required this.designer, required this.caption, required final  List<String> styleTags, required final  List<PostMedia> media, required this.likeCount, required this.commentCount, required this.createdAt, this.basePriceCents, this.currency = 'NGN', this.turnaroundDays = 0, this.liked = false, this.saved = false, this.snapshotSessionId}): _styleTags = styleTags,_media = media;
   
 
 @override final  String id;
@@ -792,6 +797,11 @@ class _Post implements Post {
 /// Viewer-scoped engagement (web `viewPost` parity).
 @override@JsonKey() final  bool liked;
 @override@JsonKey() final  bool saved;
+/// The measurement-snapshot ref a C15 composer post carries when the
+/// attach toggle is ON (M-11: posts carry the fit data this look was
+/// tailored for) — the vault session's id at publish time. Seed
+/// posts and snapshot-less publishes carry `null`.
+@override final  String? snapshotSessionId;
 
 /// Create a copy of Post
 /// with the given fields replaced by the non-null parameter values.
@@ -803,16 +813,16 @@ _$PostCopyWith<_Post> get copyWith => __$PostCopyWithImpl<_Post>(this, _$identit
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Post&&(identical(other.id, id) || other.id == id)&&(identical(other.designer, designer) || other.designer == designer)&&(identical(other.caption, caption) || other.caption == caption)&&const DeepCollectionEquality().equals(other._styleTags, _styleTags)&&const DeepCollectionEquality().equals(other._media, _media)&&(identical(other.likeCount, likeCount) || other.likeCount == likeCount)&&(identical(other.commentCount, commentCount) || other.commentCount == commentCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.basePriceCents, basePriceCents) || other.basePriceCents == basePriceCents)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.turnaroundDays, turnaroundDays) || other.turnaroundDays == turnaroundDays)&&(identical(other.liked, liked) || other.liked == liked)&&(identical(other.saved, saved) || other.saved == saved));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Post&&(identical(other.id, id) || other.id == id)&&(identical(other.designer, designer) || other.designer == designer)&&(identical(other.caption, caption) || other.caption == caption)&&const DeepCollectionEquality().equals(other._styleTags, _styleTags)&&const DeepCollectionEquality().equals(other._media, _media)&&(identical(other.likeCount, likeCount) || other.likeCount == likeCount)&&(identical(other.commentCount, commentCount) || other.commentCount == commentCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.basePriceCents, basePriceCents) || other.basePriceCents == basePriceCents)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.turnaroundDays, turnaroundDays) || other.turnaroundDays == turnaroundDays)&&(identical(other.liked, liked) || other.liked == liked)&&(identical(other.saved, saved) || other.saved == saved)&&(identical(other.snapshotSessionId, snapshotSessionId) || other.snapshotSessionId == snapshotSessionId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,designer,caption,const DeepCollectionEquality().hash(_styleTags),const DeepCollectionEquality().hash(_media),likeCount,commentCount,createdAt,basePriceCents,currency,turnaroundDays,liked,saved);
+int get hashCode => Object.hash(runtimeType,id,designer,caption,const DeepCollectionEquality().hash(_styleTags),const DeepCollectionEquality().hash(_media),likeCount,commentCount,createdAt,basePriceCents,currency,turnaroundDays,liked,saved,snapshotSessionId);
 
 @override
 String toString() {
-  return 'Post(id: $id, designer: $designer, caption: $caption, styleTags: $styleTags, media: $media, likeCount: $likeCount, commentCount: $commentCount, createdAt: $createdAt, basePriceCents: $basePriceCents, currency: $currency, turnaroundDays: $turnaroundDays, liked: $liked, saved: $saved)';
+  return 'Post(id: $id, designer: $designer, caption: $caption, styleTags: $styleTags, media: $media, likeCount: $likeCount, commentCount: $commentCount, createdAt: $createdAt, basePriceCents: $basePriceCents, currency: $currency, turnaroundDays: $turnaroundDays, liked: $liked, saved: $saved, snapshotSessionId: $snapshotSessionId)';
 }
 
 
@@ -823,7 +833,7 @@ abstract mixin class _$PostCopyWith<$Res> implements $PostCopyWith<$Res> {
   factory _$PostCopyWith(_Post value, $Res Function(_Post) _then) = __$PostCopyWithImpl;
 @override @useResult
 $Res call({
- String id, PostDesigner designer, String caption, List<String> styleTags, List<PostMedia> media, int likeCount, int commentCount, DateTime createdAt, int? basePriceCents, String currency, int turnaroundDays, bool liked, bool saved
+ String id, PostDesigner designer, String caption, List<String> styleTags, List<PostMedia> media, int likeCount, int commentCount, DateTime createdAt, int? basePriceCents, String currency, int turnaroundDays, bool liked, bool saved, String? snapshotSessionId
 });
 
 
@@ -840,7 +850,7 @@ class __$PostCopyWithImpl<$Res>
 
 /// Create a copy of Post
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? designer = null,Object? caption = null,Object? styleTags = null,Object? media = null,Object? likeCount = null,Object? commentCount = null,Object? createdAt = null,Object? basePriceCents = freezed,Object? currency = null,Object? turnaroundDays = null,Object? liked = null,Object? saved = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? designer = null,Object? caption = null,Object? styleTags = null,Object? media = null,Object? likeCount = null,Object? commentCount = null,Object? createdAt = null,Object? basePriceCents = freezed,Object? currency = null,Object? turnaroundDays = null,Object? liked = null,Object? saved = null,Object? snapshotSessionId = freezed,}) {
   return _then(_Post(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,designer: null == designer ? _self.designer : designer // ignore: cast_nullable_to_non_nullable
@@ -855,7 +865,8 @@ as int?,currency: null == currency ? _self.currency : currency // ignore: cast_n
 as String,turnaroundDays: null == turnaroundDays ? _self.turnaroundDays : turnaroundDays // ignore: cast_nullable_to_non_nullable
 as int,liked: null == liked ? _self.liked : liked // ignore: cast_nullable_to_non_nullable
 as bool,saved: null == saved ? _self.saved : saved // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,snapshotSessionId: freezed == snapshotSessionId ? _self.snapshotSessionId : snapshotSessionId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

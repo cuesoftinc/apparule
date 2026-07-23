@@ -3,6 +3,7 @@ import 'package:apparule/src/app/di.dart';
 import 'package:apparule/src/core/data/persistence_service.dart';
 import 'package:apparule/src/features/auth/data/auth_repository.dart';
 import 'package:apparule/src/features/earnings/data/earnings_repository.dart';
+import 'package:apparule/src/features/feed/data/media_picker_service.dart';
 import 'package:apparule/src/features/feed/data/post_repository.dart';
 import 'package:apparule/src/features/measurements/data/camera_service.dart';
 import 'package:apparule/src/features/measurements/data/measurement_repository.dart';
@@ -32,6 +33,7 @@ Future<void> pumpBootedApp(
   PersistenceService? persistenceService,
   bool settle = true,
   CameraService? cameraService,
+  MediaPickerService? mediaPickerService,
   MeasurementRepository? measurementRepository,
   PostRepository? postRepository,
   OrderRepository? orderRepository,
@@ -52,6 +54,7 @@ Future<void> pumpBootedApp(
           persistenceService:
               persistenceService ?? InMemoryPersistenceService(),
           cameraService: cameraService,
+          mediaPickerService: mediaPickerService,
           measurementRepository: measurementRepository,
           postRepository: postRepository,
           orderRepository: orderRepository,

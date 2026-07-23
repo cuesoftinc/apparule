@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/painting.dart';
 
 /// Resolves a seed media URL to an image provider. The §6 seed carries the
@@ -5,13 +7,18 @@ import 'package:flutter/painting.dart';
 /// sets stay regenerable from one source (mobile-implementation.md §6);
 /// the dev bundle ships that pool under `assets/seed/dev/demo/`. Absolute
 /// http(s) URLs (the phase-4 `*Remote` shape) load over the network
-/// unchanged — screens never branch on the source.
+/// unchanged, and other absolute paths are device files — the C15 live
+/// picker's shape (a session-local preview until the `*Remote` upload
+/// lands a served URL) — so screens never branch on the source.
 ImageProvider<Object> seedMediaImage(String url) {
   if (url.startsWith('http://') || url.startsWith('https://')) {
     return NetworkImage(url);
   }
   if (url.startsWith('/demo/')) {
     return AssetImage('assets/seed/dev$url');
+  }
+  if (url.startsWith('/')) {
+    return FileImage(File(url));
   }
   return AssetImage(url);
 }

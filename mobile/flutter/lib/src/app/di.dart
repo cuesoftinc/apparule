@@ -5,6 +5,8 @@ import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/features/auth/data/auth_repository_firebase.dart';
 import 'package:apparule/src/features/earnings/data/earnings_repository.dart';
 import 'package:apparule/src/features/earnings/data/earnings_repository_fake.dart';
+import 'package:apparule/src/features/feed/data/media_picker_service.dart';
+import 'package:apparule/src/features/feed/data/media_picker_service_fake.dart';
 import 'package:apparule/src/features/feed/data/post_repository.dart';
 import 'package:apparule/src/features/feed/data/post_repository_fake.dart';
 import 'package:apparule/src/features/measurements/data/camera_service.dart';
@@ -56,8 +58,11 @@ AppFlavor appFlavor(Ref ref) => throw UnimplementedError(
 /// hardware); prod passes `CameraServiceLive` for the real viewfinder
 /// while its measurements still ride this fake set (a provider must not
 /// be overridden twice in one scope, hence the parameter rather than a
-/// second override). [measurementRepository] likewise lets tests seed the
-/// measurement fake differently (empty vault, zero processing delay);
+/// second override). [mediaPickerService] is the C15 composer's device-
+/// picker seam on the same pattern — fake bundled samples here, the
+/// real `image_picker` sheet on prod. [measurementRepository] likewise
+/// lets tests seed the measurement fake differently (empty vault, zero
+/// processing delay);
 /// [postRepository]/[orderRepository]/[notificationRepository] let tests
 /// pin the fake's clock, empty its bundle, or switch the seeded viewer
 /// role (the feed/orders wave's seams).
@@ -65,6 +70,7 @@ List<Override> fakeRepositoryOverrides({
   AuthRepository? authRepository,
   PersistenceService? persistenceService,
   CameraService? cameraService,
+  MediaPickerService? mediaPickerService,
   MeasurementRepository? measurementRepository,
   PostRepository? postRepository,
   OrderRepository? orderRepository,
@@ -84,6 +90,9 @@ List<Override> fakeRepositoryOverrides({
   ),
   cameraServiceProvider.overrideWith(
     (ref) => cameraService ?? CameraServiceFake(),
+  ),
+  mediaPickerServiceProvider.overrideWith(
+    (ref) => mediaPickerService ?? MediaPickerServiceFake(),
   ),
   postRepositoryProvider.overrideWith(
     // The default fake binds the persistence seam: the viewer's like/save

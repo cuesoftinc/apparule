@@ -9,14 +9,20 @@ part of 'engagement_actions.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// The engagement mutation façade (the interaction audit's CLASS 1 lock):
-/// every like/save/comment mutation routes through here, and ONLY here —
-/// `ref.invalidate` on engagement surfaces outside this façade is banned.
+/// every like/save/comment/publish mutation on the post corpus routes
+/// through here, and ONLY here — `ref.invalidate` on engagement surfaces
+/// outside this façade is banned.
 ///
 /// DECLARED invalidation fan-out — like/save/comment ⇒
 ///   · [homeFeedViewModelProvider] (C2 feed + rail),
 ///   · [postDetailViewModelProvider] for the mutated post (C4),
 ///   · [profileViewModelProvider] (C9 liked/saved grids).
-/// The two-surface contract test pins this list; extending the fan-out
+/// DECLARED create fan-out — the C15 publish ⇒
+///   · [homeFeedViewModelProvider] (the post leads the author's C2 feed),
+///   · [exploreViewModelProvider] (the whole family — C3's recency grid),
+///   · [profileViewModelProvider] (the C9 own-profile grid + posts count);
+/// no [postDetailViewModelProvider] member exists for a brand-new id.
+/// The two-surface contract test pins both lists; extending a fan-out
 /// means extending the test.
 ///
 /// Rationale: the shell keeps every branch mounted and Riverpod 3 pauses
@@ -30,14 +36,20 @@ part of 'engagement_actions.dart';
 final engagementActionsProvider = EngagementActionsProvider._();
 
 /// The engagement mutation façade (the interaction audit's CLASS 1 lock):
-/// every like/save/comment mutation routes through here, and ONLY here —
-/// `ref.invalidate` on engagement surfaces outside this façade is banned.
+/// every like/save/comment/publish mutation on the post corpus routes
+/// through here, and ONLY here — `ref.invalidate` on engagement surfaces
+/// outside this façade is banned.
 ///
 /// DECLARED invalidation fan-out — like/save/comment ⇒
 ///   · [homeFeedViewModelProvider] (C2 feed + rail),
 ///   · [postDetailViewModelProvider] for the mutated post (C4),
 ///   · [profileViewModelProvider] (C9 liked/saved grids).
-/// The two-surface contract test pins this list; extending the fan-out
+/// DECLARED create fan-out — the C15 publish ⇒
+///   · [homeFeedViewModelProvider] (the post leads the author's C2 feed),
+///   · [exploreViewModelProvider] (the whole family — C3's recency grid),
+///   · [profileViewModelProvider] (the C9 own-profile grid + posts count);
+/// no [postDetailViewModelProvider] member exists for a brand-new id.
+/// The two-surface contract test pins both lists; extending a fan-out
 /// means extending the test.
 ///
 /// Rationale: the shell keeps every branch mounted and Riverpod 3 pauses
@@ -49,14 +61,20 @@ final engagementActionsProvider = EngagementActionsProvider._();
 final class EngagementActionsProvider
     extends $NotifierProvider<EngagementActions, void> {
   /// The engagement mutation façade (the interaction audit's CLASS 1 lock):
-  /// every like/save/comment mutation routes through here, and ONLY here —
-  /// `ref.invalidate` on engagement surfaces outside this façade is banned.
+  /// every like/save/comment/publish mutation on the post corpus routes
+  /// through here, and ONLY here — `ref.invalidate` on engagement surfaces
+  /// outside this façade is banned.
   ///
   /// DECLARED invalidation fan-out — like/save/comment ⇒
   ///   · [homeFeedViewModelProvider] (C2 feed + rail),
   ///   · [postDetailViewModelProvider] for the mutated post (C4),
   ///   · [profileViewModelProvider] (C9 liked/saved grids).
-  /// The two-surface contract test pins this list; extending the fan-out
+  /// DECLARED create fan-out — the C15 publish ⇒
+  ///   · [homeFeedViewModelProvider] (the post leads the author's C2 feed),
+  ///   · [exploreViewModelProvider] (the whole family — C3's recency grid),
+  ///   · [profileViewModelProvider] (the C9 own-profile grid + posts count);
+  /// no [postDetailViewModelProvider] member exists for a brand-new id.
+  /// The two-surface contract test pins both lists; extending a fan-out
   /// means extending the test.
   ///
   /// Rationale: the shell keeps every branch mounted and Riverpod 3 pauses
@@ -92,17 +110,23 @@ final class EngagementActionsProvider
   }
 }
 
-String _$engagementActionsHash() => r'1e04b897ef6711f2eb639b49a8d8823a5e5a9411';
+String _$engagementActionsHash() => r'6fc986f4bae7b5722bb777ffbb0c36d3467cfd12';
 
 /// The engagement mutation façade (the interaction audit's CLASS 1 lock):
-/// every like/save/comment mutation routes through here, and ONLY here —
-/// `ref.invalidate` on engagement surfaces outside this façade is banned.
+/// every like/save/comment/publish mutation on the post corpus routes
+/// through here, and ONLY here — `ref.invalidate` on engagement surfaces
+/// outside this façade is banned.
 ///
 /// DECLARED invalidation fan-out — like/save/comment ⇒
 ///   · [homeFeedViewModelProvider] (C2 feed + rail),
 ///   · [postDetailViewModelProvider] for the mutated post (C4),
 ///   · [profileViewModelProvider] (C9 liked/saved grids).
-/// The two-surface contract test pins this list; extending the fan-out
+/// DECLARED create fan-out — the C15 publish ⇒
+///   · [homeFeedViewModelProvider] (the post leads the author's C2 feed),
+///   · [exploreViewModelProvider] (the whole family — C3's recency grid),
+///   · [profileViewModelProvider] (the C9 own-profile grid + posts count);
+/// no [postDetailViewModelProvider] member exists for a brand-new id.
+/// The two-surface contract test pins both lists; extending a fan-out
 /// means extending the test.
 ///
 /// Rationale: the shell keeps every branch mounted and Riverpod 3 pauses

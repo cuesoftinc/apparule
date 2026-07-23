@@ -7,6 +7,7 @@ import 'package:apparule/src/features/earnings/presentation/designer_onboarding_
 import 'package:apparule/src/features/earnings/presentation/earnings_screen.dart';
 import 'package:apparule/src/features/earnings/presentation/payout_account_screen.dart';
 import 'package:apparule/src/features/feed/presentation/comments_screen.dart';
+import 'package:apparule/src/features/feed/presentation/composer_screen.dart';
 import 'package:apparule/src/features/feed/presentation/explore_screen.dart';
 import 'package:apparule/src/features/feed/presentation/home_feed_screen.dart';
 import 'package:apparule/src/features/feed/presentation/post_detail_screen.dart';
@@ -279,6 +280,20 @@ class PostCommentsRoute extends GoRouteData with $PostCommentsRoute {
       child: CommentsScreen(postId: id),
     );
   }
+}
+
+/// C15 — the designer post composer (M-11; §5 route map `/create/post`),
+/// full-screen over the shell. The M-11 chooser's "Post an outfit" pushes
+/// designers here; non-designers route to C13 become-a-designer — the
+/// gate lives at the chooser (the fake post repository cannot see the
+/// earnings side's session-enabled flag, so it never re-gates).
+@TypedGoRoute<ComposerRoute>(path: '/create/post')
+class ComposerRoute extends GoRouteData with $ComposerRoute {
+  const ComposerRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const ComposerScreen();
 }
 
 /// C5 — the request stepper (MI-10), reached from a post's Request CTA,

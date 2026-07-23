@@ -90,6 +90,20 @@ abstract class PostRepository {
 
   /// Designers [username] follows (C12; web `followingOf`).
   Future<List<UserSummary>> followingOf(String username);
+
+  /// C15 composer publish (web store `createPost` parity, trimmed to the
+  /// ratified mobile v1 contract — style tags / base price / turnaround
+  /// stay web-B5-only): appends a viewer-authored post at the top of the
+  /// corpus, so it leads the C2 feed, the C3 explore grid and the C9
+  /// own-profile grid. [media] carries 1–10 items (the caller validated
+  /// type/size; the repository re-asserts the count like the web store's
+  /// `validation_failed`); [snapshotSessionId] is the vault's frozen
+  /// measurement-snapshot ref when the attach toggle is ON.
+  Future<Post> createPost({
+    required String caption,
+    required List<PostMedia> media,
+    String? snapshotSessionId,
+  });
 }
 
 /// Overridden per entrypoint (di.dart) — no default implementation exists

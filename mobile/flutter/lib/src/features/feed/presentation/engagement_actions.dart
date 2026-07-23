@@ -1,6 +1,7 @@
 import 'package:apparule/src/features/feed/data/post_repository.dart';
 import 'package:apparule/src/features/feed/domain/comment.dart';
 import 'package:apparule/src/features/feed/domain/post.dart';
+import 'package:apparule/src/features/feed/presentation/explore_view_model.dart';
 import 'package:apparule/src/features/feed/presentation/home_feed_view_model.dart';
 import 'package:apparule/src/features/feed/presentation/post_detail_view_model.dart';
 import 'package:apparule/src/features/profile/presentation/profile_view_model.dart';
@@ -9,14 +10,20 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'engagement_actions.g.dart';
 
 /// The engagement mutation façade (the interaction audit's CLASS 1 lock):
-/// every like/save/comment mutation routes through here, and ONLY here —
-/// `ref.invalidate` on engagement surfaces outside this façade is banned.
+/// every like/save/comment/publish mutation on the post corpus routes
+/// through here, and ONLY here — `ref.invalidate` on engagement surfaces
+/// outside this façade is banned.
 ///
 /// DECLARED invalidation fan-out — like/save/comment ⇒
 ///   · [homeFeedViewModelProvider] (C2 feed + rail),
 ///   · [postDetailViewModelProvider] for the mutated post (C4),
 ///   · [profileViewModelProvider] (C9 liked/saved grids).
-/// The two-surface contract test pins this list; extending the fan-out
+/// DECLARED create fan-out — the C15 publish ⇒
+///   · [homeFeedViewModelProvider] (the post leads the author's C2 feed),
+///   · [exploreViewModelProvider] (the whole family — C3's recency grid),
+///   · [profileViewModelProvider] (the C9 own-profile grid + posts count);
+/// no [postDetailViewModelProvider] member exists for a brand-new id.
+/// The two-surface contract test pins both lists; extending a fan-out
 /// means extending the test.
 ///
 /// Rationale: the shell keeps every branch mounted and Riverpod 3 pauses
@@ -58,6 +65,29 @@ class EngagementActions extends _$EngagementActions {
         .addComment(postId, body, parentId: parentId);
     _fanOut(postId);
     return comment;
+  }
+
+  /// The C15 composer publish — creates the post, then every surface
+  /// that derives from the post corpus re-derives (the declared create
+  /// fan-out above). Returns the created post for the caller's
+  /// success handoff (the composer navigates to the feed it now leads).
+  Future<Post> createPost({
+    required String caption,
+    required List<PostMedia> media,
+    String? snapshotSessionId,
+  }) async {
+    final post = await ref
+        .read(postRepositoryProvider)
+        .createPost(
+          caption: caption,
+          media: media,
+          snapshotSessionId: snapshotSessionId,
+        );
+    ref
+      ..invalidate(homeFeedViewModelProvider)
+      ..invalidate(exploreViewModelProvider)
+      ..invalidate(profileViewModelProvider);
+    return post;
   }
 
   void _fanOut(String postId) {

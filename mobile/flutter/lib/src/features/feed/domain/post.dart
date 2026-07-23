@@ -49,5 +49,11 @@ abstract class Post with _$Post {
     /// Viewer-scoped engagement (web `viewPost` parity).
     @Default(false) bool liked,
     @Default(false) bool saved,
+
+    /// The measurement-snapshot ref a C15 composer post carries when the
+    /// attach toggle is ON (M-11: posts carry the fit data this look was
+    /// tailored for) — the vault session's id at publish time. Seed
+    /// posts and snapshot-less publishes carry `null`.
+    String? snapshotSessionId,
   }) = _Post;
 }
