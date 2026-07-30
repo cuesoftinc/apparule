@@ -126,7 +126,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   and the mock pipeline speak only the A-10 vocabulary (mock-ahead of the
   backend recalibration), seeded history gives every field its sparkline,
   and capture is template-gated with the same one-time chooser as manual
-  entry (web upload view + mobile capture launcher sheet).
+  entry (web upload view + mobile capture launcher sheet) (#185).
 
 ### Changed
 
@@ -1166,7 +1166,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - Vault measurement cards fill their grid cells (`h-full`, meta pinned
   to the bottom, chip top-aligned beside two-line names) — mixed card
-  contents no longer rag the grid.
+  contents no longer rag the grid (#185).
 
 ### Security
 
