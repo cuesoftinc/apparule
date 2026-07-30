@@ -13,7 +13,7 @@ describe("SessionRow (§8.2b)", () => {
     expect(container.querySelector('[data-context="history"]')).not.toBeNull();
     expect(screen.getByText("Scan")).toBeInTheDocument();
     // 42.5 cm canonical renders in inches — the A-9 default display unit.
-    expect(screen.getByText(/Shoulder width 16.7 in/)).toBeInTheDocument();
+    expect(screen.getByText(/Shoulder 16.7 in/)).toBeInTheDocument();
     await userEvent.click(
       screen.getByRole("button", { name: "Delete session" }),
     );

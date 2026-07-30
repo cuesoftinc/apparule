@@ -5,6 +5,7 @@ import 'package:apparule/src/features/measurements/data/measurement_repository_f
 import 'package:apparule/src/features/measurements/domain/capture_photo.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_exception.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_session.dart';
+import 'package:apparule/src/features/measurements/domain/measurement_template.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -37,6 +38,7 @@ void main() {
     front: photo(front),
     side: photo(side),
     userHeightCm: heightCm,
+    template: MeasurementTemplate.women,
   );
 
   group('seeded vault (web mock parity)', () {
@@ -60,18 +62,21 @@ void main() {
       final recent = (await repository().vaultSessions()).first;
 
       final shoulder = recent.measurements.first;
-      expect(shoulder.name, 'shoulder_width');
+      expect(shoulder.name, 'shoulder');
       expect(shoulder.valueCm, 42.5);
-      expect(shoulder.confidence, 0.92);
-      final hip = recent.measurements[1];
-      expect(hip.confidence, 0.62);
+      expect(shoulder.confidence, 0.93);
+      // The full women template (A-10b: a scan maps every field) with
+      // exactly one low-confidence row (waist) reachable from boot.
+      expect(recent.measurements, hasLength(17));
+      final waist = recent.measurements.firstWhere((m) => m.name == 'waist');
+      expect(waist.confidence, 0.68);
     });
 
     test('manual seed rows carry null confidence (§4: never scored)', () async {
       final sessions = await repository().vaultSessions();
       final manual = sessions.firstWhere((s) => s.isManual);
 
-      expect(manual.measurements, hasLength(4));
+      expect(manual.measurements, hasLength(8));
       expect(
         manual.measurements.map((m) => m.confidence),
         everyElement(isNull),
@@ -93,16 +98,24 @@ void main() {
       expect(session.status, SessionStatus.pendingSave);
       expect(session.method, 'mediapipe_2d_v2');
       expect(session.inputHeightCm, 168);
-      // scale = (168 × 0.93) / 1100 — the FRONT image owns the height
-      // scale (capture-qc.md §3); shoulder 300px, hip 250px.
+      // A-10b: the scan maps the FULL women template — reference cm at
+      // the 168 cm height (kScanResultsCm), exactly one row <0.7.
+      expect(
+        session.measurements.map((m) => m.name).toList(),
+        kManualTemplates[MeasurementTemplate.women]!
+            .map((s) => s.name)
+            .toList(),
+      );
       final shoulder = session.measurements.first;
-      expect(shoulder.name, 'shoulder_width');
-      expect(shoulder.valueCm, closeTo(42.61, 0.01));
-      expect(shoulder.confidence, closeTo(0.92, 1e-9));
-      final hip = session.measurements[1];
-      expect(hip.name, 'hip_width');
-      expect(hip.valueCm, closeTo(35.51, 0.01));
-      expect(hip.confidence, closeTo(0.62, 1e-9));
+      expect(shoulder.name, 'shoulder');
+      expect(shoulder.valueCm, closeTo(42.7, 0.01));
+      expect(shoulder.confidence, closeTo(0.93, 1e-9));
+      expect(
+        session.measurements
+            .where((m) => (m.confidence ?? 1) < 0.7)
+            .map((m) => m.name),
+        <String>['waist'],
+      );
     });
 
     test('the entered height drives the scale — same frames, taller claim, '
@@ -112,9 +125,11 @@ void main() {
       final at168 = await submit(repo);
       final at190 = await submit(repo, heightCm: 190);
 
+      // Values round to 1 dp (display parity), so the ratio is near —
+      // not exactly — the height ratio.
       expect(
         at190.measurements.first.valueCm / at168.measurements.first.valueCm,
-        closeTo(190 / 168, 1e-9),
+        closeTo(190 / 168, 0.01),
       );
     });
 
@@ -156,6 +171,7 @@ void main() {
           front: CapturePhoto(bytes: Uint8List(0)),
           side: CapturePhoto(bytes: Uint8List(0)),
           userHeightCm: 168,
+          template: MeasurementTemplate.women,
         );
         expect(session.status, SessionStatus.pendingSave);
       },
@@ -283,6 +299,7 @@ void main() {
           front: front,
           side: photo('qc_not_side_profile'),
           userHeightCm: 168,
+          template: MeasurementTemplate.women,
         ),
         throwsA(isA<CaptureQcException>()),
       );
@@ -293,6 +310,7 @@ void main() {
         front: front,
         side: photo('pass_side'),
         userHeightCm: 168,
+        template: MeasurementTemplate.women,
       );
       expect(session.status, SessionStatus.pendingSave);
     });
@@ -326,8 +344,8 @@ void main() {
       final repo = repository();
 
       final session = await repo.saveManualEntry(<String, double>{
-        'shoulder_width': 43,
-        'chest_girth': 91.5,
+        'shoulder': 43,
+        'bust': 91.5,
       });
 
       expect(session.isManual, isTrue);
@@ -350,14 +368,14 @@ void main() {
 
       final lines = csv.trim().split('\n');
       expect(lines.first, 'name,value_cm,confidence,method,measured_at');
-      expect(lines, hasLength(5));
-      expect(lines[1], startsWith('shoulder_width,'));
+      expect(lines, hasLength(9));
+      expect(lines[1], startsWith('shoulder,'));
       expect(lines[1], contains(',,manual,'));
     });
 
     test('scan sessions carry their confidences', () async {
       final csv = await repository().exportSessionCsv('sess-recent-scan');
-      expect(csv, contains('shoulder_width,42.5,0.92,mediapipe_2d_v2,'));
+      expect(csv, contains('shoulder,42.5,0.93,mediapipe_2d_v2,'));
     });
 
     test('unknown session ids throw', () async {
@@ -381,6 +399,7 @@ void main() {
         front: photo('qc_no_body'), // no catalog → passing defaults
         side: photo('qc_not_side_profile'),
         userHeightCm: 168,
+        template: MeasurementTemplate.women,
       );
       expect(session.status, SessionStatus.pendingSave);
     });

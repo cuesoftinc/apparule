@@ -10,7 +10,7 @@ describe("ManualMeasureRow (§8.2, MI-13)", () => {
   ] as const)("renders state=%s", (state, props) => {
     const { container } = render(
       <ManualMeasureRow
-        name="shoulder_width"
+        name="shoulder"
         valueCm={42.5}
         onChange={() => {}}
         unit="cm"
@@ -22,7 +22,7 @@ describe("ManualMeasureRow (§8.2, MI-13)", () => {
   });
 
   it("humanizes measurement names", () => {
-    expect(humanizeMeasureName("shoulder_width")).toBe("Shoulder width");
+    expect(humanizeMeasureName("shoulder")).toBe("Shoulder");
     // Sentence case, not title case — the canvas idiom (A-10 names).
     expect(humanizeMeasureName("shoulder_to_bust_point")).toBe(
       "Shoulder to bust point",
@@ -33,7 +33,7 @@ describe("ManualMeasureRow (§8.2, MI-13)", () => {
     const onChange = vi.fn();
     render(
       <ManualMeasureRow
-        name="shoulder_width"
+        name="shoulder"
         valueCm={42.5}
         onChange={onChange}
         unit="cm"
@@ -50,14 +50,14 @@ describe("ManualMeasureRow (§8.2, MI-13)", () => {
     const onChange = vi.fn();
     render(
       <ManualMeasureRow
-        name="shoulder_width"
+        name="shoulder"
         valueCm={42.5}
         onChange={onChange}
         unit="in"
         onUnitChange={() => {}}
       />,
     );
-    fireEvent.change(screen.getByLabelText("Shoulder width value"), {
+    fireEvent.change(screen.getByLabelText("Shoulder value"), {
       target: { value: "10" },
     });
     expect(onChange).toHaveBeenCalledWith(25.4);

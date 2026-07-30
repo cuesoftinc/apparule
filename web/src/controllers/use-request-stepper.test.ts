@@ -36,7 +36,7 @@ const session = (id: string, daysOld: number, status = "complete") => ({
     {
       id: "m",
       session_id: id,
-      name: "shoulder_width",
+      name: "shoulder",
       value_cm: 42,
       source: "pipeline",
       confidence: null,

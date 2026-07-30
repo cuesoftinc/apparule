@@ -7,7 +7,6 @@ import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_session.dart';
 import 'package:apparule/src/features/measurements/presentation/manual_entry_view_model.dart';
 import 'package:apparule/src/features/measurements/presentation/vault_view_model.dart';
-import 'package:apparule/src/features/profile/domain/profile.dart';
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

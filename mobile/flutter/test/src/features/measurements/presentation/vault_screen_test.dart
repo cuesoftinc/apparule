@@ -9,6 +9,7 @@ import 'package:apparule/src/features/measurements/presentation/manual_entry_scr
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../helpers/boot_app.dart';
@@ -46,19 +47,32 @@ void main() {
 
     // Newest seeded session is the 12-day scan → fresh header.
     expect(find.text('Measured 12 days ago'), findsOneWidget);
-    expect(find.text('Up to date · 4 measurements'), findsOneWidget);
+    expect(find.text('Up to date · 17 measurements'), findsOneWidget);
     expect(find.text('Retake'), findsOneWidget);
 
-    // Metric-centric: 4 distinct measures across the 3 seeded sessions.
-    expect(find.byType(MeasurementCard), findsNWidgets(4));
+    // Metric-centric: one card per A-10 women-template field — the grid
+    // virtualizes, so the leading cards + the derived header count (17,
+    // asserted above) stand in for an exact widget count.
+    expect(find.byType(MeasurementCard, skipOffstage: false), findsWidgets);
+    expect(find.text('Shoulder'), findsOneWidget);
+    expect(find.text('Bust'), findsOneWidget);
 
     // Latest values lead their cards (42.5 cm canonical → inches
-    // display by default, A-9); the 0.62 hip renders its low-confidence
-    // chip (web-parity numbers).
+    // display by default, A-9); the 0.68 waist renders its
+    // low-confidence chip (web-parity numbers).
     expect(find.text('16.7 in'), findsOneWidget);
-    expect(find.text('Low confidence · 0.62'), findsOneWidget);
+    expect(
+      find.text('Low confidence · 0.68', skipOffstage: false),
+      findsOneWidget,
+    );
 
-    // Consent note + the B4 rights links.
+    // Consent note + the B4 rights links — below the 17-card grid now,
+    // so bring them into the built viewport first.
+    await tester.scrollUntilVisible(
+      find.text('Download my data'),
+      400,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(
       find.text(
         'Sessions are kept until you delete them. A snapshot is shared '
@@ -103,15 +117,15 @@ void main() {
   ) async {
     await bootToVault(tester);
 
-    await tester.tap(find.text('Shoulder width'));
+    await tester.tap(find.text('Shoulder'));
     await tester.pumpAndSettle();
 
     // All three seeded sessions carry a shoulder value.
-    expect(find.text('Shoulder width history'), findsOneWidget);
+    expect(find.text('Shoulder history'), findsOneWidget);
     expect(find.bySemanticsLabel('Delete session'), findsNWidgets(3));
 
     // Delete the newest (42.5 cm / 16.7 in) session → the card
-    // re-derives to the manual session's 42.0 cm (16.5 in) and the
+    // re-derives to the manual session's 42.2 cm (16.6 in) and the
     // header ages to the 58-day manual.
     await tester.tap(find.bySemanticsLabel('Delete session').first);
     await tester.pumpAndSettle();
@@ -122,10 +136,10 @@ void main() {
     await tester.tapAt(const Offset(20, 20));
     await tester.pumpAndSettle();
 
-    expect(find.text('16.5 in'), findsOneWidget);
+    expect(find.text('16.6 in'), findsOneWidget);
     expect(find.text('16.7 in'), findsNothing);
     expect(find.text('Measured 58 days ago'), findsOneWidget);
-    expect(find.text('Aging · 4 measurements'), findsOneWidget);
+    expect(find.text('Aging · 17 measurements'), findsOneWidget);
   });
 
   testWidgets('a failed delete rolls back with the shared toast, never '
@@ -133,7 +147,7 @@ void main() {
     final repository = MeasurementRepositoryFake();
     await bootToVault(tester, measurementRepository: repository);
 
-    await tester.tap(find.text('Shoulder width'));
+    await tester.tap(find.text('Shoulder'));
     await tester.pumpAndSettle();
 
     repository.failNext = Exception('server 500');
@@ -165,7 +179,7 @@ void main() {
     );
 
     await bootToVault(tester);
-    await tester.tap(find.text('Shoulder width'));
+    await tester.tap(find.text('Shoulder'));
     await tester.pumpAndSettle();
 
     expect(find.bySemanticsLabel('Export session'), findsNWidgets(3));
@@ -177,7 +191,7 @@ void main() {
       findsOneWidget,
     );
     expect(copied, startsWith('name,value_cm,confidence,method,measured_at'));
-    expect(copied, contains('shoulder_width,42.5,0.92,mediapipe_2d_v2,'));
+    expect(copied, contains('shoulder,42.5,0.93,mediapipe_2d_v2,'));
   });
 
   testWidgets('an empty vault renders the vault EmptyState; its CTA opens '

@@ -1,6 +1,7 @@
 import 'package:apparule/src/features/measurements/domain/capture_photo.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_exception.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_session.dart';
+import 'package:apparule/src/features/measurements/domain/measurement_template.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'measurement_repository.g.dart';
@@ -31,6 +32,10 @@ abstract class MeasurementRepository {
     required CapturePhoto front,
     required CapturePhoto side,
     required double userHeightCm,
+
+    /// A-10b: a scan maps the customer's FULL tailor template — the fake
+    /// speaks the recalibrated-pipeline contract ahead of the backend.
+    required MeasurementTemplate template,
   });
 
   /// "Save to vault": flips a pending session `complete` so C7 lists it.

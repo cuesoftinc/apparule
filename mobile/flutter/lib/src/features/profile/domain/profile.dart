@@ -1,12 +1,10 @@
+import 'package:apparule/src/features/measurements/domain/measurement_template.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'profile.freezed.dart';
+export 'package:apparule/src/features/measurements/domain/measurement_template.dart'
+    show MeasurementTemplate;
 
-/// A-10 manual-entry template (decisions.md; canonical field tables in
-/// flows/vault.md §2) — selects which tailor-sourced field set manual
-/// entry offers. Surfaced from the self CUSTOMER (data-model.md §2).
-/// Null until the manual sheet's one-time chooser (or Settings) sets it.
-enum MeasurementTemplate { women, men }
+part 'profile.freezed.dart';
 
 /// Optional, self-attested location (X-10 tier 1 — sensitive PII, never
 /// logged; data-model.md §2).

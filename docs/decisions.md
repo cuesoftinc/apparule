@@ -110,12 +110,21 @@ shared) — selected by a new `CUSTOMER.measurement_template` field
 (`women | men`, nullable): the manual sheet interposes a one-time chooser
 when unset and persists the answer, editable in profile settings. The
 canonical field lists + advisory ranges live in flows/vault.md §2.
-Camera-pipeline names (`shoulder_width`, `hip_width`) are untouched — 2-D
-outputs whose recalibration is backend-gated — and historical sessions
-keep their recorded names: sessions are immutable and the vocabulary is
-open by design.
+Historical sessions keep their recorded names: sessions are immutable and
+the vocabulary is open by design.
 
 ☑ Ratified 2026-07-25
+
+**A-10b addendum — one vocabulary, every method** ⭐: the tailor's fields
+are the product vocabulary for EVERY measuring method. A camera scan maps
+the customer's FULL template (women 17 / men 14) — TEST_MODE seeds and
+the mock pipeline speak only this vocabulary (mock-ahead of the backend
+recalibration, the `notification_prefs` pattern), and capture is
+template-gated exactly like manual entry. The real `api/measure` 2-D
+service keeps its px internals (capture-qc.md) until the recalibration
+directive fulfills this contract server-side.
+
+☑ Ratified 2026-07-30
 
 ## Cross-cutting (shared with expendit/upstat)
 

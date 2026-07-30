@@ -189,7 +189,7 @@ const sampleSession: MeasurementSession = {
     {
       id: "m1",
       session_id: "sess-1",
-      name: "shoulder_width",
+      name: "shoulder",
       value_cm: 42.5,
       source: "pipeline",
       confidence: 0.92,
@@ -197,7 +197,7 @@ const sampleSession: MeasurementSession = {
     {
       id: "m2",
       session_id: "sess-1",
-      name: "hip_width",
+      name: "hip",
       value_cm: 36.8,
       source: "pipeline",
       confidence: 0.88,
@@ -385,7 +385,7 @@ export function ComponentGallery() {
           <Input
             kind="numeric"
             placeholder="42.5"
-            aria-label="Shoulder width"
+            aria-label="Shoulder"
             unit={unit}
             onUnitChange={setUnit}
           />
@@ -496,7 +496,7 @@ export function ComponentGallery() {
       <Section title="MeasurementCard">
         <div className="grid max-w-xl grid-cols-2 gap-4">
           <MeasurementCard
-            name="shoulder_width"
+            name="shoulder"
             valueCm={42.5}
             source="scan"
             confidence={0.92}
@@ -504,7 +504,7 @@ export function ComponentGallery() {
             updatedAt={daysAgo(12)}
           />
           <MeasurementCard
-            name="hip_width"
+            name="hip"
             valueCm={36.8}
             source="manual"
             confidence={0.62}
@@ -882,7 +882,7 @@ export function ComponentGallery() {
       <Section title="ManualMeasureRow">
         <div className="max-w-md">
           <ManualMeasureRow
-            name="shoulder_width"
+            name="shoulder"
             valueCm={shoulder}
             onChange={setShoulder}
             unit={unit}
@@ -976,13 +976,13 @@ export function ComponentGallery() {
             onRetake={() => {}}
           >
             <MeasurementCard
-              name="shoulder_width"
+              name="shoulder"
               valueCm={42.5}
               source="scan"
               confidence={0.92}
             />
             <MeasurementCard
-              name="hip_width"
+              name="hip"
               valueCm={36.8}
               source="scan"
               confidence={0.62}

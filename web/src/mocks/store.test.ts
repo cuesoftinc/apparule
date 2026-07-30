@@ -1,5 +1,6 @@
 // Mock store — seed narrative integrity + lifecycle/engagement semantics.
 import { beforeEach, describe, expect, it } from "vitest";
+import { MANUAL_TEMPLATES } from "@/models/entities/measurement";
 import { MockApiError } from "./http";
 import { resetStore } from "./store";
 import type { MockStore } from "./store";
@@ -43,9 +44,7 @@ describe("seed narrative", () => {
     const sessions = store.sessionsFor("kiki.adeyemi");
     expect(sessions.length).toBeGreaterThanOrEqual(3);
     const newest = sessions[0];
-    const shoulder = newest.measurements.find(
-      (m) => m.name === "shoulder_width",
-    );
+    const shoulder = newest.measurements.find((m) => m.name === "shoulder");
     expect(shoulder?.value_cm).toBe(42.5);
   });
 
@@ -113,7 +112,7 @@ describe("seed narrative", () => {
     // the snapshot froze (sessions are deletable; snapshots are immutable).
     const newest = store.sessionsFor("kiki.adeyemi")[0];
     expect(
-      newest.measurements.find((m) => m.name === "shoulder_width")?.value_cm,
+      newest.measurements.find((m) => m.name === "shoulder")?.value_cm,
     ).toBe(42.5);
   });
 
@@ -247,7 +246,7 @@ describe("order lifecycle enforcement", () => {
     expect(created.status).toBe("requested");
     // snapshot frozen from the chosen session
     expect(created.snapshot.values.measurements).toEqual(
-      expect.arrayContaining([{ name: "shoulder_width", value_cm: 42.5 }]),
+      expect.arrayContaining([{ name: "shoulder", value_cm: 42.5 }]),
     );
 
     const quoted = store.quote(
@@ -447,7 +446,7 @@ describe("idempotency (api.md §4)", () => {
   it("replays the original response for the same key + payload", () => {
     const first = store.idempotent("k1", "payload", () =>
       store.createManualSession("kiki.adeyemi", {
-        measurements: [{ name: "shoulder_width", value_cm: 42.7 }],
+        measurements: [{ name: "shoulder", value_cm: 42.7 }],
       }),
     );
     const replay = store.idempotent("k1", "payload", () => {
@@ -486,6 +485,33 @@ describe("profile", () => {
     ).toThrow(
       expect.objectContaining({ code: "validation_failed", status: 422 }),
     );
+  });
+
+  it("A-10b: a scan maps the customer's FULL template — tailor names only", () => {
+    const session = store.createCaptureSession("kiki.adeyemi", {
+      input_height_cm: 168,
+      filenameFront: "front.jpg",
+      filenameSide: "side.jpg",
+    });
+    // Exact set + order of the women template (flows/vault.md §2) — the
+    // mock speaks the recalibrated-pipeline contract, nothing legacy.
+    expect(session.measurements.map((m) => m.name)).toEqual(
+      MANUAL_TEMPLATES.women.map((s) => s.name),
+    );
+    // Exactly one low-confidence row keeps that UI path exercised.
+    expect(
+      session.measurements.filter(
+        (m) => m.confidence !== null && m.confidence < 0.7,
+      ),
+    ).toHaveLength(1);
+    // No template → no measuring (the client interposes the chooser).
+    expect(() =>
+      store.createCaptureSession("maisonbisi", {
+        input_height_cm: 168,
+        filenameFront: "front.jpg",
+        filenameSide: "side.jpg",
+      }),
+    ).toThrow(expect.objectContaining({ code: "template_required" }));
   });
 
   it("errors are MockApiError instances (envelope-able)", () => {
@@ -741,7 +767,7 @@ describe("capture path (two-photo upload, B4 — M-10/M-12)", () => {
 
   it("manual sessions carry no height — input_height_cm is null", () => {
     const session = store.createManualSession("kiki.adeyemi", {
-      measurements: [{ name: "waist_girth", value_cm: 78.5 }],
+      measurements: [{ name: "waist", value_cm: 78.5 }],
     });
     expect(session.method).toBe("manual");
     expect(session.input_height_cm).toBeNull();
@@ -859,8 +885,8 @@ describe("session exports (F2-9 / PLAT-004)", () => {
     const body = Buffer.from(url.split(",")[1], "base64").toString("utf8");
     const lines = body.split("\n");
     expect(lines[0]).toBe("name,value_cm,source,confidence");
-    expect(lines).toHaveLength(1 + 4); // header + the session's 4 values
-    expect(body).toContain("shoulder_width,42,");
+    expect(lines).toHaveLength(1 + 8); // header + the tape session's 8 values
+    expect(body).toContain("shoulder,42.2,");
   });
 
   it("pdf export is a real PDF carrying the measurement lines", () => {
@@ -873,7 +899,7 @@ describe("session exports (F2-9 / PLAT-004)", () => {
     expect(url).toMatch(/^data:application\/pdf;base64,/);
     const body = Buffer.from(url.split(",")[1], "base64").toString("utf8");
     expect(body.startsWith("%PDF-1.4")).toBe(true);
-    expect(body).toContain("shoulder_width: 42.5 cm");
+    expect(body).toContain("shoulder: 42.5 cm");
     expect(body.trimEnd().endsWith("%%EOF")).toBe(true);
   });
 
@@ -894,10 +920,11 @@ describe("session exports (F2-9 / PLAT-004)", () => {
       "pdf",
     );
     const body = Buffer.from(url.split(",")[1], "base64").toString("utf8");
-    // 4 header lines + 62 measurements = 66 lines → 2 pages
-    expect(body).toContain("/Count 2");
+    // 4 header lines + 77 measurements (17 scan + 60 corrections) → 3
+    // pages at 36 lines/page.
+    expect(body).toContain("/Count 3");
     // first and LAST rows are both present in the page streams
-    expect(body).toContain("shoulder_width: 42.5 cm");
+    expect(body).toContain("shoulder: 42.5 cm");
     expect(body).toContain("correction_59:");
   });
 
