@@ -1,4 +1,5 @@
 // ACCOUNT + consent entities — data-model.md §2.
+import type { MeasurementTemplate } from "./measurement";
 
 /** Optional, self-attested location (X-10 tier 1). Sensitive PII — never logged. */
 export interface ProfileLocation {
@@ -41,6 +42,13 @@ export interface Account {
   };
   /** Staff flag gates the B7a moderation queue (A-6). W3 mock-ahead addition. */
   is_staff: boolean;
+  /**
+   * A-10 manual-entry template — surfaced from the self CUSTOMER
+   * (data-model.md §2); carried on the account so PATCH /me persists it
+   * (the notification_prefs mock-ahead pattern). Null until the manual
+   * sheet's one-time chooser (or settings) sets it.
+   */
+  measurement_template: MeasurementTemplate | null;
   notification_prefs: NotificationPrefs;
   consent: ConsentRecord[];
   created_at: string;

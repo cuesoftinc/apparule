@@ -60,7 +60,12 @@ void main() {
 
   group('humanizeMeasureName', () {
     test('snake_case → Title Case', () {
-      expect(humanizeMeasureName('shoulder_width'), 'Shoulder Width');
+      expect(humanizeMeasureName('shoulder_width'), 'Shoulder width');
+      // Sentence case, not title case — the canvas idiom (A-10 names).
+      expect(
+        humanizeMeasureName('shoulder_to_bust_point'),
+        'Shoulder to bust point',
+      );
       expect(humanizeMeasureName('chest'), 'Chest');
     });
   });

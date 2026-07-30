@@ -19,6 +19,10 @@ abstract class ProfileRepository {
     bool clearLocation = false,
   });
 
+  /// A-10: persists the manual-entry field set — set once by the manual
+  /// sheet's chooser, editable in Settings; never clearable back to null.
+  Future<Profile> setMeasurementTemplate(MeasurementTemplate template);
+
   /// B7 Notifications sub-screen — persists the per-event toggle set
   /// (MI-18 optimistic at the ViewModel; the PATCH /me analogue).
   Future<Profile> setNotificationPrefs(NotificationPrefs prefs);

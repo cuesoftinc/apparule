@@ -299,7 +299,7 @@ void main() {
     // Canonical 42.5/36.8 cm — inches display by default (A-9).
     await tester.tap(find.text('Snapshot · 2 values'));
     await tester.pumpAndSettle();
-    expect(find.text('Shoulder Width'), findsOneWidget);
+    expect(find.text('Shoulder width'), findsOneWidget);
     expect(find.text('16.7 in'), findsOneWidget);
     expect(find.text('14.5 in'), findsOneWidget);
   });

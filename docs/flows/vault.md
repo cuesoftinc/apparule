@@ -63,25 +63,69 @@ flowchart TD
 
 ## 2. Manual entry & corrections
 
-- Manual entry (MI-13): any measurement from the open vocabulary
-  (`shoulder_width`, `hip_width`, `chest_girth`, …) as `method: manual`
-  sessions; values validated 10–200 cm per measure with the advisory
-  ranges below — out-of-range prompts a "double-check" confirm, not a
-  hard block (bodies vary). Manual sessions carry **no height** —
-  `input_height_cm` is null for `method: manual` (data-model.md §2;
-  height is a capture-pipeline input, not a property of tape values).
+- Manual entry (MI-13): tape values as `method: manual` sessions using the
+  tailor-sourced A-10 templates below — the customer's
+  `measurement_template` (`women | men`, data-model.md §2) selects the
+  field set; when it is null the sheet interposes a one-time Women/Men
+  chooser and persists the answer (editable later in profile settings).
+  Values validated 10–200 cm per measure with the advisory ranges below —
+  out-of-range prompts a "double-check" confirm, not a hard block (bodies
+  vary). Manual sessions carry **no height** — `input_height_cm` is null
+  for `method: manual` (data-model.md §2; height is a capture-pipeline
+  input, not a property of tape values).
+
+  **Women** (17):
 
   | Measure | Advisory range (cm) |
   | --- | --- |
-  | `shoulder_width` | 25–75 |
-  | `hip_width` | 20–70 |
-  | `chest_girth` | 50–160 |
-  | `waist_girth` | 40–150 |
+  | `shoulder` | 30–60 |
+  | `bust` | 60–160 |
+  | `under_bust` | 55–140 |
+  | `bust_span` | 12–30 |
+  | `waist` | 50–150 |
+  | `shoulder_to_bust_point` | 18–40 |
+  | `shoulder_to_under_bust` | 25–50 |
+  | `shoulder_to_waist` | 30–60 |
+  | `half_length` | 30–70 |
+  | `waist_to_knee` | 40–75 |
+  | `gown_length` | 90–170 |
+  | `skirt_length` | 40–120 |
+  | `trouser_length` | 80–120 |
+  | `thigh` | 40–90 |
+  | `knee` | 25–60 |
+  | `sleeve_length` | 15–70 |
+  | `sleeve_width` | 20–50 |
 
-  The table is canonical for both clients **[Decided 2026-07-22 —
-  parity adjudication: the clients diverged at `waist_girth` (web 160
-  vs mobile/canvas 150); settled at the mobile/canvas value 150]**; the
-  open vocabulary grows server-side, one advisory row per new measure.
+  **Men** (14):
+
+  | Measure | Advisory range (cm) |
+  | --- | --- |
+  | `shoulder` | 30–60 |
+  | `chest` | 70–160 |
+  | `waist` | 50–150 |
+  | `top_length` | 55–100 |
+  | `thigh` | 40–90 |
+  | `hip` | 70–160 |
+  | `knee` | 25–60 |
+  | `shin` | 20–50 |
+  | `waist_to_knee` | 40–75 |
+  | `trouser_length` | 80–120 |
+  | `trouser_inseam` | 60–95 |
+  | `biceps` | 20–50 |
+  | `sleeve_length` | 15–70 |
+  | `neck` | 25–55 |
+
+  Both tables are canonical for web, mobile, and canvas **[Decided
+  2026-07-25 — A-10: field list collected from a practicing Nigerian
+  tailor]**. The 7 measures shared by both templates carry identical
+  ranges. Labels render by humanizing the snake_case name
+  (`shoulder_to_bust_point` → "Shoulder to bust point"); ranges display
+  in the user's unit (inches by default, A-9). Legacy manual names
+  (`chest_girth`, `waist_girth`) and the camera-pipeline names
+  (`shoulder_width`, `hip_width`) remain valid vocabulary on historical
+  sessions — sessions are immutable; the sheet simply no longer offers
+  the legacy manual rows. The registry grows server-side, one advisory
+  row per new measure.
 - Corrections on pipeline sessions append `source: manual_correction` rows;
   original pipeline values are never mutated (audit trail, data-model.md §2).
 - Unit display cm/in is a view preference; storage is always cm.

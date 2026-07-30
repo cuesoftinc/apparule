@@ -23,7 +23,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Shoulder Width'), findsOneWidget);
+      expect(find.text('Shoulder width'), findsOneWidget);
       expect(find.text('16.7 in'), findsOneWidget);
       expect(find.text('Scan'), findsOneWidget);
       expect(find.textContaining('Low confidence'), findsNothing);

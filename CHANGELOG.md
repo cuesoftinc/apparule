@@ -112,6 +112,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   catalog v2): declares surface truth — web and mobile flutter active; `api/common` + `api/measure` planned pending the backend go —
   so standards tooling audits declared state instead of inferring it (#178).
 
+- A-10 tailor measurement vocabulary: manual entry speaks the field lists
+  collected from a practicing Nigerian tailor — **women** (17 measures) and
+  **men** (14; 7 shared) — selected by the customer's new
+  `measurement_template`. A one-time Women/Men chooser interposes on first
+  manual entry and persists; Settings gains a "Measurement set" control.
+  Web + mobile; canonical tables in flows/vault.md §2. Camera-pipeline
+  names and historical sessions are untouched (open vocabulary; sessions
+  immutable) (#184).
+
 ### Changed
 
 - Inches are the default measurement display unit on web (A-9 — Nigerian
@@ -1141,6 +1150,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   contact info from local persistence instead of hardcoded sample text;
   deprecated Material color roles (`background`/`onBackground`) migrated to
   `surface`/`onSurface` (#54).
+
+- Measure labels render sentence case on both clients ("Shoulder to bust
+  point") — title-casing every word was a client-side divergence from the
+  canvas; and the mobile manual advisory now renders one-decimal bounds
+  ("19.7–59.1 in"), converging on the web/canvas format (the capture
+  height gate keeps integer bounds by design) (#184).
 
 ### Security
 

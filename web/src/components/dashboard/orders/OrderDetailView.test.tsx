@@ -214,7 +214,7 @@ describe("OrderDetailView — designer action matrix", () => {
 describe("OrderDetailView — snapshot immutability note", () => {
   it("renders the frozen snapshot with its rule line", () => {
     renderDetail(order("in_progress"), "customer");
-    expect(screen.getByText("Shoulder Width")).toBeInTheDocument();
+    expect(screen.getByText("Shoulder width")).toBeInTheDocument();
     expect(
       screen.getByText(/vault changes never alter this order/i),
     ).toBeInTheDocument();

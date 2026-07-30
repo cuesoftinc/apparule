@@ -6,9 +6,17 @@
   "email": "kiki.adeyemi@example.com",
   "bio": "aso-ebi sets & bridal",
   "avatar_url": null,
-  "profile_location": { "city": "Lagos", "state": "Lagos", "country": "NG" },
+  "profile_location": {
+    "city": "Lagos",
+    "state": "Lagos",
+    "country": "NG"
+  },
   "deletion_state": "active",
-  "designer": { "enabled": false, "kyc_complete": false },
+  "designer": {
+    "enabled": false,
+    "kyc_complete": false
+  },
+  "measurement_template": "women",
   "notification_prefs": {
     "quotes_order_status": true,
     "new_requests": true,
@@ -23,11 +31,29 @@
     "nearby_recommendations": true
   },
   "consent": [
-    { "document": "tos", "version": "1.0", "accepted_days_ago": 40 },
-    { "document": "privacy", "version": "1.0", "accepted_days_ago": 40 }
+    {
+      "document": "tos",
+      "version": "1.0",
+      "accepted_days_ago": 40
+    },
+    {
+      "document": "privacy",
+      "version": "1.0",
+      "accepted_days_ago": 40
+    }
   ],
   "created_days_ago": 120,
-  "follows": ["amara.designs", "maisonbisi"],
-  "liked_post_ids": ["post-asooke-set", "post-runway-orange", "post-bridal-gown"],
-  "saved_post_ids": ["post-bridal-gown", "post-evening-gown"]
+  "follows": [
+    "amara.designs",
+    "maisonbisi"
+  ],
+  "liked_post_ids": [
+    "post-asooke-set",
+    "post-runway-orange",
+    "post-bridal-gown"
+  ],
+  "saved_post_ids": [
+    "post-bridal-gown",
+    "post-evening-gown"
+  ]
 }

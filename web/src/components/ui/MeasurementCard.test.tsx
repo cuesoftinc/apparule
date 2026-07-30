@@ -7,7 +7,7 @@ describe("MeasurementCard (§8.2)", () => {
     render(
       <MeasurementCard name="shoulder_width" valueCm={42.5} source="scan" />,
     );
-    expect(screen.getByText("Shoulder Width")).toBeInTheDocument();
+    expect(screen.getByText("Shoulder width")).toBeInTheDocument();
     // valueCm stays canonical cm; the DEFAULT display unit is inches.
     expect(screen.getByText("16.7 in")).toBeInTheDocument();
     // Figma master (48:208): sentence-case source chip

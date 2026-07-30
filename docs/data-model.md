@@ -62,6 +62,7 @@ erDiagram
         string display_name
         string contact "optional email/phone"
         string notes
+        string measurement_template "women | men — nullable; manual-entry field set (A-10)"
         datetime created_at
         datetime deleted_at "soft delete"
     }
@@ -77,7 +78,7 @@ erDiagram
     MEASUREMENT {
         uuid id PK
         uuid session_id FK
-        string name "shoulder_width | hip_width | chest_girth | ..."
+        string name "open vocabulary: A-10 templates + pipeline names (shoulder_width, hip_width) + ..."
         float value_cm
         string source "pipeline | manual_correction"
         float confidence "nullable"
@@ -116,9 +117,16 @@ Modeling notes:
 
 - **Measurement names are an open vocabulary** (a `name` string + registry
   table later, not an enum): the 2-D method produces `shoulder_width`/`hip_width`;
-  SMPL adds girths; tailors add manual tape values. Each row carries its
-  `source` so pipeline output and human corrections coexist per session
-  (sequence 4.3 in architecture.md).
+  SMPL adds girths; tailors add manual tape values from the A-10 templates
+  (flows/vault.md §2 holds the canonical women/men field lists). Each row
+  carries its `source` so pipeline output and human corrections coexist per
+  session (sequence 4.3 in architecture.md).
+- **`measurement_template` selects the manual-entry field set** (A-10):
+  `women` (17 tape measures) or `men` (14) — the tailor-sourced templates
+  in flows/vault.md §2. Nullable: the manual sheet asks once and persists
+  the answer; editable in profile settings. It templates the entry UI
+  only — stored measurement rows stay free-form open vocabulary, so
+  legacy names on historical sessions remain valid.
 - **Sessions are immutable captures; corrections append** — an audit-friendly
   history rather than destructive edits, given production garments hang off
   these numbers.

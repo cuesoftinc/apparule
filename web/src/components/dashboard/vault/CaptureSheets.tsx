@@ -10,6 +10,10 @@
 // capture is rejected UX: desk-height lens, unreachable controls).
 import { useState } from "react";
 import { CM_PER_IN } from "@/lib/format";
+import {
+  MANUAL_TEMPLATES,
+  type MeasurementTemplate,
+} from "@/models/entities/measurement";
 import { Banner } from "@/components/ui/Banner";
 import { Button } from "@/components/ui/Button";
 import { CaptureOptionCard } from "@/components/ui/CaptureOptionCard";
@@ -48,18 +52,9 @@ export function CaptureOptionsSheet({
   );
 }
 
-/**
- * Advisory ranges — flows/vault.md §2, the canonical cross-client table
- * [Decided 2026-07-22: waist_girth settled at 150, the mobile/canvas
- * value]. Out-of-range prompts a "double-check" hint, never a hard block
- * (bodies vary).
- */
-export const MANUAL_METRICS = [
-  { name: "shoulder_width", min: 25, max: 75 },
-  { name: "hip_width", min: 20, max: 70 },
-  { name: "chest_girth", min: 50, max: 160 },
-  { name: "waist_girth", min: 40, max: 150 },
-] as const;
+// Manual field sets are the A-10 tailor templates (flows/vault.md §2) —
+// the customer's measurement_template selects women (17) or men (14);
+// advisory ranges are canonical cm, "double-check" only, never a block.
 
 /**
  * The non-blocking out-of-range advisory (flows/vault.md §2). Ranges are
@@ -84,10 +79,16 @@ export function ManualEntrySheet({
   open,
   onOpenChange,
   onSave,
+  template,
+  onTemplateChange,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (measurements: { name: string; value_cm: number }[]) => Promise<void>;
+  /** A-10: null interposes the one-time Women/Men chooser. */
+  template: MeasurementTemplate | null;
+  /** Persists the chooser pick (PATCH /me) before the rows render. */
+  onTemplateChange: (template: MeasurementTemplate) => Promise<void>;
 }) {
   // Inches are the default display unit (A-9); stored values stay cm.
   const [unit, setUnit] = useState<MeasureUnit>("in");
@@ -95,10 +96,23 @@ export function ManualEntrySheet({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const entered = MANUAL_METRICS.filter(
+  const metrics = template ? MANUAL_TEMPLATES[template] : [];
+  const entered = metrics.filter(
     (m) => values[m.name] !== null && values[m.name] !== undefined,
   );
   const valid = entered.length > 0;
+
+  const pickTemplate = async (pick: MeasurementTemplate) => {
+    setBusy(true);
+    setError(null);
+    try {
+      await onTemplateChange(pick);
+    } catch {
+      setError("Couldn't save your choice — try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const save = async () => {
     if (!valid) return;
@@ -117,6 +131,39 @@ export function ManualEntrySheet({
     }
   };
 
+  // A-10 one-time chooser: no template yet → pick the field set first.
+  // The pick persists (PATCH /me; editable later in Settings), then the
+  // sheet swaps to the template's rows in place.
+  if (template === null) {
+    return (
+      <Sheet open={open} onOpenChange={onOpenChange} title="Enter measurements">
+        <div className="flex flex-col gap-4">
+          {error ? <Banner tone="error">{error}</Banner> : null}
+          <p className="text-body text-text-2">
+            Which measurement set fits this profile? Tailors keep different
+            fields for women and men — you can change this later in Settings.
+          </p>
+          <div className="grid gap-3 md:grid-cols-2">
+            <Button
+              kind="quiet"
+              disabled={busy}
+              onClick={() => void pickTemplate("women")}
+            >
+              Women’s measurements
+            </Button>
+            <Button
+              kind="quiet"
+              disabled={busy}
+              onClick={() => void pickTemplate("men")}
+            >
+              Men’s measurements
+            </Button>
+          </div>
+        </div>
+      </Sheet>
+    );
+  }
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange} title="Enter measurements">
       <form
@@ -129,7 +176,7 @@ export function ManualEntrySheet({
         {error ? <Banner tone="error">{error}</Banner> : null}
         <fieldset className="flex flex-col gap-3">
           <legend className="sr-only">Measurements</legend>
-          {MANUAL_METRICS.map((metric) => (
+          {metrics.map((metric) => (
             <ManualMeasureRow
               key={metric.name}
               name={metric.name}
