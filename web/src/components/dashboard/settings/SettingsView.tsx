@@ -202,6 +202,60 @@ export function SettingsView() {
         ) : null}
       </section>
 
+      <section
+        aria-labelledby="settings-measurements-h"
+        className="flex flex-col gap-2"
+      >
+        <h2
+          id="settings-measurements-h"
+          className="pb-1 text-body font-semibold text-text-2"
+        >
+          Measurements
+        </h2>
+        <div className="flex items-center justify-between">
+          <label
+            htmlFor="settings-measurement-template"
+            className="text-body text-text"
+          >
+            Measurement set
+          </label>
+          <div className="w-40">
+            <Select
+              aria-label="Measurement set"
+              options={[
+                // A-10: null until the manual sheet's one-time chooser (or
+                // this control) sets it; never clearable back to unset.
+                ...(account.measurement_template === null
+                  ? [{ value: "", label: "Not set" }]
+                  : []),
+                { value: "women", label: "Women" },
+                { value: "men", label: "Men" },
+              ]}
+              value={account.measurement_template ?? ""}
+              onValueChange={(v) => {
+                if (v !== "women" && v !== "men") return;
+                void updateAccount({ measurement_template: v }).then(
+                  () =>
+                    showToast({
+                      kind: "success",
+                      message: "Measurement set updated",
+                    }),
+                  () =>
+                    showToast({
+                      kind: "error",
+                      message: "Couldn't update the measurement set",
+                    }),
+                );
+              }}
+            />
+          </div>
+        </div>
+        <p className="text-caption text-text-2">
+          The tape fields offered by manual entry (flows differ for women and
+          men).
+        </p>
+      </section>
+
       <nav
         aria-label="Settings sections"
         className="divide-y divide-border border-y border-border"

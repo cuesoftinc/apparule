@@ -71,6 +71,13 @@ class ProfileRepositoryFake with FailNextSeam implements ProfileRepository {
           ),
           _ => const NotificationPrefs(),
         },
+        // A-10: the seed carries the template (web seed parity — kiki is
+        // "women"); tests override to null to reach the chooser.
+        measurementTemplate: switch (me['measurement_template']) {
+          'women' => MeasurementTemplate.women,
+          'men' => MeasurementTemplate.men,
+          _ => null,
+        },
         privacyPrefs: switch (me['privacy_prefs']) {
           final Map<String, dynamic> prefs => PrivacyPrefs(
             aiProcessing: prefs['ai_processing'] as bool? ?? true,
@@ -123,6 +130,14 @@ class ProfileRepositoryFake with FailNextSeam implements ProfileRepository {
       bio: bio ?? me.bio,
       location: clearLocation ? null : (location ?? me.location),
     );
+    return _loadedMe;
+  }
+
+  @override
+  Future<Profile> setMeasurementTemplate(MeasurementTemplate template) async {
+    await _ensureLoaded();
+    maybeFailNext();
+    _me = _loadedMe.copyWith(measurementTemplate: template);
     return _loadedMe;
   }
 

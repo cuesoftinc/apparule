@@ -347,16 +347,26 @@
     "description": "Advisory out-of-range hint per measure (never a hard block). The range renders in the active display unit; validation stays canonical cm.",
     "placeholders": {
       "min": {
-        "type": "int"
+        "type": "String"
       },
       "max": {
-        "type": "int"
+        "type": "String"
       },
       "unit": {
         "type": "String"
       }
     }
   },
+  "manualTemplateBody": "Which measurement set fits this profile? Tailors keep different fields for women and men — you can change this later in Settings.",
+  "@manualTemplateBody": {
+    "description": "A-10 one-time chooser body on the manual entry screen (flows/vault.md §2)."
+  },
+  "manualTemplateWomen": "Women’s measurements",
+  "manualTemplateMen": "Men’s measurements",
+  "manualTemplateWomenShort": "Women",
+  "manualTemplateMenShort": "Men",
+  "settingsMeasurementSet": "Measurement set",
+  "settingsMeasurementSetMeta": "The tape fields offered by manual entry",
   "manualEntrySave": "Save to vault",
   "manualEntryUseCamera": "Use the camera instead",
   "@manualEntryUseCamera": {
@@ -766,7 +776,9 @@
   "@confirmDeliveryBody": {
     "description": "D08 armed-sheet copy (web ConfirmSheet parity) — the release is irreversible.",
     "placeholders": {
-      "designer": {"type": "String"}
+      "designer": {
+        "type": "String"
+      }
     }
   },
   "withdrawSheetTitle": "Withdraw this request?",
@@ -779,15 +791,21 @@
   "@orderDeclinedReason": {
     "description": "D43 — the decline reason surfaces to the customer (web 'Declined: {reason}' parity).",
     "placeholders": {
-      "reason": {"type": "String"}
+      "reason": {
+        "type": "String"
+      }
     }
   },
   "orderDisputeOpen": "Dispute open ({reason}){detail}. Support resolves disputes; the payout stays frozen meanwhile.",
   "@orderDisputeOpen": {
     "description": "D43 — the open dispute's reason + optional ' — detail' tail (web parity).",
     "placeholders": {
-      "reason": {"type": "String"},
-      "detail": {"type": "String"}
+      "reason": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
     }
   },
   "threadSending": "Sending…",
@@ -807,7 +825,9 @@
   "@requestTurnaroundWarning": {
     "description": "D44 soft warning (web turnaroundWarning parity) — warn, never block.",
     "placeholders": {
-      "days": {"type": "int"}
+      "days": {
+        "type": "int"
+      }
     }
   },
   "requestSubmitFailed": "Something went wrong — try again.",
@@ -820,7 +840,9 @@
   "@requestSnapshotValues": {
     "description": "D65 — the expandable review section header listing every value about to freeze.",
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "profileNotifications": "Notifications",

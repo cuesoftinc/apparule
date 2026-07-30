@@ -1,5 +1,7 @@
 import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/features/measurements/presentation/vault_actions.dart';
+import 'package:apparule/src/features/profile/data/profile_repository.dart';
+import 'package:apparule/src/features/profile/domain/profile.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -11,15 +13,58 @@ part 'manual_entry_view_model.g.dart';
 /// out-of-range prompts a double-check, never a hard block).
 typedef ManualMeasureSpec = ({String name, double min, double max});
 
-/// The v1 manual vocabulary — the measures the seed narrative and the
-/// request snapshot flow already speak (web seed parity); the open
-/// vocabulary grows server-side.
-const List<ManualMeasureSpec> kManualMeasures = <ManualMeasureSpec>[
-  (name: 'shoulder_width', min: 25, max: 75),
-  (name: 'hip_width', min: 20, max: 70),
-  (name: 'chest_girth', min: 50, max: 160),
-  (name: 'waist_girth', min: 40, max: 150),
-];
+/// The canonical A-10 tailor templates — flows/vault.md §2 [Decided
+/// 2026-07-25: field list collected from a practicing Nigerian tailor].
+/// The profile's `measurementTemplate` selects the set; the 7 measures
+/// shared by both templates carry identical ranges. Legacy names on
+/// historical sessions stay valid (open vocabulary; sessions immutable).
+const Map<MeasurementTemplate, List<ManualMeasureSpec>> kManualTemplates =
+    <MeasurementTemplate, List<ManualMeasureSpec>>{
+      MeasurementTemplate.women: <ManualMeasureSpec>[
+        (name: 'shoulder', min: 30, max: 60),
+        (name: 'bust', min: 60, max: 160),
+        (name: 'under_bust', min: 55, max: 140),
+        (name: 'bust_span', min: 12, max: 30),
+        (name: 'waist', min: 50, max: 150),
+        (name: 'shoulder_to_bust_point', min: 18, max: 40),
+        (name: 'shoulder_to_under_bust', min: 25, max: 50),
+        (name: 'shoulder_to_waist', min: 30, max: 60),
+        (name: 'half_length', min: 30, max: 70),
+        (name: 'waist_to_knee', min: 40, max: 75),
+        (name: 'gown_length', min: 90, max: 170),
+        (name: 'skirt_length', min: 40, max: 120),
+        (name: 'trouser_length', min: 80, max: 120),
+        (name: 'thigh', min: 40, max: 90),
+        (name: 'knee', min: 25, max: 60),
+        (name: 'sleeve_length', min: 15, max: 70),
+        (name: 'sleeve_width', min: 20, max: 50),
+      ],
+      MeasurementTemplate.men: <ManualMeasureSpec>[
+        (name: 'shoulder', min: 30, max: 60),
+        (name: 'chest', min: 70, max: 160),
+        (name: 'waist', min: 50, max: 150),
+        (name: 'top_length', min: 55, max: 100),
+        (name: 'thigh', min: 40, max: 90),
+        (name: 'hip', min: 70, max: 160),
+        (name: 'knee', min: 25, max: 60),
+        (name: 'shin', min: 20, max: 50),
+        (name: 'waist_to_knee', min: 40, max: 75),
+        (name: 'trouser_length', min: 80, max: 120),
+        (name: 'trouser_inseam', min: 60, max: 95),
+        (name: 'biceps', min: 20, max: 50),
+        (name: 'sleeve_length', min: 15, max: 70),
+        (name: 'neck', min: 25, max: 55),
+      ],
+    };
+
+/// The profile's A-10 template — null interposes the one-time chooser on
+/// the manual entry screen. Auto-disposes with the route, so a Settings
+/// edit is picked up on the next visit.
+@riverpod
+Future<MeasurementTemplate?> manualTemplate(Ref ref) async {
+  final me = await ref.watch(profileRepositoryProvider).me();
+  return me?.measurementTemplate;
+}
 
 @freezed
 abstract class ManualEntryState with _$ManualEntryState {
@@ -55,6 +100,17 @@ class ManualEntryViewModel extends _$ManualEntryViewModel {
 
   void setUnit(MeasureUnit unit) {
     state = state.copyWith(unit: unit);
+  }
+
+  /// A-10 one-time chooser pick — persists to the profile (the PATCH /me
+  /// analogue) and refreshes [manualTemplate] so the rows swap in place.
+  Future<void> pickTemplate(MeasurementTemplate template) async {
+    if (state.saving) return;
+    state = state.copyWith(saving: true);
+    await ref.read(profileRepositoryProvider).setMeasurementTemplate(template);
+    ref.invalidate(manualTemplateProvider);
+    if (!ref.mounted) return;
+    state = state.copyWith(saving: false);
   }
 
   /// Saves through the VaultActions façade (CLASS 1 lock) — its declared

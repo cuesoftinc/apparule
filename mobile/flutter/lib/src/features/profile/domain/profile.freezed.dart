@@ -1075,7 +1075,8 @@ as bool,
 /// @nodoc
 mixin _$Profile {
 
- String get id; String get username; String get displayName; String get email; String? get bio; String? get avatarUrl; ProfileLocation? get location; NotificationPrefs get notificationPrefs; PrivacyPrefs get privacyPrefs; List<ConsentRecord> get consent; bool get deletionPending;
+ String get id; String get username; String get displayName; String get email; String? get bio; String? get avatarUrl; ProfileLocation? get location; NotificationPrefs get notificationPrefs; PrivacyPrefs get privacyPrefs; List<ConsentRecord> get consent; bool get deletionPending;/// A-10 manual-entry field set; null → the chooser interposes.
+ MeasurementTemplate? get measurementTemplate;
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1086,16 +1087,16 @@ $ProfileCopyWith<Profile> get copyWith => _$ProfileCopyWithImpl<Profile>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Profile&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.email, email) || other.email == email)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.location, location) || other.location == location)&&(identical(other.notificationPrefs, notificationPrefs) || other.notificationPrefs == notificationPrefs)&&(identical(other.privacyPrefs, privacyPrefs) || other.privacyPrefs == privacyPrefs)&&const DeepCollectionEquality().equals(other.consent, consent)&&(identical(other.deletionPending, deletionPending) || other.deletionPending == deletionPending));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Profile&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.email, email) || other.email == email)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.location, location) || other.location == location)&&(identical(other.notificationPrefs, notificationPrefs) || other.notificationPrefs == notificationPrefs)&&(identical(other.privacyPrefs, privacyPrefs) || other.privacyPrefs == privacyPrefs)&&const DeepCollectionEquality().equals(other.consent, consent)&&(identical(other.deletionPending, deletionPending) || other.deletionPending == deletionPending)&&(identical(other.measurementTemplate, measurementTemplate) || other.measurementTemplate == measurementTemplate));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,username,displayName,email,bio,avatarUrl,location,notificationPrefs,privacyPrefs,const DeepCollectionEquality().hash(consent),deletionPending);
+int get hashCode => Object.hash(runtimeType,id,username,displayName,email,bio,avatarUrl,location,notificationPrefs,privacyPrefs,const DeepCollectionEquality().hash(consent),deletionPending,measurementTemplate);
 
 @override
 String toString() {
-  return 'Profile(id: $id, username: $username, displayName: $displayName, email: $email, bio: $bio, avatarUrl: $avatarUrl, location: $location, notificationPrefs: $notificationPrefs, privacyPrefs: $privacyPrefs, consent: $consent, deletionPending: $deletionPending)';
+  return 'Profile(id: $id, username: $username, displayName: $displayName, email: $email, bio: $bio, avatarUrl: $avatarUrl, location: $location, notificationPrefs: $notificationPrefs, privacyPrefs: $privacyPrefs, consent: $consent, deletionPending: $deletionPending, measurementTemplate: $measurementTemplate)';
 }
 
 
@@ -1106,7 +1107,7 @@ abstract mixin class $ProfileCopyWith<$Res>  {
   factory $ProfileCopyWith(Profile value, $Res Function(Profile) _then) = _$ProfileCopyWithImpl;
 @useResult
 $Res call({
- String id, String username, String displayName, String email, String? bio, String? avatarUrl, ProfileLocation? location, NotificationPrefs notificationPrefs, PrivacyPrefs privacyPrefs, List<ConsentRecord> consent, bool deletionPending
+ String id, String username, String displayName, String email, String? bio, String? avatarUrl, ProfileLocation? location, NotificationPrefs notificationPrefs, PrivacyPrefs privacyPrefs, List<ConsentRecord> consent, bool deletionPending, MeasurementTemplate? measurementTemplate
 });
 
 
@@ -1123,7 +1124,7 @@ class _$ProfileCopyWithImpl<$Res>
 
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? username = null,Object? displayName = null,Object? email = null,Object? bio = freezed,Object? avatarUrl = freezed,Object? location = freezed,Object? notificationPrefs = null,Object? privacyPrefs = null,Object? consent = null,Object? deletionPending = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? username = null,Object? displayName = null,Object? email = null,Object? bio = freezed,Object? avatarUrl = freezed,Object? location = freezed,Object? notificationPrefs = null,Object? privacyPrefs = null,Object? consent = null,Object? deletionPending = null,Object? measurementTemplate = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
@@ -1136,7 +1137,8 @@ as ProfileLocation?,notificationPrefs: null == notificationPrefs ? _self.notific
 as NotificationPrefs,privacyPrefs: null == privacyPrefs ? _self.privacyPrefs : privacyPrefs // ignore: cast_nullable_to_non_nullable
 as PrivacyPrefs,consent: null == consent ? _self.consent : consent // ignore: cast_nullable_to_non_nullable
 as List<ConsentRecord>,deletionPending: null == deletionPending ? _self.deletionPending : deletionPending // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,measurementTemplate: freezed == measurementTemplate ? _self.measurementTemplate : measurementTemplate // ignore: cast_nullable_to_non_nullable
+as MeasurementTemplate?,
   ));
 }
 /// Create a copy of Profile
@@ -1251,10 +1253,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String username,  String displayName,  String email,  String? bio,  String? avatarUrl,  ProfileLocation? location,  NotificationPrefs notificationPrefs,  PrivacyPrefs privacyPrefs,  List<ConsentRecord> consent,  bool deletionPending)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String username,  String displayName,  String email,  String? bio,  String? avatarUrl,  ProfileLocation? location,  NotificationPrefs notificationPrefs,  PrivacyPrefs privacyPrefs,  List<ConsentRecord> consent,  bool deletionPending,  MeasurementTemplate? measurementTemplate)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Profile() when $default != null:
-return $default(_that.id,_that.username,_that.displayName,_that.email,_that.bio,_that.avatarUrl,_that.location,_that.notificationPrefs,_that.privacyPrefs,_that.consent,_that.deletionPending);case _:
+return $default(_that.id,_that.username,_that.displayName,_that.email,_that.bio,_that.avatarUrl,_that.location,_that.notificationPrefs,_that.privacyPrefs,_that.consent,_that.deletionPending,_that.measurementTemplate);case _:
   return orElse();
 
 }
@@ -1272,10 +1274,10 @@ return $default(_that.id,_that.username,_that.displayName,_that.email,_that.bio,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String username,  String displayName,  String email,  String? bio,  String? avatarUrl,  ProfileLocation? location,  NotificationPrefs notificationPrefs,  PrivacyPrefs privacyPrefs,  List<ConsentRecord> consent,  bool deletionPending)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String username,  String displayName,  String email,  String? bio,  String? avatarUrl,  ProfileLocation? location,  NotificationPrefs notificationPrefs,  PrivacyPrefs privacyPrefs,  List<ConsentRecord> consent,  bool deletionPending,  MeasurementTemplate? measurementTemplate)  $default,) {final _that = this;
 switch (_that) {
 case _Profile():
-return $default(_that.id,_that.username,_that.displayName,_that.email,_that.bio,_that.avatarUrl,_that.location,_that.notificationPrefs,_that.privacyPrefs,_that.consent,_that.deletionPending);case _:
+return $default(_that.id,_that.username,_that.displayName,_that.email,_that.bio,_that.avatarUrl,_that.location,_that.notificationPrefs,_that.privacyPrefs,_that.consent,_that.deletionPending,_that.measurementTemplate);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1292,10 +1294,10 @@ return $default(_that.id,_that.username,_that.displayName,_that.email,_that.bio,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String username,  String displayName,  String email,  String? bio,  String? avatarUrl,  ProfileLocation? location,  NotificationPrefs notificationPrefs,  PrivacyPrefs privacyPrefs,  List<ConsentRecord> consent,  bool deletionPending)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String username,  String displayName,  String email,  String? bio,  String? avatarUrl,  ProfileLocation? location,  NotificationPrefs notificationPrefs,  PrivacyPrefs privacyPrefs,  List<ConsentRecord> consent,  bool deletionPending,  MeasurementTemplate? measurementTemplate)?  $default,) {final _that = this;
 switch (_that) {
 case _Profile() when $default != null:
-return $default(_that.id,_that.username,_that.displayName,_that.email,_that.bio,_that.avatarUrl,_that.location,_that.notificationPrefs,_that.privacyPrefs,_that.consent,_that.deletionPending);case _:
+return $default(_that.id,_that.username,_that.displayName,_that.email,_that.bio,_that.avatarUrl,_that.location,_that.notificationPrefs,_that.privacyPrefs,_that.consent,_that.deletionPending,_that.measurementTemplate);case _:
   return null;
 
 }
@@ -1307,7 +1309,7 @@ return $default(_that.id,_that.username,_that.displayName,_that.email,_that.bio,
 
 
 class _Profile implements Profile {
-  const _Profile({required this.id, required this.username, required this.displayName, required this.email, this.bio, this.avatarUrl, this.location, this.notificationPrefs = const NotificationPrefs(), this.privacyPrefs = const PrivacyPrefs(), final  List<ConsentRecord> consent = const <ConsentRecord>[], this.deletionPending = false}): _consent = consent;
+  const _Profile({required this.id, required this.username, required this.displayName, required this.email, this.bio, this.avatarUrl, this.location, this.notificationPrefs = const NotificationPrefs(), this.privacyPrefs = const PrivacyPrefs(), final  List<ConsentRecord> consent = const <ConsentRecord>[], this.deletionPending = false, this.measurementTemplate}): _consent = consent;
   
 
 @override final  String id;
@@ -1327,6 +1329,8 @@ class _Profile implements Profile {
 }
 
 @override@JsonKey() final  bool deletionPending;
+/// A-10 manual-entry field set; null → the chooser interposes.
+@override final  MeasurementTemplate? measurementTemplate;
 
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
@@ -1338,16 +1342,16 @@ _$ProfileCopyWith<_Profile> get copyWith => __$ProfileCopyWithImpl<_Profile>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Profile&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.email, email) || other.email == email)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.location, location) || other.location == location)&&(identical(other.notificationPrefs, notificationPrefs) || other.notificationPrefs == notificationPrefs)&&(identical(other.privacyPrefs, privacyPrefs) || other.privacyPrefs == privacyPrefs)&&const DeepCollectionEquality().equals(other._consent, _consent)&&(identical(other.deletionPending, deletionPending) || other.deletionPending == deletionPending));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Profile&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.email, email) || other.email == email)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.location, location) || other.location == location)&&(identical(other.notificationPrefs, notificationPrefs) || other.notificationPrefs == notificationPrefs)&&(identical(other.privacyPrefs, privacyPrefs) || other.privacyPrefs == privacyPrefs)&&const DeepCollectionEquality().equals(other._consent, _consent)&&(identical(other.deletionPending, deletionPending) || other.deletionPending == deletionPending)&&(identical(other.measurementTemplate, measurementTemplate) || other.measurementTemplate == measurementTemplate));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,username,displayName,email,bio,avatarUrl,location,notificationPrefs,privacyPrefs,const DeepCollectionEquality().hash(_consent),deletionPending);
+int get hashCode => Object.hash(runtimeType,id,username,displayName,email,bio,avatarUrl,location,notificationPrefs,privacyPrefs,const DeepCollectionEquality().hash(_consent),deletionPending,measurementTemplate);
 
 @override
 String toString() {
-  return 'Profile(id: $id, username: $username, displayName: $displayName, email: $email, bio: $bio, avatarUrl: $avatarUrl, location: $location, notificationPrefs: $notificationPrefs, privacyPrefs: $privacyPrefs, consent: $consent, deletionPending: $deletionPending)';
+  return 'Profile(id: $id, username: $username, displayName: $displayName, email: $email, bio: $bio, avatarUrl: $avatarUrl, location: $location, notificationPrefs: $notificationPrefs, privacyPrefs: $privacyPrefs, consent: $consent, deletionPending: $deletionPending, measurementTemplate: $measurementTemplate)';
 }
 
 
@@ -1358,7 +1362,7 @@ abstract mixin class _$ProfileCopyWith<$Res> implements $ProfileCopyWith<$Res> {
   factory _$ProfileCopyWith(_Profile value, $Res Function(_Profile) _then) = __$ProfileCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String username, String displayName, String email, String? bio, String? avatarUrl, ProfileLocation? location, NotificationPrefs notificationPrefs, PrivacyPrefs privacyPrefs, List<ConsentRecord> consent, bool deletionPending
+ String id, String username, String displayName, String email, String? bio, String? avatarUrl, ProfileLocation? location, NotificationPrefs notificationPrefs, PrivacyPrefs privacyPrefs, List<ConsentRecord> consent, bool deletionPending, MeasurementTemplate? measurementTemplate
 });
 
 
@@ -1375,7 +1379,7 @@ class __$ProfileCopyWithImpl<$Res>
 
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? username = null,Object? displayName = null,Object? email = null,Object? bio = freezed,Object? avatarUrl = freezed,Object? location = freezed,Object? notificationPrefs = null,Object? privacyPrefs = null,Object? consent = null,Object? deletionPending = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? username = null,Object? displayName = null,Object? email = null,Object? bio = freezed,Object? avatarUrl = freezed,Object? location = freezed,Object? notificationPrefs = null,Object? privacyPrefs = null,Object? consent = null,Object? deletionPending = null,Object? measurementTemplate = freezed,}) {
   return _then(_Profile(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
@@ -1388,7 +1392,8 @@ as ProfileLocation?,notificationPrefs: null == notificationPrefs ? _self.notific
 as NotificationPrefs,privacyPrefs: null == privacyPrefs ? _self.privacyPrefs : privacyPrefs // ignore: cast_nullable_to_non_nullable
 as PrivacyPrefs,consent: null == consent ? _self._consent : consent // ignore: cast_nullable_to_non_nullable
 as List<ConsentRecord>,deletionPending: null == deletionPending ? _self.deletionPending : deletionPending // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,measurementTemplate: freezed == measurementTemplate ? _self.measurementTemplate : measurementTemplate // ignore: cast_nullable_to_non_nullable
+as MeasurementTemplate?,
   ));
 }
 

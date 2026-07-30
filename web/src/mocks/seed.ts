@@ -68,6 +68,7 @@ export const seedAccounts: Account[] = [
     // The TEST_MODE user doubles as staff so the B7a moderation queue is
     // walkable from the seeded session (A-6).
     is_staff: true,
+    measurement_template: "women",
     notification_prefs: defaultPrefs(),
     consent: [
       { document: "tos", version: "1.0", accepted_at: daysAgo(40) },
@@ -86,6 +87,7 @@ export const seedAccounts: Account[] = [
     deletion_state: "active",
     designer: { enabled: true, kyc_complete: true },
     is_staff: false,
+    measurement_template: "women",
     notification_prefs: defaultPrefs(),
     consent: [
       { document: "tos", version: "1.0", accepted_at: daysAgo(200) },
@@ -107,6 +109,7 @@ export const seedAccounts: Account[] = [
     deletion_state: "active",
     designer: { enabled: true, kyc_complete: true },
     is_staff: false,
+    measurement_template: "men",
     notification_prefs: defaultPrefs(),
     consent: [
       { document: "tos", version: "1.0", accepted_at: daysAgo(180) },
@@ -125,6 +128,7 @@ export const seedAccounts: Account[] = [
     deletion_state: "active",
     designer: { enabled: true, kyc_complete: true },
     is_staff: false,
+    measurement_template: null, // A-10 chooser state stays reachable in TEST_MODE
     notification_prefs: defaultPrefs(),
     consent: [
       { document: "tos", version: "1.0", accepted_at: daysAgo(220) },
@@ -145,6 +149,7 @@ export const seedAccounts: Account[] = [
     deletion_state: "active",
     designer: { enabled: true, kyc_complete: true },
     is_staff: false,
+    measurement_template: "women",
     notification_prefs: defaultPrefs(),
     consent: [
       { document: "tos", version: "1.0", accepted_at: daysAgo(160) },
@@ -165,6 +170,7 @@ export const seedAccounts: Account[] = [
     deletion_state: "active",
     designer: { enabled: false, kyc_complete: false },
     is_staff: true,
+    measurement_template: "women",
     notification_prefs: defaultPrefs(),
     consent: [
       { document: "tos", version: "1.0", accepted_at: daysAgo(320) },
@@ -196,6 +202,7 @@ function makeCommunityAccount(input: {
     deletion_state: "active",
     designer: { enabled: false, kyc_complete: false },
     is_staff: false,
+    measurement_template: null, // A-10: one-time chooser on first manual entry
     notification_prefs: defaultPrefs(),
     consent: [
       {

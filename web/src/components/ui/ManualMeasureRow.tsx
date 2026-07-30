@@ -23,11 +23,14 @@ export interface ManualMeasureRowProps {
   className?: string;
 }
 
+/**
+ * Sentence-case label from a snake_case measure name — the canvas idiom
+ * ("Shoulder width", "Shoulder to bust point"), A-10. Title-casing every
+ * word was a web-only divergence.
+ */
 export function humanizeMeasureName(name: string): string {
-  return name
-    .split("_")
-    .map((w) => w[0]?.toUpperCase() + w.slice(1))
-    .join(" ");
+  const words = name.split("_").join(" ");
+  return (words[0]?.toUpperCase() ?? "") + words.slice(1);
 }
 
 export function ManualMeasureRow({

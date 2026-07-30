@@ -7,6 +7,7 @@ import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_session.dart';
 import 'package:apparule/src/features/measurements/presentation/manual_entry_view_model.dart';
 import 'package:apparule/src/features/measurements/presentation/vault_view_model.dart';
+import 'package:apparule/src/features/profile/domain/profile.dart';
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,6 +43,10 @@ class ManualEntryScreen extends ConsumerWidget {
     final typography = theme.extension<AppTypography>()!;
     final state = ref.watch(manualEntryViewModelProvider);
     final viewModel = ref.read(manualEntryViewModelProvider.notifier);
+    // A-10: the profile's template selects the field set; null (or a
+    // still-loading read) shows the one-time chooser / a quiet hold.
+    final template = ref.watch(manualTemplateProvider).value;
+    final specs = template == null ? null : kManualTemplates[template]!;
     final histories = _histories(
       ref.watch(vaultViewModelProvider).value ?? const <MeasurementSession>[],
     );
@@ -65,50 +70,86 @@ class ManualEntryScreen extends ConsumerWidget {
         },
       ),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: <Widget>[
-            Text(
-              l10n.manualEntryBody,
-              style: typography.caption13.copyWith(color: colors.text2),
-            ),
-            const SizedBox(height: 16),
-            for (final spec in kManualMeasures) ...<Widget>[
-              ManualMeasureRow(
-                name: spec.name,
-                valueCm: state.valuesCm[spec.name],
-                min: spec.min,
-                max: spec.max,
-                unit: state.unit,
-                history: histories[spec.name] ?? const <double>[],
-                onChanged: (value) => viewModel.setValue(spec.name, value),
-                onUnitChanged: viewModel.setUnit,
-                error: _advisory(
-                  l10n,
-                  state.valuesCm[spec.name],
-                  spec,
-                  state.unit,
-                ),
+        child: specs == null
+            // A-10 one-time chooser (flows/vault.md §2): the pick persists
+            // to the profile, then the rows swap in place. Also covers the
+            // brief profile read — a resolved template replaces it within
+            // a frame.
+            ? ListView(
+                padding: const EdgeInsets.all(16),
+                children: <Widget>[
+                  Text(
+                    l10n.manualTemplateBody,
+                    style: typography.caption13.copyWith(color: colors.text2),
+                  ),
+                  const SizedBox(height: 16),
+                  Button(
+                    label: l10n.manualTemplateWomen,
+                    kind: ButtonKind.quiet,
+                    expand: true,
+                    loading: state.saving,
+                    onPressed: () => viewModel.pickTemplate(
+                      MeasurementTemplate.women,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Button(
+                    label: l10n.manualTemplateMen,
+                    kind: ButtonKind.quiet,
+                    expand: true,
+                    loading: state.saving,
+                    onPressed: () => viewModel.pickTemplate(
+                      MeasurementTemplate.men,
+                    ),
+                  ),
+                ],
+              )
+            : ListView(
+                padding: const EdgeInsets.all(16),
+                children: <Widget>[
+                  Text(
+                    l10n.manualEntryBody,
+                    style: typography.caption13.copyWith(color: colors.text2),
+                  ),
+                  const SizedBox(height: 16),
+                  for (final spec in specs) ...<Widget>[
+                    ManualMeasureRow(
+                      name: spec.name,
+                      valueCm: state.valuesCm[spec.name],
+                      min: spec.min,
+                      max: spec.max,
+                      unit: state.unit,
+                      history: histories[spec.name] ?? const <double>[],
+                      onChanged: (value) =>
+                          viewModel.setValue(spec.name, value),
+                      onUnitChanged: viewModel.setUnit,
+                      error: _advisory(
+                        l10n,
+                        state.valuesCm[spec.name],
+                        spec,
+                        state.unit,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  const SizedBox(height: 4),
+                  Button(
+                    label: l10n.manualEntrySave,
+                    expand: true,
+                    loading: state.saving,
+                    onPressed: state.valuesCm.isEmpty ? null : viewModel.save,
+                  ),
+                  const SizedBox(height: 8),
+                  // The canvas 267:2 escape hatch back to the camera path —
+                  // mirror of the viewfinder's "Enter manually instead".
+                  Button(
+                    label: l10n.manualEntryUseCamera,
+                    kind: ButtonKind.quiet,
+                    onPressed: () =>
+                        const CaptureRoute().pushReplacement(context),
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-            ],
-            const SizedBox(height: 4),
-            Button(
-              label: l10n.manualEntrySave,
-              expand: true,
-              loading: state.saving,
-              onPressed: state.valuesCm.isEmpty ? null : viewModel.save,
-            ),
-            const SizedBox(height: 8),
-            // The canvas 267:2 escape hatch back to the camera path —
-            // mirror of the viewfinder's "Enter manually instead".
-            Button(
-              label: l10n.manualEntryUseCamera,
-              kind: ButtonKind.quiet,
-              onPressed: () => const CaptureRoute().pushReplacement(context),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -127,8 +168,8 @@ class ManualEntryScreen extends ConsumerWidget {
       return null;
     }
     return l10n.manualEntryDoubleCheck(
-      displayBound(spec.min, unit),
-      displayBound(spec.max, unit),
+      displayBoundText(spec.min, unit),
+      displayBoundText(spec.max, unit),
       unit == MeasureUnit.cm ? 'cm' : 'in',
     );
   }

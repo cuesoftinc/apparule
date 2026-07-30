@@ -103,11 +103,11 @@ void main() {
   ) async {
     await bootToVault(tester);
 
-    await tester.tap(find.text('Shoulder Width'));
+    await tester.tap(find.text('Shoulder width'));
     await tester.pumpAndSettle();
 
     // All three seeded sessions carry a shoulder value.
-    expect(find.text('Shoulder Width history'), findsOneWidget);
+    expect(find.text('Shoulder width history'), findsOneWidget);
     expect(find.bySemanticsLabel('Delete session'), findsNWidgets(3));
 
     // Delete the newest (42.5 cm / 16.7 in) session → the card
@@ -133,7 +133,7 @@ void main() {
     final repository = MeasurementRepositoryFake();
     await bootToVault(tester, measurementRepository: repository);
 
-    await tester.tap(find.text('Shoulder Width'));
+    await tester.tap(find.text('Shoulder width'));
     await tester.pumpAndSettle();
 
     repository.failNext = Exception('server 500');
@@ -165,7 +165,7 @@ void main() {
     );
 
     await bootToVault(tester);
-    await tester.tap(find.text('Shoulder Width'));
+    await tester.tap(find.text('Shoulder width'));
     await tester.pumpAndSettle();
 
     expect(find.bySemanticsLabel('Export session'), findsNWidgets(3));

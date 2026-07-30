@@ -7,12 +7,15 @@ import type {
   NotificationPrefs,
   ProfileLocation,
 } from "../entities/account";
+import type { MeasurementTemplate } from "../entities/measurement";
 
 export interface AccountPatch {
   username?: string;
   display_name?: string;
   profile_location?: ProfileLocation | null;
   notification_prefs?: Partial<NotificationPrefs>;
+  /** A-10 one-time chooser / settings edit — persists the manual field set. */
+  measurement_template?: MeasurementTemplate;
 }
 
 export const accountRepo = {

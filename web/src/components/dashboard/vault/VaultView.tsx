@@ -11,6 +11,7 @@ import Link from "next/link";
 import { formatAgoPhrase } from "@/lib/format";
 import type { MeasurementSession } from "@/models";
 import { useAuth } from "@/auth/AuthContext";
+import { accountRepo } from "@/models/repositories/account-repo";
 import { useVault } from "@/controllers/use-vault";
 import { Avatar, freshnessRing } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
@@ -29,7 +30,7 @@ export interface VaultViewProps {
 }
 
 export function VaultView({ initialSheet = null }: VaultViewProps) {
-  const { account } = useAuth();
+  const { account, refreshAccount } = useAuth();
   const vault = useVault();
   const { showToast } = useToasts();
   const [sheet, setSheet] = useState<null | "options" | "manual" | "history">(
@@ -220,6 +221,13 @@ export function VaultView({ initialSheet = null }: VaultViewProps) {
         onSave={async (measurements) => {
           await vault.addManualSession(measurements);
           showToast({ kind: "success", message: "Saved to your vault" });
+        }}
+        // A-10: the account's template selects the field set; a null
+        // template makes the sheet interpose its one-time chooser.
+        template={account?.measurement_template ?? null}
+        onTemplateChange={async (template) => {
+          await accountRepo.updateMe({ measurement_template: template });
+          await refreshAccount();
         }}
       />
       <Sheet

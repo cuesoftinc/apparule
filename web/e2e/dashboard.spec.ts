@@ -339,7 +339,8 @@ test("B4 vault: two-photo upload — per-pose QC failure → re-pick side only �
   );
   await page.getByRole("button", { name: "Save to vault" }).click();
   await expect(page.getByText("Saved to your vault")).toBeVisible();
-  await expect(page.getByTestId("vault-grid")).toContainText("Chest Girth");
+  // Sentence-case labels (A-10 humanize convergence with the canvas).
+  await expect(page.getByTestId("vault-grid")).toContainText("Chest girth");
 
   // History sheet: sessions list with delete (vault CRUD).
   await page.getByTestId("vault-grid").getByRole("button").first().click();

@@ -34,7 +34,7 @@ void main() {
     ) async {
       await tester.pumpApp(row());
 
-      expect(find.text('Shoulder Width'), findsOneWidget);
+      expect(find.text('Shoulder width'), findsOneWidget);
       expect(find.text('42.5'), findsOneWidget);
       expect(find.text('cm'), findsOneWidget);
     });
@@ -55,7 +55,7 @@ void main() {
       final values = <double?>[];
       await tester.pumpApp(row(onChanged: values.add));
 
-      final slider = find.bySemanticsLabel('Shoulder Width slider');
+      final slider = find.bySemanticsLabel('Shoulder width slider');
       final rect = tester.getRect(slider);
       await tester.tapAt(rect.centerRight - const Offset(4, 0));
       await tester.pump();

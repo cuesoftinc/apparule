@@ -471,6 +471,23 @@ describe("profile", () => {
     ).toThrow(expect.objectContaining({ code: "name_taken", status: 409 }));
   });
 
+  it("persists the A-10 measurement template; rejects anything else", () => {
+    // maisonbisi seeds null — the one-time chooser's PATCH sets it.
+    expect(store.me("maisonbisi").measurement_template).toBeNull();
+    expect(
+      store.updateMe("maisonbisi", { measurement_template: "men" })
+        .measurement_template,
+    ).toBe("men");
+    expect(store.me("maisonbisi").measurement_template).toBe("men");
+    expect(() =>
+      store.updateMe("maisonbisi", {
+        measurement_template: "unisex" as never,
+      }),
+    ).toThrow(
+      expect.objectContaining({ code: "validation_failed", status: 422 }),
+    );
+  });
+
   it("errors are MockApiError instances (envelope-able)", () => {
     try {
       store.post("nope", "kiki.adeyemi");

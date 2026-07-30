@@ -184,6 +184,40 @@ class _SettingsBody extends ConsumerWidget {
             ],
           ),
         ),
+        sectionHeader(l10n.settingsMeasurementSet),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: Text(
+                  l10n.settingsMeasurementSetMeta,
+                  style: typography.caption13.copyWith(color: colors.text2),
+                ),
+              ),
+              // A-10: women/men template pills (theme-choice idiom). No
+              // pill reads selected until the one-time chooser (or a tap
+              // here) sets the profile's template.
+              _ThemeChoice(
+                label: l10n.manualTemplateWomenShort,
+                selected:
+                    profile.measurementTemplate == MeasurementTemplate.women,
+                onTap: () => ref
+                    .read(settingsViewModelProvider.notifier)
+                    .setMeasurementTemplate(MeasurementTemplate.women),
+              ),
+              const SizedBox(width: 8),
+              _ThemeChoice(
+                label: l10n.manualTemplateMenShort,
+                selected:
+                    profile.measurementTemplate == MeasurementTemplate.men,
+                onTap: () => ref
+                    .read(settingsViewModelProvider.notifier)
+                    .setMeasurementTemplate(MeasurementTemplate.men),
+              ),
+            ],
+          ),
+        ),
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(

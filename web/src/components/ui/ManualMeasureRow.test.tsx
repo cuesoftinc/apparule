@@ -22,7 +22,11 @@ describe("ManualMeasureRow (§8.2, MI-13)", () => {
   });
 
   it("humanizes measurement names", () => {
-    expect(humanizeMeasureName("shoulder_width")).toBe("Shoulder Width");
+    expect(humanizeMeasureName("shoulder_width")).toBe("Shoulder width");
+    // Sentence case, not title case — the canvas idiom (A-10 names).
+    expect(humanizeMeasureName("shoulder_to_bust_point")).toBe(
+      "Shoulder to bust point",
+    );
   });
 
   it("slider drives the cm value", () => {
@@ -53,7 +57,7 @@ describe("ManualMeasureRow (§8.2, MI-13)", () => {
         onUnitChange={() => {}}
       />,
     );
-    fireEvent.change(screen.getByLabelText("Shoulder Width value"), {
+    fireEvent.change(screen.getByLabelText("Shoulder width value"), {
       target: { value: "10" },
     });
     expect(onChange).toHaveBeenCalledWith(25.4);

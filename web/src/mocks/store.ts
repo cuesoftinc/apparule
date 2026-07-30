@@ -277,7 +277,13 @@ export class MockStore {
   updateMe(
     username: string,
     patch: Partial<
-      Pick<Account, "username" | "display_name" | "profile_location">
+      Pick<
+        Account,
+        | "username"
+        | "display_name"
+        | "profile_location"
+        | "measurement_template"
+      >
     > & {
       /** Partial per-event toggles — merged over the existing prefs. */
       notification_prefs?: Partial<NotificationPrefs>;
@@ -316,6 +322,21 @@ export class MockStore {
         ...account.notification_prefs,
         ...patch.notification_prefs,
       };
+    }
+    if (patch.measurement_template !== undefined) {
+      // A-10: the manual-entry field set (flows/vault.md §2) — settable and
+      // editable, never clearable back to null.
+      if (
+        patch.measurement_template === null ||
+        !["women", "men"].includes(patch.measurement_template)
+      ) {
+        throw new MockApiError(
+          "validation_failed",
+          "measurement_template must be women or men",
+          422,
+        );
+      }
+      account.measurement_template = patch.measurement_template;
     }
     return deepClone(account);
   }

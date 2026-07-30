@@ -15,6 +15,24 @@ class SettingsViewModel extends _$SettingsViewModel {
   @override
   Future<Profile?> build() => ref.watch(profileRepositoryProvider).me();
 
+  /// A-10: the manual-entry field set — optimistic like the toggles
+  /// (MI-18), editable between women/men, never clearable.
+  Future<void> setMeasurementTemplate(MeasurementTemplate template) async {
+    final current = state.value;
+    if (current == null || current.measurementTemplate == template) return;
+    state = AsyncData(current.copyWith(measurementTemplate: template));
+    try {
+      state = AsyncData(
+        await ref
+            .read(profileRepositoryProvider)
+            .setMeasurementTemplate(template),
+      );
+    } catch (_) {
+      state = AsyncData(current);
+      rethrow;
+    }
+  }
+
   Future<void> setNotificationPrefs(NotificationPrefs prefs) async {
     final current = state.value;
     if (current == null) return;

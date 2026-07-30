@@ -24,6 +24,18 @@ const double cmPerInch = 2.54;
 int displayBound(double valueCm, MeasureUnit unit) =>
     unit == MeasureUnit.cm ? valueCm.round() : (valueCm / cmPerInch).round();
 
+/// One-decimal advisory bound — web/canvas parity (A-10 convergence:
+/// the manual advisory reads `19.7–59.1 in`, matching the web formatter;
+/// bounds landing on integers render bare, `50` not `50.0`). The height
+/// gate keeps the integer [displayBound] by design (39–91 in).
+String displayBoundText(double valueCm, MeasureUnit unit) {
+  if (unit == MeasureUnit.cm) return valueCm.round().toString();
+  final inches = (valueCm / cmPerInch * 10).round() / 10;
+  return inches == inches.truncateToDouble()
+      ? inches.truncate().toString()
+      : inches.toStringAsFixed(1);
+}
+
 /// Kobo/cents → `₦45,000` (whole naira; v1 amounts are whole-naira).
 String formatNaira(int cents, {String currency = 'NGN'}) {
   final naira = cents / 100;
@@ -79,12 +91,13 @@ String _trimTrailingZero(double value) {
 
 /// `snake_case` measurement names → "Snake Case" display labels (web
 /// `humanizeMeasureName` parity).
+/// Sentence-case label from a snake_case measure name — the canvas idiom
+/// ('Shoulder width', 'Shoulder to bust point'), A-10. Title-casing every
+/// word was a client-side divergence from the canvas.
 String humanizeMeasureName(String name) {
-  return name
-      .split('_')
-      .where((word) => word.isNotEmpty)
-      .map((word) => word[0].toUpperCase() + word.substring(1))
-      .join(' ');
+  final words = name.split('_').where((word) => word.isNotEmpty).join(' ');
+  if (words.isEmpty) return words;
+  return words[0].toUpperCase() + words.substring(1);
 }
 
 // ---------------------------------------------------------------------------

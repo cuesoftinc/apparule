@@ -8,6 +8,58 @@ part of 'manual_entry_view_model.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// The profile's A-10 template — null interposes the one-time chooser on
+/// the manual entry screen. Auto-disposes with the route, so a Settings
+/// edit is picked up on the next visit.
+
+@ProviderFor(manualTemplate)
+final manualTemplateProvider = ManualTemplateProvider._();
+
+/// The profile's A-10 template — null interposes the one-time chooser on
+/// the manual entry screen. Auto-disposes with the route, so a Settings
+/// edit is picked up on the next visit.
+
+final class ManualTemplateProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<MeasurementTemplate?>,
+          MeasurementTemplate?,
+          FutureOr<MeasurementTemplate?>
+        >
+    with
+        $FutureModifier<MeasurementTemplate?>,
+        $FutureProvider<MeasurementTemplate?> {
+  /// The profile's A-10 template — null interposes the one-time chooser on
+  /// the manual entry screen. Auto-disposes with the route, so a Settings
+  /// edit is picked up on the next visit.
+  ManualTemplateProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'manualTemplateProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$manualTemplateHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<MeasurementTemplate?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<MeasurementTemplate?> create(Ref ref) {
+    return manualTemplate(ref);
+  }
+}
+
+String _$manualTemplateHash() => r'1de43c3ab69b17cee76c03a7ddd8f58369f543bf';
+
 /// MI-13 manual entry (1:1 with `ManualEntryScreen`) — the C6 fallback
 /// path for QC that never clears or a denied camera; saves a
 /// `method: manual` session (confidence null, capture-qc.md §4).
@@ -51,7 +103,7 @@ final class ManualEntryViewModelProvider
 }
 
 String _$manualEntryViewModelHash() =>
-    r'd4d037fcec05f4f054628b53a2bf39e067314951';
+    r'0c2e6af64ce092e13c4fd050e028006f9adf352a';
 
 /// MI-13 manual entry (1:1 with `ManualEntryScreen`) — the C6 fallback
 /// path for QC that never clears or a denied camera; saves a

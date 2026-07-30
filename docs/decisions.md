@@ -101,6 +101,22 @@ user's choice.
 
 ☑ Ratified 2026-07-23
 
+## A-10 · Tailor measurement vocabulary (women/men templates)
+
+**Recommendation ⭐:** adopt the field list collected from a practicing
+Nigerian tailor as the canonical MANUAL measurement vocabulary, split into
+two per-customer templates — **women** (17 measures) and **men** (14; 7
+shared) — selected by a new `CUSTOMER.measurement_template` field
+(`women | men`, nullable): the manual sheet interposes a one-time chooser
+when unset and persists the answer, editable in profile settings. The
+canonical field lists + advisory ranges live in flows/vault.md §2.
+Camera-pipeline names (`shoulder_width`, `hip_width`) are untouched — 2-D
+outputs whose recalibration is backend-gated — and historical sessions
+keep their recorded names: sessions are immutable and the vocabulary is
+open by design.
+
+☑ Ratified 2026-07-25
+
 ## Cross-cutting (shared with expendit/upstat)
 
 - **X-1 account.cuesoft.io / identity (RATIFIED)**: interim + sandbox identity
