@@ -73,7 +73,7 @@ void main() {
     expect(pillText('Fresh'), findsOneWidget);
     expect(pillText('Aging'), findsOneWidget);
     expect(pillText('Stale'), findsOneWidget);
-    expect(find.textContaining('shoulder 42.5 · hip 36.8'), findsOneWidget);
+    expect(find.textContaining('shoulder 42.5 · bust 96.5'), findsOneWidget);
 
     // D63 (web parity): the newest session starts selected — Continue
     // starts ready, and the MI-10 StepSlide hosts the step body.
@@ -119,7 +119,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(find.textContaining('scan · 2 measurements'), findsOneWidget);
+    expect(find.textContaining('scan · 17 measurements'), findsOneWidget);
     expect(find.text('Slightly longer sleeves, please'), findsOneWidget);
 
     // Submit — the snapshot freezes into a requested order.
@@ -293,15 +293,15 @@ void main() {
     await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Snapshot · 2 values'), findsOneWidget);
+    expect(find.text('Snapshot · 17 values'), findsOneWidget);
     expect(find.text('16.7 in'), findsNothing);
 
-    // Canonical 42.5/36.8 cm — inches display by default (A-9).
-    await tester.tap(find.text('Snapshot · 2 values'));
+    // Canonical 42.5/96.5 cm — inches display by default (A-9).
+    await tester.tap(find.text('Snapshot · 17 values'));
     await tester.pumpAndSettle();
-    expect(find.text('Shoulder width'), findsOneWidget);
+    expect(find.text('Shoulder'), findsOneWidget);
     expect(find.text('16.7 in'), findsOneWidget);
-    expect(find.text('14.5 in'), findsOneWidget);
+    expect(find.text('38.0 in'), findsOneWidget);
   });
 
   testWidgets('keeps content clear of notch and status-bar top insets', (

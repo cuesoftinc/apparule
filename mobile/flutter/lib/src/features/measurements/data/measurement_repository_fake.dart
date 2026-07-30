@@ -8,6 +8,7 @@ import 'package:apparule/src/features/measurements/data/measurement_repository.d
 import 'package:apparule/src/features/measurements/domain/capture_photo.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_exception.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_session.dart';
+import 'package:apparule/src/features/measurements/domain/measurement_template.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -20,6 +21,53 @@ import 'package:flutter/services.dart';
 /// first-failure-only within the failing pose, M-10), passing captures
 /// get the §3 `mediapipe_2d_v2` height-scale and §4 confidence formula.
 /// No verdict or value is hardcoded per scenario.
+
+/// Recalibrated-scan mock output (A-10b, web `SCAN_RESULTS_CM` parity):
+/// deterministic reference cm at the 168 cm height, one <0.7 confidence
+/// row per template.
+const Map<
+  MeasurementTemplate,
+  List<({String name, double cm, double confidence})>
+>
+kScanResultsCm =
+    <MeasurementTemplate, List<({String name, double cm, double confidence})>>{
+      MeasurementTemplate.women: [
+        (name: 'shoulder', cm: 42.7, confidence: 0.93),
+        (name: 'bust', cm: 96.8, confidence: 0.9),
+        (name: 'under_bust', cm: 86.2, confidence: 0.88),
+        (name: 'bust_span', cm: 17.6, confidence: 0.84),
+        (name: 'waist', cm: 78.1, confidence: 0.68),
+        (name: 'shoulder_to_bust_point', cm: 26.1, confidence: 0.86),
+        (name: 'shoulder_to_under_bust', cm: 34.6, confidence: 0.85),
+        (name: 'shoulder_to_waist', cm: 41.2, confidence: 0.9),
+        (name: 'half_length', cm: 46.2, confidence: 0.83),
+        (name: 'waist_to_knee', cm: 53.2, confidence: 0.87),
+        (name: 'gown_length', cm: 123.9, confidence: 0.9),
+        (name: 'skirt_length', cm: 71.8, confidence: 0.82),
+        (name: 'trouser_length', cm: 99.8, confidence: 0.88),
+        (name: 'thigh', cm: 66.3, confidence: 0.8),
+        (name: 'knee', cm: 40.7, confidence: 0.81),
+        (name: 'sleeve_length', cm: 37.7, confidence: 0.89),
+        (name: 'sleeve_width', cm: 34.2, confidence: 0.86),
+      ],
+      MeasurementTemplate.men: [
+        (name: 'shoulder', cm: 47.0, confidence: 0.93),
+        (name: 'chest', cm: 101.5, confidence: 0.9),
+        (name: 'waist', cm: 86.5, confidence: 0.68),
+        (name: 'top_length', cm: 73.5, confidence: 0.88),
+        (name: 'thigh', cm: 58.5, confidence: 0.8),
+        (name: 'hip', cm: 100.0, confidence: 0.9),
+        (name: 'knee', cm: 39.0, confidence: 0.81),
+        (name: 'shin', cm: 38.0, confidence: 0.79),
+        (name: 'waist_to_knee', cm: 57.0, confidence: 0.87),
+        (name: 'trouser_length', cm: 104.0, confidence: 0.88),
+        (name: 'trouser_inseam', cm: 78.5, confidence: 0.86),
+        (name: 'biceps', cm: 33.5, confidence: 0.84),
+        (name: 'sleeve_length', cm: 62.0, confidence: 0.89),
+        (name: 'neck', cm: 39.5, confidence: 0.9),
+      ],
+    };
+
 class MeasurementRepositoryFake
     with FailNextSeam
     implements MeasurementRepository {
@@ -132,6 +180,7 @@ class MeasurementRepositoryFake
     required CapturePhoto front,
     required CapturePhoto side,
     required double userHeightCm,
+    required MeasurementTemplate template,
   }) async {
     maybeFailNext();
     await _ensureVault();
@@ -154,17 +203,12 @@ class MeasurementRepositoryFake
       throw CaptureQcException(code, pose: CapturePose.side);
     }
 
-    // The front image alone owns the height scale (capture-qc.md §3 —
-    // the nose→ankle axis is most stable in the frontal view); two-view
-    // girth estimation lands with the backend recalibration directive.
-    final scale = scaleFactor(userHeightCm, metrics.bodyHeightPx);
-    double confidenceFor(String name) => measurementConfidence(
-      // Landmarks a sample doesn't score default to a solid-visibility
-      // 0.9 rather than silently passing 1.0.
-      meanVisibility: metrics.landmarkVisibility[name] ?? 0.9,
-      shoulderHipRatio: metrics.shoulderHipRatio,
-      laplacianVariance: metrics.laplacianVariance,
-    );
+    // A-10b: a scan maps the customer's FULL template (web mock parity —
+    // deterministic reference cm at 168, scaled by the entered height;
+    // exactly one row per template scores <0.7 so the low-confidence UI
+    // stays exercised). The px metrics above still drive QC; per-field
+    // value estimation lands with the backend recalibration directive.
+    final heightScale = userHeightCm / 168;
 
     final id = 'sess-local-${++_localSequence}';
     final session = MeasurementSession(
@@ -174,18 +218,13 @@ class MeasurementRepositoryFake
       inputHeightCm: userHeightCm,
       createdAt: _now(),
       measurements: <Measurement>[
-        Measurement(
-          id: '$id-shoulder_width',
-          name: 'shoulder_width',
-          valueCm: metrics.shoulderWidthPx * scale,
-          confidence: confidenceFor('shoulder_width'),
-        ),
-        Measurement(
-          id: '$id-hip_width',
-          name: 'hip_width',
-          valueCm: metrics.hipWidthPx * scale,
-          confidence: confidenceFor('hip_width'),
-        ),
+        for (final (:name, :cm, :confidence) in kScanResultsCm[template]!)
+          Measurement(
+            id: '$id-$name',
+            name: name,
+            valueCm: ((cm * heightScale) * 10).roundToDouble() / 10,
+            confidence: confidence,
+          ),
       ],
     );
     _pending[id] = session;

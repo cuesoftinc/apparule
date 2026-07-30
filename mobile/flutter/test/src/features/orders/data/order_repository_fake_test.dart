@@ -103,7 +103,7 @@ void main() {
       expect(order.snapshot.method, 'manual');
       expect(
         order.snapshot.measurements.map((m) => m.valueCm),
-        <double>[28, 25.5, 60.5, 55],
+        <double>[28, 60.5, 55, 45],
       );
     });
 

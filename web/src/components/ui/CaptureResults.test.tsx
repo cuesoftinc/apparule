@@ -17,13 +17,13 @@ function renderResults(
       {...overrides}
     >
       <MeasurementCard
-        name="shoulder_width"
+        name="shoulder"
         valueCm={42.5}
         source="scan"
         confidence={0.92}
       />
       <MeasurementCard
-        name="hip_width"
+        name="hip"
         valueCm={36.8}
         source="scan"
         confidence={0.62}

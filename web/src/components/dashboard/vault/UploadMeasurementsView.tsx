@@ -15,6 +15,7 @@ import { useRef, useState } from "react";
 import clsx from "clsx";
 import { AlertTriangle, Camera, ChevronLeft } from "lucide-react";
 import type { MeasurementSession } from "@/models";
+import type { MeasurementTemplate } from "@/models/entities/measurement";
 import { useCapture, type CapturePose } from "@/controllers/use-capture";
 import { Button } from "@/components/ui/Button";
 import { CaptureResults } from "@/components/ui/CaptureResults";
@@ -188,12 +189,18 @@ export interface UploadMeasurementsViewProps {
   prefillHeightCm: number | null;
   onBack: () => void;
   onSaved: (session: MeasurementSession) => void;
+  /** A-10b: null interposes the one-time chooser — a scan maps the full
+   * template, so capture is gated exactly like manual entry. */
+  template: MeasurementTemplate | null;
+  onTemplateChange: (template: MeasurementTemplate) => Promise<void>;
 }
 
 export function UploadMeasurementsView({
   prefillHeightCm,
   onBack,
   onSaved,
+  template,
+  onTemplateChange,
 }: UploadMeasurementsViewProps) {
   const capture = useCapture(onSaved);
   const [images, setImages] = useState<Record<CapturePose, PickedImage | null>>(
@@ -305,7 +312,31 @@ export function UploadMeasurementsView({
         </Button>
       </div>
 
-      {capture.phase === "processing" ? (
+      {/* A-10b: every measuring flow needs the template — a scan maps the
+          customer's full field set, so the one-time chooser gates here
+          exactly as it does on manual entry (the mock 409s without it). */}
+      {template === null ? (
+        <div
+          className="flex flex-col gap-4"
+          data-testid="capture-template-gate"
+        >
+          <h1 className="text-title-lg font-bold text-text">
+            Upload measurements
+          </h1>
+          <p className="text-body text-text-2">
+            Which measurement set fits this profile? Tailors keep different
+            fields for women and men — you can change this later in Settings.
+          </p>
+          <div className="grid gap-3 md:grid-cols-2">
+            <Button kind="quiet" onClick={() => void onTemplateChange("women")}>
+              Women’s measurements
+            </Button>
+            <Button kind="quiet" onClick={() => void onTemplateChange("men")}>
+              Men’s measurements
+            </Button>
+          </div>
+        </div>
+      ) : capture.phase === "processing" ? (
         <div
           aria-busy="true"
           aria-live="polite"

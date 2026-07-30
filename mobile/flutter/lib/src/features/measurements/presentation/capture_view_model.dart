@@ -11,6 +11,7 @@ import 'package:apparule/src/features/measurements/data/measurement_repository.d
 import 'package:apparule/src/features/measurements/domain/capture_photo.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_exception.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_session.dart';
+import 'package:apparule/src/features/measurements/presentation/manual_entry_view_model.dart';
 import 'package:apparule/src/features/measurements/presentation/vault_actions.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -228,6 +229,14 @@ class CaptureViewModel extends _$CaptureViewModel {
     final front = state.frontPhoto;
     final side = state.sidePhoto;
     if (front == null || side == null) return;
+    // A-10b: a scan maps the customer's full template; the capture screen
+    // gates on a null template exactly like manual entry, so a missing
+    // one here is a programming error, not a user state.
+    final template = await ref.read(manualTemplateProvider.future);
+    if (template == null) {
+      throw StateError('capture submitted without a measurement template');
+    }
+    if (!ref.mounted) return;
     state = state.copyWith(step: CaptureStep.processing);
     try {
       final session = await ref
@@ -236,6 +245,7 @@ class CaptureViewModel extends _$CaptureViewModel {
             front: front,
             side: side,
             userHeightCm: state.heightCm!,
+            template: template,
           );
       _pendingSessionId = session.id;
       if (!ref.mounted) return;

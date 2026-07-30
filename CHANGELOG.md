@@ -121,6 +121,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   names and historical sessions are untouched (open vocabulary; sessions
   immutable) (#184).
 
+- A-10b — one vocabulary, every method: a camera scan now maps the
+  customer's FULL tailor template (women 17 / men 14) — TEST_MODE seeds
+  and the mock pipeline speak only the A-10 vocabulary (mock-ahead of the
+  backend recalibration), seeded history gives every field its sparkline,
+  and capture is template-gated with the same one-time chooser as manual
+  entry (web upload view + mobile capture launcher sheet) (#185).
+
 ### Changed
 
 - Inches are the default measurement display unit on web (A-9 — Nigerian
@@ -1156,6 +1163,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   canvas; and the mobile manual advisory now renders one-decimal bounds
   ("19.7–59.1 in"), converging on the web/canvas format (the capture
   height gate keeps integer bounds by design) (#184).
+
+- Vault measurement cards fill their grid cells (`h-full`, meta pinned
+  to the bottom, chip top-aligned beside two-line names) — mixed card
+  contents no longer rag the grid (#185).
 
 ### Security
 

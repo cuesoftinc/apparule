@@ -27,6 +27,7 @@ import type {
   UserSummary,
 } from "@/models";
 import { canTransition } from "@/models";
+import type { MeasurementTemplate } from "@/models/entities/measurement";
 import { MockApiError } from "./http";
 import {
   daysAgo,
@@ -61,6 +62,55 @@ const QC_PRECHECKS: [code: string, guidance: string][] = [
   ["poor_lighting", "Find better lighting — avoid strong backlight"],
   ["blurry", "Hold steady and retake"],
 ];
+
+/**
+ * Recalibrated-scan mock output (A-10b [Decided 2026-07-30]): a scan maps
+ * the customer's FULL tailor template — women (17) / men (14), flows/
+ * vault.md §2 — ahead of the backend pipeline recalibration. Values are
+ * deterministic canonical cm at the 168 cm reference height (the store
+ * scales by input height); exactly one row per template scores <0.7 so
+ * the low-confidence UI stays exercised from any scan.
+ */
+export const SCAN_RESULTS_CM: Record<
+  MeasurementTemplate,
+  readonly [name: string, valueCm: number, confidence: number][]
+> = {
+  women: [
+    ["shoulder", 42.7, 0.93],
+    ["bust", 96.8, 0.9],
+    ["under_bust", 86.2, 0.88],
+    ["bust_span", 17.6, 0.84],
+    ["waist", 78.1, 0.68],
+    ["shoulder_to_bust_point", 26.1, 0.86],
+    ["shoulder_to_under_bust", 34.6, 0.85],
+    ["shoulder_to_waist", 41.2, 0.9],
+    ["half_length", 46.2, 0.83],
+    ["waist_to_knee", 53.2, 0.87],
+    ["gown_length", 123.9, 0.9],
+    ["skirt_length", 71.8, 0.82],
+    ["trouser_length", 99.8, 0.88],
+    ["thigh", 66.3, 0.8],
+    ["knee", 40.7, 0.81],
+    ["sleeve_length", 37.7, 0.89],
+    ["sleeve_width", 34.2, 0.86],
+  ],
+  men: [
+    ["shoulder", 47.0, 0.93],
+    ["chest", 101.5, 0.9],
+    ["waist", 86.5, 0.68],
+    ["top_length", 73.5, 0.88],
+    ["thigh", 58.5, 0.8],
+    ["hip", 100.0, 0.9],
+    ["knee", 39.0, 0.81],
+    ["shin", 38.0, 0.79],
+    ["waist_to_knee", 57.0, 0.87],
+    ["trouser_length", 104.0, 0.88],
+    ["trouser_inseam", 78.5, 0.86],
+    ["biceps", 33.5, 0.84],
+    ["sleeve_length", 62.0, 0.89],
+    ["neck", 39.5, 0.9],
+  ],
+};
 
 export const QC_ORDER_FRONT: [code: string, guidance: string][] = [
   ...QC_PRECHECKS,
@@ -871,7 +921,8 @@ export class MockStore {
 
   /**
    * Two-photo upload path (B4, M-10/M-12): multipart image_front +
-   * image_side + height → per-pose QC → pending_save session with
+   * image_side + height → per-pose QC → pending_save session mapping the
+   * customer's FULL A-10 template (A-10b mock-ahead contract) with
    * per-measurement confidence (api.md §2 v2 schema). QC failures are
    * reproduced when a pose's file name contains a QC code (designated
    * fixtures); multiple codes report the FIRST by the contract table
@@ -913,14 +964,21 @@ export class MockStore {
         }
       }
     }
+    // A-10b [Decided 2026-07-30]: a scan maps the customer's FULL tailor
+    // template — the mock speaks the recalibrated-pipeline contract ahead
+    // of the backend (the notification_prefs mock-ahead pattern). The
+    // template gate mirrors manual entry: no template, no measuring.
+    const template = account.measurement_template;
+    if (template === null) {
+      throw new MockApiError(
+        "template_required",
+        "Choose a measurement set first",
+        409,
+      );
+    }
     const sessionId = id("sess");
     const scale = input.input_height_cm / 168;
-    const seededResults: [string, number, number][] = [
-      ["shoulder_width", 42.7, 0.93],
-      ["hip_width", 36.9, 0.9],
-      ["chest_girth", 91.2, 0.74],
-      ["waist_girth", 78.1, 0.68], // low-confidence chip renders from seed
-    ];
+    const seededResults = SCAN_RESULTS_CM[template];
     const session: MeasurementSession = {
       id: sessionId,
       customer_id: account.id,

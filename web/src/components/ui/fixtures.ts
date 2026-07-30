@@ -90,7 +90,7 @@ export const fixtureOrder: CommissionRequest = {
     values: {
       method: "mediapipe_2d_v2",
       measured_at: daysAgo(12),
-      measurements: [{ name: "shoulder_width", value_cm: 42.5 }],
+      measurements: [{ name: "shoulder", value_cm: 42.5 }],
     },
     created_at: daysAgo(8),
   },
@@ -120,7 +120,7 @@ export const fixtureSession: MeasurementSession = {
     {
       id: "m1",
       session_id: "sess-1",
-      name: "shoulder_width",
+      name: "shoulder",
       value_cm: 42.5,
       source: "pipeline",
       confidence: 0.92,
@@ -128,7 +128,7 @@ export const fixtureSession: MeasurementSession = {
     {
       id: "m2",
       session_id: "sess-1",
-      name: "hip_width",
+      name: "hip",
       value_cm: 36.8,
       source: "pipeline",
       confidence: 0.88,

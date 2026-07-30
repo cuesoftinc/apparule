@@ -43,6 +43,8 @@ describe("UploadMeasurementsView (B4 upload, 549:2)", () => {
         prefillHeightCm={null}
         onBack={() => {}}
         onSaved={() => {}}
+        template="women"
+        onTemplateChange={async () => {}}
       />,
     );
     expect(
@@ -66,6 +68,8 @@ describe("UploadMeasurementsView (B4 upload, 549:2)", () => {
         prefillHeightCm={168}
         onBack={() => {}}
         onSaved={() => {}}
+        template="women"
+        onTemplateChange={async () => {}}
       />,
     );
     // 168 cm canonical renders as 66.1 in — inches are the default
@@ -81,6 +85,8 @@ describe("UploadMeasurementsView (B4 upload, 549:2)", () => {
         prefillHeightCm={null}
         onBack={() => {}}
         onSaved={() => {}}
+        template="women"
+        onTemplateChange={async () => {}}
       />,
     );
     // Nullable ruling: no fabricated default.
@@ -93,6 +99,8 @@ describe("UploadMeasurementsView (B4 upload, 549:2)", () => {
         prefillHeightCm={168}
         onBack={() => {}}
         onSaved={() => {}}
+        template="women"
+        onTemplateChange={async () => {}}
       />,
     );
 
@@ -131,6 +139,8 @@ describe("UploadMeasurementsView (B4 upload, 549:2)", () => {
         prefillHeightCm={null}
         onBack={() => {}}
         onSaved={() => {}}
+        template="women"
+        onTemplateChange={async () => {}}
       />,
     );
     const cta = screen.getByTestId("get-measurements");
@@ -160,6 +170,8 @@ describe("UploadMeasurementsView (B4 upload, 549:2)", () => {
         prefillHeightCm={null}
         onBack={() => {}}
         onSaved={() => {}}
+        template="women"
+        onTemplateChange={async () => {}}
       />,
     );
     const big = new File([new ArrayBuffer(1)], "big.jpg", {
@@ -181,6 +193,8 @@ describe("UploadMeasurementsView (B4 upload, 549:2)", () => {
         prefillHeightCm={null}
         onBack={onBack}
         onSaved={() => {}}
+        template="women"
+        onTemplateChange={async () => {}}
       />,
     );
     await userEvent.click(

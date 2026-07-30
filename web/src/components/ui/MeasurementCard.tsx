@@ -43,14 +43,18 @@ export function MeasurementCard({
       onClick={onClick}
       data-source={source}
       className={clsx(
-        "flex flex-col gap-2 rounded-card border border-border bg-bg-elev p-4 text-left",
+        // h-full: the card fills its grid cell so rows read as an even
+        // grid whatever each card holds (2-line names, sparkline,
+        // confidence chip); the meta line pins to the bottom (mt-auto).
+        "flex h-full w-full flex-col gap-2 rounded-card border border-border bg-bg-elev p-4 text-left",
         "transition-transform duration-120 ease-standard active:scale-[0.99] motion-reduce:transition-none",
         className,
       )}
     >
       {/* Figma master (48:208): 13px text-2 metric name; neutral outlined
-          source chip with a 12px icon + sentence-case label. */}
-      <div className="flex w-full items-center justify-between gap-2">
+          source chip with a 12px icon + sentence-case label. Chip
+          top-aligns so two-line names don't float it mid-card. */}
+      <div className="flex w-full items-start justify-between gap-2">
         <span className="text-caption text-text-2">
           {humanizeMeasureName(name)}
         </span>
@@ -72,7 +76,7 @@ export function MeasurementCard({
       ) : null}
       {history && history.length > 1 ? <Sparkline values={history} /> : null}
       {updatedAt ? (
-        <span className="text-micro text-text-2">
+        <span className="mt-auto text-micro text-text-2">
           Updated {formatAgoPhrase(updatedAt)}
         </span>
       ) : null}

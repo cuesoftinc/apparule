@@ -69,7 +69,7 @@ function order(
       values: {
         method: "manual",
         measured_at: "2026-07-01",
-        measurements: [{ name: "shoulder_width", value_cm: 42.5 }],
+        measurements: [{ name: "shoulder", value_cm: 42.5 }],
       },
       created_at: "2026-07-01",
     },
@@ -214,7 +214,7 @@ describe("OrderDetailView — designer action matrix", () => {
 describe("OrderDetailView — snapshot immutability note", () => {
   it("renders the frozen snapshot with its rule line", () => {
     renderDetail(order("in_progress"), "customer");
-    expect(screen.getByText("Shoulder width")).toBeInTheDocument();
+    expect(screen.getByText("Shoulder")).toBeInTheDocument();
     expect(
       screen.getByText(/vault changes never alter this order/i),
     ).toBeInTheDocument();

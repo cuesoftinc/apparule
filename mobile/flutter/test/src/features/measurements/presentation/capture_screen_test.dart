@@ -109,16 +109,26 @@ void main() {
       await bootToCapture(tester);
       await shootBothPosesThroughProcessing(tester);
 
-      // Results: scaled values (168 cm over the sample metrics — 42.6/
-      // 35.5 cm canonical, inches display by default, A-9) with the
-      // low-confidence chip on the 0.62 hip (capture-qc.md §4).
+      // Results: the FULL women template (A-10b — a scan maps every
+      // field; kScanResultsCm at the entered 168 cm, inches display by
+      // default, A-9) with the low-confidence chip on the 0.68 waist.
       expect(find.byType(CaptureResults), findsOneWidget);
-      expect(find.byType(MeasurementCard), findsNWidgets(2));
-      expect(find.text('16.8 in'), findsOneWidget);
-      expect(find.text('14.0 in'), findsOneWidget);
+      expect(
+        find.byType(MeasurementCard, skipOffstage: false),
+        findsNWidgets(17),
+      );
+      expect(find.text('16.8 in'), findsOneWidget); // shoulder 42.7 cm
       expect(find.text('1 low confidence'), findsOneWidget);
-      expect(find.text('Low confidence · 0.62'), findsOneWidget);
+      expect(
+        find.text('Low confidence · 0.68', skipOffstage: false),
+        findsOneWidget,
+      );
 
+      await tester.scrollUntilVisible(
+        find.text('Save to vault'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.tap(find.text('Save to vault'));
       await tester.pumpAndSettle();
 
@@ -134,6 +144,11 @@ void main() {
       await bootToCapture(tester);
       await shootBothPosesThroughProcessing(tester);
 
+      await tester.scrollUntilVisible(
+        find.text('Retake'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.tap(find.text('Retake'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));

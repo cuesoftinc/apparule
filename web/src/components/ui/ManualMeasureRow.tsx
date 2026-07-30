@@ -9,7 +9,7 @@ import { CM_PER_IN } from "@/lib/format";
 import { Input, type MeasureUnit } from "./Input";
 
 export interface ManualMeasureRowProps {
-  /** Measurement name, e.g. "shoulder_width" — label renders humanized. */
+  /** Measurement name, e.g. "shoulder" — label renders humanized. */
   name: string;
   valueCm: number | null;
   onChange: (valueCm: number | null) => void;
@@ -25,7 +25,7 @@ export interface ManualMeasureRowProps {
 
 /**
  * Sentence-case label from a snake_case measure name — the canvas idiom
- * ("Shoulder width", "Shoulder to bust point"), A-10. Title-casing every
+ * ("Shoulder", "Shoulder to bust point"), A-10. Title-casing every
  * word was a web-only divergence.
  */
 export function humanizeMeasureName(name: string): string {

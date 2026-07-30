@@ -29,7 +29,7 @@ class ManualMeasureRow extends StatelessWidget {
     super.key,
   });
 
-  /// Measurement name, e.g. `shoulder_width` — label renders humanized.
+  /// Measurement name, e.g. `shoulder` — label renders humanized.
   final String name;
 
   final double? valueCm;

@@ -276,7 +276,7 @@ final List<MiRegistryEntry> miRegistry = <MiRegistryEntry>[
           child: SizedBox(
             width: 358,
             child: ManualMeasureRow(
-              name: 'shoulder_width',
+              name: 'shoulder',
               valueCm: 43,
               unit: MeasureUnit.cm,
               onChanged: (_) {},

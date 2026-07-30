@@ -26,7 +26,7 @@ class MeasurementCard extends StatelessWidget {
     super.key,
   });
 
-  /// Measurement name, e.g. `shoulder_width` — renders humanized.
+  /// Measurement name, e.g. `shoulder` — renders humanized.
   final String name;
 
   final double valueCm;

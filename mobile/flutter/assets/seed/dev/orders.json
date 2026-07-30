@@ -21,8 +21,9 @@
         "method": "mediapipe_2d_v2",
         "measured_days_ago": 12,
         "measurements": [
-          { "name": "shoulder_width", "value_cm": 42.5 },
-          { "name": "hip_width", "value_cm": 36.8 }
+          { "name": "shoulder", "value_cm": 42.5 },
+          { "name": "bust", "value_cm": 96.5 },
+          { "name": "waist", "value_cm": 78.5 }
         ]
       },
       "events": [
@@ -53,10 +54,10 @@
         "method": "manual",
         "measured_days_ago": 41,
         "measurements": [
-          { "name": "shoulder_width", "value_cm": 28.0 },
-          { "name": "hip_width", "value_cm": 25.5 },
-          { "name": "chest_girth", "value_cm": 60.5 },
-          { "name": "waist_girth", "value_cm": 55.0 }
+          { "name": "shoulder", "value_cm": 28.0 },
+          { "name": "bust", "value_cm": 60.5 },
+          { "name": "waist", "value_cm": 55.0 },
+          { "name": "top_length", "value_cm": 45.0 }
         ]
       },
       "events": [
@@ -89,8 +90,9 @@
         "method": "mediapipe_2d_v2",
         "measured_days_ago": 12,
         "measurements": [
-          { "name": "shoulder_width", "value_cm": 42.5 },
-          { "name": "hip_width", "value_cm": 36.8 }
+          { "name": "shoulder", "value_cm": 42.5 },
+          { "name": "bust", "value_cm": 96.5 },
+          { "name": "waist", "value_cm": 78.5 }
         ]
       },
       "events": [
@@ -118,8 +120,9 @@
         "method": "mediapipe_2d_v2",
         "measured_days_ago": 12,
         "measurements": [
-          { "name": "shoulder_width", "value_cm": 42.5 },
-          { "name": "hip_width", "value_cm": 36.8 }
+          { "name": "shoulder", "value_cm": 42.5 },
+          { "name": "bust", "value_cm": 96.5 },
+          { "name": "waist", "value_cm": 78.5 }
         ]
       },
       "events": [
@@ -148,8 +151,9 @@
         "method": "mediapipe_2d_v2",
         "measured_days_ago": 12,
         "measurements": [
-          { "name": "shoulder_width", "value_cm": 42.5 },
-          { "name": "hip_width", "value_cm": 36.8 }
+          { "name": "shoulder", "value_cm": 42.5 },
+          { "name": "bust", "value_cm": 96.5 },
+          { "name": "waist", "value_cm": 78.5 }
         ]
       },
       "events": [

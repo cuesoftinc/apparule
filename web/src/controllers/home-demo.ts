@@ -154,8 +154,8 @@ export function makeDemoOrder(
         method: "mediapipe_2d_v2",
         measured_at: daysAgo(12),
         measurements: [
-          { name: "shoulder_width", value_cm: 42.5 },
-          { name: "hip_width", value_cm: 36.8 },
+          { name: "shoulder", value_cm: 42.5 },
+          { name: "hip", value_cm: 36.8 },
         ],
       },
       created_at: daysAgo(6),
@@ -262,7 +262,7 @@ export interface DemoMeasurement {
 // chest, chest carrying the low-confidence 0.62 chip.
 export const demoMeasurements: DemoMeasurement[] = [
   {
-    name: "Shoulder width",
+    name: "Shoulder",
     valueCm: 42.5,
     source: "scan",
     history: [41.8, 42.1, 42.5],

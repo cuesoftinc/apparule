@@ -100,6 +100,13 @@ export function VaultView({ initialSheet = null }: VaultViewProps) {
           setUploading(false);
           void vault.reload();
         }}
+        // A-10b: capture is template-gated like manual entry (a scan maps
+        // the customer's full field set).
+        template={account?.measurement_template ?? null}
+        onTemplateChange={async (template) => {
+          await accountRepo.updateMe({ measurement_template: template });
+          await refreshAccount();
+        }}
       />
     );
   }
