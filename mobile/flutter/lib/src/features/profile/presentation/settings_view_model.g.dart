@@ -45,7 +45,7 @@ final class SettingsViewModelProvider
   SettingsViewModel create() => SettingsViewModel();
 }
 
-String _$settingsViewModelHash() => r'16c0b597dcf923f4692aa529a2c2efb4c767bbe7';
+String _$settingsViewModelHash() => r'aa8e5f2d78147fec44bdb89222526605e04be28c';
 
 /// The B7 settings ViewModel — one account snapshot shared by the root
 /// screen and the three sub-screens. Toggles apply optimistically
