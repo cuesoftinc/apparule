@@ -119,7 +119,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   manual entry and persists; Settings gains a "Measurement set" control.
   Web + mobile; canonical tables in flows/vault.md §2. Camera-pipeline
   names and historical sessions are untouched (open vocabulary; sessions
-  immutable).
+  immutable) (#184).
 
 ### Changed
 
@@ -1155,7 +1155,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   point") — title-casing every word was a client-side divergence from the
   canvas; and the mobile manual advisory now renders one-decimal bounds
   ("19.7–59.1 in"), converging on the web/canvas format (the capture
-  height gate keeps integer bounds by design).
+  height gate keeps integer bounds by design) (#184).
 
 ### Security
 
