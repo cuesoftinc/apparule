@@ -13,6 +13,7 @@ import type { MeasurementSession } from "@/models";
 import { useAuth } from "@/auth/AuthContext";
 import { accountRepo } from "@/models/repositories/account-repo";
 import { useVault } from "@/controllers/use-vault";
+import { measurementsShareText } from "./measurements-share";
 import { Avatar, freshnessRing } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -132,7 +133,7 @@ export function VaultView({ initialSheet = null }: VaultViewProps) {
               ? `${vault.freshness[0].toUpperCase()}${vault.freshness.slice(1)} — ${vault.latest.length} measurement${vault.latest.length === 1 ? "" : "s"} on file · vault is private to you`
               : "Capture two photos or enter values by hand — private to you."}
           </p>
-          <div>
+          <div className="flex flex-wrap gap-2">
             <Button
               kind="quiet"
               onClick={() => setSheet("options")}
@@ -140,6 +141,26 @@ export function VaultView({ initialSheet = null }: VaultViewProps) {
             >
               {latestComplete ? "Retake" : "Get measured"}
             </Button>
+            {/* A-11: share the latest values as text + link — the
+                WhatsApp-to-tailor flow. Deliberate tap; nothing shares
+                body data by default. */}
+            {vault.latest.length > 0 ? (
+              <Button
+                kind="quiet"
+                data-testid="vault-share"
+                onClick={() => {
+                  void navigator.clipboard
+                    .writeText(measurementsShareText(vault.latest))
+                    .catch(() => {});
+                  showToast({
+                    kind: "neutral",
+                    message: "Measurements copied",
+                  });
+                }}
+              >
+                Share measurements
+              </Button>
+            ) : null}
           </div>
         </div>
       </header>

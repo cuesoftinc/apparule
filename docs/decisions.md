@@ -126,6 +126,19 @@ directive fulfills this contract server-side.
 
 ☑ Ratified 2026-07-30
 
+## A-11 · Measurements ride the share sheet (opt-in on posts)
+
+**Recommendation ⭐:** measurements are shareable as readable text — the
+WhatsApp-to-tailor flow. Two surfaces: (1) the **vault** gains a Share
+action that copies/shares the latest values as text ("Shoulder: 16.7 in"
+per line, A-10 template order, active display unit) plus the product
+link; (2) the **post share** becomes a two-option sheet — "share link"
+(the current behavior) and "share link + my measurements" for
+make-me-this-style requests. Body data NEVER rides a share by default:
+the post option is a deliberate per-share choice, unchecked every time.
+
+☑ Ratified 2026-07-31
+
 ## Cross-cutting (shared with expendit/upstat)
 
 - **X-1 account.cuesoft.io / identity (RATIFIED)**: interim + sandbox identity

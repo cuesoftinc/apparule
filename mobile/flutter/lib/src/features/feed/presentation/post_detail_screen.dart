@@ -122,7 +122,8 @@ class _PostDetailBody extends ConsumerWidget {
                   ),
                   onComment: () =>
                       PostCommentsRoute(id: post.id).push<void>(context),
-                  onShare: () => unawaited(sharePostLink(context, post.id)),
+                  onShare: () =>
+                      unawaited(sharePostLink(context, ref, post.id)),
                   onOverflow: () => unawaited(
                     showPostOptionsSheet(context, postId: post.id),
                   ),
