@@ -2,20 +2,14 @@ import 'package:apparule/src/features/measurements/domain/measurement_session.da
 import 'package:apparule/src/features/measurements/domain/measurement_share.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Measurement _m(String name, double valueCm) => Measurement(
-  id: 'm-$name',
-  name: name,
-  valueCm: valueCm,
-  confidence: null,
-  source: 'pipeline',
-);
+Measurement _m(String name, double valueCm) =>
+    Measurement(id: 'm-$name', name: name, valueCm: valueCm);
 
 MeasurementSession _session(String id, List<Measurement> measurements) =>
     MeasurementSession(
       id: id,
       method: 'manual',
       status: SessionStatus.complete,
-      inputHeightCm: null,
       createdAt: DateTime(2026, 7, 30),
       measurements: measurements,
     );
