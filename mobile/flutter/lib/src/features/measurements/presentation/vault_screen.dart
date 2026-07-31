@@ -16,6 +16,7 @@ import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/core/utils/seed_media.dart';
 import 'package:apparule/src/features/measurements/data/measurement_repository.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_session.dart';
+import 'package:apparule/src/features/measurements/domain/measurement_share.dart';
 import 'package:apparule/src/features/measurements/presentation/capture_launcher.dart';
 import 'package:apparule/src/features/measurements/presentation/vault_actions.dart';
 import 'package:apparule/src/features/measurements/presentation/vault_view_model.dart';
@@ -26,6 +27,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:share_plus/share_plus.dart';
 
 /// C7 — the measurement vault (pages.md C7 = B4 adapted; canvas
 /// 173:698): the MI-11 freshness-ring header with the Retake entry (the
@@ -239,6 +241,7 @@ class _VaultBody extends ConsumerWidget {
           newest: sessions.first,
           measurementCount: metrics.length,
           now: now,
+          latestValues: <Measurement>[for (final m in metrics) m.latest],
         ),
         const SizedBox(height: 24),
         for (final metric in metrics)
@@ -312,11 +315,28 @@ class _VaultHeader extends ConsumerWidget {
     required this.newest,
     required this.measurementCount,
     required this.now,
+    required this.latestValues,
   });
 
   final MeasurementSession newest;
   final int measurementCount;
   final DateTime now;
+
+  /// A-11: the Share action's payload — latest value per metric.
+  final List<Measurement> latestValues;
+
+  /// SharePlus with the clipboard fallback (the MI-9 share idiom).
+  Future<void> _shareMeasurements(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final copied = context.l10n.vaultShareCopied;
+    final text = measurementsShareText(latestValues);
+    try {
+      await SharePlus.instance.share(ShareParams(text: text));
+    } on Object {
+      await Clipboard.setData(ClipboardData(text: text));
+      messenger.showSnackBar(SnackBar(content: Text(copied)));
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -359,15 +379,26 @@ class _VaultHeader extends ConsumerWidget {
                 style: typography.caption13.copyWith(color: colors.text2),
               ),
               const SizedBox(height: 12),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Button(
-                  label: l10n.vaultRetake,
-                  kind: ButtonKind.quiet,
-                  size: ButtonSize.sm,
-                  onPressed: () =>
-                      unawaited(_showCaptureOptionsSheet(context, ref)),
-                ),
+              Row(
+                children: <Widget>[
+                  Button(
+                    label: l10n.vaultRetake,
+                    kind: ButtonKind.quiet,
+                    size: ButtonSize.sm,
+                    onPressed: () =>
+                        unawaited(_showCaptureOptionsSheet(context, ref)),
+                  ),
+                  const SizedBox(width: 8),
+                  // A-11: share the latest values as text + link — the
+                  // WhatsApp-to-tailor flow (deliberate tap; nothing
+                  // shares body data by default).
+                  Button(
+                    label: l10n.vaultShare,
+                    kind: ButtonKind.quiet,
+                    size: ButtonSize.sm,
+                    onPressed: () => unawaited(_shareMeasurements(context)),
+                  ),
+                ],
               ),
             ],
           ),

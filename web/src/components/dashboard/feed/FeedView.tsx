@@ -22,6 +22,11 @@ import {
 } from "../UnfollowConfirmSheet";
 import { PostDetailView } from "../post/PostDetailView";
 import { FeedSidebar } from "./FeedSidebar";
+import { measurementsShareText } from "../vault/measurements-share";
+import {
+  latestMeasurements,
+  vaultRepo,
+} from "@/models/repositories/vault-repo";
 import { PostOptionsSheet } from "./PostOptionsSheet";
 import { RequestStepperSheet } from "./RequestStepperSheet";
 import { maybeFirstSaveToast } from "../first-save";
@@ -113,15 +118,34 @@ export function FeedView() {
         }),
       );
 
-  const copyShareLink = async (post: Post) => {
+  // A-11: share is a two-option sheet — link only (the old behavior), or
+  // link + my measurements for make-me-this-style requests. Body data
+  // never rides a share by default; the second option is a deliberate
+  // per-share choice.
+  const [sharePost, setSharePost] = useState<Post | null>(null);
+
+  const copyShareLink = async (post: Post, withMeasurements = false) => {
+    let text = `${window.location.origin}/p/${post.id}`;
+    if (withMeasurements) {
+      try {
+        const page = await vaultRepo.sessions();
+        const latest = latestMeasurements(page.items);
+        if (latest.length > 0)
+          text = `${text}\n\n${measurementsShareText(latest)}`;
+      } catch {
+        // vault unavailable — share the link alone
+      }
+    }
     try {
-      await navigator.clipboard.writeText(
-        `${window.location.origin}/p/${post.id}`,
-      );
+      await navigator.clipboard.writeText(text);
     } catch {
       // clipboard unavailable
     }
-    showToast({ kind: "neutral", message: "Link copied" });
+    showToast({
+      kind: "neutral",
+      message: withMeasurements ? "Link + measurements copied" : "Link copied",
+    });
+    setSharePost(null);
     flash(post.id);
   };
 
@@ -200,7 +224,7 @@ export function FeedView() {
                       onToggleLike={() => void like(post)}
                       onToggleSave={() => void save(post)}
                       onComment={() => setOpenPostId(post.id)}
-                      onShare={() => void copyShareLink(post)}
+                      onShare={() => setSharePost(post)}
                       onOverflow={() => setOptionsPost(post)}
                       onRequest={() => setRequestPost(post)}
                     />
@@ -294,6 +318,37 @@ export function FeedView() {
           if (!open) setUnfollowTarget(null);
         }}
       />
+      {/* A-11 share sheet: link only, or link + measurements (opt-in). */}
+      <Sheet
+        open={sharePost !== null}
+        onOpenChange={(open) => {
+          if (!open) setSharePost(null);
+        }}
+        title="Share this outfit"
+      >
+        {sharePost ? (
+          <div className="flex flex-col gap-3">
+            <Button
+              kind="quiet"
+              data-testid="share-link-only"
+              onClick={() => void copyShareLink(sharePost)}
+            >
+              Copy link
+            </Button>
+            <Button
+              kind="quiet"
+              data-testid="share-link-with-measurements"
+              onClick={() => void copyShareLink(sharePost, true)}
+            >
+              Copy link + my measurements
+            </Button>
+            <p className="text-caption text-text-2">
+              Adding measurements shares your latest tape values as text — handy
+              when asking a tailor to make you this style.
+            </p>
+          </div>
+        ) : null}
+      </Sheet>
     </div>
   );
 }

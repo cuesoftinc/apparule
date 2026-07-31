@@ -3,7 +3,9 @@ import 'dart:math' show min;
 
 import 'package:apparule/src/core/async/run_action.dart';
 import 'package:apparule/src/core/l10n/l10n.dart';
+import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/app_bar.dart';
+import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/caught_up_divider.dart';
 import 'package:apparule/src/core/ui/edge_resist_physics.dart';
 import 'package:apparule/src/core/ui/empty_state.dart';
@@ -20,6 +22,8 @@ import 'package:apparule/src/features/feed/domain/story_rail_entry.dart';
 import 'package:apparule/src/features/feed/presentation/engagement_actions.dart';
 import 'package:apparule/src/features/feed/presentation/home_feed_view_model.dart';
 import 'package:apparule/src/features/feed/presentation/post_options_sheet.dart';
+import 'package:apparule/src/features/measurements/data/measurement_repository.dart';
+import 'package:apparule/src/features/measurements/domain/measurement_share.dart';
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -388,7 +392,7 @@ class _FeedPostCard extends ConsumerWidget {
         ),
       ),
       onComment: () => PostCommentsRoute(id: post.id).push<void>(context),
-      onShare: () => unawaited(sharePostLink(context, post.id)),
+      onShare: () => unawaited(sharePostLink(context, ref, post.id)),
       onOverflow: () =>
           unawaited(showPostOptionsSheet(context, postId: post.id)),
       onRequest: () => RequestRoute(postId: post.id).push<void>(context),
@@ -443,18 +447,97 @@ Future<void> maybeShowFirstSaveToast(
   );
 }
 
-/// MI-9 share: the public permalink (web-implementation.md §4
-/// `/p/{post_id}`) through the platform share sheet (the mobile MI-9
-/// idiom — D30). Environments without one (widget tests, desktop hosts)
-/// degrade to the clipboard-copy idiom with its confirmation snack.
-Future<void> sharePostLink(BuildContext context, String postId) async {
+/// MI-9 share, A-11 shape: a two-option sheet — the public permalink
+/// (web-implementation.md §4 `/p/{post_id}`) alone, or with the latest
+/// measurements as text for make-me-this-style requests (body data
+/// never rides a share by default). Each option goes through the
+/// platform share sheet; environments without one (widget tests,
+/// desktop hosts) degrade to the clipboard-copy idiom with its
+/// confirmation snack.
+Future<void> sharePostLink(
+  BuildContext context,
+  WidgetRef ref,
+  String postId,
+) async {
+  final l10n = context.l10n;
+  final theme = Theme.of(context);
+  final colors = theme.extension<AppColors>()!;
+  final typography = theme.extension<AppTypography>()!;
+  await showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    builder: (sheetContext) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Button(
+              label: l10n.shareLinkOnly,
+              kind: ButtonKind.quiet,
+              expand: true,
+              onPressed: () {
+                Navigator.of(sheetContext).pop();
+                unawaited(
+                  _share(context, postPermalink(postId), l10n.feedShareCopied),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            Button(
+              label: l10n.shareLinkWithMeasurements,
+              kind: ButtonKind.quiet,
+              expand: true,
+              onPressed: () {
+                Navigator.of(sheetContext).pop();
+                unawaited(_shareWithMeasurements(context, ref, postId));
+              },
+            ),
+            const SizedBox(height: 12),
+            Text(
+              l10n.shareWithMeasurementsHint,
+              style: typography.caption13.copyWith(color: colors.text2),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+Future<void> _share(
+  BuildContext context,
+  String text,
+  String copiedSnack,
+) async {
   final messenger = ScaffoldMessenger.of(context);
-  final copied = context.l10n.feedShareCopied;
-  final url = postPermalink(postId);
   try {
-    await SharePlus.instance.share(ShareParams(uri: Uri.parse(url)));
+    await SharePlus.instance.share(ShareParams(text: text));
   } on Object {
-    await Clipboard.setData(ClipboardData(text: url));
-    messenger.showSnackBar(SnackBar(content: Text(copied)));
+    await Clipboard.setData(ClipboardData(text: text));
+    messenger.showSnackBar(SnackBar(content: Text(copiedSnack)));
   }
+}
+
+Future<void> _shareWithMeasurements(
+  BuildContext context,
+  WidgetRef ref,
+  String postId,
+) async {
+  final copied = context.l10n.feedShareCopiedWithMeasurements;
+  var text = postPermalink(postId);
+  try {
+    final sessions = await ref
+        .read(measurementRepositoryProvider)
+        .vaultSessions();
+    final latest = latestMeasurements(sessions);
+    if (latest.isNotEmpty) {
+      text = '$text\n\n${measurementsShareText(latest)}';
+    }
+  } on Object {
+    // vault unavailable — share the link alone
+  }
+  if (!context.mounted) return;
+  await _share(context, text, copied);
 }

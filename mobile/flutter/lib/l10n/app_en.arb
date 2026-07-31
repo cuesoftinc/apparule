@@ -357,6 +357,13 @@
       }
     }
   },
+  "vaultShare": "Share",
+  "vaultShareCopied": "Measurements copied",
+  "shareSheetTitle": "Share this outfit",
+  "shareLinkOnly": "Share link",
+  "shareLinkWithMeasurements": "Share link + my measurements",
+  "shareWithMeasurementsHint": "Adding measurements shares your latest tape values as text — handy when asking a tailor to make you this style.",
+  "feedShareCopiedWithMeasurements": "Link + measurements copied",
   "manualTemplateBody": "Which measurement set fits this profile? Tailors keep different fields for women and men — you can change this later in Settings.",
   "@manualTemplateBody": {
     "description": "A-10 one-time chooser body on the manual entry screen (flows/vault.md §2)."

@@ -128,6 +128,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   and capture is template-gated with the same one-time chooser as manual
   entry (web upload view + mobile capture launcher sheet) (#185).
 
+- A-11 — measurements ride the share sheet: the vault gains a Share
+  action (latest values as readable text + the product link — the
+  WhatsApp-to-tailor flow), and the post share becomes a two-option
+  sheet ("share link" / "share link + my measurements") on web and
+  mobile. Body data never rides a share by default.
+
 ### Changed
 
 - Inches are the default measurement display unit on web (A-9 — Nigerian
