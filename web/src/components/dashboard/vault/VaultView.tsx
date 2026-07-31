@@ -133,7 +133,7 @@ export function VaultView({ initialSheet = null }: VaultViewProps) {
               ? `${vault.freshness[0].toUpperCase()}${vault.freshness.slice(1)} — ${vault.latest.length} measurement${vault.latest.length === 1 ? "" : "s"} on file · vault is private to you`
               : "Capture two photos or enter values by hand — private to you."}
           </p>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               kind="quiet"
               onClick={() => setSheet("options")}
