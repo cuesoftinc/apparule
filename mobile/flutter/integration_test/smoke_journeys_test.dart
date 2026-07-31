@@ -103,14 +103,16 @@ void main() {
       await $(find.bySemanticsLabel('Height slider')).tap();
       await $('Continue').tap();
 
-      // Processing resolves into results (§4 confidences)…
+      // Processing resolves into results (§4 confidences). A-10b: the
+      // scan maps the FULL tailor template (women = 17 for the seeded
+      // profile), so the save CTA sits below the fold — scroll to it.
       await $('Your measurements').waitUntilVisible();
-      await $('Save to vault').waitUntilVisible();
+      await $('Save to vault').scrollTo();
 
       // …and saving lands in C7 with the just-captured session.
       await $('Save to vault').tap();
       await $('Measured today').waitUntilVisible();
-      await $('Up to date · 2 measurements').waitUntilVisible();
+      await $('Up to date · 17 measurements').waitUntilVisible();
     },
   );
 
