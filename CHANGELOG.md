@@ -132,7 +132,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   action (latest values as readable text + the product link — the
   WhatsApp-to-tailor flow), and the post share becomes a two-option
   sheet ("share link" / "share link + my measurements") on web and
-  mobile. Body data never rides a share by default.
+  mobile. Body data never rides a share by default (#187).
 
 ### Changed
 
