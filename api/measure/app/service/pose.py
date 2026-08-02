@@ -10,6 +10,7 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
 from app.service import measurement
+from app.service.segmentation import BodySegmenter
 
 
 class NoBodyDetected(Exception):
@@ -19,14 +20,17 @@ class NoBodyDetected(Exception):
 class PoseMeasurer:
     """Loads the pose model once and measures bodies from image bytes."""
 
-    def __init__(self, model_path: str) -> None:
-        base_options = python.BaseOptions(model_asset_path=model_path)
+    def __init__(self, pose_model_path: str, segmentation_model_path: str) -> None:
+        base_options = python.BaseOptions(model_asset_path=pose_model_path)
         options = vision.PoseLandmarkerOptions(
             base_options=base_options,
             running_mode=vision.RunningMode.IMAGE,
             num_poses=1,  # one person per detection
         )
         self._detector = vision.PoseLandmarker.create_from_options(options)
+        self._segmenter = BodySegmenter(
+            segmentation_model_path
+        )
 
     def measure(self, image_bytes: bytes, user_height_cm: float) -> dict:
         arr = np.frombuffer(image_bytes, dtype=np.uint8)
@@ -37,6 +41,8 @@ class PoseMeasurer:
 
         rgb = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
+        segmentation_result = self._segmenter.segment(mp_image)
+        print(segmentation_result)
 
         result = self._detector.detect(mp_image)
         if not result.pose_landmarks:
@@ -61,3 +67,4 @@ class PoseMeasurer:
 
     def close(self) -> None:
         self._detector.close()
+        self._segmenter.close()
