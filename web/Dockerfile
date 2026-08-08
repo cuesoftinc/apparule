@@ -20,6 +20,7 @@ COPY docs/api/openapi.yaml /app/docs/api/openapi.yaml
 # NEXT_PUBLIC_* are inlined at build time, so they must be provided here.
 ARG NEXT_PUBLIC_BASE_URL
 ENV NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL
+RUN mkdir -p public
 RUN npm run build
 
 # ---- runner ----
