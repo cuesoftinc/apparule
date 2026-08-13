@@ -5,6 +5,7 @@ MediaPipe pose landmark indices (subset used here):
 """
 import math
 
+
 NOSE = 0
 LEFT_SHOULDER = 11
 RIGHT_SHOULDER = 12
@@ -26,16 +27,119 @@ def pixel_distance(p1, p2, image_width, image_height):
     x2, y2 = p2.x * image_width, p2.y * image_height
     return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
+def midpoint(p1, p2):
+    return(
+        (p1.x + p2.x) / 2,
+        (p1.y + p2.y) / 2,
+    )
+
+def calculate_sleeve_length(landmarks,image_width,image_height):
+    left = (
+        pixel_distance(landmarks[LEFT_SHOULDER],landmarks[LEFT_ELBOW],image_width,image_height) + pixel_distance(landmarks[LEFT_ELBOW],landmarks[LEFT_WRIST],image_width,image_height)
+
+    )
+
+    right = (
+        pixel_distance(landmarks[RIGHT_SHOULDER],landmarks[RIGHT_ELBOW],image_width,image_height) + pixel_distance(landmarks[RIGHT_ELBOW],landmarks[RIGHT_WRIST],image_width,image_height)
+
+    )
+    return (left + right) /2
+
+
+def calculate_trouser_length(landmarks,image_width,image_height):
+    left = (
+        pixel_distance(
+            landmarks[LEFT_HIP],
+            landmarks[LEFT_KNEE],
+            image_width,
+            image_height
+        ) 
+        +
+        pixel_distance(
+            landmarks[LEFT_KNEE],
+            landmarks[LEFT_ANKLE],
+            image_width,
+            image_height
+        )
+
+    )
+    right = (
+        pixel_distance(
+            landmarks[RIGHT_HIP],
+            landmarks[RIGHT_KNEE],
+            image_width,
+            image_height
+        ) 
+        +
+        pixel_distance(
+            landmarks[RIGHT_KNEE],
+            landmarks[RIGHT_ANKLE],
+            image_width,
+            image_height
+        )
+        
+    )
+    return (left + right) /2
+
+
+
 
 def calculate_shoulder_width(landmarks, image_width, image_height):
     return pixel_distance(landmarks[LEFT_SHOULDER], landmarks[RIGHT_SHOULDER], image_width, image_height)
 
 
-def calculate_hip_width(landmarks, image_width, image_height):
+def calculate_hip_width(landmarks, image_width, image_height):# To be improved
     return pixel_distance(landmarks[LEFT_HIP], landmarks[RIGHT_HIP], image_width, image_height)
 
 
-def calculate_body_height_pixels(landmarks, image_width, image_height):
+def calculate_waist_to_knee(landmarks,image_width,image_height):
+    left_hip = landmarks[LEFT_HIP]
+    right_hip = landmarks[RIGHT_HIP]
+
+    left_knee = landmarks[LEFT_KNEE]
+    right_knee = landmarks[RIGHT_KNEE]
+
+    waist = midpoint(left_hip,right_hip)
+    knee = midpoint(left_knee,right_knee)
+
+    x1 = waist[0] * image_width
+    y1 = waist[1] * image_height
+
+    x2 = knee[0] * image_width
+    y2 = knee[1] * image_height
+
+    return math.sqrt(
+        (x2 - x1) ** 2 +
+        (y2 - y1) ** 2
+    )
+
+
+def calculate_knee_width(landmarks,image_width,image_height):
+    return pixel_distance(
+        landmarks[LEFT_KNEE],
+        landmarks[RIGHT_KNEE],
+        image_width,
+        image_height
+    )
+
+def calculate_shin_length(landmarks,image_width,image_height):
+    left = pixel_distance(
+        landmarks[LEFT_KNEE],
+        landmarks[LEFT_ANKLE],
+        image_width,
+        image_height
+    )
+
+    right = pixel_distance(
+        landmarks[RIGHT_KNEE],
+        landmarks[RIGHT_ANKLE],
+        image_width,
+        image_height
+    )
+    
+    return (left + right) / 2
+
+def calculate_body_height_pixels(landmarks, image_width, image_height):  #To be improved
     nose = landmarks[NOSE]
     left_ankle = landmarks[LEFT_ANKLE]
     right_ankle = landmarks[RIGHT_ANKLE]
