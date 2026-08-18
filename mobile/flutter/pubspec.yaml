@@ -76,7 +76,7 @@ dev_dependencies:
   # patrol_finders drives it; no native-automation runner is wired.
   integration_test:
     sdk: flutter
-  json_serializable: ^6.14.0
+  json_serializable: ^6.14.1
   mocktail: ^1.0.5
   patrol: ^4.8.0
   # Pin-ledger verification (patrol E2E wave): patrol 4.7.1 is the
