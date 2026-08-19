@@ -1,6 +1,6 @@
 fastapi==0.141.1
-uvicorn[standard]==0.52.0
+uvicorn[standard]==0.52.1
 python-multipart==0.0.32
 mediapipe==1.0.0
 opencv-python-headless==5.0.0.93
-numpy==2.2.6
+numpy==2.5.2
