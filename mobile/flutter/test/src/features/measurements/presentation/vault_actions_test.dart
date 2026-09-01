@@ -6,6 +6,7 @@ import 'package:apparule/src/features/measurements/presentation/vault_view_model
 import 'package:apparule/src/features/profile/presentation/profile_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 
 import '../../../../helpers/in_memory_persistence.dart';
 
