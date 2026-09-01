@@ -79,12 +79,12 @@ dev_dependencies:
   json_serializable: ^6.14.1
   mocktail: ^1.0.5
   patrol: ^4.9.0
-  # Pin-ledger verification (patrol E2E wave): patrol 4.7.1 is the
-  # ratified pin and resolves patrol_finders 3.6.0; the finder layer is
-  # promoted to a direct dev dependency because integration_test/
-  # imports it directly (PatrolTester/$ over integration_test above —
-  # the full patrol harness stays a dependency, unused at runtime until
-  # a native-automation lane earns patrol_cli).
+  # The finder layer is a DIRECT dev dependency because integration_test/
+  # imports it itself (PatrolTester/$ over the SDK harness above). The full
+  # patrol harness stays alongside it, unused at runtime until a
+  # native-automation lane earns patrol_cli. Both constraints move with
+  # Dependabot, so no version is restated here: the pin is the constraint
+  # and the resolved version is pubspec.lock.
   patrol_finders: ^3.6.0
   riverpod_generator: ^4.0.4
   very_good_analysis: ^10.3.0
