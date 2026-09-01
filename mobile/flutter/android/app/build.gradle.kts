@@ -13,7 +13,10 @@ val releaseKeystorePath: String? = System.getenv("APPARULE_ANDROID_KEYSTORE_PATH
 
 android {
     namespace = "io.cuesoft.apparule"
-    compileSdk = flutter.compileSdkVersion
+    // flutter_secure_storage 11 publishes AAR metadata demanding compileSdk 37,
+    // which the pinned Flutter still defaults below; a floor rather than a literal
+    // so the project follows Flutter again once its default passes 37.
+    compileSdk = maxOf(37, flutter.compileSdkVersion)
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
