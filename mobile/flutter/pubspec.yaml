@@ -34,7 +34,7 @@ dependencies:
   flutter_secure_storage: ^11.0.0
   flutter_svg: ^2.2.0
   freezed_annotation: ^3.1.0
-  go_router: ^17.3.0
+  go_router: ^17.5.0
   google_sign_in: ^7.2.0
   # Pin-ledger addition (C15 composer wave) — FLAGGED: not yet in the
   # ratified standards-research ledger. The first-party media picker
@@ -49,7 +49,7 @@ dependencies:
   # Pin-ledger addition (component wave): the design system's iconography
   # is Lucide (design.md §2; c-series inventory `icon/*` set) — icon-font
   # package, glyphs referenced as `LucideIcons.*`.
-  lucide_icons_flutter: ^3.1.15
+  lucide_icons_flutter: ^3.1.17
   riverpod_annotation: ^4.0.3
   share_plus: ^13.3.0
   shared_preferences: ^2.5.5
@@ -78,7 +78,7 @@ dev_dependencies:
     sdk: flutter
   json_serializable: ^6.14.1
   mocktail: ^1.0.5
-  patrol: ^4.8.0
+  patrol: ^4.9.0
   # Pin-ledger verification (patrol E2E wave): patrol 4.7.1 is the
   # ratified pin and resolves patrol_finders 3.6.0; the finder layer is
   # promoted to a direct dev dependency because integration_test/
