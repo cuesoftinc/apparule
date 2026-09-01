@@ -1,10 +1,12 @@
 import 'package:apparule/src/app/di.dart';
+import 'package:apparule/src/core/utils/clock.dart';
 import 'package:apparule/src/features/measurements/data/measurement_repository_fake.dart';
 import 'package:apparule/src/features/measurements/presentation/vault_actions.dart';
 import 'package:apparule/src/features/measurements/presentation/vault_view_model.dart';
 import 'package:apparule/src/features/profile/presentation/profile_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 
 import '../../../../helpers/in_memory_persistence.dart';
 
@@ -14,17 +16,28 @@ import '../../../../helpers/in_memory_persistence.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  final pinned = DateTime.utc(2026, 7, 22, 12);
+
   late ProviderContainer container;
 
   setUp(() async {
     container = ProviderContainer(
-      overrides: fakeRepositoryOverrides(
-        persistenceService: InMemoryPersistenceService(),
-        measurementRepository: MeasurementRepositoryFake(
-          now: () => DateTime.utc(2026, 7, 22, 12),
-          processingDelay: Duration.zero,
+      overrides: <Override>[
+        ...fakeRepositoryOverrides(
+          persistenceService: InMemoryPersistenceService(),
+          measurementRepository: MeasurementRepositoryFake(
+            now: () => pinned,
+            processingDelay: Duration.zero,
+          ),
         ),
-      ),
+        // The MI-11 ladder reads clockProvider, so pinning the fake alone
+        // measures freshness against real time and 'fresh' expires 30 days
+        // after the seeded instant.
+        clockProvider.overrideWith(
+          (ref) =>
+              () => pinned,
+        ),
+      ],
     );
     addTearDown(container.dispose);
 
