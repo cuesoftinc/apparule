@@ -16,7 +16,7 @@ environment:
 # (firebase_options.dart for prod, firebase_options_dev.dart) is pending
 # `firebase login --reauth`.
 dependencies:
-  cached_network_image: ^3.4.1
+  cached_network_image: ^4.0.0
   # Pin-ledger addition (C6 capture wave): the first-party camera plugin
   # (CameraX on Android, AVFoundation on iOS via SwiftPM — no new
   # CocoaPods dependency, mobile-implementation.md §2) drives the C6
