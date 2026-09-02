@@ -71,7 +71,7 @@ dev_dependencies:
   # while riverpod_generator 4.0.4 needs ^12 — the dev release is freezed's
   # analyzer-12 compatibility build and the only co-resolvable version.
   freezed: ^3.2.5
-  go_router_builder: ^4.3.1
+  go_router_builder: ^4.4.1
   # The §8 gate-5 journeys run over the SDK's own on-device harness —
   # patrol_finders drives it; no native-automation runner is wired.
   integration_test:
