@@ -41,8 +41,6 @@ class PoseMeasurer:
 
         rgb = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
-        segmentation_result = self._segmenter.segment(mp_image)
-        print(segmentation_result)
 
         result = self._detector.detect(mp_image)
         if not result.pose_landmarks:

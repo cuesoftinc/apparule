@@ -16,7 +16,7 @@ logger = logging.getLogger("measure")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("loading pose model from %s", settings.model_path)
+    logger.info("loading pose model from %s and segmentation model from %s", settings.pose_model_path,settings.segmentation_model_path)
     app.state.measurer = PoseMeasurer(
         pose_model_path = settings.pose_model_path,
         segmentation_model_path = settings.segmentation_model_path,

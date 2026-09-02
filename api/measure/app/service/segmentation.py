@@ -26,5 +26,5 @@ class BodySegmenter:
         result = self._segmenter.segment(mp_image)
         return result
 
-    def clode(self):
+    def close(self):
         self._segmenter.close()

@@ -9,7 +9,8 @@ from mediapipe.tasks.python import vision
 # -----------------------------
 MODEL_PATH = "selfie_segmenter.tflite"
 IMAGE_PATH = "demo/input/image_test2.jpeg"
-OUTPUT_PATH = "demo/output/segmentation_mask.png"
+MASK_OUTPUT = "demo/output/segmentation_mask.png"
+OVERLAY_OUTPUT = "demo/output/segmentation_overlay.png"
 
 
 # Load model
@@ -54,7 +55,7 @@ print("Max:", mask.max())
 print("Type:", mask.dtype)
 
 
-cv2.imwrite(OUTPUT_PATH, mask)
+cv2.imwrite(MASK_OUTPUT, mask)
 
 mask_rgb = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
 
