@@ -114,14 +114,6 @@ def calculate_waist_to_knee(landmarks,image_width,image_height):
     )
 
 
-def calculate_knee_width(landmarks,image_width,image_height):
-    return pixel_distance(
-        landmarks[LEFT_KNEE],
-        landmarks[RIGHT_KNEE],
-        image_width,
-        image_height
-    )
-
 def calculate_shin_length(landmarks,image_width,image_height):
     left = pixel_distance(
         landmarks[LEFT_KNEE],

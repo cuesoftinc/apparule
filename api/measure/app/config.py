@@ -6,9 +6,10 @@ class Settings:
     def __init__(self) -> None:
 
         # Pose model
-        self.pose_model_path = os.getenv(
-            "POSE_MODEL_PATH",
-            "pose_landmarker.task",
+        self.pose_model_path = (
+            os.getenv("POSE_MODEL_PATH")
+            or os.getenv("MODEL_PATH")
+            or "pose_landmarker.task"
         )
 
         # Segmentation model
