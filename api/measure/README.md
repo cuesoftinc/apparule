@@ -19,6 +19,14 @@ pose_landmarker.task  MediaPipe model asset
 From the repo root (recommended): `make up` → :8081.
 Natively: `pip install -r requirements.txt && uvicorn app.main:app --port 8081`.
 
+For a native run, copy `.env.example` into your environment. `POSE_MODEL_PATH`
+and `SEGMENTATION_MODEL_PATH` select the model assets. `MODEL_PATH` is still
+accepted as a fallback for existing pose-model configurations.
+
+Knee width is not currently returned by `/measure`. Measuring the distance
+between the left and right knee landmarks describes stance, not the width of
+one knee; that measurement requires a segmentation boundary.
+
 ## Test
 
 ```bash
