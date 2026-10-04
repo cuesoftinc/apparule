@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Datadog service catalog entry for the Apparule system.
 - Root README fleet badge row — License (MIT) + `build-and-test` workflow
   status (shields.io; the workflow badge links to the actions page),
   matching the org repo shape (#172).
