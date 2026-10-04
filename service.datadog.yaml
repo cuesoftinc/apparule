@@ -1,0 +1,94 @@
+apiVersion: v3
+kind: service
+metadata:
+  name: apparule-website
+  displayName: apparule-website
+  description: Apparule Monorepo
+  owner: cuesoft
+  tags:
+    - app:apparule
+    - component:website
+  contacts:
+    - type: email
+      contact: cuehire-cuesoft@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/apparule
+    - name: Website
+      type: other
+      url: https://apparule.cuesoft.io
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  languages:
+    - typescript
+---
+apiVersion: v3
+kind: repository
+metadata:
+  name: github.com/cuesoftinc/apparule
+  displayName: apparule
+  description: Apparule Monorepo
+  owner: cuesoft
+  tags:
+    - app:apparule
+    - component:website
+  contacts:
+    - type: email
+      contact: cuehire-cuesoft@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/apparule
+    - name: Website
+      type: other
+      url: https://apparule.cuesoft.io
+datadog:
+  codeLocations:
+    - repositoryURL: github.com/cuesoftinc/apparule
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  componentOf:
+    - service:apparule-website
+---
+apiVersion: v3
+kind: system
+metadata:
+  name: apparule
+  displayName: apparule
+  description: Apparule platform
+  owner: cuesoft
+  tags:
+    - app:apparule
+    - component:system
+  contacts:
+    - type: email
+      contact: cuehire-cuesoft@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/apparule
+    - name: Website
+      type: other
+      url: https://apparule.cuesoft.io
+spec:
+  lifecycle: production
+  tier: "1"
+  components:
+    - service:apparule-website
