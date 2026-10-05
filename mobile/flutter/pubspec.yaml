@@ -78,7 +78,7 @@ dev_dependencies:
     sdk: flutter
   json_serializable: ^6.14.1
   mocktail: ^1.0.5
-  patrol: ^4.9.0
+  patrol: ^4.10.0
   # The finder layer is a DIRECT dev dependency because integration_test/
   # imports it itself (PatrolTester/$ over the SDK harness above). The full
   # patrol harness stays alongside it, unused at runtime until a
