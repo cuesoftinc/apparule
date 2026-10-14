@@ -652,7 +652,9 @@ real.
 
 ## 15. Open questions
 
-1. **Kafka on the free tier.** Aiven's free Kafka powers off when idle,
+1. **Kafka that powers off when idle.** *Answered 2026-10-13 (X-11): the
+   shared Kafka powers off when idle and Expendit's reaper keeps it alive;
+   see the amendment at the top.* Original question: the shared Kafka powers off when idle,
    and this design has always-on consumers. Is the shared Kafka service on
    a paid plan (it's also Upstat's S-2 dependency), or does Apparule wait
    for it?
