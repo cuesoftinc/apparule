@@ -6,7 +6,7 @@
   "data": {
     "notification_id": "4d5e6f70-8192-4a3b-8c4d-5e6f70819203",
     "account_id": "1e2d3c4b-5a69-4788-9a0b-c1d2e3f4a5b6",
-    "kind": "order_quoted",
+    "kind": "quote",
     "created_at": "2026-10-19T09:30:00Z",
     "ref": {
       "kind": "request",

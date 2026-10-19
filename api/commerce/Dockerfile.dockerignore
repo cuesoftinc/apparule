@@ -1,0 +1,13 @@
+# BuildKit per-Dockerfile ignore (repo-root context: docker build -f
+# api/commerce/Dockerfile .). Only this service and the contract schemas
+# ship into the context.
+*
+!api/commerce
+!api/common/contract/*.schema.json
+
+api/commerce/tests
+api/commerce/**/__pycache__
+api/commerce/.pytest_cache
+api/commerce/.ruff_cache
+api/commerce/.env
+api/commerce/.env.*
