@@ -1,0 +1,13 @@
+fastapi==0.143.0
+uvicorn[standard]==0.54.0
+pydantic-settings==2.15.0
+aiokafka==0.14.0
+jsonschema==4.26.0
+referencing==0.37.0
+google-cloud-storage==3.17.0
+google-auth==2.61.0
+minio==7.2.20
+httpx==0.28.1
+mediapipe==1.0.1
+opencv-python-headless==5.0.0.93
+numpy==2.5.3

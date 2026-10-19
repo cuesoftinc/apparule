@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://apparule.cuesoft.io/contract/payouts.recipient_requested.schema.json",
+  "title": "apparule.payouts.recipient_requested",
+  "description": "common (outbox) -> commerce, on cuelabs.requests. A designer submitted a bank account (pages.md B8). commerce resolves the account name with Paystack, creates the transfer recipient, and answers with a payments.outcome of kind recipient_verified or recipient_failed. The account number travels only by data_ref. Key: designer id.",
+  "type": "object",
+  "required": ["designer_id", "attempt_id", "bank_code", "account_number", "account_holder"],
+  "additionalProperties": false,
+  "properties": {
+    "designer_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "attempt_id": { "$ref": "defs.schema.json#/$defs/id", "description": "common ignores an outcome for an older attempt." },
+    "bank_code": { "type": "string", "minLength": 1 },
+    "account_number": { "type": "string", "pattern": "^[0-9]{10}$" },
+    "account_holder": { "type": "string", "minLength": 1, "description": "The name on the designer's profile, to compare with the resolved account name." }
+  }
+}

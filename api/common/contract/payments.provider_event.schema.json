@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://apparule.cuesoft.io/contract/payments.provider_event.schema.json",
+  "title": "apparule.payments.provider_event",
+  "description": "common (outbox) -> commerce, on cuelabs.requests. A Paystack webhook whose signature common verified and whose raw body it stored (S-12). common attaches the order the reference points at (a lookup, not a decision); commerce decides whether the event settles it. Key: provider event id.",
+  "type": "object",
+  "required": ["provider_event_id", "provider", "event", "received_at", "payload"],
+  "additionalProperties": false,
+  "properties": {
+    "provider_event_id": { "$ref": "defs.schema.json#/$defs/id", "description": "The provider_event row id." },
+    "provider": { "const": "paystack" },
+    "event": { "type": "string", "minLength": 1, "description": "Paystack's event name, e.g. charge.success, transfer.success, transfer.failed, refund.processed." },
+    "received_at": { "type": "string", "format": "date-time" },
+    "payload": { "type": "object", "description": "Paystack's `data` object, as received." },
+    "order": {
+      "type": ["object", "null"],
+      "description": "The order whose payment reference matches payload.reference, or null when none does.",
+      "required": ["request_id", "status", "quote"],
+      "additionalProperties": false,
+      "properties": {
+        "request_id": { "$ref": "defs.schema.json#/$defs/id" },
+        "status": { "$ref": "defs.schema.json#/$defs/order_status" },
+        "quote": { "$ref": "defs.schema.json#/$defs/money" },
+        "reference": { "type": "string" }
+      }
+    }
+  }
+}

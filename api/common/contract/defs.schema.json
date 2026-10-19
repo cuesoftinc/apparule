@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://apparule.cuesoft.io/contract/defs.schema.json",
+  "title": "Shared definitions",
+  "$defs": {
+    "id": { "type": "string", "format": "uuid" },
+    "pose": { "enum": ["front", "side"] },
+    "template": { "enum": ["women", "men"], "description": "The A-10 measurement template (flows/vault.md §2)." },
+    "method": { "enum": ["mediapipe_2d", "mediapipe_2d_v2", "smpl_v1", "manual"] },
+    "qc_code": {
+      "description": "capture-qc.md §1-§2, plus pipeline_busy for a session that never finished.",
+      "enum": [
+        "undecodable_image", "low_resolution", "poor_lighting", "blurry",
+        "no_body", "multiple_bodies", "partial_body", "not_frontal", "not_side_profile",
+        "camera_tilt", "arms_position", "too_far", "pipeline_busy"
+      ]
+    },
+    "currency": { "enum": ["NGN"], "description": "ISO 4217. NGN only in v1 (A-1)." },
+    "money": {
+      "type": "object",
+      "description": "An amount in minor units (kobo for NGN).",
+      "required": ["amount", "currency"],
+      "additionalProperties": false,
+      "properties": {
+        "amount": { "type": "integer", "minimum": 0 },
+        "currency": { "$ref": "#/$defs/currency" }
+      }
+    },
+    "object_ref": {
+      "type": "object",
+      "description": "A Cloud Storage (or MinIO) object. `key` is relative to the bucket and starts with the env prefix, e.g. apparule/stg/tmp/...",
+      "required": ["bucket", "key"],
+      "additionalProperties": false,
+      "properties": {
+        "bucket": { "type": "string", "minLength": 1 },
+        "key": { "type": "string", "minLength": 1 },
+        "size": { "type": "integer", "minimum": 0 },
+        "content_type": { "type": "string" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "image_ref": {
+      "type": "object",
+      "description": "An uploaded image after the gateway's checks: EXIF stripped, dimensions read.",
+      "required": ["object", "width", "height"],
+      "additionalProperties": false,
+      "properties": {
+        "object": { "$ref": "#/$defs/object_ref" },
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "measure_spec": {
+      "type": "object",
+      "description": "One measure of a template, with its advisory range in cm.",
+      "required": ["name", "min", "max"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "min": { "type": "number" },
+        "max": { "type": "number" }
+      }
+    },
+    "measurement": {
+      "type": "object",
+      "required": ["name", "value_cm", "confidence"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "value_cm": { "type": "number", "exclusiveMinimum": 0 },
+        "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+      }
+    },
+    "order_status": {
+      "enum": ["requested", "quoted", "paid", "in_progress", "shipped", "delivered", "refunded", "declined", "disputed", "cancelled"]
+    },
+    "ledger_line": {
+      "type": "object",
+      "description": "One double-entry line (system-design.md §5.2). Lines of one movement sum to zero.",
+      "required": ["account", "amount"],
+      "additionalProperties": false,
+      "properties": {
+        "account": { "enum": ["customer_funds", "escrow", "platform_fee", "designer_payable", "refund"] },
+        "amount": { "type": "integer", "description": "Minor units; debit positive, credit negative." }
+      }
+    }
+  }
+}

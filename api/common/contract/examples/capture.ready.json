@@ -1,0 +1,122 @@
+{
+  "type": "apparule.capture.ready",
+  "version": 1,
+  "id": "00000000-0000-4000-8000-000000005cce",
+  "produced_at": "2026-10-19T10:00:00Z",
+  "data": {
+    "session_id": "5c2a9d1e-3b4f-4a6c-8d7e-9f0a1b2c3d4e",
+    "attempt": 1,
+    "method": "mediapipe_2d_v2",
+    "height_cm": 168,
+    "template": "women",
+    "measures": [
+      {
+        "name": "shoulder",
+        "min": 30,
+        "max": 60
+      },
+      {
+        "name": "bust",
+        "min": 60,
+        "max": 160
+      },
+      {
+        "name": "under_bust",
+        "min": 55,
+        "max": 140
+      },
+      {
+        "name": "bust_span",
+        "min": 12,
+        "max": 30
+      },
+      {
+        "name": "waist",
+        "min": 50,
+        "max": 150
+      },
+      {
+        "name": "shoulder_to_bust_point",
+        "min": 18,
+        "max": 40
+      },
+      {
+        "name": "shoulder_to_under_bust",
+        "min": 25,
+        "max": 50
+      },
+      {
+        "name": "shoulder_to_waist",
+        "min": 30,
+        "max": 60
+      },
+      {
+        "name": "half_length",
+        "min": 30,
+        "max": 70
+      },
+      {
+        "name": "waist_to_knee",
+        "min": 40,
+        "max": 75
+      },
+      {
+        "name": "gown_length",
+        "min": 90,
+        "max": 170
+      },
+      {
+        "name": "skirt_length",
+        "min": 40,
+        "max": 120
+      },
+      {
+        "name": "trouser_length",
+        "min": 80,
+        "max": 120
+      },
+      {
+        "name": "thigh",
+        "min": 40,
+        "max": 90
+      },
+      {
+        "name": "knee",
+        "min": 25,
+        "max": 60
+      },
+      {
+        "name": "sleeve_length",
+        "min": 15,
+        "max": 70
+      },
+      {
+        "name": "sleeve_width",
+        "min": 20,
+        "max": 50
+      }
+    ],
+    "poses": {
+      "front": {
+        "object": {
+          "bucket": "apparule-local",
+          "key": "apparule/local/tmp/captures/5c2a9d1e-3b4f-4a6c-8d7e-9f0a1b2c3d4e/front.jpg",
+          "size": 812345,
+          "content_type": "image/jpeg"
+        },
+        "width": 1536,
+        "height": 2048
+      },
+      "side": {
+        "object": {
+          "bucket": "apparule-local",
+          "key": "apparule/local/tmp/captures/5c2a9d1e-3b4f-4a6c-8d7e-9f0a1b2c3d4e/side.jpg",
+          "size": 812345,
+          "content_type": "image/jpeg"
+        },
+        "width": 1536,
+        "height": 2048
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://apparule.cuesoft.io/contract/capture.uploaded.schema.json",
+  "title": "apparule.capture.uploaded",
+  "description": "uploads -> common, on cuelabs.uploads. The gateway verified the ticket and stored the pose images in tmp/. A first upload carries both poses; a retake carries only the pose its ticket allowed. Key: session id.",
+  "type": "object",
+  "required": ["ticket_id", "account_id", "session_id", "poses"],
+  "additionalProperties": false,
+  "properties": {
+    "ticket_id": { "type": "string", "minLength": 1 },
+    "account_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "session_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "poses": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "front": { "$ref": "defs.schema.json#/$defs/image_ref" },
+        "side": { "$ref": "defs.schema.json#/$defs/image_ref" }
+      }
+    }
+  }
+}

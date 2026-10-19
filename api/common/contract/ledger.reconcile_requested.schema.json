@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://apparule.cuesoft.io/contract/ledger.reconcile_requested.schema.json",
+  "title": "apparule.ledger.reconcile_requested",
+  "description": "common's hourly job -> commerce, on cuelabs.requests. The ledger's provider-facing movements in the window, for commerce to compare with Paystack's transactions and transfers (system-design.md §6.4). Replaces the compacted ledger.entries topic (X-11). Key: \"reconcile\".",
+  "type": "object",
+  "required": ["window", "movements"],
+  "additionalProperties": false,
+  "properties": {
+    "window": {
+      "type": "object",
+      "required": ["from", "to"],
+      "additionalProperties": false,
+      "properties": {
+        "from": { "type": "string", "format": "date-time" },
+        "to": { "type": "string", "format": "date-time" }
+      }
+    },
+    "movements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["request_id", "kind", "reference", "amount"],
+        "additionalProperties": false,
+        "properties": {
+          "request_id": { "$ref": "defs.schema.json#/$defs/id" },
+          "kind": { "enum": ["charge", "payout", "refund"] },
+          "reference": { "type": "string", "minLength": 1 },
+          "amount": { "$ref": "defs.schema.json#/$defs/money" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "type": "apparule.payouts.recipient_requested",
+  "version": 1,
+  "id": "00000000-0000-4000-8000-00000000d88a",
+  "produced_at": "2026-10-19T10:00:00Z",
+  "data": {
+    "designer_id": "2b3c4d5e-6f70-4a81-9b2c-3d4e5f6a7b8c",
+    "attempt_id": "6b7c8d9e-0f1a-4b2c-9d3e-4f5a6b7c8d9e",
+    "bank_code": "058",
+    "account_number": "0123456789",
+    "account_holder": "Adaeze Okafor"
+  }
+}

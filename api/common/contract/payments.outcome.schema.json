@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://apparule.cuesoft.io/contract/payments.outcome.schema.json",
+  "title": "apparule.payments.outcome",
+  "description": "commerce -> common, on cuelabs.results. A money decision for common to store as made (S-6): a charge that settles an order, a payout or refund executed or failed, a payout recipient verified, or a reconciliation mismatch for a human (§6.4). `ledger` lines are the movement to append. Key: request id (designer id for recipient kinds, \"reconcile\" for mismatches).",
+  "type": "object",
+  "required": ["outcome_id", "kind"],
+  "additionalProperties": false,
+  "properties": {
+    "outcome_id": { "$ref": "defs.schema.json#/$defs/id", "description": "Deterministic per decision (uuid5 of its source), so a redelivered decision is stored once." },
+    "kind": {
+      "enum": [
+        "charge_settled", "charge_rejected",
+        "payout_released", "payout_failed",
+        "refund_issued", "refund_failed",
+        "recipient_verified", "recipient_failed",
+        "mismatch"
+      ]
+    },
+    "request_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "designer_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "attempt_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "provider_event_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "transition_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "reference": { "type": "string" },
+    "provider_ref": { "type": "string", "description": "Paystack transaction id, transfer code or refund id." },
+    "amount": { "$ref": "defs.schema.json#/$defs/money" },
+    "fee": { "$ref": "defs.schema.json#/$defs/money" },
+    "ledger": { "type": "array", "items": { "$ref": "defs.schema.json#/$defs/ledger_line" } },
+    "recipient": {
+      "type": "object",
+      "required": ["recipient_code", "account_name", "bank_name", "last4"],
+      "additionalProperties": false,
+      "properties": {
+        "recipient_code": { "type": "string", "minLength": 1 },
+        "account_name": { "type": "string" },
+        "bank_name": { "type": "string" },
+        "last4": { "type": "string", "pattern": "^[0-9]{4}$" }
+      }
+    },
+    "reason": { "type": "string", "description": "A machine code: amount_mismatch, currency_mismatch, unknown_reference, order_not_payable, name_mismatch, account_invalid, provider_error, missing_in_provider, missing_in_ledger." }
+  },
+  "allOf": [
+    { "if": { "properties": { "kind": { "enum": ["recipient_verified", "recipient_failed"] } } }, "then": { "required": ["designer_id", "attempt_id"] } },
+    { "if": { "properties": { "kind": { "enum": ["charge_settled", "payout_released", "refund_issued"] } } }, "then": { "required": ["request_id", "amount", "ledger"] } },
+    { "if": { "properties": { "kind": { "const": "recipient_verified" } } }, "then": { "required": ["recipient"] } }
+  ]
+}

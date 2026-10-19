@@ -1,0 +1,13 @@
+# BuildKit per-Dockerfile ignore (repo-root context: docker build -f
+# api/segmentation/Dockerfile .). Only this service and the contract schemas
+# ship into the context.
+*
+!api/segmentation
+!api/common/contract/*.schema.json
+
+api/segmentation/tests
+api/segmentation/**/__pycache__
+api/segmentation/.pytest_cache
+api/segmentation/.ruff_cache
+api/segmentation/.env
+api/segmentation/.env.*
