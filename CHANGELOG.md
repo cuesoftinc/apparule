@@ -36,6 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   with polling, ticketed composer uploads, Paystack checkout, asynchronous
   bank verification (#244).
 - `docs/system-design.md` is ratified, with §16 implementation notes (#244).
+- `release.yml`: on a `v*` tag, builds and pushes the four API images and
+  points the Cloud Run services and sweep jobs at their digests in the
+  protected `Sandbox` environment; `docs/deploy-runbook.md` walks an account
+  owner through GCP, Aiven, Firebase, Paystack and GitHub (#244).
 
 - Datadog service catalog entry for the Apparule system.
 - Root README fleet badge row — License (MIT) + `build-and-test` workflow

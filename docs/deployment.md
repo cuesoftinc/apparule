@@ -1,7 +1,8 @@
 # Deployment — Cloud Contract
 
 > Implements decision X-3 for the ratified system design (S-1…S-15,
-> system-design.md §10). Cloud deploys follow the proven cueprise/getpp
+> system-design.md §10). The step-by-step for an account owner is the
+> [deploy runbook](deploy-runbook.md). Cloud deploys follow the proven cueprise/getpp
 > patterns; provisioning goes through the **cuesoft-iac** Pulumi ecosystem —
 > never ad-hoc gcloud. Self-hosting via `deploy/` (compose/helm/terraform)
 > shares only images.
