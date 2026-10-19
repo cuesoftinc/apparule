@@ -3,23 +3,14 @@
 > Companion to [prd.md](prd.md) and [architecture.md](architecture.md).
 > Markers: **[Current]**, **[PRD]**, **[Proposed]**.
 
-## 1. Current state **[Current]**
+## 1. Where the data lives **[Built]**
 
-There is no server-side domain persistence. The complete inventory of data at
-rest today:
-
-| Store | Data | Location |
-| --- | --- | --- |
-| Phone `SharedPreferences` | `name`, `email`, `phone` (from signup), `isDark` theme flag | Flutter `src/services/persistence.dart` |
-| — | Measurement results | **Not stored** — `POST /measure` responses are displayed and discarded |
-| Firebase project | Service-account JSON read at boot for auth stubs | Not used as a datastore |
-
-Transient shapes in flight:
-
-- `MeasurementResponse` (api/measure): `body_height_px`, `scale_factor`,
-  `shoulder_width_px`, `shoulder_width_cm`, `hip_width_px`, `hip_width_cm`.
-- JWT payload (api/common): email subject (currently the service-account email
-  — stub), expiry.
+Postgres (Aiven) is the system of record (S-3), read and written only by
+`api/common`; the entities below are its tables (`api/common/migrations`),
+with the system-design.md §5.2 additions (capture status, upload tickets,
+provider events, the ledger, the outbox). Private rows have row-level
+security (§3). Images live in object storage; Redis holds rate-limit
+windows. The apps never read the database directly.
 
 ## 2. Target entity model **[Proposed]** (satisfies PLAT-001/002, APP-002, §7 compliance)
 
@@ -149,13 +140,15 @@ Modeling notes:
   for proximity ranking; without it they simply don't rank in "near me"
   results — no hard gate. Classification: sensitive PII (§4), never logged.
 
-## 3. Storage mapping **[Proposed]**
+## 3. Storage mapping **[Decided, S-3; built]**
 
 | Concern | Choice | Rationale |
 | --- | --- | --- |
-| System of record | **Firestore** (default DB, `sandbox-e306a`) — **[Decided X-5]**, revising the earlier Postgres proposal | Firebase-native stack; real-time listeners for feed/threads/notifications; the relational entities in §2 map to collections with the workspace/customer/session hierarchy as document paths. Payments-ledger Postgres escape hatch per X-5. |
-| Capture images + exports | Object storage (Firebase Storage today, S3-compatible acceptable) | Large binaries out of the DB; signed URLs for downloads. |
-| Cache/queues (later) | Valkey/Redis (declared stack) | Instance-request queue, export jobs — not needed for P0. |
+| System of record | **Aiven Postgres**, `api/common` its only client (S-3, restoring A-4; X-5's Firestore datastore retired) | The model is relational (workspace → customer → session → snapshot), money needs ACID across rows (D5), and counters update in the same transaction as the row that changes them. |
+| Tenancy | `FORCE ROW LEVEL SECURITY` keyed on the caller's account and workspace; orders visible to their two parties; system tables only to consumers and sweeps (S-11) | Defence in depth behind the service's checks; the app connects as a non-superuser. |
+| Images and exports | Cloud Storage (MinIO-compatible S3 for self-host): `tmp/` 24 h, `captures/` 30 days after save, `media/` public post images, `attachments/` and `exports/` behind signed URLs, `compute/` claim-check payloads 1 day | Large binaries out of the database; bytes never ride the bus. |
+| Rate limits and quota | Aiven Redis (`REDIS_DB` tenancy, X-5) | Losing it fails limits open for the outage; idempotency and single-use tickets stay in Postgres. |
+| Real-time | FCM push for what changed + polling | Replaces Firestore listeners (S-3). |
 
 ## 4. Data classification & handling **[PRD §7]**
 
@@ -227,7 +220,8 @@ erDiagram
 Rules: measurement snapshots are **frozen copies** (vault changes never
 mutate an order); vault data is never public — a snapshot exists only inside
 a request the customer initiated (privacy story for APP-005); social counters
-(likes/saves) are denormalized on POST with periodic reconciliation; payments
+(likes, comments) are denormalized on POST and updated in the same
+transaction (S-10); payments
 follow escrow: `held` at pay, `released` on delivery confirmation (dispute
 pauses release); proximity ranking ("near me", pages.md B2) reads the
 designer's `ACCOUNT.profile_location` (§2, X-10 tier 1) — designers without
@@ -313,9 +307,8 @@ is the source of truth).
 
 ### 6.6 Operational notes
 
-- Firestore reliability: PITR enabled (7-day window) + daily exports to the
-  Cloud Storage bucket (`apparule/backups/…`); recovery runbook lands with
-  F2-1. Denormalized social counters reconcile **hourly** (job R4, architecture
-  §8).
+- Postgres reliability: Aiven's point-in-time recovery and daily backups.
+  Social counters update in the same transaction as their row (S-10), so
+  there is no reconciliation job.
 - Draft captures on device use the platform keystore
   (Keychain / Android Keystore via `flutter_secure_storage`).

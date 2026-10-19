@@ -106,8 +106,8 @@ describe("SelfHostSection (A7c)", () => {
       screen.getByText(/cd apparule && docker compose up --build -d/),
     ).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Helm" })).toBeInTheDocument();
-    expect(screen.getByText("api-common")).toBeInTheDocument();
-    expect(screen.getByText("api-measure")).toBeInTheDocument();
+    expect(screen.getByText("common")).toBeInTheDocument();
+    expect(screen.getByText("segmentation")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /read the self-host guide/i }),
     ).toBeInTheDocument();

@@ -27,10 +27,10 @@ flowchart TD
     CAM2 --> H{height on file?}
     H -->|no| HEIGHT[height input, 100–230 cm, unit toggle]
     H -->|yes| UP
-    HEIGHT --> UP[upload session: POST customers/me/sessions — image_front + image_side + height]
+    HEIGHT --> UP[create session: POST me/sessions height → ticket, then POST uploads image_front + image_side]
     UP --> QC{server QC, per pose}
-    QC -->|pose 1 fails| R1[422 guidance → retake front only]
-    QC -->|pose 2 fails| R2[422 guidance → retake side only, pose 1 kept]
+    QC -->|pose 1 fails| R1[failed_qc guidance → retake front only]
+    QC -->|pose 2 fails| R2[failed_qc guidance → retake side only, pose 1 kept]
     QC -->|pass| RESULTS[results: measurement cards stagger-in]
     R1 --> CAM1
     R2 --> CAM2
@@ -44,9 +44,9 @@ flowchart TD
 | Step | Contract |
 | --- | --- |
 | Height input | 100–230 cm (39–91 in); stored per account, editable in vault; changing height NEVER retro-scales old sessions (they froze their `input_height_cm`) |
-| Upload | multipart `image_front` + `image_side`, each ≤ 10 MB, JPEG/PNG/HEIC; client compresses each to ≤2048px long edge before upload; both images ride one request with one `Idempotency-Key` header (UUID per capture attempt) — retries on flaky mobile MUST NOT create duplicate sessions |
-| QC failures | always `422 {error:{code, message, guidance, pose}}` — QC is **per pose** (capture-qc.md §2): the error names the failing pose, first-failure-only within it; the client re-enters that pose's camera (mobile) / re-picks that pose's file (web, M-12) — an accepted pose is never discarded; a retry never advances the pose counter. Full code set from capture-qc.md §1–2 with retake copy: `no_body` "Make sure your whole body is visible" · `multiple_bodies` "Make sure you're alone in frame" · `partial_body` "Include head to ankles" · `undecodable_image` "That image couldn't be read — try another photo" · `low_resolution` "Move closer or use a higher-quality camera" · `poor_lighting` "Find better lighting — avoid strong backlight" · `blurry` "Hold steady and retake" · `not_frontal` "Face the camera straight on" · `camera_tilt` "Hold the phone upright" · `arms_position` (front) "Keep arms slightly away from your body" / (side) "Let your arms hang relaxed at your sides" · `too_far` "Move closer — fill more of the frame" · `not_side_profile` "Turn your right side to the camera" |
-| Results (A-10b) | a scan maps the customer's **FULL A-10 template** (women 17 / men 14, §2) — one vocabulary for every method **[Decided 2026-07-30]**; capture is template-gated exactly like manual entry (null template interposes the one-time chooser; the mock rejects ungated submits with `template_required`); TEST_MODE seeds + mock pipeline speak only this vocabulary, mock-ahead of the `api/measure` recalibration (whose px internals stay per capture-qc.md until then) |
+| Upload | create-then-upload (system-design.md §6.1, S-4): `POST /me/sessions {input_height_cm}` with one `Idempotency-Key` (UUID per capture attempt) answers the session and an upload ticket — a retried create returns the same session, never a duplicate; then multipart `image_front` + `image_side`, each ≤ 10 MB, JPEG/PNG/HEIC/WebP, go to `POST /uploads` with the ticket (`202`); the client compresses each to ≤ 2048 px and the gateway re-checks and strips EXIF/GPS; then poll `GET /sessions/{id}` |
+| QC failures | the session turns `failed_qc` with `qc {code, message, guidance, pose}` (file checks — type, size, decode — are still a synchronous `413/415/422` from the gateway naming the pose); `POST /sessions/{id}/poses/{pose}/ticket` retakes only that pose. QC is **per pose** (capture-qc.md §2): the error names the failing pose, first-failure-only within it; the client re-enters that pose's camera (mobile) / re-picks that pose's file (web, M-12) — an accepted pose is never discarded; a retry never advances the pose counter. Full code set from capture-qc.md §1–2 with retake copy: `no_body` "Make sure your whole body is visible" · `multiple_bodies` "Make sure you're alone in frame" · `partial_body` "Include head to ankles" · `undecodable_image` "That image couldn't be read — try another photo" · `low_resolution` "Move closer or use a higher-quality camera" · `poor_lighting` "Find better lighting — avoid strong backlight" · `blurry` "Hold steady and retake" · `not_frontal` "Face the camera straight on" · `camera_tilt` "Hold the phone upright" · `arms_position` (front) "Keep arms slightly away from your body" / (side) "Let your arms hang relaxed at your sides" · `too_far` "Move closer — fill more of the frame" · `not_side_profile` "Turn your right side to the camera" |
+| Results (A-10b) | a scan maps the customer's **FULL A-10 template** (women 17 / men 14, §2) — one vocabulary for every method **[Decided 2026-07-30]**; capture is template-gated exactly like manual entry (null template interposes the one-time chooser; the mock rejects ungated submits with `template_required`); TEST_MODE seeds + mock pipeline speak only this vocabulary, `api/segmentation` measures every template name with `mediapipe_2d_v2` (system-design.md §16 I-7) |
 | Unsaved results | server session rows created with `status: pending_save`; auto-purged after 24h unsaved **[Decided default]**; "Retake" purges immediately |
 | Save | flips `status: complete`; both capture images begin their 30-day `retention_until` clock; measurements persist indefinitely |
 
@@ -57,7 +57,7 @@ flowchart TD
 | Network dies mid-upload | client retries ×3 w/ backoff (same idempotency key); then "Saved to drafts — retry from vault" (draft = local images + height, encrypted via the platform keystore — Keychain / Android Keystore through `flutter_secure_storage`) |
 | App killed between poses | the front image persists in the local draft; re-entry resumes at Pose 2 (an accepted pose is never re-shot) |
 | App killed after capture, before save | draft persists locally; vault shows "1 unsaved capture" chip on next open |
-| Pipeline timeout (>30s) | `503 pipeline_busy`; client offers retry; session row marked `failed` |
+| Pipeline slow or down | the session stays `processing`; after 60 s `common` re-sends it once, after 180 s it turns `failed` with `pipeline_busy` and the client offers a retry with a new key |
 | User with no vault opens request flow | redirected here with "You need measurements first" (flows/request.md §2) |
 | Camera permission denied | inline explainer + settings deep-link + "enter manually instead" |
 | Consent not yet recorded | consent sheet interposes before first upload; declining aborts save (capture stays local draft) |

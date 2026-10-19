@@ -1,145 +1,108 @@
 # Apparule — API Surface
 
-> Current surface is verified against code; target surface implements the PRD
-> and the platform requirements (prd.md §3.3). Markers: **[Current]**, **[PRD]**,
-> **[Proposed]**.
+> The HTTP surface as built (system-design.md §7, S-1…S-15). The web mock
+> server (`web/src/app/api/mock/v1`) defined the contract and `api/common`
+> implements it; the only changes are the asynchronous flows the design calls
+> for (§2.2), recorded in system-design.md §16. Markers: **[Built]**,
+> **[Planned]**.
 
-## 1. Current surface **[Current]**
+## 1. Hosts and auth **[Built]**
 
-### api/common (Go, :8080)
-
-| Method & path | Request | Response | Notes |
-| --- | --- | --- | --- |
-| `GET /health` | — | `200` static | liveness |
-| `GET /ready` | — | `200` static | readiness |
-| `POST /api/auth/google` | `{"id_token": "..."}` | `200 {message, project, token}` | **Stub**: does not verify `id_token`; mints JWT for the service-account email (`TODO(security-prd)`), 500 if no service identity configured |
-| `POST /api/auth/email` | `{"email": "..."}` | `200 {message, email, scope}` | **Stub**: logs and returns; no link/OTP is sent |
-
-JWT: HS256, email subject, 24h expiry (`internal/auth/jwt.go`). No endpoint
-currently *requires* a token — there is nothing to protect yet.
-
-### api/measure (Python, :8081)
-
-| Method & path | Request | Response | Notes |
-| --- | --- | --- | --- |
-| `GET /health` / `GET /ready` | — | `200` | probes |
-| `POST /measure` | multipart: `image` (file), `user_height_cm` (form, default 170) | `MeasurementResponse` | 422 if no body detected or image undecodable |
-
-`MeasurementResponse`: `body_height_px`, `scale_factor`, `shoulder_width_px`,
-`shoulder_width_cm`, `hip_width_px`, `hip_width_cm`.
-
-The one-image surface above is the code as it stands before the backend
-phase; the ratified contract is **two photos** (M-10) — the §2 evolution
-table carries it.
-
-FastAPI serves `/openapi.json` + `/docs` out of the box — the seed of APP-004.
-
-## 2. Target surface **[Proposed]** — `/api/v1`, all on api/common unless noted
-
-Authentication: **Firebase ID-token bearer, Google-only (X-1 hardened)** —
-verified server-side (audience `sandbox-e306a`, `sign_in_provider ==
-google.com`); the future `account.cuesoft.io` facade fronts the same tokens.
-All routes below require auth unless marked public.
-Authorization scope: every resource is workspace-scoped; membership checked per
-request.
-
-### Auth & consent
-
-| Method & path | Purpose | Maps to |
+| Host / path | Routes to | Auth |
 | --- | --- | --- |
-| `GET /api/v1/me` | Resolve the caller's account (idempotent upsert on first login, flows/auth.md §3); returns username + consent + designer state | X-1 |
-| `PATCH /api/v1/me` | Update profile fields incl. `username` claim/rename (unique, 1×/30d) → `409 name_taken` | pages.md B6 |
-| `GET /api/v1/consent` | Current user's accepted document versions | PRD §7 |
-| `POST /api/v1/consent` | Record acceptance `{document, version}` | PRD §7 |
+| `api.apparule.cuesoft.io/api/v1/*` | `api/common` | Firebase ID token (bearer), Google only (X-1) |
+| `api.apparule.cuesoft.io/api/v1/uploads` | `api/uploads` | an upload ticket (`Upload-Ticket` header), never a user token |
+| `api.apparule.cuesoft.io/webhooks/payments` | `api/common` | Paystack signature only (`X-Paystack-Signature`, HMAC-SHA512) |
+| `apparule.cuesoft.io/api/v1/*` | the web's server-side proxy → the same | as above |
 
-### Customers & measurement records (PLAT-001/002)
+`common` verifies the ID token on every request (audience = the Firebase
+project, `sign_in_provider == google.com`; any other provider is `403
+provider_not_allowed`). First sign-in creates the account. Every resource is
+account-scoped with row-level security behind it; cross-account access is
+`404 not_found`, never `403`. `/health` and `/ready` exist on every service.
+
+## 2. Endpoints **[Built]**
+
+### 2.1 Account and consent
 
 | Method & path | Purpose |
 | --- | --- |
-| `GET /api/v1/customers` · `POST /api/v1/customers` | list/create customers in the caller's workspace |
-| `GET /api/v1/customers/{id}` · `PATCH` · `DELETE` | manage one customer (soft delete; purge per retention policy) |
-| `POST /api/v1/customers/{id}/sessions` | create a measurement session: multipart `image_front` + `image_side` (two-photo capture, M-10) + `input_height_cm`; api/common stores both assets, calls api/measure internally, persists results |
-| `GET /api/v1/customers/{id}/sessions` | measurement history for a customer |
-| `GET /api/v1/sessions/{id}` | session detail incl. measurements + pipeline metadata |
-| `PATCH /api/v1/sessions/{id}/measurements` | append manual corrections (`source: manual_correction`) |
-| `POST /api/v1/sessions/{id}/exports` | generate `pdf`/`csv` export → signed URL (PLAT-004) |
+| `GET /me` · `PATCH /me` | the caller's account; `PATCH` takes `username` (unique, 1×/30 days → `409 name_taken` / `rename_too_soon`), `display_name`, `profile_location` (or `null`), `notification_prefs` (partial), `measurement_template` (`women` \| `men`, never cleared) |
+| `GET /me/export` · `POST /me/deletion` | data export; deletion request (`409 account_has_active_orders` while money is in flight) |
+| `GET /me/saved` | saved posts |
+| `POST /me/devices` · `DELETE /me/devices/{token}` | FCM device tokens `{token, platform}` |
+| `GET /consent` · `POST /consent` | consent records `{document: tos \| privacy, version}` |
+| `GET /instance-requests` · `POST /instance-requests` | cloud instance requests (APP-002) |
 
-### Cloud access (APP-002)
+### 2.2 The vault and capture
 
 | Method & path | Purpose |
 | --- | --- |
-| `POST /api/v1/instance-requests` | request a cloud instance (consent-gated) |
-| `GET /api/v1/instance-requests` | caller's requests + status |
+| `GET /me/sessions` | saved and unsaved results (`complete`, `pending_save`), newest first |
+| `POST /me/sessions` | JSON. `{method: "manual", measurements: [{name, value_cm}]}` stores tape values at once. `{input_height_cm}` creates a capture: `201` with the session (`awaiting_upload`) and `upload {ticket, url, fields, max_files, max_bytes, expires_at}`. Consent (`403 consent_required`) and the A-10 template (`409 template_required`) are checked first; `Idempotency-Key` returns the same session with a fresh ticket |
+| `POST /uploads` *(api/uploads)* | multipart `image_front` + `image_side` (or the one pose a retake ticket names) with `Upload-Ticket`; `202`. Synchronous errors name the pose: `413 file_too_large`, `415 unsupported_type`, `422 undecodable_image`; `503` with `Retry-After` while Kafka or storage is away |
+| `GET /sessions/{id}` | poll: `status` `awaiting_upload` → `processing` → `pending_save` \| `failed_qc` (with `qc {code, pose, message, guidance}`) \| `failed` (`error_code: pipeline_busy`); `poses {front, side}` says which were accepted |
+| `POST /sessions/{id}/poses/{front\|side}/ticket` | retake one pose of a `failed_qc` capture; the accepted pose is kept (`409 pose_accepted`) |
+| `POST /sessions/{id}/save` | `pending_save` → `complete`; images move to `captures/` with a 30-day clock |
+| `PATCH /sessions/{id}/measurements` | append `manual_correction` rows |
+| `DELETE /sessions/{id}` | delete a session and its images ("Retake" discards unsaved results this way) |
+| `POST /sessions/{id}/exports` | `{format: pdf \| csv}` → `{url}` (signed, 15 minutes) |
 
-### Events (ECO-ANALYTICS)
+### 2.3 Social
 
-Landing-page events ("Demo Starts", "GitHub Clicks") post **directly from the
-web client to Upstat's event API** (D2) — api/common does not proxy marketing
-analytics. Product metrics (sessions created, instance requests) are emitted
-server-side by api/common to the same API.
-
-### api/measure — internal contract evolution
-
-| Change | Why |
+| Method & path | Purpose |
 | --- | --- |
-| `POST /measure` becomes two-image multipart: `image_front` + `image_side` (right profile) + `user_height_cm`; QC verdicts report **per pose**; girths estimate from the two views | Two-photo canon (M-10, decisions.md); per-pose QC in capture-qc.md §2; **[Directive: measurement pipeline recalibration needed]** (capture-qc.md §3) |
-| `POST /measure` gains `method` selection + per-measurement `confidence`, `qc` block in the response (v2 schema, additive) | SMPL pipeline (PLAT-005) returns girths + confidence; 2-D method reports its QC verdicts |
-| Service becomes internal-only in cloud topology (ClusterIP, called by api/common) | api/common is the single writer; self-hosters may still expose it directly |
+| `GET /feed` | followed designers' posts, ranked; cursor = frozen rank snapshot (24 h) |
+| `GET /explore?q&tags&price_band&max_turnaround_days&near_me` | filtered posts; bands `budget` < 25k, `mid` 25–100k, `premium` > 100k NGN; `near_me=1` ranks by proximity tier (city > state > country), never a gate |
+| `POST /media/tickets` · `GET /media/batches/{id}` | reserve a composer upload `{count}` (designers) and poll it; items carry a preview URL |
+| `POST /posts` · `GET /posts/{id}` · `DELETE /posts/{id}` | create (`media: [{media_id \| url, alt_text}]`, 1–10 images; a designer profile is needed, KYC is not); read; delete (author) |
+| `POST/DELETE /posts/{id}/like` · `POST/DELETE /posts/{id}/save` | idempotent toggles |
+| `GET/POST /posts/{id}/comments` | comments (≤ 500 chars) |
+| `POST/DELETE /follows/{designer}` | follow a designer (idempotent) |
+| `GET /profiles/{username}` · `/posts` · `/followers` · `/following` | public profiles with derived counts |
+| `GET /designers?q=` · `GET /designers/suggested` | designer search and suggestions |
+| `POST /reports` · `POST/DELETE /blocks/{account}` | reports (`post \| comment \| account`); silent blocks |
+| `GET /moderation/queue` · `POST /moderation/reports/{id}/action` | staff: queue; `hide_post \| suspend_account \| dismiss` |
 
-## 3. Gap analysis — requirement → current → needed
+### 2.4 Orders and money
 
-| Requirement | Current state | Gap |
-| --- | --- | --- |
-| APP-001 GitHub gateway | README/CONTRIBUTING exist; no landing page | Landing page links (web work only) |
-| APP-002 cloud access | Auth stubs; no consent, no instance model | D1 contract + consent endpoints + instance-requests + dashboard UI |
-| APP-003 SMPL demo | Nothing SMPL exists | Demo media first; pipeline later (PLAT-005) |
-| APP-004 API reference | FastAPI `/openapi.json` only; Go undocumented | OpenAPI spec for api/common (static YAML or swag), docs-site renderer with search |
-| APP-005 privacy disclosure | None | Web page + privacy.cuesoft.io clause link (D3) |
-| PLAT-001/002 records | Zero persistence | Firestore data layer (X-5), repository layer, endpoints above |
-| PLAT-003 real auth | Stubs with TODOs | ID-token verification now; account.cuesoft.io when D1 lands |
-| PLAT-004 export | None | Export generation + object storage |
-| PLAT-005 SMPL | MediaPipe 2-D | Staged pipeline (architecture.md §5), licensing decision first |
-
-## 4. Conventions **[Proposed]**
-
-- Versioned base path `/api/v1`; additive changes only within a version.
-- Errors: `{"error": {"code": "...", "message": "..."}}` with stable codes —
-  the current ad-hoc `{"error": "text"}` shape migrates at v1.
-- All list endpoints paginate (`?cursor=` + `limit`, default 50, max 100).
-- Idempotency keys (`Idempotency-Key` header, UUID) on session creation,
-  request submission, payments, and instance requests. Semantics **[Decided]**:
-  scope = account + endpoint; dedupe window **24h**; same key + identical
-  payload → replay the original response; same key + different payload →
-  `409 idempotency_conflict`; keys for failed (5xx) executions are released.
-
----
-
-## 5. Social commerce surface (2026-07-16 expansion) **[Proposed]**
-
-All under `/api/v1`, workspace/account auth as §2. Deltas only:
-
-| Group | Endpoints |
+| Method & path | Purpose |
 | --- | --- |
-| Posts | `POST /posts` (designer) · `GET /posts/{id}` · `GET /feed` (followed + ranked) · `GET /explore?q&tags&price_band&max_turnaround_days&near_me` (bands: `budget` <25k, `mid` 25–100k, `premium` >100k NGN **[Decided defaults]**; filter-chip params below) · `DELETE /posts/{id}` |
-| Social graph | `POST/DELETE /follows/{designer}` · `POST/DELETE /posts/{id}/like` · `POST/DELETE /posts/{id}/save` · `POST /posts/{id}/comments` (body ≤500 chars) · `GET /posts/{id}/comments` |
-| Trust & safety | `POST /reports` `{subject_kind, subject_id, reason}` · `POST/DELETE /blocks/{account}` · moderator: `GET /moderation/queue` · `POST /moderation/reports/{id}/action` `{action: hide_post\|suspend_account\|dismiss}` (A-6; semantics in data-model §6.2) |
-| Requests | `POST /posts/{id}/requests` (body: vault snapshot selector, notes, budget) · `GET /requests?role=customer\|designer` · `GET /requests/{id}` · `POST /requests/{id}/quote` · `POST /requests/{id}/decline` · `POST /requests/{id}/status` (in_progress/shipped — `delivered` is customer-confirm or system auto-confirm only, order-lifecycle §2) · `POST /requests/{id}/messages` |
-| Payments | `POST /requests/{id}/pay` (provider session) · `POST /webhooks/payments` (unversioned by design; **auth = provider signature only**, never bearer; unauthenticated-but-verified, engineering §2) · `POST /requests/{id}/confirm-delivery` (releases escrow) · `POST /requests/{id}/dispute` |
-| Designer | `POST /designer-profile` (enable + KYC start) · `GET /designer/earnings` · `POST /designer/payout-account` |
-| Notifications | `GET /notifications` · `POST /notifications/read` |
+| `POST /posts/{id}/requests` | commission with `{session_id, notes, budget_cents, target_date, delivery}`; the snapshot freezes server-side; `409 post_unavailable` before the designer's KYC, `409 duplicate_request`, `429` past 10 open; `Idempotency-Key` honored |
+| `GET /requests?role=customer\|designer` · `GET /requests/{id}` | party only |
+| `POST /requests/{id}/quote` · `/decline` · `/status` | designer: quote (requote while quoted), decline with a reason, `in_progress` \| `shipped` |
+| `POST /requests/{id}/cancel` · `/confirm-delivery` · `/dispute` | customer: withdraw or reject the quote, confirm (releases the payout), dispute (either party) |
+| `POST /requests/{id}/pay` | starts the Paystack checkout: the order (still `quoted`) with `checkout {provider, reference, amount_cents, currency, email, public_key}`; it turns `paid` when the webhook's charge settles |
+| `GET/POST /requests/{id}/messages` · `POST /requests/{id}/attachments/tickets` | thread (≤ 1000 chars); image attachments upload through a ticket and are referenced by `image_url` |
+| `POST /moderation/requests/{id}/resolve` | staff: resolve a dispute `{outcome: delivered \| refunded}` |
+| `POST /designer-profile` | enable a designer profile |
+| `POST /designer/payout-account` (`/resolve` is the same) · `GET /designer/payout-account` | submit a bank account (`202`, `kyc_state: pending`), then poll until `verified` or a `reason` (`name_mismatch`, `account_invalid`) |
+| `GET /designer/earnings` | balance, pending escrow, payouts and fee lines |
+| `GET /notifications` · `POST /notifications/read` | activity list (90 days); mark read (`{ids}` or all) |
+| `POST /webhooks/payments` | Paystack events; `200` once stored |
 
-Explore filter-chip params (pages.md B2) **[Proposed 2026-07-19 — mock
-implements]**: `max_turnaround_days` (positive integer) keeps only posts
-with `turnaround_days` within the bound; `near_me` (`1`) proximity-ranks
-results by the designer's `profile_location` against the caller's (X-10
-tier 1) — same city, then same state, then same country, with recency
-preserved within each tier. Proximity is a **ranking, never a hard gate**:
-locationless designers simply sort last, and callers without a profile
-location get plain recency order.
+## 3. Conventions **[Built]**
 
-Feed/explore are the only ranked endpoints (recency + follow affinity v1; no
-ML ranking until data exists). Ranked pagination **[Decided]**: cursors encode
-a stable snapshot ordinal (rank computed at first page, frozen for the cursor's
-24h lifetime), so pages never duplicate or skip posts within one scroll
-session; new posts appear on refresh, not mid-scroll. Likes/saves/follows are idempotent PUT-style
-toggles with optimistic-client semantics (design.md MI-18).
+- Base path `/api/v1`; additive changes only within a version.
+- Errors: `{"error": {"code", "message", "details"}}` with the stable codes of
+  engineering.md §1; QC failures carry `pose` (and `guidance`) in `details`
+  or the session's `qc`.
+- Lists paginate with `?cursor=` + `limit` (default 50, max 100) and answer
+  `{items, next_cursor}`.
+- `Idempotency-Key` (UUID) on session creation, request submission and pay:
+  scope = account + endpoint; same key + same payload replays; a different
+  payload is `409 idempotency_conflict`.
+- Rate limits answer `429 rate_limited` with `Retry-After` (engineering.md §3).
+- Money is integer minor units (kobo) with an ISO 4217 currency (NGN in v1).
+
+## 4. Events (ECO-ANALYTICS) **[Planned]**
+
+Landing-page events post directly from the web client to Upstat's event API
+(D2); product counters (sessions created, requests) are emitted server-side by
+`api/common` once D2 exists. Never measurement values.
+
+## 5. Internal: the bus **[Built]**
+
+Services never call each other over HTTP; their hand-offs are the events in
+system-design.md §5.3, on the CueLABS shared lanes, with schemas in
+`api/common/contract/`.

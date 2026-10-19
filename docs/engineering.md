@@ -75,12 +75,13 @@ no inline ad-hoc checks.
 | --- | --- | --- |
 | Unit (Go table-driven; pytest) | handlers, services, QC math | capture-qc golden images (1 per QC code); order state-machine transition table (every legal + illegal edge); confidence formula fixtures |
 | Contract | error catalog | every documented code producible by a test |
-| Integration (compose) | api/common ↔ api/measure ↔ Firestore emulator | idempotency: duplicate session/request/payment under concurrent retry |
+| Integration | api/common against a real Postgres as a non-superuser (embedded, or a CI service) | RLS isolation proven cross-account; idempotency under retries; the capture flow with a per-pose retake; the commission flow from webhook to payout |
 | E2E smoke (per release tag) | auth → capture → save → request → quote → pay(sandbox) → deliver | runs against sandbox before the tag deploy completes (release.yml gate) |
-| Money invariants | platform ledger | property-based: Σ(payments) = Σ(payouts + fees + refunds + held) at all times |
+| Money invariants | platform ledger | each outcome's lines sum to zero (a deferred trigger rejects anything else); escrow returns to zero after payout |
 
-Firestore rules tests: vault documents unreadable cross-account by
-construction (emulator rule tests are part of CI, not optional).
+Row-level security tests: vault, order and notification rows unreadable
+cross-account by construction (the Postgres integration suite runs in CI,
+not optional). Every service validates the Kafka contract's examples.
 
 ## 5. Logging & observability
 
@@ -97,8 +98,8 @@ construction (emulator rule tests are part of CI, not optional).
 
 - [ ] Error catalog test suite covers every code in flows/* + capture-qc
 - [ ] Authz matrix encoded as middleware capability table + tests per row
-- [ ] Firestore emulator rules tests in CI
-- [ ] Money invariant property test present before Phase 4 merges
+- [x] Postgres RLS integration tests in CI
+- [x] Money invariant enforced by the database and tested
 - [ ] Never-log grep gate wired into build-and-test.yml
 
 ## CORS contract (ecosystem standard)
@@ -110,7 +111,7 @@ construction (emulator rule tests are part of CI, not optional).
   methods `GET,POST,PUT,PATCH,DELETE,OPTIONS`; headers
   `Authorization, Content-Type, Idempotency-Key, X-Org-Id`; preflight 204
   with `Access-Control-Max-Age: 600`.
-- Implemented today in api/common (`CORS_ORIGINS` — the ecosystem-standard variable name).
+- Implemented in api/common and api/uploads (`CORS_ORIGINS` — the ecosystem-standard variable name); uploads allows `POST` and the `Upload-Ticket` header only.
 
 ## Telemetry (OpenTelemetry, X-9)
 

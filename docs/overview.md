@@ -1,8 +1,9 @@
 # Overview
 
-Apparule is a fashion body-measurement platform. Users capture their body
-measurements from their phone, and the platform turns those into sizing data
-for a better-fitting shopping experience.
+Apparule is a fashion body-measurement and social-commerce platform. Users
+capture their measurements from their phone, keep them in a private vault,
+follow designers, and commission outfits with a frozen copy of their
+measurements; designers quote, get paid through escrow, and deliver.
 
 ## Architecture
 
@@ -12,50 +13,62 @@ flowchart LR
         WEB[web + dashboard<br/>Next.js — App Hosting]
         MOB[Flutter mobile]
     end
-    FB[Firebase / Google auth]
-    subgraph server["GCP Cloud Run"]
-        AC[api/common — Go]
-        AM[api/measure — Python, pose]
+    FB[Firebase Auth<br/>Google only]
+    subgraph server["GCP Cloud Run (scale to zero)"]
+        AC[api/common — Go<br/>CRUD]
+        UP[api/uploads — Node<br/>upload gateway]
+        SG[api/segmentation — Python<br/>pose QC · measurements]
+        CM[api/commerce — Python<br/>payments · notifications]
     end
     subgraph data
-        FS[(Firestore)]
+        PG[(Aiven Postgres)]
         CS[(Cloud Storage)]
         RD[(Aiven Redis)]
+        K[[CueLABS shared Kafka]]
     end
     WEB --> FB
     MOB --> FB
     WEB --> AC
     MOB --> AC
-    AC --> AM
-    AC --> FS
-    AC --> CS
+    WEB --> UP
+    MOB --> UP
+    AC --> PG
     AC --> RD
+    UP --> CS
+    UP --> K
+    AC <--> K
+    K <--> SG
+    K <--> CM
+    SG --> CS
 ```
 
-- **`web`** — Next.js marketing site + user dashboard (Firebase App Hosting).
-- **`mobile`** — Flutter app (iOS/Android) for capturing measurements.
-- **`api/common`** — Go service: authentication and core API (Cloud Run).
-- **`api/measure`** — Python service: MediaPipe pose-based body measurement.
-- **Auth** — Firebase Authentication / Google sign-in.
-- **Data** — Firestore (system of record, X-5) & Cloud Storage; shared Aiven Redis (REDIS_DB tenancy).
+- **`web`** — Next.js marketing site + dashboard (Firebase App Hosting).
+- **`mobile`** — Flutter app (iOS/Android): guided two-pose capture, feed, orders.
+- **`api/common`** — Go: the product API, the only client of Postgres; authorizes uploads and stores every decision.
+- **`api/uploads`** — Node (NestJS): the ticketed upload gateway; strips EXIF and GPS.
+- **`api/segmentation`** — Python: per-pose quality checks and measurements (MediaPipe).
+- **`api/commerce`** — Python: Paystack money decisions, push and email delivery.
+- **Auth** — Firebase Authentication, Google sign-in only (X-1).
+- **Data** — Postgres (system of record, S-3), Cloud Storage, shared Aiven Redis, and the CueLABS shared Kafka (X-11).
 
-See [setup.md](setup.md) to run the stack locally, and the
+The [system design](system-design.md) explains why it is shaped this way. See
+[setup.md](setup.md) to run the stack locally, and the
 [repository structure](https://github.com/cuesoftinc/apparule#repository-structure) in the README.
 
 ## Product & design documentation
 > Published site: **https://cuesoft.gitbook.io/apparule** (Git-synced from this folder on every merge to main).
 
-
 - [prd.md](prd.md) — product requirements breakdown (personas, requirements, compliance, open questions)
-- [architecture.md](architecture.md) — current vs target system design, sequences, SMPL pipeline
+- [system-design.md](system-design.md) — the ratified system design: services, transports, data ownership, flows
+- [architecture.md](architecture.md) — the system as built: services, sequences, SMPL plan
 - [data-model.md](data-model.md) — entities, storage mapping, data classification
-- [api.md](api.md) — current + target API surface and gap analysis
+- [api.md](api.md) — the HTTP surface and conventions
 - [roadmap.md](roadmap.md) — phased plan with cross-repo dependencies
 - [design.md](design.md) + [pages.md](pages.md) — design language, screens, microinteractions
 - [order-lifecycle.md](order-lifecycle.md) — commission order state machine, permissions, notifications
-- [decisions.md](decisions.md) — the open-decision register: ratify to unblock phases
-- [deployment.md](deployment.md) — Cloud Run + App Hosting contract (cuesoft-iac provisioning, CI/CD pattern)
-- flows/ — feature flow specs with edge cases: [auth](flows/auth.md), [vault](flows/vault.md), [request](flows/request.md)
+- [decisions.md](decisions.md) — the decision register
+- [deployment.md](deployment.md) — Cloud Run + App Hosting contract (cuesoft-iac provisioning, CI/CD)
+- flows/ — feature flow specs with edge cases: [auth](flows/auth.md), [vault](flows/vault.md), [request](flows/request.md), [designer](flows/designer.md)
 - [capture-qc.md](capture-qc.md) — QC thresholds + measurement-confidence formulas
 - [engineering.md](engineering.md) — error catalog, authz matrix, rate limits, testing strategy, logging rules
 - [features.md](features.md) — granular build backlog (stable unit IDs per phase)

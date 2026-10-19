@@ -1,10 +1,12 @@
 openapi: 3.1.0
 info:
   title: Apparule API
-  version: 0.2.0-draft
+  version: 0.3.0
   description: >-
-    Contract for /api/v1 (docs/api.md is the narrative source; this file is the
-    Scalar-rendered reference). Auth: Firebase ID-token bearer, Google-only
+    Contract for /api/v1 as built (docs/api.md is the narrative source; this
+    file is the Scalar-rendered reference). /api/v1/uploads is served by
+    api/uploads and takes an upload ticket instead of a user token; everything
+    else is api/common. Auth: Firebase ID-token bearer, Google-only
     (X-1 hardened) — backends reject sign_in_provider != google.com. Errors use
     the ecosystem envelope (engineering.md §1); codes are snake_case and stable.
 servers:
@@ -14,7 +16,8 @@ servers:
 security: [{ firebase: [] }]
 tags:
   - { name: auth, description: Account resolution + consent (flows/auth.md) }
-  - { name: vault, description: Measurement vault + customer records (flows/vault.md) }
+  - { name: vault, description: Measurement vault and asynchronous capture (flows/vault.md, system-design.md §6.1) }
+  - { name: uploads, description: The ticketed upload gateway (api/uploads) }
   - { name: social, description: Posts, feed, engagement (pages.md B1-B6) }
   - { name: requests, description: Commission lifecycle (order-lifecycle.md) }
   - { name: designer, description: Designer profile, earnings (flows/designer.md) }
@@ -49,27 +52,45 @@ paths:
   /api/v1/me/sessions:
     post:
       tags: [vault]
-      summary: Create own measurement session (self-customer alias, data-model §6.1; two-photo capture per M-10 — both images ride one request with one Idempotency-Key)
+      summary: "Create a session: manual tape values (stored at once) or a capture (awaiting its photos, with an upload ticket)"
       parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
       requestBody:
         content:
-          multipart/form-data:
-            schema: { type: object, required: [image_front, image_side], properties: { image_front: { type: string, format: binary, description: "front pose, <=10MB JPEG/PNG/HEIC" }, image_side: { type: string, format: binary, description: "side pose (right profile), <=10MB JPEG/PNG/HEIC" }, input_height_cm: { type: number, minimum: 100, maximum: 230 } } }
+          application/json:
+            schema:
+              oneOf:
+                - { type: object, required: [method, measurements], properties: { method: { const: manual }, measurements: { type: array, items: { type: object, required: [name, value_cm], properties: { name: { type: string }, value_cm: { type: number, minimum: 10, maximum: 200 } } } } } }
+                - { type: object, required: [input_height_cm], properties: { method: { const: capture }, input_height_cm: { type: number, minimum: 100, maximum: 230 } } }
       responses:
-        "201": { description: Session with measurements, content: { application/json: { schema: { $ref: "#/components/schemas/MeasurementSession" } } } }
-        "422": { description: "QC failure — per pose (capture-qc.md §2): error.details names the failing pose; first failure by table order within it. Codes (undecodable_image, low_resolution, poor_lighting, blurry, no_body, multiple_bodies, partial_body, not_frontal, not_side_profile, camera_tilt, arms_position, too_far)", content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "201": { description: "Manual: the complete session. Capture: the session (awaiting_upload) with `upload` — POST the photos to /api/v1/uploads with it", content: { application/json: { schema: { $ref: "#/components/schemas/CaptureStarted" } } } }
         "403": { description: consent_required }
-    get: { tags: [vault], summary: Own measurement history, parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }], responses: { "200": { description: Sessions page } } }
-  /api/v1/customers:
-    get: { tags: [vault], summary: List workspace customers, parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }], responses: { "200": { description: Page } } }
-    post: { tags: [vault], summary: Create customer (kind=client), responses: { "201": { description: Customer } } }
-  /api/v1/customers/{id}:
-    get: { tags: [vault], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Customer detail, responses: { "200": { description: Customer }, "404": { $ref: "#/components/responses/NotFound" } } }
-    patch: { tags: [vault], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Update, responses: { "200": { description: Customer } } }
-    delete: { tags: [vault], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Soft delete (purge per retention), responses: { "204": { description: Deleted } } }
-  /api/v1/customers/{id}/sessions:
-    post: { tags: [vault], parameters: [{ $ref: "#/components/parameters/Id" }, { $ref: "#/components/parameters/IdempotencyKey" }], summary: Create session for a client customer (same contract as /me/sessions), responses: { "201": { description: Session }, "422": { description: QC failure } } }
-    get: { tags: [vault], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Customer measurement history, responses: { "200": { description: Sessions } } }
+        "409": { description: template_required (A-10b) }
+        "429": { description: rate_limited (captures 10/min, 100/day; uploads 100 MB/day) }
+    get: { tags: [vault], summary: "Own vault: complete and pending_save sessions, newest first", parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }], responses: { "200": { description: Sessions page } } }
+  /api/v1/uploads:
+    post:
+      tags: [uploads]
+      summary: "Upload images with a ticket from api/common (captures: image_front + image_side, or the one pose a retake ticket names; media: images)"
+      security: []
+      parameters: [{ name: Upload-Ticket, in: header, required: true, schema: { type: string }, description: "v1.<claims>.<Ed25519 signature> (api/common/contract/upload-ticket.md)" }]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: { type: object, properties: { image_front: { type: string, format: binary }, image_side: { type: string, format: binary }, images: { type: array, items: { type: string, format: binary } } } }
+      responses:
+        "202": { description: "Accepted: {target, status: processing | received}. EXIF/GPS stripped, images re-encoded to JPEG <= 2048 px" }
+        "401": { description: invalid_ticket | ticket_expired }
+        "413": { description: file_too_large (details.pose) }
+        "415": { description: unsupported_type (details.pose) }
+        "422": { description: undecodable_image | validation_failed (details.pose) }
+        "503": { description: service_unavailable (Retry-After) }
+  /api/v1/sessions/{id}:
+    get: { tags: [vault], parameters: [{ $ref: "#/components/parameters/Id" }], summary: "Session detail; poll a capture until pending_save | failed_qc | failed", responses: { "200": { description: Session, content: { application/json: { schema: { $ref: "#/components/schemas/MeasurementSession" } } } }, "404": { $ref: "#/components/responses/NotFound" } } }
+    delete: { tags: [vault], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Delete a session and its images (Retake discards unsaved results this way), responses: { "204": { description: Deleted } } }
+  /api/v1/sessions/{id}/poses/{pose}/ticket:
+    post: { tags: [vault], parameters: [{ $ref: "#/components/parameters/Id" }, { name: pose, in: path, required: true, schema: { enum: [front, side] } }], summary: "Retake one pose of a failed_qc capture; the accepted pose is kept", responses: { "201": { description: "The session with an upload ticket for that pose", content: { application/json: { schema: { $ref: "#/components/schemas/CaptureStarted" } } } }, "409": { description: invalid_transition | pose_accepted } } }
+  /api/v1/sessions/{id}/save:
+    post: { tags: [vault], parameters: [{ $ref: "#/components/parameters/Id" }], summary: "Save to vault: pending_save -> complete; images kept 30 days", responses: { "200": { description: Session } } }
   /api/v1/sessions/{id}/measurements:
     patch: { tags: [vault], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Append manual corrections (append-only, source=manual_correction), responses: { "200": { description: Session } } }
   /api/v1/sessions/{id}/exports:
@@ -127,19 +148,31 @@ paths:
   /api/v1/requests/{id}/status:
     post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }], summary: "Designer progress: in_progress | shipped only (delivered is customer/system-only)", requestBody: { content: { application/json: { schema: { type: object, required: [status], properties: { status: { enum: [in_progress, shipped] }, tracking: { type: string } } } } } }, responses: { "200": { description: Request } } }
   /api/v1/requests/{id}/pay:
-    post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }, { $ref: "#/components/parameters/IdempotencyKey" }], summary: Init Paystack payment (escrow hold lands on charge.success webhook), responses: { "200": { description: Provider checkout session } } }
+    post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }, { $ref: "#/components/parameters/IdempotencyKey" }], summary: "Start the Paystack checkout; the order turns paid when the charge.success webhook settles (system-design.md §6.3)", responses: { "200": { description: "The order (still quoted) with checkout {provider, reference, amount_cents, currency, email, public_key}" } } }
   /api/v1/requests/{id}/confirm-delivery:
     post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Customer confirms delivery — releases payout (quote − 10% fee, A-1), responses: { "200": { description: Request } } }
   /api/v1/requests/{id}/dispute:
     post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Open dispute (freezes payout), requestBody: { content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { enum: [not_received, not_as_described, size_wrong, other] }, detail: { type: string } } } } } }, responses: { "200": { description: Request } } }
   /api/v1/requests/{id}/messages:
-    post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Thread message (<=1000 chars, optional image), responses: { "201": { description: Message } } }
+    post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }], summary: "Thread message (<=1000 chars); image_url names an attachment uploaded through /attachments/tickets", requestBody: { content: { application/json: { schema: { type: object, required: [body], properties: { body: { type: string, maxLength: 1000 }, image_url: { type: [string, "null"] } } } } } }, responses: { "201": { description: Message } } }
     get: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }, { $ref: "#/components/parameters/Cursor" }], summary: Thread, responses: { "200": { description: Page } } }
+
+  /api/v1/requests/{id}/attachments/tickets:
+    post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Reserve a thread attachment upload (parties only), responses: { "201": { description: Media batch with an upload ticket } } }
+  /api/v1/media/tickets:
+    post: { tags: [social], summary: Reserve a composer upload (designers), requestBody: { content: { application/json: { schema: { type: object, required: [count], properties: { count: { type: integer, minimum: 1, maximum: 10 } } } } } }, responses: { "201": { description: Media batch with an upload ticket } } }
+  /api/v1/media/batches/{id}:
+    get: { tags: [social], parameters: [{ $ref: "#/components/parameters/Id" }], summary: "Poll a media batch: awaiting_upload | ready, with item ids and preview URLs", responses: { "200": { description: Media batch } } }
+  /api/v1/me/devices:
+    post: { tags: [notifications], summary: Register an FCM device token, requestBody: { content: { application/json: { schema: { type: object, required: [token, platform], properties: { token: { type: string }, platform: { enum: [android, ios, web] } } } } } }, responses: { "204": { description: Registered } } }
 
   /api/v1/designer-profile:
     post: { tags: [designer], summary: Enable designer profile (username required; starts Paystack KYC), responses: { "201": { description: Profile } } }
   /api/v1/designer/payout-account:
-    post: { tags: [designer], summary: Attach payout account (bank resolution via Paystack), responses: { "200": { description: KYC state } } }
+    post: { tags: [designer], summary: "Submit a bank account; api/commerce resolves the name and creates the Paystack recipient (poll GET until verified, or a reason)", requestBody: { content: { application/json: { schema: { type: object, required: [bank_code, account_number], properties: { bank_code: { type: string }, account_number: { type: string, pattern: "^[0-9]{10}$" } } } } } }, responses: { "202": { description: "Payout account, kyc_state pending" } } }
+    get: { tags: [designer], summary: "Payout account: kyc_state none | pending | verified | lapsed, with account_name or reason", responses: { "200": { description: Payout account } } }
+  /api/v1/designer/payout-account/resolve:
+    post: { tags: [designer], summary: Same as POST /designer/payout-account (the B8 resolving step), responses: { "202": { description: "Payout account, kyc_state pending" } } }
   /api/v1/designer/earnings:
     get: { tags: [designer], summary: Balance + payout history, responses: { "200": { description: Earnings } } }
 
@@ -210,12 +243,29 @@ components:
       properties:
         id: { type: string }
         method: { enum: [mediapipe_2d, mediapipe_2d_v2, smpl_v1, manual] }
-        status: { enum: [pending_save, complete, failed] }
+        status: { enum: [awaiting_upload, processing, failed_qc, pending_save, complete, failed] }
+        qc: { type: object, description: "failed_qc only", properties: { code: { type: string }, pose: { enum: [front, side] }, message: { type: string }, guidance: { type: string } } }
+        poses: { type: object, description: "capture only: front/side -> accepted | failed | uploaded", additionalProperties: { enum: [accepted, failed, uploaded] } }
+        error_code: { type: string, description: "failed only, e.g. pipeline_busy" }
         input_height_cm: { type: [number, "null"], description: "nullable — null for method: manual (data-model §2)" }
         measurements:
           type: array
           items: { type: object, properties: { name: { type: string }, value_cm: { type: number }, source: { enum: [pipeline, manual_correction] }, confidence: { type: number } } }
         pipeline_meta: { type: object }
+    CaptureStarted:
+      allOf:
+        - { $ref: "#/components/schemas/MeasurementSession" }
+        - type: object
+          properties:
+            upload:
+              type: object
+              properties:
+                ticket: { type: string }
+                url: { type: string, description: "POST /api/v1/uploads" }
+                fields: { type: array, items: { type: string } }
+                max_files: { type: integer }
+                max_bytes: { type: integer }
+                expires_at: { type: string, format: date-time }
     RequestCreate:
       type: object
       required: [session_id, delivery]

@@ -33,7 +33,7 @@ const FAQS = [
     id: "faq-4",
     question: "What do I need to self-host?",
     answer:
-      "Docker and one command: docker compose up -d brings up everything that ships — api-common (Go), api-measure (Python CV), and the web app — on your own Postgres and S3-compatible storage. The self-host guide covers sizing and configuration.",
+      "Docker and one command: docker compose up -d brings up everything that ships — common (Go), uploads (Node), segmentation and commerce (Python), and the web app — on your own Postgres, Kafka and S3-compatible storage. The self-host guide covers sizing and configuration.",
   },
   {
     id: "faq-5",

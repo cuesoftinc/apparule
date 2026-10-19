@@ -23,7 +23,7 @@
 | ID | Unit | Delivers | Refs | Deps |
 | --- | --- | --- | --- | --- |
 | F1-1 | Firebase project config | Google-only provider enforcement, sandbox-e306a wiring, Doppler stg secrets | flows/auth §1, X-1/X-5 | — |
-| F1-2 | api/common: token verification middleware | Firebase Admin verify + provider check + ACCOUNT upsert (Firestore) | flows/auth §2/§4, engineering §2 | F1-1 |
+| F1-2 | api/common: token verification middleware | Firebase ID-token verify + provider check + ACCOUNT upsert (Postgres) | flows/auth §2/§4, engineering §2 | F1-1 |
 | F1-3 | Web sign-in | single Google CTA screen, redirect fallback, session handling | flows/auth §2–4 | F1-1 |
 | F1-4 | Flutter sign-in rewire | google_sign_in + firebase_auth; retire password screens | flows/auth §5 | F1-1 |
 | F1-5 | Consent gate | consent sheet + GET/POST /consent + CONSENT_RECORD | prd §6, api.md | F1-2 |
@@ -34,8 +34,8 @@
 
 | ID | Unit | Delivers | Refs | Deps |
 | --- | --- | --- | --- | --- |
-| F2-1 | Firestore data layer | collections per data-model §2 hierarchy; rules (vault isolation); emulator tests | data-model, engineering §4 | F1-2 |
-| F2-2 | QC gate in api/measure | pre-checks + pose QC + codes + thresholds config | capture-qc §1–2, §5 | — |
+| F2-1 | Postgres data layer | tables per data-model §2; row-level security (vault isolation); integration tests | data-model, engineering §4 | F1-2 |
+| F2-2 | QC gate in api/segmentation | pre-checks + pose QC + codes + thresholds config | capture-qc §1–2, §5 | — |
 | F2-3 | Sessions API | POST/GET sessions (idempotent, multipart), Cloud Storage assets, retention field | flows/vault §1, api.md | F2-1, F2-2 |
 | F2-4 | Confidence + plausibility | per-measurement confidence, height-suspect flag | capture-qc §3–4 | F2-2 |
 | F2-5 | Manual entry + corrections | manual sessions, append-only corrections, sanity ranges | flows/vault §2 | F2-1 |

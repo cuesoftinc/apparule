@@ -97,7 +97,7 @@ per-method — the field is method-agnostic by design.
 
 ## 5. Config block (single source)
 
-All constants above live in `app/config.py :: QCThresholds` (one dataclass),
+All constants above live in `api/segmentation/app/config.py :: QCThresholds` (one dataclass; the v2 calibration constants beside it in `Calibration`),
 logged (as config, not per-image) at service start, echoed into
 `pipeline_meta.qc.thresholds_version` per session so historical sessions
 remain interpretable after tuning.

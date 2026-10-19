@@ -47,8 +47,9 @@ Custom KYC only if the provider's proves insufficient.
 ## A-4 · System of record — gates Phase 2 (Vault)
 
 > **REVISED by X-5 (2026-07-16): Firestore**, not Postgres — see the
-> cross-cutting section. The original recommendation below is kept for the
-> audit trail.
+> cross-cutting section. **Restored by S-3 (2026-10-20): Postgres is the
+> system of record again**, with `api/common` its only client. The original
+> recommendation below is kept for the audit trail.
 
 **Recommendation ⭐: Postgres** (Aiven, already in the declared stack) for all
 domain entities; object storage for capture media; Firestore not used as a
@@ -139,6 +140,39 @@ the post option is a deliberate per-share choice, unchecked every time.
 
 ☑ Ratified 2026-07-31
 
+## System design (S-1 … S-15)
+
+> **RATIFIED 2026-10-20 (boss).** The decisions in
+> [system-design.md §13](system-design.md#13-decisions-to-ratify), approved as
+> recommended, with the 2026-10-13 shared-bus amendment (X-11) applied where it
+> changes them (S-8, S-9, S-13 below). S-3 reverses the datastore half of X-5
+> and restores A-4. These supersede the system-shape parts of architecture.md,
+> data-model.md §3 and deployment.md, which were rewritten from the design the
+> same day; system-design.md §16 records what building it settled.
+
+| ID | Decision | Status |
+| --- | --- | --- |
+| S-1 | Units: `web` · `api/common` (Go, CRUD) · `api/uploads` (Node, thin gateway) · `api/segmentation` (Python, was `measure`) · `api/commerce` (Python) | ☑ |
+| S-2 | Kafka between services; no synchronous internal calls | ☑ |
+| S-3 | Postgres (Aiven) is the system of record, `api/common` its only client; real-time by FCM push + polling; offline by a local cache in the app. Keeps X-5's Firebase Auth, Redis, Doppler and Cloud Storage | ☑ reverses X-5's datastore |
+| S-4 | Asynchronous capture: create the session on `common`, upload with a ticket, `202` + polled status; `failed_qc {code, pose}`; per-pose retake ticket; file checks stay synchronous at the gateway | ☑ |
+| S-5 | Claim-check: bytes only in Cloud Storage `tmp/` (24 h lifecycle), pointers on Kafka, `common` moves on save | ☑ |
+| S-6 | Money decisions in `api/commerce` (provider-event matching, fee and payout arithmetic, transfers, refunds, reconciliation); `common` persists | ☑ |
+| S-7 | Notification delivery in `api/commerce` (FCM, Brevo); `common` writes the rows | ☑ |
+| S-8 | ~~Config and ledger propagate by transactional outbox, compacted topics.~~ **Amended by X-11:** transactional outbox, no compacted topics; the template travels in `capture.ready` and the ledger slice in `ledger.reconcile_requested` | ☑ |
+| S-9 | ~~Worker pools for `segmentation` and `commerce`; `common` min 1.~~ **Amended by X-11 (2026-10-20):** every Cloud Run service scales to zero with CPU always allocated; publishers wake their consumers with `GET /health` (shared-messaging.md "Scale to zero"); sweeps as Cloud Run jobs | ☑ |
+| S-10 | Transactional counters (no reconciliation job); feed ranking stays SQL in `common` until it becomes a model | ☑ |
+| S-11 | Tenancy in depth: Postgres row-level security; per-prefix Storage IAM; the product's Kafka user | ☑ |
+| S-12 | Paystack webhooks land on `common` (verify, store raw, outbox); interpretation in `commerce` | ☑ |
+| S-13 | ~~Topics `apparule.<domain>.<event>`.~~ **Amended by X-11:** event types `apparule.<domain>.<event>` on the shared lanes `cuelabs.uploads`, `cuelabs.requests`, `cuelabs.results`; JSON Schemas in `api/common/contract/` | ☑ |
+| S-14 | Ports: common 8080, segmentation 8081, uploads 8082, commerce 8083 | ☑ |
+| S-15 | Upload tickets: `common` authorizes every upload first and issues a single-use, 5-minute Ed25519 ticket; the gateway verifies with the public key and is stateless | ☑ |
+
+**On the shared bus (X-11):** Apparule's Kafka user is `apparule`; consumer
+groups `apparule-common`, `apparule-segmentation`, `apparule-commerce`. The
+keep-alive owner is Expendit; Apparule runs no heartbeat or watchdog, and its
+gateway answers `503` with `Retry-After` while the bus is away.
+
 ## Cross-cutting (shared with expendit/upstat)
 
 - **X-1 account.cuesoft.io / identity (RATIFIED)**: interim + sandbox identity
@@ -175,6 +209,10 @@ the post option is a deliberate per-share choice, unchecked every time.
   stays inside GCP, which strengthens every privacy disclosure. Self-host
   fallback: bring-your-own Gemini/Groq key via env (existing code path). ☑
 - **X-5 Data plane (RATIFIED 2026-07-16, per-product DB decided by delegation)**:
+  *The datastore half is superseded by S-3 (2026-10-20): Aiven Postgres is
+  the system of record, read and written only by `api/common`; the apps
+  never read the database directly. Redis, Doppler, Cloud Storage and
+  Firebase Auth below stand.*
   **Firestore** (default database, project `sandbox-e306a`) as the system of
   record — **revises A-4 (Postgres)**: Firebase-native stack + real-time
   listeners/offline sync are decisive for a social mobile app (feed, order

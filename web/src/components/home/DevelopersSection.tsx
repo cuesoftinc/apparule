@@ -25,7 +25,7 @@ const TOPICS = [
   {
     icon: Wallet,
     title: "Escrow order lifecycle",
-    body: "A Go state machine that moves real money: quotes, escrow holds, auto-refund deadlines, payouts. Every transition tested against fixtures.",
+    body: "A Go order state machine with every money decision in Python: quotes, escrow holds, auto-refund deadlines, payouts on a balanced ledger. Every transition tested.",
   },
 ] as const;
 
@@ -45,7 +45,7 @@ export function DevelopersSection() {
         For developers — hack on the interesting parts
       </h2>
       <p className="mt-3 text-body text-text-2">
-        Flutter · Go · Python CV · Next.js — MIT licensed, api/common +
+        Flutter · Go · Node · Python CV · Next.js — MIT licensed, api/common +
         function-named services
       </p>
       <div className="mt-8 grid gap-6 md:grid-cols-3">

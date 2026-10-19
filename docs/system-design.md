@@ -1,18 +1,18 @@
 # Apparule — System Design
 
-> **Status: [Proposed] v1 — draft for ratification (2026-09-24).** This
-> document replaces the system design described across `architecture.md`
-> §1–§3, §6 and §8, `data-model.md` §3, and `deployment.md` §1 and §4 once
-> ratified. It keeps every **product** decision in
-> [decisions.md](decisions.md) (A-1…A-11, M-*, and X-1…X-10 apart from the
-> datastore half of X-5) and every **behavioural** contract in the flow
-> docs (vault, request, designer, auth, order lifecycle, capture QC
-> thresholds). What it replaces is the **shape of the system**: service
-> boundaries, transports, data ownership, and where each piece of work
-> runs. New decisions it needs are listed in §13 as **S-1…S-15**. It
-> supersedes the earlier "Apparule Pipeline" draft
-> (`apparule-pipeline-design.md`), which covered the capture pipeline
-> only.
+> **Status: [Decided] v1 — ratified 2026-10-20** (S-1…S-15 in
+> [decisions.md](decisions.md#system-design-s-1--s-15), approved by the boss,
+> with the 2026-10-13 shared-bus amendment, X-11, folded in). Built the same
+> day; §16 records what building it settled. This document replaces the
+> system design described across `architecture.md` §1–§3, §6 and §8,
+> `data-model.md` §3, and `deployment.md` §1 and §4, which were rewritten
+> from it. It keeps every **product** decision in [decisions.md](decisions.md)
+> (A-1…A-11, M-*, and X-1…X-11 apart from the datastore half of X-5) and
+> every **behavioural** contract in the flow docs (vault, request, designer,
+> auth, order lifecycle, capture QC thresholds). What it replaces is the
+> **shape of the system**: service boundaries, transports, data ownership,
+> and where each piece of work runs. It supersedes the earlier "Apparule
+> Pipeline" draft, which covered the capture pipeline only.
 >
 > **Language rule (CueLABS standard, applied the same way as Upstat's
 > system design):**
@@ -25,28 +25,12 @@
 >
 > Services are named by function and connected through Aiven Kafka.
 >
-> **Amendment, 2026-10-13: the shared message bus (decisions.md X-11).**
-> Apparule's Kafka is the one service shared with Expendit and Upstat, under
-> the CueLABS delivery standard's `references/shared-messaging.md`. Where
-> this draft says otherwise, the amendment wins:
-> - **§5.3:** Apparule's events ride three shared lanes (table below), not
->   ten Apparule topics.
-> - **No compacted topics (D6, §6.6, S-8):** measurement templates travel
->   inside `capture.ready`; commerce's ledger view arrives with each
->   `ledger.reconcile_requested` (by pointer), not from `ledger.entries`.
-> - **Pointers only:** every payload goes by `data_ref` into Apparule's
->   storage prefix; other products can read the lanes.
-> - **Retention is the service's (up to 3 days), not 7 d:** §9.2's "queue
->   in Kafka (7 d)" becomes "re-sent from Postgres": `common` stores what
->   each in-flight request was built from and queues it again, once, when
->   its result is overdue.
-> - **Two partitions per lane;** one Kafka user, `apparule`; consumer
->   groups `apparule-<service>`.
-> - **Keep-alive:** Expendit owns it; Apparule runs no heartbeat or
->   watchdog, but its gateway must answer 503 cleanly while the bus is away.
-> - **Scaling (§10.1, S-9):** consumers may scale to zero with wake-ups
->   (the standard's "Scale to zero" section), as Expendit does; choose that
->   or worker pools when this draft is ratified.
+> **On the shared message bus (X-11).** Apparule's Kafka is the one service
+> shared with Expendit and Upstat, under the CueLABS delivery standard's
+> `references/shared-messaging.md`: three shared lanes, pointer-only
+> payloads, no compacted topics, the service's own retention (up to 3 days),
+> one Kafka user (`apparule`), and Expendit as the keep-alive owner. Every
+> section below is written for it.
 
 ## Contents
 
@@ -106,9 +90,9 @@ self-host path.
 | D1 | **Body data is the most sensitive thing we hold.** | Nothing is stored until `common` has authorized it: consent, ownership and account state are checked before a byte is accepted (upload tickets, §6.1). Claim-check: image bytes only ever sit in Cloud Storage, Kafka carries pointers. Temporary images expire in 24 h; confirmed ones after 30 days. Measurement topics keep 24 h. Nothing sensitive is logged (engineering.md §5). |
 | D2 | **Language by role** (the standard's pipeline rule). | Go = CRUD (`common`). Python = processing (`segmentation`, `commerce`). Node = thin gateway (`uploads`). |
 | D3 | **One owner per store.** | Postgres is read and written only by `api/common`. No client, and no other service, opens it. Go owns the schema. |
-| D4 | **Asynchronous between services, with no exceptions.** | Kafka carries every handoff. There are no synchronous internal calls at all; Python services get the reference data they need inside the message or from compacted config topics. No gRPC. |
+| D4 | **Asynchronous between services, with no exceptions.** | Kafka carries every handoff. There are no synchronous internal calls at all; Python services get the reference data they need inside the message (no compacted topics, X-11). No gRPC. |
 | D5 | **Money is exact and auditable.** | Ledger in Postgres with ACID transactions; raw provider events stored before anything acts on them; every money decision made in `commerce`, persisted by `common`, and reconciled hourly against Paystack; everything idempotent by provider reference. |
-| D6 | **Config flows outward as events.** | `api/common` publishes shared config (measurement templates, QC thresholds version) through a transactional outbox to compacted Kafka topics. |
+| D6 | **Reference data travels with the work.** | `api/common` writes every hand-off through a transactional outbox; the request carries the reference data its decision needs (the customer's measurement template in `capture.ready`, the ledger slice in `ledger.reconcile_requested`). |
 | D7 | **Users see progress, not a hanging request.** | Every asynchronous step has a status row owned by `common` that the client polls ("keep refreshing"), plus an FCM push when the result is ready. |
 | D8 | **Separate fates for separate work.** | Heavy image inference (`segmentation`) and money/notifications (`commerce`) are different services, so a slow model never delays a payout or a push. |
 | D9 | **One set of images for cloud and self-host.** | Every managed dependency has a single-container self-host equivalent (Postgres, Kafka KRaft, Redis, MinIO for Cloud Storage). |
@@ -215,7 +199,7 @@ pipeline draft's Postgres staging table.
 | **Aiven Postgres** | Every domain entity (data-model.md §2, §5, §6) + ledger + raw provider events + outbox | `api/common` | `api/common` | Yes |
 | **Cloud Storage** `apparule/<env>/tmp/…` | Uploaded images before a decision | `uploads` | `segmentation` (captures), `common` (to move) | No; 24 h lifecycle rule deletes leftovers |
 | **Cloud Storage** `apparule/<env>/{captures,media,attachments,exports}/…` | Confirmed capture images (30-day retention), post media, thread attachments, exports | `common` (moves from `tmp/`) | `common` (signed URLs) | Yes, for blobs |
-| **Aiven Kafka** | Handoffs + compacted config (§5.3) | per topic | per topic | No; a durable buffer. Config topics rebuild from Postgres. |
+| **Aiven Kafka** (shared, X-11) | Hand-offs on the three lanes (§5.3), by pointer | per event | per event | No; a short buffer. Overdue work is re-sent from Postgres. |
 | **Aiven Redis** (`REDIS_DB` index, X-5) | Per-account rate limits (engineering.md §3) and the daily upload quota (100 MB/day/account, counted when tickets are issued) | `common` | `common` | No. Losing it is survivable (§9.2). |
 
 `uploads`, `segmentation` and `commerce` use no Redis and no database.
@@ -257,6 +241,7 @@ payload travels by pointer.
 | `apparule.capture.ready` | `cuelabs.requests` | session id | common (outbox) → segmentation; carries the customer's measurement template |
 | `apparule.orders.transition` | `cuelabs.requests` | request id | common (outbox) → commerce |
 | `apparule.payments.provider_event` | `cuelabs.requests` | provider event id | common (outbox) → commerce |
+| `apparule.payouts.recipient_requested` | `cuelabs.requests` | designer id | common (outbox) → commerce; a bank account to verify (pages.md B8, §16 I-9) |
 | `apparule.ledger.reconcile_requested` | `cuelabs.requests` | `reconcile` | common's hourly job → commerce; carries the ledger slice to reconcile |
 | `apparule.notifications.created` | `cuelabs.requests` | account id | common (outbox) → commerce |
 | `apparule.capture.measured` | `cuelabs.results` | session id | segmentation → common |
@@ -361,18 +346,18 @@ sequenceDiagram
     PS->>C: webhook charge.success (signed)
     C->>C: verify signature, insert provider_event (idempotent)
     C-->>PS: 200
-    C->>K: payments.provider_events
+    C->>K: payments.provider_event
     K->>M: provider event
     M->>M: match reference → order, amount, currency
-    M->>K: payments.outcomes {request_id, paid, ledger lines}
+    M->>K: payments.outcome {charge_settled, ledger lines}
     K->>C: outcome
     C->>C: order quoted → paid, ledger: escrow held, notification rows
     Note over C: … designer ships; customer confirms or auto-confirm at T+14 d …
-    C->>K: orders.transitions {delivered, quote, payout recipient}
+    C->>K: orders.transition {delivered, payment, payout recipient}
     K->>M: delivered
     M->>M: payout = quote − 10 % fee
     M->>PS: Transfers API (idempotency = request id)
-    M->>K: payments.outcomes {payout released, ledger lines}
+    M->>K: payments.outcome {payout_released, ledger lines}
     K->>C: outcome
     C->>C: ledger: fee + payout, PAYOUT released, notification rows
 ```
@@ -383,10 +368,10 @@ restart can never pay twice.
 
 ### 6.4 Reconciliation
 
-Hourly, a Cloud Run job from the `commerce` image lists Paystack
-transactions and transfers for the window, compares them with its
-compacted view of `ledger.entries`, and emits a `payments.outcomes`
-message of kind `mismatch` for anything that disagrees. `common` stores
+Hourly, `common`'s `reconcile` job sends `ledger.reconcile_requested`
+with the window's charges, payouts and refunds; `commerce` lists Paystack's
+transactions, transfers and refunds for the same window, compares, and
+emits a `payments.outcome` of kind `mismatch` for anything that disagrees. `common` stores
 it and raises an ops alert; a human resolves it. `commerce` never "fixes"
 the ledger on its own.
 
@@ -400,13 +385,13 @@ money events only. Social pushes are coalesced (e.g. "12 new likes") on a
 5-minute window. Delivery is best-effort; the in-app activity sheet reads
 rows from `common`.
 
-### 6.6 Config propagation (outbox)
+### 6.6 The outbox
 
 A `common` write and its outbox row commit in one transaction. The
-publisher (every instance, `SKIP LOCKED` batches) sends rows to Kafka and
-stamps `published_at`. `segmentation` rebuilds its template map from
-offset 0 of `config.templates` on start; `commerce` rebuilds its ledger
-view from `ledger.entries`.
+publisher (every instance, `SKIP LOCKED` batches) writes each payload to
+`apparule/<env>/compute/`, sends the pointer on its lane, stamps
+`published_at`, and wakes the service it published for. Nothing is
+compacted (X-11): reference data travels inside the request.
 
 ### 6.7 Scheduled sweeps
 
@@ -419,8 +404,8 @@ new owners):
 | Auto-confirm + reminders (T+7, T+12, T+14) | common | daily | lookup-then-write |
 | Escrow timeout (paid, not started at T+14 d → refunded) | common | hourly | lookup-then-write; `commerce` executes the refund |
 | Retention purge (unsaved sessions 24 h, capture images 30 d, threads 30 d after terminal) | common | daily | lookup-then-write |
-| Stuck sessions (`processing` > 60 s → `failed`; `awaiting_upload` past ticket expiry → deleted) | common | every minute | lookup-then-write |
-| Payment reconciliation | commerce | hourly | decision (§6.4) |
+| Stuck sessions (`processing` > 60 s → re-sent once, > 180 s → `failed`; `awaiting_upload` past ticket expiry → deleted; §16 I-6) | common | every minute | lookup-then-write |
+| Payment reconciliation (common sends the window; commerce compares) | common → commerce | hourly | decision (§6.4) |
 
 Counter reconciliation (J5) retires (§5.2).
 
@@ -502,10 +487,10 @@ engineering.md unchanged.
 
 | Failure | What happens |
 | --- | --- |
-| `segmentation` down or slow | Uploads still succeed; sessions wait in `processing` and drain when it returns. Past 60 s the sweep marks them `pipeline_busy`. |
-| `commerce` down | Orders still move; money outcomes and pushes queue in Kafka (7 d) and apply when it returns. Webhooks are already stored in Postgres. |
+| `segmentation` down or slow | Uploads still succeed; sessions wait in `processing`. After 60 s the sweep re-sends `capture.ready` once from Postgres; after 180 s it marks the session `failed` with `pipeline_busy` (§16 I-6). |
+| `commerce` down | Orders still move; money hand-offs wait on the bus (the service's retention) and apply when it returns. Webhooks are stored in Postgres first, and reconciliation catches anything the bus dropped. |
 | `common` down | Product API down, and no new uploads start (no tickets). Uploads with a ticket already issued still land in `tmp/` and queue; webhooks fail and Paystack retries. |
-| Kafka down | `uploads` returns `503` (it can't hand off); `common` keeps serving and the outbox holds everything until Kafka returns. |
+| Kafka down (or powered off, X-11) | `uploads` returns `503` with `Retry-After`; `common` keeps serving and the outbox holds everything until the bus returns; overdue captures are re-sent from Postgres. |
 | Redis down | Rate limits and the upload quota in `common` fail open for at most the outage; the gateway doesn't notice. Idempotency and single-use tickets are enforced in Postgres, so nothing duplicates. |
 | Cloud Storage down | Uploads return `503`; nothing else is affected. |
 | A consumer crashes mid-message | At-least-once delivery; every consumer is idempotent by key (session id, provider event id, request id). |
@@ -535,18 +520,22 @@ volume is negligible (pointers and small JSON).
 | Unit | Cloud Run kind | Scaling |
 | --- | --- | --- |
 | web | Firebase App Hosting | managed |
-| api/common (Go) | Service | **min 1** (Kafka consumer + outbox publisher), max 5 |
+| api/common (Go) | Service, CPU always allocated | **0**–5 |
 | api/uploads (Node) | Service | 0–5 |
-| api/segmentation (Python) | **Worker pool**, 2 vCPU / 2 GiB | 1–3 (Kafka autoscaler on lag) |
-| api/commerce (Python) | **Worker pool** | 1–2 |
+| api/segmentation (Python) | Service, CPU always allocated, 2 vCPU / 2 GiB, authenticated only | 0–3 |
+| api/commerce (Python) | Service, CPU always allocated, authenticated only | 0–2 |
 | Sweeps (§6.7) | Cloud Run jobs + Cloud Scheduler | per job |
-| Postgres, Redis, Kafka | Aiven, GCP us-central1 | — |
-| Cloud Storage | default bucket, `apparule/<env>/…`, lifecycle rule on `tmp/` | — |
+| Postgres, Redis | Aiven, GCP us-central1 | — |
+| Kafka | the CueLABS shared Aiven service (X-11) | — |
+| Cloud Storage | default bucket, `apparule/<env>/…`, lifecycle rules on `tmp/` and `compute/` | — |
 
-Worker pools are the primitive for Kafka consumers: no request timeout and
-no scale-to-zero that would stop consumption. An external HTTPS load
-balancer with serverless NEGs does the path routing in §7.1.
-Provisioning goes through cuesoft-iac.
+Every service scales to zero (S-9 as amended). A consumer keeps CPU while
+an instance lives, and whoever publishes for a sleeping service wakes it
+with `GET /health` (shared-messaging.md "Scale to zero"): `uploads` wakes
+`common`; `common`'s outbox wakes `segmentation` or `commerce`; they wake
+`common` after each result; and the sweeps wake whatever has work pending.
+An external HTTPS load balancer with serverless NEGs does the path routing
+in §7.1. Provisioning goes through cuesoft-iac.
 
 ### 10.2 Self-host (compose + Helm)
 
@@ -607,29 +596,29 @@ docs/
 
 ## 13. Decisions to ratify
 
-| ID | Decision | Supersedes | Recommendation |
+| ID | Decision | Supersedes | Status |
 | --- | --- | --- | --- |
-| **S-1** | Units: web · `api/common` (Go, CRUD) · `api/uploads` (Node, gateway) · `api/segmentation` (Python, was `measure`) · `api/commerce` (Python) | architecture.md §2–§3, deployment.md §1 | ⭐ ratify |
-| **S-2** | **Aiven Kafka** between services; no synchronous internal calls | architecture.md §2 "internal call", §8 s2s IAM | ⭐ ratify (chosen 2026-09-24) |
-| **S-3** | **Postgres (Aiven) is the system of record**, `api/common` its only client. Real-time via FCM push + polling; offline via a local cache in the Flutter app. Keeps X-5's Firebase Auth, Redis, Doppler and Cloud Storage parts | X-5 datastore (Firestore); restores A-4 | ⭐ ratify; needs explicit sign-off as a reversal of X-5 |
-| **S-4** | **Asynchronous capture**: create the session on `common`, upload with a ticket, `202` + polled status; `failed_qc {code, pose}`; per-pose retake ticket; file checks stay synchronous at the gateway | flows/vault.md §1, capture-qc.md response, api.md measure contract | ⭐ ratify |
-| **S-5** | **Claim-check**: bytes only in Cloud Storage `tmp/` (24 h lifecycle), pointers on Kafka, `common` moves on save | pipeline draft's staging table | ⭐ ratify |
-| **S-6** | **Money decisions in `api/commerce`**: provider-event matching, fee and payout arithmetic, transfers and refunds, reconciliation. `common` persists | architecture.md §8 J4 + webhook handling in common | ⭐ ratify |
-| **S-7** | **Notification delivery in `api/commerce`** (FCM, Brevo); `common` writes the rows | architecture.md §8 "common → FCM" | ⭐ ratify |
-| **S-8** | Config and ledger propagate by **transactional outbox**, compacted topics | — | ⭐ ratify |
-| **S-9** | **Worker pools** for `segmentation` and `commerce`; `common` min 1; sweeps as Cloud Run jobs | deployment.md §4 (all min 0) | ⭐ ratify; note the always-on cost against the free tier |
-| **S-10** | Counter reconciliation retires (transactional counters). Feed ranking stays SQL in `common` until it becomes a model, then moves to Python | architecture.md §8 J5 | ⭐ ratify |
-| **S-11** | Tenancy defence in depth: Postgres RLS; per-prefix Storage IAM; per-service Kafka ACLs | engineering.md §6 Firestore rules | ⭐ ratify |
-| **S-12** | Paystack webhooks land on `common` (verify + store raw + outbox); interpretation in `commerce` | — | ⭐ ratify |
-| **S-13** | Topic names `apparule.<domain>.<event>` on the shared Kafka service | pipeline draft's `apparule.uploaded/ready/processed` | ⭐ ratify; propose the same scheme to Expendit |
-| **S-14** | Ports: common 8080, segmentation 8081 (keeps `measure`'s), uploads 8082, commerce 8083 | pipeline draft (uploads 8081, segmentation 8082) | ⭐ ratify |
-| **S-15** | **Upload tickets**: `common` authorizes every upload first and issues a single-use, 5-minute ticket signed with its private key (Ed25519); the gateway verifies it with the public key and accepts nothing without one. The gateway is stateless (no database, no Redis); all limits and quotas are enforced in `common` | the pipeline draft's gateway, which stored images before any authorization | ⭐ ratify; propose the pattern to Expendit's `statements` gateway (replaces its shared `JWT_SECRET`) |
+| **S-1** | Units: web · `api/common` (Go, CRUD) · `api/uploads` (Node, gateway) · `api/segmentation` (Python, was `measure`) · `api/commerce` (Python) | architecture.md §2–§3, deployment.md §1 | ☑ 2026-10-20 |
+| **S-2** | **Aiven Kafka** between services; no synchronous internal calls | architecture.md §2 "internal call", §8 s2s IAM | ☑ 2026-10-20 |
+| **S-3** | **Postgres (Aiven) is the system of record**, `api/common` its only client. Real-time via FCM push + polling; offline via a local cache in the Flutter app. Keeps X-5's Firebase Auth, Redis, Doppler and Cloud Storage parts | X-5 datastore (Firestore); restores A-4 | ☑ 2026-10-20 |
+| **S-4** | **Asynchronous capture**: create the session on `common`, upload with a ticket, `202` + polled status; `failed_qc {code, pose}`; per-pose retake ticket; file checks stay synchronous at the gateway | flows/vault.md §1, capture-qc.md response, api.md measure contract | ☑ 2026-10-20 |
+| **S-5** | **Claim-check**: bytes only in Cloud Storage `tmp/` (24 h lifecycle), pointers on Kafka, `common` moves on save | pipeline draft's staging table | ☑ 2026-10-20 |
+| **S-6** | **Money decisions in `api/commerce`**: provider-event matching, fee and payout arithmetic, transfers and refunds, reconciliation. `common` persists | architecture.md §8 J4 + webhook handling in common | ☑ 2026-10-20 |
+| **S-7** | **Notification delivery in `api/commerce`** (FCM, Brevo); `common` writes the rows | architecture.md §8 "common → FCM" | ☑ 2026-10-20 |
+| **S-8** | Config and ledger propagate by **transactional outbox**; ~~compacted topics~~ no compacted topics (X-11) | — | ☑ 2026-10-20, amended |
+| **S-9** | ~~Worker pools for `segmentation` and `commerce`; `common` min 1~~ every service scales to zero with wake-ups (X-11); sweeps as Cloud Run jobs | deployment.md §4 | ☑ 2026-10-20, amended |
+| **S-10** | Counter reconciliation retires (transactional counters). Feed ranking stays SQL in `common` until it becomes a model, then moves to Python | architecture.md §8 J5 | ☑ 2026-10-20 |
+| **S-11** | Tenancy defence in depth: Postgres RLS; per-prefix Storage IAM; per-service Kafka ACLs | engineering.md §6 Firestore rules | ☑ 2026-10-20 |
+| **S-12** | Paystack webhooks land on `common` (verify + store raw + outbox); interpretation in `commerce` | — | ☑ 2026-10-20 |
+| **S-13** | Event types `apparule.<domain>.<event>` on the shared lanes `cuelabs.uploads/requests/results` (X-11) | pipeline draft's `apparule.uploaded/ready/processed` | ☑ 2026-10-20, amended |
+| **S-14** | Ports: common 8080, segmentation 8081 (keeps `measure`'s), uploads 8082, commerce 8083 | pipeline draft (uploads 8081, segmentation 8082) | ☑ 2026-10-20 |
+| **S-15** | **Upload tickets**: `common` authorizes every upload first and issues a single-use, 5-minute ticket signed with its private key (Ed25519); the gateway verifies it with the public key and accepts nothing without one. The gateway is stateless (no database, no Redis); all limits and quotas are enforced in `common` | the pipeline draft's gateway, which stored images before any authorization | ☑ 2026-10-20 |
 
-On ratification: record S-1…S-15 in decisions.md, update
-`.cuelabs/project.yaml` (`backend: {common, segmentation, uploads,
-commerce}`), update the standard's `repository-and-services.md`
-multi-service example list ("e.g. expendit's statements/analytics,
-apparule's uploads/segmentation/commerce"), and rewrite the docs in §12.
+Done on ratification (2026-10-20): S-1…S-15 recorded in decisions.md,
+`.cuelabs/project.yaml` updated (`backend: {common, segmentation, uploads,
+commerce}`), and the docs in §12 rewritten. Still to do in the standard:
+add "apparule's uploads/segmentation/commerce" to
+`repository-and-services.md`'s multi-service example list.
 
 ---
 
@@ -677,3 +666,31 @@ real.
    per-customer consent record the shop attests to, or the customer
    confirming by link. Whatever is chosen, `common` checks it when it
    issues the upload ticket for that customer's session.
+
+---
+
+## 16. Implementation notes **[Decided, 2026-10-20]**
+
+The design was built as written. These are the places where building it
+settled a detail the draft left open, or corrected it. Each is reflected in
+the code and in the docs rewritten from this one.
+
+| # | Topic | What was built | Why |
+| --- | --- | --- | --- |
+| I-1 | **Shared base layout** | Every service has the fleet's base: entry, typed fail-fast `config`, `health`, `kafka` (events, envelope, producer, consumer, wake), `storage` (`gcs` \| `s3`), `contract` (schema validation), `telemetry`. `uploads` starts from Expendit's gateway; `segmentation` and `commerce` share the Python plumbing. | One mental model across Go, Node and Python, and across products. |
+| I-2 | **Contract** | `api/common/contract/`: the envelope, shared definitions, a schema and example per event, and `upload-ticket.md`. The Go binary embeds them; the other images build from the repo root and copy them in; every service's tests validate the examples. Money is integer minor units with a currency. | One copy, no drift across three languages. |
+| I-3 | **Upload ticket format** | `v1.<base64url claims>.<base64url Ed25519 signature>`; claims `kid, jti, account_id, target {kind: capture \| post_media \| attachment, id}, poses, max_files, max_bytes, iat, exp`. Multipart fields: `image_front`/`image_side` for captures, `images` otherwise. | The draft named the algorithm, not the wire format. |
+| I-4 | **Capture contract** | `POST /me/sessions` takes JSON: `{method: manual, measurements}` stores at once; `{input_height_cm}` answers `201` with the session (`awaiting_upload`) and an `upload` object (ticket, URL, fields, limits). `GET /sessions/{id}` adds `status` `awaiting_upload \| processing \| failed_qc \| failed`, `qc {code, pose, message, guidance}` and `poses {front, side: accepted \| failed \| uploaded}`. The vault list shows only `pending_save` and `complete`. | §7.3's one contract change, made concrete. |
+| I-5 | **Attempts** | Each upload (first or retake) increments `attempt`; `capture.ready` carries it and `capture.measured` echoes it, so a late result for an older attempt is ignored. A retake replaces only its pose's image; the accepted pose's image is reused. | Retakes and re-sends must not race. |
+| I-6 | **Timeouts on the shared bus** | Overdue `processing` sessions are re-sent once after 60 s (`resent_at`) and failed with `pipeline_busy` after 180 s, not 60 s. `awaiting_upload` sessions are deleted 10 minutes after their last live ticket. | X-11's re-send rule, and a cold `segmentation` (scale to zero, MediaPipe load) needs more than 60 s. |
+| I-7 | **mediapipe_2d_v2** | Lengths from the front view's landmarks; girths as an ellipse from the front view's segmentation width and the side view's depth at the same body row; each view scaled by 93% of the stated height; capture-qc.md §4's confidence across both views; every name in the customer's A-10 template. Rows and factors live in one `Calibration` block, uncalibrated until the two-view benchmark (capture-qc.md §3). | A-10b needs every template measure; the segmenter from #204 makes depth measurable. |
+| I-8 | **Media** | Post media and attachments are create-then-upload batches: `POST /media/tickets`, `POST /requests/{id}/attachments/tickets`, polled by `GET /media/batches/{id}`. Published post images move to `media/` and are publicly readable; attachments and exports are served by short-lived signed URLs. Posting needs a designer profile but not KYC (flows/designer.md §1 governs over §6.1's "KYC-complete designer"). | Feeds can't sign hundreds of URLs per page; product docs win over a design slip. |
+| I-9 | **Bank verification** | `POST /designer/payout-account` (and `/resolve`) answers `202` with `kyc_state: pending` and sends `payouts.recipient_requested`; `commerce` resolves the name, compares it with the designer's and creates the transfer recipient; the outcome sets `verified` or a reason. | Paystack calls belong to `commerce` (S-6); B8's resolving state becomes a poll. |
+| I-10 | **Pay** | `POST /requests/{id}/pay` returns the order with a `checkout` (reference, amount, email, Paystack public key); the order turns `paid` only when `commerce` settles the charge from the webhook. The webhook is stored by a hash of its raw body (Paystack sends no event id). | Payments settle by webhook, never by a client's word (§6.3). |
+| I-11 | **Ledger integrity** | `ledger_entry` is append-only (update and delete rules), and a deferred constraint trigger rejects a commit whose lines for one outcome don't sum to zero. Outcome ids are uuid5 of their source, so a redelivered decision is stored once. | engineering.md §4's money invariant as a database rule. |
+| I-12 | **RLS mechanics** | `FORCE ROW LEVEL SECURITY` on the vault, orders, threads, payments, notifications, consent and system tables. Transactions set `app.account_id`, or `app.bypass_rls` for consumers, sweeps, webhooks and staff; a notification for another account lifts RLS for that one insert. Public social tables have none. The app connects as a non-superuser that owns its database. | The integration test proves isolation under a non-superuser. |
+| I-13 | **Notifications** | The row is written with the event that causes it; `notifications.created` carries the device tokens (new `device_token` table, `POST /me/devices`), the email for money events, and the rendered text. `capture_result` rows drive a silent push and stay out of the activity list. | `commerce` has no store to look these up in. |
+| I-14 | **Scale to zero** | Every service runs at min 0; publishers wake their consumers with `GET /health` (debounced 10 s); the `captures` sweep wakes `common` and `segmentation` while work is pending, and the other sweeps wake `commerce`. | S-9 as amended. |
+| I-15 | **Local object storage** | Compose runs SeaweedFS (S3 on :8333): MinIO's community images are no longer published. Its anonymous identity may read `media/`. | Fleet parity with Expendit. |
+| I-16 | **Gateway runtime** | NestJS 11, as Expendit's: Nest 12 is ESM-only and Jest's decorator path doesn't support it cleanly yet. | Dependabot holds the major. |
+| I-17 | **Account deletion** | The retention sweep deletes a `deletion_pending` account with nothing in flight; one with order history keeps an anonymized row (the other party's orders reference it) while its vault and posts are deleted. Deleting the Firebase user is still manual. | flows/auth.md §4, within foreign keys. |
