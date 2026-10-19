@@ -9,12 +9,37 @@ updates:
         patterns: ["*"]
 
   - package-ecosystem: pip
-    directory: /api/measure
+    directory: /api/segmentation
     schedule:
       interval: weekly
     groups:
       python-dependencies:
         patterns: ["*"]
+
+  - package-ecosystem: pip
+    directory: /api/commerce
+    schedule:
+      interval: weekly
+    groups:
+      python-dependencies:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /api/uploads
+    schedule:
+      interval: weekly
+    groups:
+      npm-dependencies:
+        patterns: ["*"]
+    ignore:
+      # NestJS 12 is ESM-only; ts-jest's decorator metadata doesn't support
+      # it cleanly yet. Move together with the test runner, deliberately.
+      - dependency-name: "@nestjs/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: npm
     directory: /web

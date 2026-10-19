@@ -1,42 +1,280 @@
-# Local development stack for apparule.
-# Usage: cp .env.example .env  &&  docker compose up --build
+# Local and self-host stack (docs/system-design.md §10.2): the same images as
+# cloud, with Postgres, Kafka (KRaft), Redis, SeaweedFS (S3) and the Firebase
+# auth emulator standing in for the managed services.
+# Usage: cp .env.example .env  &&  make up
 services:
-  api-common:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - apparule-postgres:/var/lib/postgresql
+      # Creates the non-superuser app role; superusers bypass RLS (S-11).
+      - ./deploy/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d apparule"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  kafka:
+    image: apache/kafka:4.0.0
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: INTERNAL://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      # The three shared lanes are created explicitly by kafka-init, as on
+      # the shared Aiven service (X-11).
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    ports:
+      - "9094:9094"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 15s
+    restart: unless-stopped
+
+  kafka-init:
+    image: apache/kafka:4.0.0
+    depends_on:
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ./deploy/docker/kafka/create-topics.sh:/create-topics.sh:ro
+    entrypoint: ["sh", "/create-topics.sh", "kafka:9092"]
+    restart: "no"
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # S3-compatible object storage (§5.1). SeaweedFS stands in for MinIO, whose
+  # community images are no longer published. Local-only credentials; the
+  # anonymous identity may read published post media, as in cloud.
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.48
+    command: server -dir=/data -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json -master.volumeSizeLimitMB=1024
+    volumes:
+      - apparule-objects:/data
+      - ./deploy/docker/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
+    ports:
+      - "8333:8333"
+    restart: unless-stopped
+
+  # Firebase auth emulator (X-1): Google sign-in without a real project.
+  firebase-auth:
+    image: node:24-alpine
+    working_dir: /firebase
+    command: ["npx", "-y", "firebase-tools@14", "emulators:start", "--only", "auth", "--project", "${FIREBASE_PROJECT_ID:-demo-apparule}"]
+    volumes:
+      - ./deploy/docker/firebase/firebase.json:/firebase/firebase.json:ro
+    ports:
+      - "9099:9099"
+    restart: unless-stopped
+
+  common:
     build: ./api/common
     image: cuesoft/apparule-api-common:latest
     ports:
       - "8080:8080"
-    environment:
+    environment: &common-env
       PORT: "8080"
-      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
-      GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT:-apparule-local}
-      # For full Firebase functionality, mount a service-account JSON and set:
-      # FIREBASE_CONFIG_PATH: /run/secrets/firebase-service-account.json
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      DATABASE_URL: postgres://apparule_app:${APP_DB_PASSWORD:-apparule_app}@postgres:5432/apparule?sslmode=disable
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-demo-apparule}
+      FIREBASE_AUTH_EMULATOR_HOST: ${FIREBASE_AUTH_EMULATOR_HOST-firebase-auth:9099}
+      UPLOAD_TICKET_PRIVATE_KEY: ${UPLOAD_TICKET_PRIVATE_KEY:?set UPLOAD_TICKET_PRIVATE_KEY in .env}
+      # Returned with every ticket: the browser reaches the gateway through
+      # the web's /api/v1 proxy, the app directly.
+      UPLOADS_URL: ${UPLOADS_URL:-/api/v1/uploads}
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-kafka:9092}
+      KAFKA_USERNAME: ${KAFKA_USERNAME:-}
+      KAFKA_PASSWORD: ${KAFKA_PASSWORD:-}
+      KAFKA_SSL_CA: ${KAFKA_SSL_CA:-}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-s3}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-apparule-local}
+      STORAGE_PREFIX: ${STORAGE_PREFIX:-apparule/local}
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT:-seaweedfs:8333}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-minioadmin}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:-minioadmin}
+      STORAGE_USE_SSL: ${STORAGE_USE_SSL:-false}
+      # Public post media as the browser reaches it.
+      STORAGE_PUBLIC_BASE_URL: ${STORAGE_PUBLIC_BASE_URL:-http://localhost:8333/apparule-local}
+      PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-}
+      PAYSTACK_PUBLIC_KEY: ${PAYSTACK_PUBLIC_KEY:-}
+      # Scale-to-zero wakes (shared-messaging.md). Everything always runs
+      # here, so a wake is only a /health call, but it exercises the path.
+      WAKE_COMMON_URL: http://common:8080
+      WAKE_SEGMENTATION_URL: http://segmentation:8081
+      WAKE_COMMERCE_URL: http://commerce:8083
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      seaweedfs:
+        condition: service_started
     restart: unless-stopped
 
-  api-measure:
-    build: ./api/measure
-    image: cuesoft/apparule-api-measure:latest
+  segmentation:
+    build:
+      # Repo-root context: the image copies api/common/contract's schemas.
+      context: .
+      dockerfile: api/segmentation/Dockerfile
+    image: cuesoft/apparule-api-segmentation:latest
     ports:
       - "8081:8081"
     environment:
       PORT: "8081"
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-kafka:9092}
+      KAFKA_USERNAME: ${KAFKA_USERNAME:-}
+      KAFKA_PASSWORD: ${KAFKA_PASSWORD:-}
+      KAFKA_SSL_CA: ${KAFKA_SSL_CA:-}
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-s3}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-apparule-local}
+      STORAGE_PREFIX: ${STORAGE_PREFIX:-apparule/local}
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT:-seaweedfs:8333}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-minioadmin}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:-minioadmin}
+      STORAGE_USE_SSL: ${STORAGE_USE_SSL:-false}
+      WAKE_COMMON_URL: http://common:8080
+    depends_on:
+      common:
+        condition: service_healthy
+    restart: unless-stopped
+
+  uploads:
+    build:
+      context: .
+      dockerfile: api/uploads/Dockerfile
+    image: cuesoft/apparule-api-uploads:latest
+    ports:
+      - "8082:8082"
+    environment:
+      PORT: "8082"
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      UPLOAD_TICKET_PUBLIC_KEYS: ${UPLOAD_TICKET_PUBLIC_KEYS:?set UPLOAD_TICKET_PUBLIC_KEYS in .env}
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-kafka:9092}
+      KAFKA_USERNAME: ${KAFKA_USERNAME:-}
+      KAFKA_PASSWORD: ${KAFKA_PASSWORD:-}
+      KAFKA_SSL_CA: ${KAFKA_SSL_CA:-}
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-s3}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-apparule-local}
+      STORAGE_PREFIX: ${STORAGE_PREFIX:-apparule/local}
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT:-seaweedfs:8333}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-minioadmin}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:-minioadmin}
+      STORAGE_USE_SSL: ${STORAGE_USE_SSL:-false}
+      WAKE_COMMON_URL: http://common:8080
+    depends_on:
+      common:
+        condition: service_healthy
+    restart: unless-stopped
+
+  commerce:
+    build:
+      context: .
+      dockerfile: api/commerce/Dockerfile
+    image: cuesoft/apparule-api-commerce:latest
+    ports:
+      - "8083:8083"
+    environment:
+      PORT: "8083"
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-kafka:9092}
+      KAFKA_USERNAME: ${KAFKA_USERNAME:-}
+      KAFKA_PASSWORD: ${KAFKA_PASSWORD:-}
+      KAFKA_SSL_CA: ${KAFKA_SSL_CA:-}
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-s3}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-apparule-local}
+      STORAGE_PREFIX: ${STORAGE_PREFIX:-apparule/local}
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT:-seaweedfs:8333}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-minioadmin}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:-minioadmin}
+      STORAGE_USE_SSL: ${STORAGE_USE_SSL:-false}
+      # Empty = notify-only (self-host without payments, §10.2).
+      PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-}
+      FCM_PROJECT_ID: ${FCM_PROJECT_ID:-}
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      BREVO_FROM_EMAIL: ${BREVO_FROM_EMAIL:-}
+      WAKE_COMMON_URL: http://common:8080
+    depends_on:
+      common:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Sweeps (§6.7) as a long-running loop locally; Cloud Scheduler in cloud.
+  jobs:
+    # The image common builds; never pulled from a registry.
+    image: cuesoft/apparule-api-common:latest
+    pull_policy: never
+    environment: *common-env
+    entrypoint:
+      - sh
+      - -c
+      - |
+        i=0
+        while true; do
+          ./jobs captures
+          [ $$((i % 60)) -eq 0 ] && ./jobs orders && ./jobs reconcile
+          [ $$((i % 1440)) -eq 0 ] && ./jobs retention
+          i=$$((i + 1)); sleep 60
+        done
+    depends_on:
+      common:
+        condition: service_healthy
     restart: unless-stopped
 
   web:
     image: cuesoft/apparule-web:latest
     build:
-      # Repo-root context: web/ plus docs/api/openapi.yaml (the OpenAPI
-      # document prebuild embeds for /docs/api); pruned by
-      # web/Dockerfile.dockerignore.
+      # Repo-root context: web/ plus docs/api/openapi.yaml (embedded for
+      # /docs/api); pruned by web/Dockerfile.dockerignore.
       context: .
       dockerfile: web/Dockerfile
-      # NEXT_PUBLIC_* are inlined into the standalone build, so pass them here.
       args:
-        NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:8080}
+        # Inlined at build: the browser signs in against the Auth emulator
+        # on the host's port 9099.
+        NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-demo-apparule}
+        NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY:-}
+        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:-}
+        NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: ${NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST-localhost:9099}
     ports:
       - "3000:3000"
+    environment:
+      # The /api/v1 proxy forwards here (system-design.md §7.1).
+      API_ORIGIN: http://common:8080
+      UPLOADS_ORIGIN: http://uploads:8082
     depends_on:
-      api-common:
+      common:
         condition: service_healthy
+      uploads:
+        condition: service_healthy
+      firebase-auth:
+        condition: service_started
     restart: unless-stopped
+
+volumes:
+  apparule-postgres:
+  apparule-objects:

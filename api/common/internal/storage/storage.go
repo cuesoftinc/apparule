@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -67,8 +68,10 @@ func Open(ctx context.Context, cfg config.Storage) (Store, error) {
 		// Published post images are public, as in cloud (§5.1).
 		policy := fmt.Sprintf(`{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":["*"]},`+
 			`"Action":["s3:GetObject"],"Resource":["arn:aws:s3:::%s/%s/media/*"]}]}`, cfg.Bucket, cfg.Prefix)
+		// Not every S3 stand-in takes bucket policies (SeaweedFS grants public
+		// reads in its own config); a refusal only affects local image URLs.
 		if err := client.SetBucketPolicy(ctx, cfg.Bucket, policy); err != nil {
-			return nil, err
+			slog.Warn("bucket policy not applied; media/ may not be public", "error", err)
 		}
 		public := cfg.PublicBaseURL
 		if public == "" {
