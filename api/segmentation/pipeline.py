@@ -70,13 +70,16 @@ class CapturePipeline:
         verdicts: dict[str, str] = {}
         first_failure: tuple[str, str] | None = None
         for pose in POSES:
+            # Table order (capture-qc.md §1-§2): decode and resolution, then
+            # lighting and blur judged on the person, then the pose rows.
             pre = image_qc.precheck(images[pose], self._qc)
             code = pre.code
             if code is None:
                 detection = self._analyzer.analyze(pre.image)
-                code = pose_qc.check(detection, pose, self._qc)
+                quality = image_qc.quality(pre.image, detection.mask, self._qc)
+                code = quality.code or pose_qc.check(detection, pose, self._qc)
                 if code is None:
-                    views[pose] = View(detection, pre.sharpness)
+                    views[pose] = View(detection, quality.sharpness)
             verdicts[pose] = "failed" if code else "accepted"
             if code and first_failure is None:
                 first_failure = (code, pose)

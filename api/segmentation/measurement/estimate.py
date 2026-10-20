@@ -17,7 +17,7 @@ import numpy as np
 from app.config import Calibration, QCThresholds
 from measurement import geometry as g
 from pose.detector import Detection
-from qc.pose import shoulder_hip_ratio
+from qc.pose import near_side, shoulder_hip_ratio
 
 
 @dataclass
@@ -207,9 +207,11 @@ class Estimator:
 
     def _leg_girth(self, y_front: float, y_side: float, landmarks: tuple[int, ...]) -> Estimate | None:
         f, s = self.front, self.side
-        # The left leg's centre on the front view; legs overlap in profile.
+        # The left leg's centre on the front view; in profile the legs
+        # overlap, so the camera-side leg (the one the model sees) leads.
+        near = near_side(s.detection)
         x_front = (f.px_x(g.LEFT_HIP) + f.px_x(g.LEFT_KNEE)) / 2 if y_front < f.knee_y else f.px_x(g.LEFT_KNEE)
-        x_side = (s.px_x(g.LEFT_HIP) + s.px_x(g.LEFT_KNEE)) / 2 if y_side < s.knee_y else s.px_x(g.LEFT_KNEE)
+        x_side = (s.px_x(near["hip"]) + s.px_x(near["knee"])) / 2 if y_side < s.knee_y else s.px_x(near["knee"])
         width = f.run_width(y_front, x_front)
         depth = s.run_width(y_side, x_side)
         if width is None or depth is None:

@@ -61,7 +61,7 @@ class QCThresholds:
     """capture-qc.md §1-§2. Changing any value bumps `version`, which every
     result echoes as `thresholds_version` so old sessions stay interpretable."""
 
-    version: str = "qc-2026-10-19"
+    version: str = "qc-2026-10-21"
     # §1 image pre-checks
     min_short_edge_px: int = 480
     min_luma: float = 40.0
@@ -73,6 +73,8 @@ class QCThresholds:
     frontal_ratio_min: float = 0.9
     frontal_ratio_max: float = 2.2
     shoulder_z_delta: float = 0.15
+    # Shoulder span over torso length: below it the body is in profile.
+    profile_span_max: float = 0.4
     max_tilt_degrees: float = 15.0
     arms_clearance: float = 0.05
     min_body_height_fraction: float = 0.4

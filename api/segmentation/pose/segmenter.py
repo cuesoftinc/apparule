@@ -23,9 +23,10 @@ class BodySegmenter:
     def person_mask(self, mp_image: mp.Image) -> np.ndarray:
         """A boolean mask, True where the person is. The selfie segmenter's
         category mask is 0 on the person (demo_segment.py inverts it the same
-        way)."""
+        way). Always 2-D: (height, width)."""
         mask = self.segment(mp_image).category_mask.numpy_view()
-        return mask == 0
+        # The category mask comes as (height, width, 1); callers index rows.
+        return np.squeeze(mask, axis=-1) == 0 if mask.ndim == 3 else mask == 0
 
     def close(self):
         self._segmenter.close()
