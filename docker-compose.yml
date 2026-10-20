@@ -77,6 +77,12 @@ services:
       - ./deploy/docker/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
     ports:
       - "8333:8333"
+    # common creates the bucket on start, so it waits for the S3 port.
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 8333"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
     restart: unless-stopped
 
   # Firebase auth emulator (X-1): Google sign-in without a real project.
@@ -135,7 +141,7 @@ services:
       redis:
         condition: service_healthy
       seaweedfs:
-        condition: service_started
+        condition: service_healthy
     restart: unless-stopped
 
   segmentation:
