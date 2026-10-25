@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'profile.dart';
@@ -9,6 +9,7 @@ part of 'profile.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -63,7 +64,7 @@ class _$ProfileLocationCopyWithImpl<$Res>
 /// Create a copy of ProfileLocation
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? city = null,Object? state = null,Object? country = null,}) {
-  return _then(_self.copyWith(
+  return _then(ProfileLocation(
 city: null == city ? _self.city : city // ignore: cast_nullable_to_non_nullable
 as String,state: null == state ? _self.state : state // ignore: cast_nullable_to_non_nullable
 as String,country: null == country ? _self.country : country // ignore: cast_nullable_to_non_nullable
@@ -326,7 +327,7 @@ class _$ConsentRecordCopyWithImpl<$Res>
 /// Create a copy of ConsentRecord
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? document = null,Object? version = null,Object? acceptedAt = null,}) {
-  return _then(_self.copyWith(
+  return _then(ConsentRecord(
 document: null == document ? _self.document : document // ignore: cast_nullable_to_non_nullable
 as String,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as String,acceptedAt: null == acceptedAt ? _self.acceptedAt : acceptedAt // ignore: cast_nullable_to_non_nullable
@@ -589,7 +590,7 @@ class _$NotificationPrefsCopyWithImpl<$Res>
 /// Create a copy of NotificationPrefs
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? quotesOrderStatus = null,Object? newRequests = null,Object? likesComments = null,Object? newFollowers = null,Object? freshOutfits = null,Object? freshnessReminders = null,Object? emailDigest = null,}) {
-  return _then(_self.copyWith(
+  return _then(NotificationPrefs(
 quotesOrderStatus: null == quotesOrderStatus ? _self.quotesOrderStatus : quotesOrderStatus // ignore: cast_nullable_to_non_nullable
 as bool,newRequests: null == newRequests ? _self.newRequests : newRequests // ignore: cast_nullable_to_non_nullable
 as bool,likesComments: null == likesComments ? _self.likesComments : likesComments // ignore: cast_nullable_to_non_nullable
@@ -864,7 +865,7 @@ class _$PrivacyPrefsCopyWithImpl<$Res>
 /// Create a copy of PrivacyPrefs
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? aiProcessing = null,Object? nearbyRecommendations = null,}) {
-  return _then(_self.copyWith(
+  return _then(PrivacyPrefs(
 aiProcessing: null == aiProcessing ? _self.aiProcessing : aiProcessing // ignore: cast_nullable_to_non_nullable
 as bool,nearbyRecommendations: null == nearbyRecommendations ? _self.nearbyRecommendations : nearbyRecommendations // ignore: cast_nullable_to_non_nullable
 as bool,
@@ -1125,7 +1126,7 @@ class _$ProfileCopyWithImpl<$Res>
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? username = null,Object? displayName = null,Object? email = null,Object? bio = freezed,Object? avatarUrl = freezed,Object? location = freezed,Object? notificationPrefs = null,Object? privacyPrefs = null,Object? consent = null,Object? deletionPending = null,Object? measurementTemplate = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(Profile(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
@@ -1309,7 +1310,7 @@ return $default(_that.id,_that.username,_that.displayName,_that.email,_that.bio,
 
 
 class _Profile implements Profile {
-  const _Profile({required this.id, required this.username, required this.displayName, required this.email, this.bio, this.avatarUrl, this.location, this.notificationPrefs = const NotificationPrefs(), this.privacyPrefs = const PrivacyPrefs(), final  List<ConsentRecord> consent = const <ConsentRecord>[], this.deletionPending = false, this.measurementTemplate}): _consent = consent;
+  const _Profile({required this.id, required this.username, required this.displayName, required this.email, this.bio, this.avatarUrl, this.location, this.notificationPrefs = const NotificationPrefs(), this.privacyPrefs = const PrivacyPrefs(),  List<ConsentRecord> consent = const <ConsentRecord>[], this.deletionPending = false, this.measurementTemplate}): _consent = consent;
   
 
 @override final  String id;

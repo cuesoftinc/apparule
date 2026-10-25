@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'post.dart';
@@ -9,6 +9,7 @@ part of 'post.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -65,7 +66,7 @@ class _$PostDesignerCopyWithImpl<$Res>
 /// Create a copy of PostDesigner
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? username = null,Object? displayName = null,Object? avatarUrl = freezed,Object? verified = null,}) {
-  return _then(_self.copyWith(
+  return _then(PostDesigner(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
@@ -336,7 +337,7 @@ class _$PostMediaCopyWithImpl<$Res>
 /// Create a copy of PostMedia
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? url = null,Object? altText = null,}) {
-  return _then(_self.copyWith(
+  return _then(PostMedia(
 url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,altText: null == altText ? _self.altText : altText // ignore: cast_nullable_to_non_nullable
 as String,
@@ -602,7 +603,7 @@ class _$PostCopyWithImpl<$Res>
 /// Create a copy of Post
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? designer = null,Object? caption = null,Object? styleTags = null,Object? media = null,Object? likeCount = null,Object? commentCount = null,Object? createdAt = null,Object? basePriceCents = freezed,Object? currency = null,Object? turnaroundDays = null,Object? liked = null,Object? saved = null,Object? snapshotSessionId = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(Post(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,designer: null == designer ? _self.designer : designer // ignore: cast_nullable_to_non_nullable
 as PostDesigner,caption: null == caption ? _self.caption : caption // ignore: cast_nullable_to_non_nullable
@@ -767,7 +768,7 @@ return $default(_that.id,_that.designer,_that.caption,_that.styleTags,_that.medi
 
 
 class _Post implements Post {
-  const _Post({required this.id, required this.designer, required this.caption, required final  List<String> styleTags, required final  List<PostMedia> media, required this.likeCount, required this.commentCount, required this.createdAt, this.basePriceCents, this.currency = 'NGN', this.turnaroundDays = 0, this.liked = false, this.saved = false, this.snapshotSessionId}): _styleTags = styleTags,_media = media;
+  const _Post({required this.id, required this.designer, required this.caption, required  List<String> styleTags, required  List<PostMedia> media, required this.likeCount, required this.commentCount, required this.createdAt, this.basePriceCents, this.currency = 'NGN', this.turnaroundDays = 0, this.liked = false, this.saved = false, this.snapshotSessionId}): _styleTags = styleTags,_media = media;
   
 
 @override final  String id;

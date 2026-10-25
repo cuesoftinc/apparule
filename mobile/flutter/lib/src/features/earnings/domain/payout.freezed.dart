@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'payout.dart';
@@ -9,6 +9,7 @@ part of 'payout.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -63,7 +64,7 @@ class _$PayoutAccountCopyWithImpl<$Res>
 /// Create a copy of PayoutAccount
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? providerRef = null,Object? bankCode = null,Object? bankName = null,Object? accountLast4 = null,Object? accountName = null,Object? kycState = null,}) {
-  return _then(_self.copyWith(
+  return _then(PayoutAccount(
 providerRef: null == providerRef ? _self.providerRef : providerRef // ignore: cast_nullable_to_non_nullable
 as String,bankCode: null == bankCode ? _self.bankCode : bankCode // ignore: cast_nullable_to_non_nullable
 as String,bankName: null == bankName ? _self.bankName : bankName // ignore: cast_nullable_to_non_nullable
@@ -335,7 +336,7 @@ class _$DesignerStatusCopyWithImpl<$Res>
 /// Create a copy of DesignerStatus
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? enabled = null,Object? username = freezed,Object? displayName = freezed,Object? bio = freezed,Object? payoutAccount = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(DesignerStatus(
 enabled: null == enabled ? _self.enabled : enabled // ignore: cast_nullable_to_non_nullable
 as bool,username: freezed == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
 as String?,displayName: freezed == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
@@ -628,7 +629,7 @@ class _$BankResolutionCopyWithImpl<$Res>
 /// Create a copy of BankResolution
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? accountName = null,Object? bankCode = null,Object? accountNumber = null,}) {
-  return _then(_self.copyWith(
+  return _then(BankResolution(
 accountName: null == accountName ? _self.accountName : accountName // ignore: cast_nullable_to_non_nullable
 as String,bankCode: null == bankCode ? _self.bankCode : bankCode // ignore: cast_nullable_to_non_nullable
 as String,accountNumber: null == accountNumber ? _self.accountNumber : accountNumber // ignore: cast_nullable_to_non_nullable
@@ -891,7 +892,7 @@ class _$BankOptionCopyWithImpl<$Res>
 /// Create a copy of BankOption
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? code = null,Object? name = null,}) {
-  return _then(_self.copyWith(
+  return _then(BankOption(
 code: null == code ? _self.code : code // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,
