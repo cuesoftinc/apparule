@@ -22,7 +22,7 @@ dependencies:
   # CocoaPods dependency, mobile-implementation.md §2) drives the C6
   # preview + shutter behind the abstract `CameraService` seam; dev/CI
   # ride `CameraServiceFake` (bundled sample frame, no hardware).
-  camera: ^0.12.0
+  camera: ^0.12.1
   dio: ^5.11.0
   firebase_auth: ^6.7.0
   firebase_core: ^4.15.0
@@ -31,7 +31,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flutter_riverpod: ^3.3.2
-  flutter_secure_storage: ^11.0.0
+  flutter_secure_storage: ^11.2.0
   flutter_svg: ^2.2.0
   freezed_annotation: ^3.1.0
   go_router: ^18.0.1
@@ -49,7 +49,7 @@ dependencies:
   # Pin-ledger addition (component wave): the design system's iconography
   # is Lucide (design.md §2; c-series inventory `icon/*` set) — icon-font
   # package, glyphs referenced as `LucideIcons.*`.
-  lucide_icons_flutter: ^3.1.17
+  lucide_icons_flutter: ^3.1.20
   riverpod_annotation: ^4.0.3
   share_plus: ^13.3.0
   shared_preferences: ^2.5.5
@@ -70,7 +70,7 @@ dev_dependencies:
   # Resolves to 3.2.6-dev.1 (locked): stable 3.2.5 caps analyzer at <11
   # while riverpod_generator 4.0.4 needs ^12 — the dev release is freezed's
   # analyzer-12 compatibility build and the only co-resolvable version.
-  freezed: ^3.2.5
+  freezed: ^4.0.0-dev.3
   go_router_builder: ^4.5.0
   # The §8 gate-5 journeys run over the SDK's own on-device harness —
   # patrol_finders drives it; no native-automation runner is wired.
@@ -78,7 +78,7 @@ dev_dependencies:
     sdk: flutter
   json_serializable: ^6.14.1
   mocktail: ^1.0.5
-  patrol: ^4.9.0
+  patrol: ^4.10.0
   # The finder layer is a DIRECT dev dependency because integration_test/
   # imports it itself (PatrolTester/$ over the SDK harness above). The full
   # patrol harness stays alongside it, unused at runtime until a
