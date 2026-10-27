@@ -1,20 +1,18 @@
 // Package storage is object storage (system-design.md §5.1): GCS in cloud
 // via ADC, any S3-compatible store (MinIO) for compose and self-host.
 // api/common moves images out of tmp/ when they are kept (§6.2), and owns
-// captures/, media/, attachments/, exports/ and compute/. media/ holds
-// published post images and is publicly readable; everything else is
-// reached through short-lived signed URLs.
+// captures/, media/, attachments/, exports/ and compute/. Every object is
+// private and reached through a short-lived signed URL (system-design.md I-8).
 package storage
 
 import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"io"
-	"log/slog"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	gcs "cloud.google.com/go/storage"
@@ -41,8 +39,6 @@ type Store interface {
 	Copy(ctx context.Context, src, dst string) error
 	// SignedURL is a time-limited GET URL for a private object.
 	SignedURL(ctx context.Context, key string, ttl time.Duration) (string, error)
-	// PublicURL is the permanent URL of an object under media/.
-	PublicURL(key string) string
 }
 
 // ErrMissing is returned by Get and Copy for an object that doesn't exist.
@@ -65,33 +61,13 @@ func Open(ctx context.Context, cfg config.Storage) (Store, error) {
 				return nil, err
 			}
 		}
-		// Published post images are public, as in cloud (§5.1).
-		policy := fmt.Sprintf(`{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":["*"]},`+
-			`"Action":["s3:GetObject"],"Resource":["arn:aws:s3:::%s/%s/media/*"]}]}`, cfg.Bucket, cfg.Prefix)
-		// Not every S3 stand-in takes bucket policies (SeaweedFS grants public
-		// reads in its own config); a refusal only affects local image URLs.
-		if err := client.SetBucketPolicy(ctx, cfg.Bucket, policy); err != nil {
-			slog.Warn("bucket policy not applied; media/ may not be public", "error", err)
-		}
-		public := cfg.PublicBaseURL
-		if public == "" {
-			scheme := "http"
-			if cfg.UseSSL {
-				scheme = "https"
-			}
-			public = fmt.Sprintf("%s://%s/%s", scheme, cfg.Endpoint, cfg.Bucket)
-		}
-		return &s3Store{client: client, bucket: cfg.Bucket, prefix: cfg.Prefix, public: strings.TrimRight(public, "/")}, nil
+		return cached(&s3Store{client: client, bucket: cfg.Bucket, prefix: cfg.Prefix}), nil
 	}
 	client, err := gcs.NewClient(ctx)
 	if err != nil {
 		return nil, err
 	}
-	public := cfg.PublicBaseURL
-	if public == "" {
-		public = "https://storage.googleapis.com/" + cfg.Bucket
-	}
-	return &gcsStore{bucket: client.Bucket(cfg.Bucket), name: cfg.Bucket, prefix: cfg.Prefix, public: strings.TrimRight(public, "/")}, nil
+	return cached(&gcsStore{bucket: client.Bucket(cfg.Bucket), name: cfg.Bucket, prefix: cfg.Prefix}), nil
 }
 
 // TmpPrefix is where api/uploads writes images.
@@ -100,13 +76,66 @@ func TmpPrefix(s Store) string { return s.Prefix() + "/tmp/" }
 // ComputePrefix holds claim-check payloads of bus messages.
 func ComputePrefix(s Store) string { return s.Prefix() + "/compute/" }
 
+// ── Signed URL cache ────────────────────────────────────────────────────
+
+// maxSigned bounds the cache; past it stale entries go, then all of them.
+const maxSigned = 10_000
+
+type signKey struct {
+	key string
+	ttl time.Duration
+}
+
+type signedURL struct {
+	url     string
+	expires time.Time
+}
+
+// signCache reuses a signed URL for half its life, so a feed signs each
+// image once rather than on every read (GCS signs through IAM on Cloud Run).
+type signCache struct {
+	Store
+	mu   sync.Mutex
+	urls map[signKey]signedURL
+}
+
+func cached(s Store) Store { return &signCache{Store: s, urls: map[signKey]signedURL{}} }
+
+func (c *signCache) SignedURL(ctx context.Context, key string, ttl time.Duration) (string, error) {
+	k := signKey{key, ttl}
+	now := time.Now()
+	c.mu.Lock()
+	hit, ok := c.urls[k]
+	c.mu.Unlock()
+	if ok && hit.expires.Sub(now) > ttl/2 {
+		return hit.url, nil
+	}
+	u, err := c.Store.SignedURL(ctx, key, ttl)
+	if err != nil {
+		return "", err
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if len(c.urls) >= maxSigned {
+		for k, v := range c.urls {
+			if v.expires.Sub(now) <= k.ttl/2 {
+				delete(c.urls, k)
+			}
+		}
+		if len(c.urls) >= maxSigned {
+			clear(c.urls)
+		}
+	}
+	c.urls[k] = signedURL{url: u, expires: now.Add(ttl)}
+	return u, nil
+}
+
 // ── GCS ─────────────────────────────────────────────────────────────────
 
 type gcsStore struct {
 	bucket *gcs.BucketHandle
 	name   string
 	prefix string
-	public string
 }
 
 func (s *gcsStore) Bucket() string { return s.name }
@@ -171,15 +200,12 @@ func (s *gcsStore) SignedURL(_ context.Context, key string, ttl time.Duration) (
 	return s.bucket.SignedURL(key, &gcs.SignedURLOptions{Method: http.MethodGet, Expires: time.Now().Add(ttl), Scheme: gcs.SigningSchemeV4})
 }
 
-func (s *gcsStore) PublicURL(key string) string { return s.public + "/" + key }
-
 // ── S3 / MinIO ──────────────────────────────────────────────────────────
 
 type s3Store struct {
 	client *minio.Client
 	bucket string
 	prefix string
-	public string
 }
 
 func (s *s3Store) Bucket() string { return s.bucket }
@@ -218,8 +244,6 @@ func (s *s3Store) SignedURL(ctx context.Context, key string, ttl time.Duration) 
 	}
 	return u.String(), nil
 }
-
-func (s *s3Store) PublicURL(key string) string { return s.public + "/" + key }
 
 func (s *s3Store) Delete(ctx context.Context, key string) error {
 	return s.client.RemoveObject(ctx, s.bucket, key, minio.RemoveObjectOptions{})

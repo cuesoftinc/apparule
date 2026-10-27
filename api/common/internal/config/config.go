@@ -79,8 +79,6 @@ type Storage struct {
 	AccessKey string
 	SecretKey string
 	UseSSL    bool
-	// Base URL of public objects (media/); defaults per driver.
-	PublicBaseURL string
 }
 
 type Ticket struct {
@@ -149,14 +147,13 @@ func Load() (*Config, error) {
 			KeyPrefix: strings.Trim(or(os.Getenv("REDIS_KEY_PREFIX"), "apparule"), ":"),
 		},
 		Storage: Storage{
-			Driver:        or(os.Getenv("STORAGE_DRIVER"), "gcs"),
-			Bucket:        need("STORAGE_BUCKET"),
-			Prefix:        strings.TrimRight(need("STORAGE_PREFIX"), "/"),
-			Endpoint:      os.Getenv("STORAGE_ENDPOINT"),
-			AccessKey:     os.Getenv("STORAGE_ACCESS_KEY"),
-			SecretKey:     os.Getenv("STORAGE_SECRET_KEY"),
-			UseSSL:        os.Getenv("STORAGE_USE_SSL") != "false",
-			PublicBaseURL: strings.TrimSpace(os.Getenv("STORAGE_PUBLIC_BASE_URL")),
+			Driver:    or(os.Getenv("STORAGE_DRIVER"), "gcs"),
+			Bucket:    need("STORAGE_BUCKET"),
+			Prefix:    strings.TrimRight(need("STORAGE_PREFIX"), "/"),
+			Endpoint:  os.Getenv("STORAGE_ENDPOINT"),
+			AccessKey: os.Getenv("STORAGE_ACCESS_KEY"),
+			SecretKey: os.Getenv("STORAGE_SECRET_KEY"),
+			UseSSL:    os.Getenv("STORAGE_USE_SSL") != "false",
 		},
 		Wake: Wake{
 			Common:       strings.TrimSpace(os.Getenv("WAKE_COMMON_URL")),

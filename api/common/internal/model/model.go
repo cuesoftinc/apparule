@@ -359,6 +359,7 @@ type Notification struct {
 	Text       string     `json:"text"`
 	Actor      *Actor     `json:"actor"`
 	ThumbURL   *string    `json:"thumb_url"`
+	ThumbKey   *string    `json:"-"`
 	ReadAt     *time.Time `json:"read_at"`
 	CreatedAt  time.Time  `json:"created_at"`
 }
@@ -383,6 +384,7 @@ type Earnings struct {
 type ReportPreview struct {
 	Text           string  `json:"text"`
 	ThumbURL       *string `json:"thumb_url"`
+	ThumbKey       *string `json:"-"`
 	AuthorUsername *string `json:"author_username"`
 }
 

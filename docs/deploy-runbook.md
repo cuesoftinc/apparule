@@ -202,7 +202,7 @@ The `WAKE_*` values are the services' own `https://…run.app` URLs, without a
 path. Create the services first, then fill these in and redeploy.
 
 Never set in cloud: `FIREBASE_AUTH_EMULATOR_HOST`, `STORAGE_ENDPOINT`, the
-`STORAGE_*_KEY`s and `STORAGE_PUBLIC_BASE_URL` (those are for self-host).
+and the `STORAGE_*_KEY`s (those are for self-host).
 
 **Paystack:** in the dashboard, set the webhook URL to
 `https://apparule-api-common-805800737799.us-central1.run.app/webhooks/payments`, and use test keys until

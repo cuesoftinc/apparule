@@ -20,9 +20,11 @@ type OrderRow struct {
 	Reference         *string
 	ProviderRef       *string
 	RecipientCode     *string
+	// PostThumbKey is the frozen post image; the service signs it into Post.ThumbURL.
+	PostThumbKey string
 }
 
-const orderCols = `r.id, r.order_number, r.post_id, r.post_caption, r.post_thumb_url,
+const orderCols = `r.id, r.order_number, r.post_id, r.post_caption, r.post_thumb_key,
 	r.customer_account_id, ca.username, ca.avatar_url,
 	r.designer_id, r.designer_account_id, da.username, da.avatar_url,
 	r.status, r.notes, r.budget_cents, r.quote_cents, r.currency, r.due_at, to_char(r.target_date, 'YYYY-MM-DD'),
@@ -46,7 +48,7 @@ func scanOrder(r pgx.Row) (*OrderRow, error) {
 	var disputeDetail *string
 	var payID, payProvider, payState, payCurrency *string
 	var payAmount, payFee *int64
-	err := r.Scan(&o.ID, &o.OrderNumber, &postID, &o.Post.Caption, &o.Post.ThumbURL,
+	err := r.Scan(&o.ID, &o.OrderNumber, &postID, &o.Post.Caption, &o.PostThumbKey,
 		&o.Customer.ID, &o.Customer.Username, &o.Customer.AvatarURL,
 		&o.Designer.ID, &o.DesignerAccountID, &o.Designer.Username, &o.Designer.AvatarURL,
 		&o.Status, &o.Notes, &o.BudgetCents, &o.QuoteCents, &o.Currency, &o.DueAt, &o.TargetDate,
@@ -151,7 +153,7 @@ func loadEvents(ctx context.Context, tx pgx.Tx, orders []*OrderRow) error {
 type NewOrder struct {
 	PostID            string
 	PostCaption       string
-	PostThumbURL      string
+	PostThumbKey      string
 	CustomerAccountID string
 	DesignerID        string
 	DesignerAccountID string
@@ -164,10 +166,10 @@ type NewOrder struct {
 
 func InsertOrder(ctx context.Context, tx pgx.Tx, o NewOrder) (string, error) {
 	var id string
-	err := tx.QueryRow(ctx, `INSERT INTO request (post_id, post_caption, post_thumb_url, customer_account_id, designer_id,
+	err := tx.QueryRow(ctx, `INSERT INTO request (post_id, post_caption, post_thumb_key, customer_account_id, designer_id,
 			designer_account_id, notes, budget_cents, target_date, delivery, snapshot)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::date, $10, $11) RETURNING id`,
-		o.PostID, o.PostCaption, o.PostThumbURL, o.CustomerAccountID, o.DesignerID, o.DesignerAccountID,
+		o.PostID, o.PostCaption, o.PostThumbKey, o.CustomerAccountID, o.DesignerID, o.DesignerAccountID,
 		o.Notes, o.BudgetCents, o.TargetDate, mustJSON(o.Delivery), mustJSON(o.Snapshot)).Scan(&id)
 	return id, err
 }

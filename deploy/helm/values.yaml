@@ -30,7 +30,6 @@ services:
       STORAGE_PREFIX: apparule/selfhost
       STORAGE_ENDPOINT: seaweedfs:8333
       STORAGE_USE_SSL: "false"
-      STORAGE_PUBLIC_BASE_URL: https://media.apparule.example.com/apparule
       PORT: "8080"
       CORS_ORIGINS: https://apparule.example.com
       UPLOADS_URL: https://api.apparule.example.com/api/v1/uploads
