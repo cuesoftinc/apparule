@@ -54,8 +54,10 @@ export function SelfHostSection() {
             All services, your storage, no lock-in.
           </p>
           <p className="mt-1 text-caption text-text-2">
-            Ships <code className="font-mono">api-common</code> ·{" "}
-            <code className="font-mono">api-measure</code> ·{" "}
+            Ships <code className="font-mono">common</code> ·{" "}
+            <code className="font-mono">uploads</code> ·{" "}
+            <code className="font-mono">segmentation</code> ·{" "}
+            <code className="font-mono">commerce</code> ·{" "}
             <code className="font-mono">web</code>
           </p>
           <a

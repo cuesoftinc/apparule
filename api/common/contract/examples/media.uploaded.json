@@ -1,0 +1,27 @@
+{
+  "type": "apparule.media.uploaded",
+  "version": "1.0",
+  "id": "00000000-0000-4000-8000-000000003ddf",
+  "request_id": "2d3e4f5a-6b7c-4d8e-9f0a-0b1c2d3e4f5a",
+  "produced_at": "2026-10-19T10:00:00Z",
+  "data": {
+    "ticket_id": "c9f0f895-fb98-4b91-8f7e-1a2b3c4d5e6f",
+    "account_id": "1e2d3c4b-5a69-4788-9a0b-c1d2e3f4a5b6",
+    "target": {
+      "kind": "post_media",
+      "id": "0d1e2f3a-4b5c-4d6e-8f70-81a2b3c4d5e6"
+    },
+    "images": [
+      {
+        "object": {
+          "bucket": "apparule-local",
+          "key": "apparule/local/tmp/media/0d1e2f3a-4b5c-4d6e-8f70-81a2b3c4d5e6/0.jpg",
+          "size": 812345,
+          "content_type": "image/jpeg"
+        },
+        "width": 1536,
+        "height": 2048
+      }
+    ]
+  }
+}

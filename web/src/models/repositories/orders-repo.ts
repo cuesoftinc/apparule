@@ -1,6 +1,8 @@
 // Commission requests/orders repository — api.md §5 (Requests + Payments
 // groups); transitions enforced per order-lifecycle.md §1–2.
-import { apiFetch, type Page } from "@/lib/api";
+import { env } from "@/config/env";
+import { ApiError, apiFetch, type Page } from "@/lib/api";
+import { type Checkout, openCheckout } from "@/lib/paystack";
 import type {
   CommissionRequest,
   DeclineReason,
@@ -8,6 +10,42 @@ import type {
   DisputeReason,
   ThreadMessage,
 } from "../entities/order";
+import { pollUntil } from "./upload";
+
+/** POST /pay on the real backend: the order (still quoted) + its checkout. */
+type PayStarted = CommissionRequest & { checkout?: Checkout };
+
+/**
+ * Real backend (§6.3): open Paystack's checkout, then wait for the webhook
+ * to settle the charge — the order turns paid server-side only.
+ */
+async function payOnBackend(
+  id: string,
+  idempotencyKey: string,
+): Promise<CommissionRequest> {
+  const started = await apiFetch<PayStarted>(`/v1/requests/${id}/pay`, {
+    method: "POST",
+    headers: { "Idempotency-Key": idempotencyKey },
+  });
+  if (!started.checkout) return started;
+  const result = await openCheckout(started.checkout);
+  if (result === "cancelled") {
+    throw new ApiError("payment_cancelled", "Payment was cancelled", 409);
+  }
+  const order = await pollUntil(
+    () => apiFetch<CommissionRequest>(`/v1/requests/${id}`),
+    (o) => o.status !== "quoted",
+    { intervalMs: 2000, timeoutMs: 90_000 },
+  );
+  if (order.status === "quoted") {
+    throw new ApiError(
+      "payment_pending",
+      "Payment received — confirming it can take a minute",
+      202,
+    );
+  }
+  return order;
+}
 
 export interface RequestCreate {
   session_id: string;
@@ -68,12 +106,17 @@ export const ordersRepo = {
       method: "POST",
     }),
 
-  /** POST /api/v1/requests/{id}/pay — escrow hold (MI-15). */
+  /**
+   * POST /api/v1/requests/{id}/pay — escrow hold (MI-15). TEST_MODE: the
+   * mock holds at once. Real backend: Paystack checkout, then the webhook.
+   */
   pay: (id: string, idempotencyKey: string) =>
-    apiFetch<CommissionRequest>(`/v1/requests/${id}/pay`, {
-      method: "POST",
-      headers: { "Idempotency-Key": idempotencyKey },
-    }),
+    env.testMode
+      ? apiFetch<CommissionRequest>(`/v1/requests/${id}/pay`, {
+          method: "POST",
+          headers: { "Idempotency-Key": idempotencyKey },
+        })
+      : payOnBackend(id, idempotencyKey),
 
   /** POST /api/v1/requests/{id}/confirm-delivery — releases payout (−10% fee). */
   confirmDelivery: (id: string) =>

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://apparule.cuesoft.io/contract/media.uploaded.schema.json",
+  "title": "apparule.media.uploaded",
+  "description": "uploads -> common, on cuelabs.uploads. Post media (a designer's draft upload batch) or a thread attachment, stored in tmp/. Key: target id.",
+  "type": "object",
+  "required": ["ticket_id", "account_id", "target", "images"],
+  "additionalProperties": false,
+  "properties": {
+    "ticket_id": { "type": "string", "minLength": 1 },
+    "account_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "target": {
+      "type": "object",
+      "required": ["kind", "id"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["post_media", "attachment"] },
+        "id": { "$ref": "defs.schema.json#/$defs/id" }
+      }
+    },
+    "images": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10,
+      "items": { "$ref": "defs.schema.json#/$defs/image_ref" }
+    }
+  }
+}

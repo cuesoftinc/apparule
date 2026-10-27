@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://apparule.cuesoft.io/contract/orders.transition.schema.json",
+  "title": "apparule.orders.transition",
+  "description": "common (outbox) -> commerce, on cuelabs.requests. An order changed state (order-lifecycle.md §1). commerce acts on the money transitions: `delivered` releases the payout (quote - fee), `refunded` refunds the charge; it ignores the rest. Everything a money decision needs travels here, because commerce has no store. Key: request id.",
+  "type": "object",
+  "required": ["request_id", "transition_id", "from", "to", "actor", "occurred_at"],
+  "additionalProperties": false,
+  "properties": {
+    "request_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "transition_id": { "$ref": "defs.schema.json#/$defs/id", "description": "The ORDER_EVENT id; commerce's idempotency reference with Paystack." },
+    "from": { "$ref": "defs.schema.json#/$defs/order_status" },
+    "to": { "$ref": "defs.schema.json#/$defs/order_status" },
+    "actor": { "enum": ["customer", "designer", "system", "moderator"] },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "quote": { "$ref": "defs.schema.json#/$defs/money" },
+    "payment": {
+      "type": "object",
+      "description": "The held charge, present from `paid` onward.",
+      "required": ["reference", "amount"],
+      "additionalProperties": false,
+      "properties": {
+        "reference": { "type": "string", "minLength": 1 },
+        "provider_transaction_id": { "type": "string" },
+        "amount": { "$ref": "defs.schema.json#/$defs/money" }
+      }
+    },
+    "payout_recipient": {
+      "type": "object",
+      "description": "The designer's verified Paystack transfer recipient, on `delivered`.",
+      "required": ["recipient_code"],
+      "additionalProperties": false,
+      "properties": {
+        "recipient_code": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

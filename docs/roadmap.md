@@ -14,7 +14,7 @@ home. Everything here is achievable without new backend capabilities.
 | Landing page: hero, problem statement, cloud-vs-OSS comparison, CTAs | APP-001, PRD §3/§6 | Figma Home canvas is currently empty — either the design pass happens first or we ship a standards-based layout and retrofit (prd.md §8.5) |
 | Interactive walkthrough (static/scripted, no live pipeline) | PRD §3 | Multi-step visualization of measurement entry → report |
 | Docs hub `/docs` with deploy guides + SMPL explainer | APP-003 (explainer), APP-004 (seed) | Content sources: repo docs, README |
-| API reference `/docs/api` rendering api/measure OpenAPI + hand-written api/common spec | APP-004 | Search can be client-side (flexsearch) at this scale |
+| API reference `/docs/api` rendering the api/common OpenAPI spec | APP-004 | Search can be client-side (flexsearch) at this scale |
 | Privacy disclosure page | APP-005, D3 | Links to Apparule clause on privacy.cuesoft.io |
 | Analytics events: Demo Starts, GitHub Clicks | ECO-ANALYTICS | **Blocked by D2** (Upstat event API) — ship with a no-op/queued client wrapper so events flow the day D2 lands |
 
@@ -42,9 +42,9 @@ record endpoint.
 
 | Item | Requirement |
 | --- | --- |
-| Firestore data layer (X-5) + repository layer | data-model.md |
+| Postgres data layer (S-3) + repository layer — **built 2026-10-20** | data-model.md |
 | Customers CRUD + workspace scoping | PLAT-002 |
-| Measurement sessions: upload → internal api/measure call → persisted results | PLAT-001 |
+| Measurement sessions: create-then-upload → api/segmentation over Kafka → persisted results — **built** | PLAT-001 |
 | Manual corrections (append-only) | data-model.md §2 |
 | Exports (PDF/CSV, signed URLs) | PLAT-004 |
 | Flutter: wire capture flow to sessions API; dashboard: records UI | PLAT-001/002 |
@@ -114,3 +114,16 @@ both surfaces with QC codes + retention job live; **P3 (Social)** post→follow
 money invariant green and disputes freezing payouts; **P5 (SMPL)** accuracy
 report published + cloud girth sessions selectable. Platform parity note: web dashboard
 and mobile ship each phase together (shared component naming, design.md §6).
+
+---
+
+## Status — backend built on the system design (2026-10-20)
+
+The ratified system design (S-1…S-15) is built: `api/common` (Postgres,
+RLS, tickets, outbox, sweeps), `api/uploads`, `api/segmentation` and
+`api/commerce`, with compose, Helm, CI and a tag-gated release. Against the
+revised phases: **P1** (auth, consent, instance requests), **P2** (vault +
+asynchronous capture), **P3** (social, trust & safety) and **P4** (commerce
+on Paystack, sandbox) have their backend; the web runs against it. Remaining:
+the Flutter `*Remote` repositories (blocked on `flutterfire configure`), the
+two-view measurement benchmark (capture-qc.md §3), and **P5** (SMPL).

@@ -1,0 +1,28 @@
+{
+  "type": "apparule.notifications.created",
+  "version": "1.0",
+  "id": "00000000-0000-4000-8000-000000011668",
+  "request_id": "3e4f5a6b-7c8d-4e9f-8a0b-1c2d3e4f5a6b",
+  "produced_at": "2026-10-19T10:00:00Z",
+  "data": {
+    "notification_id": "4d5e6f70-8192-4a3b-8c4d-5e6f70819203",
+    "account_id": "1e2d3c4b-5a69-4788-9a0b-c1d2e3f4a5b6",
+    "kind": "quote",
+    "created_at": "2026-10-19T09:30:00Z",
+    "ref": {
+      "kind": "request",
+      "id": "7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c0d"
+    },
+    "text": "@adaeze.designs sent you a quote",
+    "recipient": {
+      "push_tokens": [
+        "fcm-token-example"
+      ],
+      "display_name": "Tolu"
+    },
+    "money": {
+      "amount": 4500000,
+      "currency": "NGN"
+    }
+  }
+}

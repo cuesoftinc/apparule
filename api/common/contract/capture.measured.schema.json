@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://apparule.cuesoft.io/contract/capture.measured.schema.json",
+  "title": "apparule.capture.measured",
+  "description": "segmentation -> common, on cuelabs.results. `measured` carries one value per template measure; `failed_qc` names the first failing pose and its code (capture-qc.md §2), and `poses` says which poses passed so an accepted pose is never discarded; `failed` is an infrastructure-free pipeline error (a missing image). Key: session id.",
+  "type": "object",
+  "required": ["session_id", "attempt", "status", "method", "thresholds_version", "poses"],
+  "additionalProperties": false,
+  "properties": {
+    "session_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "attempt": { "type": "integer", "minimum": 1 },
+    "status": { "enum": ["measured", "failed_qc", "failed"] },
+    "method": { "$ref": "defs.schema.json#/$defs/method" },
+    "thresholds_version": { "type": "string", "minLength": 1 },
+    "poses": {
+      "type": "object",
+      "description": "QC verdict per pose. A pose QC never reached (an earlier pose failed first) is absent.",
+      "additionalProperties": false,
+      "properties": {
+        "front": { "enum": ["accepted", "failed"] },
+        "side": { "enum": ["accepted", "failed"] }
+      }
+    },
+    "qc": {
+      "type": "object",
+      "required": ["code", "pose"],
+      "additionalProperties": false,
+      "properties": {
+        "code": { "$ref": "defs.schema.json#/$defs/qc_code" },
+        "pose": { "$ref": "defs.schema.json#/$defs/pose" }
+      }
+    },
+    "measurements": {
+      "type": "array",
+      "items": { "$ref": "defs.schema.json#/$defs/measurement" }
+    },
+    "meta": {
+      "type": "object",
+      "description": "pipeline_meta for the session (capture-qc.md §3, §5): model versions and QC flags. Ids and flags only.",
+      "additionalProperties": false,
+      "properties": {
+        "height_suspect": { "type": "boolean" },
+        "pose_model": { "type": "string" },
+        "segmentation_model": { "type": "string" },
+        "ms": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "error_code": { "enum": ["image_missing", "pipeline_error"] }
+  },
+  "allOf": [
+    { "if": { "properties": { "status": { "const": "measured" } } }, "then": { "required": ["measurements"] } },
+    { "if": { "properties": { "status": { "const": "failed_qc" } } }, "then": { "required": ["qc"] } },
+    { "if": { "properties": { "status": { "const": "failed" } } }, "then": { "required": ["error_code"] } }
+  ]
+}

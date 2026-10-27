@@ -17,14 +17,18 @@ WORKDIR /app/web
 COPY --from=deps /app/web/node_modules ./node_modules
 COPY web/ ./
 COPY docs/api/openapi.yaml /app/docs/api/openapi.yaml
-# NEXT_PUBLIC_* are inlined at build time, so they must be provided here.
-ARG NEXT_PUBLIC_BASE_URL
-ENV NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL
 # TEST_MODE is a build-time switch like every other NEXT_PUBLIC_*: Next inlines
 # it at `next build`, so a container env var at runtime would be ignored. Unset
 # by default, so production images are byte-identical to before.
 ARG NEXT_PUBLIC_TEST_MODE
 ENV NEXT_PUBLIC_TEST_MODE=$NEXT_PUBLIC_TEST_MODE
+# Firebase web config (public by design, X-1). Empty values + the emulator
+# host give a local build that signs in against the Auth emulator.
+ARG NEXT_PUBLIC_FIREBASE_API_KEY
+ARG NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+ARG NEXT_PUBLIC_FIREBASE_PROJECT_ID
+ARG NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST
+ENV NEXT_PUBLIC_FIREBASE_API_KEY=$NEXT_PUBLIC_FIREBASE_API_KEY     NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=$NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN     NEXT_PUBLIC_FIREBASE_PROJECT_ID=$NEXT_PUBLIC_FIREBASE_PROJECT_ID     NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST=$NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST
 RUN mkdir -p public
 RUN npm run build
 

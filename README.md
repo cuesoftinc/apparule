@@ -1,7 +1,8 @@
 # Apparule
 
-Fashion body-measurement platform — capture body measurements from a phone and
-turn them into sizing data for a better-fitting shopping experience.
+Fashion body-measurement and social-commerce platform — capture body
+measurements from a phone, keep them in a private vault, and commission
+outfits from designers with a frozen copy of your measurements.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![build-and-test](https://github.com/cuesoftinc/apparule/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/cuesoftinc/apparule/actions/workflows/build-and-test.yml)
@@ -9,11 +10,13 @@ turn them into sizing data for a better-fitting shopping experience.
 ## Overview
 
 Apparule is a monorepo containing the clients, backend services, deployment
-configuration, and documentation for the platform. A Go service owns
-authentication and the core API, a Python service turns phone camera input into
-body measurements, and a Next.js frontend serves the marketing site and user
-dashboard. For a deeper description of the components and how they fit together,
-see [docs/overview.md](docs/overview.md).
+configuration, and documentation for the platform. A Go service owns the product
+API and all data, a Node gateway takes uploads, one Python service turns two
+phone photos into body measurements and another makes every payment decision,
+and a Next.js frontend serves the marketing site and user dashboard. The
+services talk over the CueLABS shared Kafka. For the components and how they
+fit together, see [docs/overview.md](docs/overview.md) and the
+[system design](docs/system-design.md).
 
 ## Architecture
 
@@ -23,43 +26,56 @@ flowchart LR
         WEB[web + dashboard<br/>Next.js — App Hosting]
         MOB[Flutter mobile]
     end
-    FB[Firebase / Google auth]
-    subgraph server["GCP Cloud Run"]
-        AC[api/common — Go]
-        AM[api/measure — Python, pose]
+    FB[Firebase Auth<br/>Google only]
+    subgraph server["GCP Cloud Run (scale to zero)"]
+        AC[api/common — Go<br/>CRUD]
+        UP[api/uploads — Node<br/>upload gateway]
+        SG[api/segmentation — Python<br/>pose QC · measurements]
+        CM[api/commerce — Python<br/>payments · notifications]
     end
     subgraph data
-        FS[(Firestore)]
+        PG[(Aiven Postgres)]
         CS[(Cloud Storage)]
         RD[(Aiven Redis)]
+        K[[CueLABS shared Kafka]]
     end
     WEB --> FB
     MOB --> FB
     WEB --> AC
     MOB --> AC
-    AC --> AM
-    AC --> FS
-    AC --> CS
+    WEB --> UP
+    MOB --> UP
+    AC --> PG
     AC --> RD
+    UP --> CS
+    UP --> K
+    AC <--> K
+    K <--> SG
+    K <--> CM
 ```
 
 ### Tech stack
 
 | Layer          | Technology                                          |
 | -------------- | --------------------------------------------------- |
-| Backend API    | Go 1.26, Gin (`api/common`)                         |
-| Measurement    | Python, FastAPI, MediaPipe, OpenCV (`api/measure`)  |
+| Backend API    | Go 1.26, Postgres with row-level security (`api/common`) |
+| Upload gateway | Node 24, NestJS, sharp (`api/uploads`)              |
+| Measurement    | Python 3.12, MediaPipe, OpenCV (`api/segmentation`) |
+| Payments       | Python 3.12, Paystack, FCM, Brevo (`api/commerce`)  |
+| Messaging      | Kafka (the CueLABS shared Aiven service)            |
 | Web            | Next.js, React, TypeScript                          |
 | Mobile         | Flutter (primary), native Android/iOS               |
-| Auth & data    | Firebase Google-only auth; Firestore (system of record, X-5) & Cloud Storage; shared Aiven Redis |
+| Auth & data    | Firebase Google-only auth; Aiven Postgres (system of record) & Cloud Storage; shared Aiven Redis |
 | Infrastructure | Docker, Helm, Terraform, GCP Cloud Run              |
 
 ## Repository structure
 
 ```
 api/
-  common/      Go service — authentication and core API
-  measure/     Python service — MediaPipe pose-based body measurement
+  common/        Go — the product API, the only Postgres client; Kafka contract
+  uploads/       Node — ticketed upload gateway
+  segmentation/  Python — pose QC and body measurements
+  commerce/      Python — payment decisions, push and email
 web/           Next.js marketing site + user dashboard
 mobile/
   flutter/     Flutter app (primary mobile client)
@@ -89,20 +105,23 @@ function (never by its language).
 
 ```bash
 cp .env.example .env
-make up      # build + start api-common (:8080), api-measure (:8081), web (:3000)
+make up      # build + start the stack: web (:3000), common (:8080), segmentation (:8081),
+             # uploads (:8082), commerce (:8083), plus Postgres, Kafka, Redis, S3, Firebase emulator
 make logs    # follow logs
 make down    # stop
 ```
 
-Configuration is provided at runtime via environment variables — for example
-`FIREBASE_CONFIG_PATH`, the path to the Firebase service-account JSON used by
-`api/common`. See [docs/setup.md](docs/setup.md) for details; `make help` lists
-all targets. Never commit credentials or bake them into an image.
+Configuration is provided at runtime via environment variables (names in
+[system-design.md §10.3](docs/system-design.md)); the compose defaults need
+nothing but the local-only ticket key pair already in `.env.example`. See
+[docs/setup.md](docs/setup.md) for details; `make help` lists all targets.
+Never commit credentials or bake them into an image.
 
 ## Documentation
 - [Hosted docs](https://cuesoft.gitbook.io/apparule) — the full documentation site (auto-synced from `docs/`)
 
 - [Project overview](docs/overview.md) — architecture and components
+- [System design](docs/system-design.md) — services, transports, data ownership, flows
 - [Local setup](docs/setup.md) — development environment and per-service run commands
 
 ## Contributing

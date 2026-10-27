@@ -15,6 +15,8 @@ export interface ComposerMediaItem {
   previewUrl: string;
   /** Uploaded URL (mock object-storage stand-in); null while uploading. */
   url: string | null;
+  /** The uploaded media's id, which the post names (real backend, §6.1). */
+  mediaId: string | null;
   altText: string;
   error: string | null;
 }
@@ -62,6 +64,7 @@ export function useComposer() {
           localId: crypto.randomUUID(),
           previewUrl: URL.createObjectURL(file),
           url: null,
+          mediaId: null,
           altText: "",
           error: null,
         };
@@ -71,7 +74,9 @@ export function useComposer() {
           (uploaded) => {
             setMedia((current) =>
               current.map((m) =>
-                m.localId === item.localId ? { ...m, url: uploaded.url } : m,
+                m.localId === item.localId
+                  ? { ...m, url: uploaded.url, mediaId: uploaded.id }
+                  : m,
               ),
             );
           },
@@ -135,6 +140,7 @@ export function useComposer() {
           turnaround_days: details.turnaroundDays,
           media: media.map((m) => ({
             url: m.url!,
+            media_id: m.mediaId ?? undefined,
             // Alt text required; default per design.md §5.
             alt_text: m.altText.trim() || `Outfit by ${designerDisplayName}`,
           })),

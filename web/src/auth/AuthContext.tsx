@@ -2,7 +2,7 @@
 
 // Auth controller — owns auth state; views render from it (MVC rule).
 // Provider selection: TEST_MODE → TestModeAuthProvider; otherwise the
-// Firebase stub until backend integration lands.
+// FirebaseAuthProvider (X-1 Google-only; the Auth emulator locally).
 import {
   createContext,
   useCallback,
@@ -16,7 +16,7 @@ import { env } from "@/config/env";
 import type { Account } from "@/models";
 import type { AuthProviderAdapter, SignInResult } from "./types";
 import { TestModeAuthProvider } from "./test-mode-provider";
-import { StubAuthProvider } from "./stub-auth-provider";
+import { FirebaseAuthProvider } from "./firebase-provider";
 
 export type AuthStatus = "loading" | "signed_out" | "signed_in";
 
@@ -33,7 +33,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 function createProvider(): AuthProviderAdapter {
-  return env.testMode ? new TestModeAuthProvider() : new StubAuthProvider();
+  return env.testMode ? new TestModeAuthProvider() : new FirebaseAuthProvider();
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {

@@ -9,6 +9,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- The backend of the ratified system design (S-1…S-15, decided 2026-10-20),
+  on the CueLABS shared Kafka (X-11) (#244):
+  - `api/common` rebuilt as the Postgres CRUD owner: row-level security, the
+    full HTTP contract of the web mock, create-then-upload capture with
+    Ed25519 upload tickets and per-pose retakes, the transactional outbox,
+    Paystack webhook intake, the double-entry ledger (a deferred trigger
+    rejects unbalanced movements), and the sweeps (captures, orders,
+    retention, reconcile).
+  - `api/uploads`: the ticketed upload gateway (NestJS); strips EXIF and GPS
+    and re-encodes every image before it touches storage.
+  - `api/segmentation` (was `api/measure`): a Kafka worker running per-pose
+    capture QC and measuring every A-10 template name with
+    `mediapipe_2d_v2` (front widths × side depths from the segmentation
+    mask, 93 % stature correction, two-view confidence).
+  - `api/commerce`: every money decision (charge settlement, payouts,
+    refunds, bank-account verification, reconciliation) and push/email
+    delivery.
+  - The Kafka contract in `api/common/contract` (JSON Schemas and examples
+    for every event; the upload-ticket format).
+- Compose and Helm run the four services with Postgres, Kafka (the three
+  shared lanes), Redis, SeaweedFS and the Firebase auth emulator; CI jobs
+  for every service, including the Postgres RLS integration suite (#244).
+- The web runs against the real backend when TEST_MODE is off: Firebase
+  Google sign-in, a server-side `/api/v1` proxy, create-then-upload capture
+  with polling, ticketed composer uploads, Paystack checkout, asynchronous
+  bank verification (#244).
+- `docs/system-design.md` is ratified, with §16 implementation notes (#244).
+- `release.yml`: on a `v*` tag, builds and pushes the four API images and
+  points the Cloud Run services and sweep jobs at their digests in the
+  protected `Sandbox` environment; `docs/deploy-runbook.md` walks an account
+  owner through GCP, Aiven, Firebase, Paystack and GitHub (#244).
+
 - Datadog service catalog entry for the Apparule system.
 - Root README fleet badge row — License (MIT) + `build-and-test` workflow
   status (shields.io; the workflow badge links to the actions page),
@@ -136,6 +168,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   mobile. Body data never rides a share by default (#187).
 
 ### Changed
+
+- The system of record is Postgres again (S-3 reverses X-5's Firestore);
+  architecture.md, deployment.md, api.md, data-model.md §3, setup.md,
+  overview.md, the README, flows/vault.md's capture contract and
+  engineering.md's test strategy are rewritten from the system design; the
+  OpenAPI document gains the capture, upload, media and payout endpoints
+  (#244).
+- The landing page's self-host and developer sections name the new
+  services (#244).
 
 - Inches are the default measurement display unit on web (A-9 — Nigerian
   tailors work in inches; storage, API payloads and the QC pipeline stay
@@ -397,6 +438,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   setup routes through the README, `.env.example`, and `make help` (#178).
 
 ### Removed
+
+- `POST /measure` and the synchronous common → measure call; the JWT
+  session stub and `JWT_SECRET`; the web's `StubAuthProvider` and
+  `NEXT_PUBLIC_BASE_URL` (#244).
 
 - The mobile legacy quarantine (M-3 staged removal, both conditions met
   2026-07-22: every replacement shipped per the QA-convergence ledger +

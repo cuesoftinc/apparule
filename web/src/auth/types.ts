@@ -1,7 +1,7 @@
 // Auth provider abstraction (web-standard TEST_MODE rule): the app talks to
-// this interface only. TestModeAuthProvider implements it now;
-// FirebaseAuthProvider is added at backend-integration time — X-1 Google-only
-// either way (flows/auth.md: exactly one auth CTA).
+// this interface only: TestModeAuthProvider under TEST_MODE,
+// FirebaseAuthProvider against the real backend — X-1 Google-only either way
+// (flows/auth.md: exactly one auth CTA).
 import type { Account } from "@/models";
 
 export interface AuthSession {

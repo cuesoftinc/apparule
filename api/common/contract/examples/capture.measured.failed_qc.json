@@ -1,0 +1,22 @@
+{
+  "type": "apparule.capture.measured",
+  "version": "1.0",
+  "id": "00000000-0000-4000-8000-000000015446",
+  "request_id": "5c2a9d1e-3b4f-4a6c-8d7e-9f0a1b2c3d4e:1",
+  "produced_at": "2026-10-19T10:00:00Z",
+  "data": {
+    "session_id": "5c2a9d1e-3b4f-4a6c-8d7e-9f0a1b2c3d4e",
+    "attempt": 1,
+    "status": "failed_qc",
+    "method": "mediapipe_2d_v2",
+    "thresholds_version": "qc-2026-10-19",
+    "poses": {
+      "front": "accepted",
+      "side": "failed"
+    },
+    "qc": {
+      "code": "not_side_profile",
+      "pose": "side"
+    }
+  }
+}

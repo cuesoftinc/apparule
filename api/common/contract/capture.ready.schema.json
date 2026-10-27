@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://apparule.cuesoft.io/contract/capture.ready.schema.json",
+  "title": "apparule.capture.ready",
+  "description": "common (outbox) -> segmentation, on cuelabs.requests. Both poses are in tmp/; measure them against the customer's A-10 template, which travels here because the bus has no compacted config topics (X-11). `attempt` grows with each retake, and segmentation echoes it so common ignores a stale result. Key: session id.",
+  "type": "object",
+  "required": ["session_id", "attempt", "method", "height_cm", "template", "measures", "poses"],
+  "additionalProperties": false,
+  "properties": {
+    "session_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "attempt": { "type": "integer", "minimum": 1 },
+    "method": { "const": "mediapipe_2d_v2" },
+    "height_cm": { "type": "number", "minimum": 100, "maximum": 230 },
+    "template": { "$ref": "defs.schema.json#/$defs/template" },
+    "measures": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "defs.schema.json#/$defs/measure_spec" }
+    },
+    "poses": {
+      "type": "object",
+      "required": ["front", "side"],
+      "additionalProperties": false,
+      "properties": {
+        "front": { "$ref": "defs.schema.json#/$defs/image_ref" },
+        "side": { "$ref": "defs.schema.json#/$defs/image_ref" }
+      }
+    }
+  }
+}

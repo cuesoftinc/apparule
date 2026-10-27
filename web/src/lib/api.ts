@@ -2,8 +2,9 @@
 // ONLY layer that talks to the network, per the web standard's MVC rule).
 //
 // TEST_MODE (NEXT_PUBLIC_TEST_MODE=1) targets the in-app mock server at
-// /api/mock; otherwise api/common at `${env.apiBaseUrl}/api` (Firebase bearer
-// tokens attach here at backend-integration time).
+// /api/mock; otherwise the same-origin /api proxy (src/app/api/v1), which
+// forwards to api/common and api/uploads, with the Firebase ID token as the
+// bearer (system-design.md §8).
 import { env } from "@/config/env";
 
 /** Ecosystem error envelope: `{"error": {"code", "message", "details?"}}` (api.md §4). */
@@ -35,7 +36,17 @@ export class ApiError extends Error {
 }
 
 export function apiBasePath(): string {
-  return env.testMode ? "/api/mock" : `${env.apiBaseUrl}/api`;
+  return env.testMode ? "/api/mock" : "/api";
+}
+
+/**
+ * The bearer token source, set by the FirebaseAuthProvider (auth/). Kept as
+ * an injected function so this transport stays free of auth imports.
+ */
+let tokenSource: (() => Promise<string | null>) | null = null;
+
+export function setTokenSource(source: (() => Promise<string | null>) | null) {
+  tokenSource = source;
 }
 
 /**
@@ -60,7 +71,8 @@ export interface ApiRequestInit extends RequestInit {
 
 /**
  * Perform a request against the versioned API surface.
- * `path` is relative to the base, e.g. `/v1/feed`.
+ * `path` is relative to the base, e.g. `/v1/feed`; an absolute `/api/…`
+ * path (an upload ticket's URL) is used as is.
  */
 export async function apiFetch<T>(
   path: string,
@@ -68,15 +80,25 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const { json, headers, ...rest } = init;
   const actor = testModeActor();
-  const res = await fetch(`${apiBasePath()}${path}`, {
-    ...rest,
-    headers: {
-      ...(json !== undefined ? { "Content-Type": "application/json" } : {}),
-      ...(actor ? { "x-mock-actor": actor } : {}),
-      ...(headers ?? {}),
+  // Upload-Ticket requests carry only their ticket (S-15), never a user token.
+  const ticketed =
+    headers !== undefined &&
+    "Upload-Ticket" in (headers as Record<string, string>);
+  const token =
+    !env.testMode && !ticketed && tokenSource ? await tokenSource() : null;
+  const res = await fetch(
+    path.startsWith("/api/") ? path : `${apiBasePath()}${path}`,
+    {
+      ...rest,
+      headers: {
+        ...(json !== undefined ? { "Content-Type": "application/json" } : {}),
+        ...(actor ? { "x-mock-actor": actor } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(headers ?? {}),
+      },
+      ...(json !== undefined ? { body: JSON.stringify(json) } : {}),
     },
-    ...(json !== undefined ? { body: JSON.stringify(json) } : {}),
-  });
+  );
 
   if (res.status === 204) {
     return undefined as T;

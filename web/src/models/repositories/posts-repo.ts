@@ -1,23 +1,53 @@
 // Posts + engagement + social graph repository — api.md §5.
 // Likes/saves/follows are idempotent PUT-style toggles with optimistic-client
 // semantics (MI-18) — controllers flip UI state first, then call these.
-import { apiFetch, type Page } from "@/lib/api";
+import { env } from "@/config/env";
+import { ApiError, apiFetch, type Page } from "@/lib/api";
 import type { Comment, Post } from "../entities/post";
+import { pollUntil, uploadWithTicket, type UploadTicket } from "./upload";
+
+interface MediaBatch {
+  id: string;
+  status: "awaiting_upload" | "ready";
+  items: { id: string; url: string; width: number; height: number }[];
+  upload?: UploadTicket;
+}
 
 export interface PostCreate {
   caption: string;
   style_tags: string[];
   base_price_cents: number | null;
   turnaround_days: number;
-  media: { url: string; alt_text: string }[];
+  /** `media_id` names an uploaded image on the real backend (§6.1). */
+  media: { url: string; alt_text: string; media_id?: string }[];
 }
 
 export const postsRepo = {
   /** GET /api/v1/posts/{id} — public permalink /p/{id}. */
   get: (id: string) => apiFetch<Post>(`/v1/posts/${id}`),
 
-  /** POST /api/v1/media — composer image upload (object-storage stand-in). */
-  uploadMedia: (image: File) => {
+  /**
+   * Composer image upload. TEST_MODE: POST /media (the mock's object-storage
+   * stand-in). Real backend: reserve a media batch (ticket) → upload to
+   * api/uploads → poll until stored; `url` is a short-lived preview.
+   */
+  uploadMedia: async (image: File): Promise<{ id: string; url: string }> => {
+    if (!env.testMode) {
+      const batch = await apiFetch<MediaBatch>("/v1/media/tickets", {
+        method: "POST",
+        json: { count: 1 },
+      });
+      await uploadWithTicket(batch.upload!, [["images", image]]);
+      const ready = await pollUntil(
+        () => apiFetch<MediaBatch>(`/v1/media/batches/${batch.id}`),
+        (b) => b.status === "ready",
+        { intervalMs: 1000, timeoutMs: 60_000 },
+      );
+      const item = ready.items[0];
+      if (!item)
+        throw new ApiError("upload_failed", "The image didn't upload", 503);
+      return { id: item.id, url: item.url };
+    }
     const form = new FormData();
     form.set("image", image);
     return apiFetch<{ id: string; url: string }>("/v1/media", {

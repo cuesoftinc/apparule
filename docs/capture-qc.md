@@ -9,16 +9,21 @@
 > A capture is **two photos** — front + side (right profile) — plus height
 > (M-10, decisions.md); QC runs and reports **per pose**.
 
-## 1. Image pre-checks (before pose detection)
+## 1. Image checks
 
-Run **per image** — each pose's photo passes the same table.
+Run **per image** — each pose's photo passes the same table. Brightness
+and blur are judged **on the person** (the segmentation mask and its
+bounding box), not the whole frame: a person against a bright white wall
+is well lit, and a plain wall is not a blurry photo **[Revised 2026-10-21:
+the whole-frame rules failed well-lit, sharp photos taken against white
+walls]**. When no person is segmented, the whole frame is used.
 
 | Check | Threshold | Fail code |
 | --- | --- | --- |
 | Decodable | cv2 decode succeeds | `undecodable_image` |
 | Resolution | short edge ≥ 480px | `low_resolution` (new code) |
-| Brightness | mean luma in [40, 215] | `poor_lighting` (new code) |
-| Blur | Laplacian variance ≥ 60 | `blurry` (new code) |
+| Brightness | mean luma of the person's pixels in [40, 215] | `poor_lighting` (new code) |
+| Blur | Laplacian variance over the person's bounding box ≥ 60 | `blurry` (new code) |
 
 ## 2. Pose QC (after detection)
 
@@ -33,21 +38,34 @@ Let `vis(i)` = landmark i visibility. Key sets: HEAD = {nose}, SHOULDERS =
 | Single subject | exactly 1 pose (`num_poses=2` probe run; if 2 detected → fail) | `multiple_bodies` |
 | Full body | min vis over HEAD∪SHOULDERS∪HIPS∪ANKLES ≥ 0.5 | `partial_body` |
 | In-frame margins | all key landmarks within [2%, 98%] of both axes | `partial_body` |
-| Frontality | shoulder-width\_px ÷ hip-width\_px ∈ [0.9, 2.2] AND both shoulders' z within 0.15 of each other | `not_frontal` (new code) |
+| Frontality | shoulder-width\_px ÷ hip-width\_px ∈ [0.9, 2.2] AND both shoulders' z within 0.15 of each other AND shoulder span ÷ torso length ≥ 0.4 | `not_frontal` (new code) |
 | Upright | angle of nose→ankle-midpoint axis within 15° of vertical | `camera_tilt` (new code) |
 | Arms clearance | wrist landmarks ≥ 5% image-width away from hip landmarks horizontally (arms slightly out, not fused to torso) | `arms_position` (new code) |
 | Scale sanity | body_height_px ≥ 40% of image height | `too_far` (new code) |
 
-### Pose 2 — side (right profile) deltas
+### Pose 2 — side (profile) deltas
 
-The side pose runs the same §1 pre-checks (lighting/blur/resolution) and
-the body-present / single-subject / full-body / in-frame / upright /
-scale-sanity rows unchanged; two rows swap:
+**[Revised 2026-10-21]** In a true profile the far shoulder, hip, wrist
+and ankle are hidden behind the body, and the pose model only guesses where
+they are, so the side pose judges **the side facing the camera**: the
+side the model sees more clearly (higher visibility of shoulder + hip +
+ankle), and on a tie the one with the nearer shoulder (smaller z). The
+earlier rules applied the front's both-sides visibility test and a
+shoulder ÷ hip width ratio < 0.9; a correct profile photo fails both (far
+ankle visibility 0.17; ratio 1.48, because shoulder and hip widths shrink
+together in profile). Either profile is accepted — left or right side to
+the camera — since measuring doesn't depend on which; the app's guide and
+copy still ask for the right side.
 
 | Check | Rule | Fail code |
 | --- | --- | --- |
-| Profile orientation | the frontality rule inverted: shoulders' z-delta ≥ 0.15 (near/far shoulder depth separation) AND shoulder-width\_px ÷ hip-width\_px < 0.9 (foreshortened shoulders) — the subject is side-on, right shoulder to camera | `not_side_profile` (new code) |
-| Arms relaxed | wrist landmarks within 5% image-width of hip landmarks horizontally (arms hanging at the sides) — replaces the front pose's arms-clearance rule; sits at the arms row's position in the table order | `arms_position` (side-pose guidance copy) |
+| Body present, single subject | as the front pose | `no_body`, `multiple_bodies` |
+| Full body | min vis over HEAD ∪ the camera-side shoulder, hip and ankle ≥ 0.5 | `partial_body` |
+| In-frame margins | those landmarks within [2%, 98%] of both axes | `partial_body` |
+| Profile orientation | shoulder span ÷ torso length < 0.4 (≈ 0.1 in profile, ≈ 0.5 facing the camera) | `not_side_profile` (new code) |
+| Upright | angle of the nose → camera-side-ankle axis within 15° of vertical | `camera_tilt` |
+| Arms relaxed | the camera-side wrist within 5% image-width of its hip horizontally (arm hanging at the side) | `arms_position` (side-pose guidance copy) |
+| Scale sanity | nose → camera-side ankle ≥ 40% of image height | `too_far` |
 
 Each code carries guidance copy (flows/vault.md table extends with the new
 codes; `arms_position` copy is per pose). Multiple failures report the
@@ -97,7 +115,7 @@ per-method — the field is method-agnostic by design.
 
 ## 5. Config block (single source)
 
-All constants above live in `app/config.py :: QCThresholds` (one dataclass),
+The thresholds version is `qc-2026-10-21` (it was `qc-2026-10-19` before the side-pose and on-the-person revisions). All constants above live in `api/segmentation/app/config.py :: QCThresholds` (one dataclass; the v2 calibration constants beside it in `Calibration`),
 logged (as config, not per-image) at service start, echoed into
 `pipeline_meta.qc.thresholds_version` per session so historical sessions
 remain interpretable after tuning.
