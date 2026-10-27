@@ -70,13 +70,13 @@ carry a Cloud Run ID token).
 | Workflow | Trigger | Does |
 | --- | --- | --- |
 | `build-and-test.yml` | PRs **and** push to `main` | per service: Go vet + tests (with a Postgres service for the RLS suite), uploads typecheck/lint/test/build, ruff + pytest for segmentation and commerce, web and mobile gates — **no deploy, no image push** (X-6) |
-| `release.yml` | **tag `v*` created** | builds and pushes `cuesoft/apparule-api-{common,uploads,segmentation,commerce}` (tags: version, sha, `latest`), then in the protected `Sandbox` environment authenticates by WIF and points the Cloud Run services at the new **digests**; fails unless every new revision is Ready and `common` answers `/ready` |
+| `release.yml` | **push to `main` touching `api/**`** | builds and pushes `cuesoft/apparule-api-{common,uploads,segmentation,commerce}` (tags: sha, `latest`), then in the `Sandbox` environment authenticates by WIF and points the Cloud Run services at the new **digests**; fails unless every new revision is Ready and `common` answers `/ready` |
 
-**Gating (X-6):** `stg` (sandbox) is the only environment and is treated as
-production. Two independent gates: a GitHub **tag ruleset** restricts `v*`
-tags to owner-level access, and the deploy job runs in the protected
-**`Sandbox`** environment with required reviewers. A merged PR never reaches
-the sandbox on its own. The web keeps App Hosting rollouts.
+**Gating (X-6, revised 2026-10-27):** `stg` (sandbox) is the only
+environment. A merge to `main` that touches `api/**` deploys the API services
+to the sandbox; review and merge rights on `main` are the gate. The deploy job
+runs in the `Sandbox` environment, which holds the WIF variables. No version
+tags: images carry the commit sha and `latest`. The web keeps App Hosting rollouts.
 
 Two hard-won rules inherited from cueprise, non-negotiable:
 

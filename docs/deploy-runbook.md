@@ -37,8 +37,8 @@ remote set ships.
 | Kafka | the CueLABS shared Aiven service | n/a | shared with Expendit and Upstat (X-11); SASL user `apparule` with topic ACLs |
 | Object storage | `sandbox-e306a.firebasestorage.app` | n/a | prefix `apparule/stg/`; media by signed URL only |
 
-Images are built and deployed by `.github/workflows/release.yml` when a
-`v*` tag is created (§8). **Your infrastructure code creates the resources;
+Images are built and deployed by `.github/workflows/release.yml` on every merge
+to `main` that touches `api/**` (§8). **Your infrastructure code creates the resources;
 the workflow only swaps their image digests.**
 
 ### 1.1 Everything scales to zero
@@ -250,22 +250,21 @@ instance for up to ~15 minutes. Aiven (Postgres, Valkey, Kafka) is shared and st
 
 On `cuesoftinc/apparule`:
 
-1. **Environment `Sandbox`** with required reviewers, and these environment
+1. **Environment `Sandbox`** with these environment
    **variables**: `GCP_PROJECT_ID`, `GCP_REGION`, `GCP_WORKLOAD_IDENTITY_PROVIDER`
    (`projects/<number>/locations/global/workloadIdentityPools/<pool>/providers/<provider>`),
    `GCP_DEPLOY_SERVICE_ACCOUNT` (the `apparule-deploy` email).
 2. **Repository secrets**: `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN` (push to
    `cuesoft/apparule-api-*`).
-3. **Tag ruleset** restricting `v*` tag creation to owners.
-4. The WIF provider trusts this repository, and `apparule-deploy` grants it
+3. The WIF provider trusts this repository, and `apparule-deploy` grants it
    `roles/iam.workloadIdentityUser`.
 
-## 9. First release and switching the website over
+## 9. First deploy and switching the website over
 
-1. Merge to `main`; confirm the site still works (TEST_MODE, §0).
-2. Create the infrastructure (§2–§7) and fill Doppler (§6).
-3. Tag a release: `git tag v0.2.0 && git push origin v0.2.0`. Approve the
-   `Sandbox` deployment when GitHub asks.
+1. Create the infrastructure (§2–§7) and fill Doppler (§6).
+2. Merge to `main`; the merge deploys the API services. Confirm the site
+   still works (TEST_MODE, §0).
+3. To redeploy without a code change, re-run the latest `release` run.
 4. The workflow fails unless every service's newest revision is Ready and
    common answers `/ready`. Check `apparule-api-common`'s logs for
    `migration applied` (first deploy only) and `listening`.

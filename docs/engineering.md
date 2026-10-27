@@ -76,7 +76,7 @@ no inline ad-hoc checks.
 | Unit (Go table-driven; pytest) | handlers, services, QC math | capture-qc golden images (1 per QC code); order state-machine transition table (every legal + illegal edge); confidence formula fixtures |
 | Contract | error catalog | every documented code producible by a test |
 | Integration | api/common against a real Postgres as a non-superuser (embedded, or a CI service) | RLS isolation proven cross-account; idempotency under retries; the capture flow with a per-pose retake; the commission flow from webhook to payout |
-| E2E smoke (per release tag) | auth → capture → save → request → quote → pay(sandbox) → deliver | runs against sandbox before the tag deploy completes (release.yml gate) |
+| E2E smoke (per deploy) | auth → capture → save → request → quote → pay(sandbox) → deliver | runs against sandbox before the deploy completes (release.yml gate) |
 | Money invariants | platform ledger | each outcome's lines sum to zero (a deferred trigger rejects anything else); escrow returns to zero after payout |
 
 Row-level security tests: vault, order and notification rows unreadable

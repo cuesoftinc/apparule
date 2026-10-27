@@ -78,7 +78,7 @@ M-*, X-1…X-10 except X-5's datastore), the flow docs and order state
 machine, the capture-QC thresholds and error codes, the engineering
 contracts (error envelope, authorization matrix, rate limits, never-log
 list, CORS), the web mock API (already a complete HTTP contract, §7.3),
-the CI/CD and tag-gated deploy model (X-6), and the Helm/Terraform
+the CI/CD and merge-to-main deploy model (X-6), and the Helm/Terraform
 self-host path.
 
 ---
@@ -514,7 +514,7 @@ volume is negligible (pointers and small JSON).
 
 ## 10. Deployment topology
 
-### 10.1 Cloud (X-3, X-6: tag-gated, `stg` only)
+### 10.1 Cloud (X-3, X-6: deploys on merge to main, `stg` only)
 
 | Unit | Cloud Run kind | Scaling |
 | --- | --- | --- |

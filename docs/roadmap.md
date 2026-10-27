@@ -121,7 +121,7 @@ and mobile ship each phase together (shared component naming, design.md §6).
 
 The ratified system design (S-1…S-15) is built: `api/common` (Postgres,
 RLS, tickets, outbox, sweeps), `api/uploads`, `api/segmentation` and
-`api/commerce`, with compose, Helm, CI and a tag-gated release. Against the
+`api/commerce`, with compose, Helm, CI and a merge-to-main release. Against the
 revised phases: **P1** (auth, consent, instance requests), **P2** (vault +
 asynchronous capture), **P3** (social, trust & safety) and **P4** (commerce
 on Paystack, sandbox) have their backend; the web runs against it. Remaining:
