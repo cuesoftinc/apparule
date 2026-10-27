@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'measurement_session.dart';
@@ -9,6 +9,7 @@ part of 'measurement_session.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -69,7 +70,7 @@ class _$MeasurementCopyWithImpl<$Res>
 /// Create a copy of Measurement
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? valueCm = null,Object? confidence = freezed,Object? source = null,}) {
-  return _then(_self.copyWith(
+  return _then(Measurement(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,valueCm: null == valueCm ? _self.valueCm : valueCm // ignore: cast_nullable_to_non_nullable
@@ -351,7 +352,7 @@ class _$MeasurementSessionCopyWithImpl<$Res>
 /// Create a copy of MeasurementSession
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? method = null,Object? status = null,Object? measurements = null,Object? createdAt = null,Object? inputHeightCm = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(MeasurementSession(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,method: null == method ? _self.method : method // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
@@ -499,7 +500,7 @@ return $default(_that.id,_that.method,_that.status,_that.measurements,_that.crea
 
 
 class _MeasurementSession extends MeasurementSession {
-  const _MeasurementSession({required this.id, required this.method, required this.status, required final  List<Measurement> measurements, required this.createdAt, this.inputHeightCm}): _measurements = measurements,super._();
+  const _MeasurementSession({required this.id, required this.method, required this.status, required  List<Measurement> measurements, required this.createdAt, this.inputHeightCm}): _measurements = measurements,super._();
   
 
 @override final  String id;

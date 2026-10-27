@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'order.dart';
@@ -9,6 +9,7 @@ part of 'order.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -63,7 +64,7 @@ class _$OrderPartyCopyWithImpl<$Res>
 /// Create a copy of OrderParty
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? username = null,Object? avatarUrl = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(OrderParty(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
 as String,avatarUrl: freezed == avatarUrl ? _self.avatarUrl : avatarUrl // ignore: cast_nullable_to_non_nullable
@@ -326,7 +327,7 @@ class _$OrderPostSummaryCopyWithImpl<$Res>
 /// Create a copy of OrderPostSummary
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? caption = null,Object? thumbUrl = null,}) {
-  return _then(_self.copyWith(
+  return _then(OrderPostSummary(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,caption: null == caption ? _self.caption : caption // ignore: cast_nullable_to_non_nullable
 as String,thumbUrl: null == thumbUrl ? _self.thumbUrl : thumbUrl // ignore: cast_nullable_to_non_nullable
@@ -589,7 +590,7 @@ class _$DeliveryAddressCopyWithImpl<$Res>
 /// Create a copy of DeliveryAddress
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? recipientName = null,Object? phone = null,Object? line1 = null,Object? city = null,Object? state = null,Object? country = null,}) {
-  return _then(_self.copyWith(
+  return _then(DeliveryAddress(
 recipientName: null == recipientName ? _self.recipientName : recipientName // ignore: cast_nullable_to_non_nullable
 as String,phone: null == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
 as String,line1: null == line1 ? _self.line1 : line1 // ignore: cast_nullable_to_non_nullable
@@ -861,7 +862,7 @@ class _$SnapshotMeasurementCopyWithImpl<$Res>
 /// Create a copy of SnapshotMeasurement
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? valueCm = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnapshotMeasurement(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,valueCm: null == valueCm ? _self.valueCm : valueCm // ignore: cast_nullable_to_non_nullable
 as double,
@@ -1121,7 +1122,7 @@ class _$OrderSnapshotCopyWithImpl<$Res>
 /// Create a copy of OrderSnapshot
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? method = null,Object? measuredAt = null,Object? measurements = null,}) {
-  return _then(_self.copyWith(
+  return _then(OrderSnapshot(
 method: null == method ? _self.method : method // ignore: cast_nullable_to_non_nullable
 as String,measuredAt: null == measuredAt ? _self.measuredAt : measuredAt // ignore: cast_nullable_to_non_nullable
 as DateTime,measurements: null == measurements ? _self.measurements : measurements // ignore: cast_nullable_to_non_nullable
@@ -1266,7 +1267,7 @@ return $default(_that.method,_that.measuredAt,_that.measurements);case _:
 
 
 class _OrderSnapshot implements OrderSnapshot {
-  const _OrderSnapshot({required this.method, required this.measuredAt, required final  List<SnapshotMeasurement> measurements}): _measurements = measurements;
+  const _OrderSnapshot({required this.method, required this.measuredAt, required  List<SnapshotMeasurement> measurements}): _measurements = measurements;
   
 
 @override final  String method;
@@ -1390,7 +1391,7 @@ class _$OrderEventCopyWithImpl<$Res>
 /// Create a copy of OrderEvent
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? kind = null,Object? actor = null,Object? createdAt = null,}) {
-  return _then(_self.copyWith(
+  return _then(OrderEvent(
 kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
 as String,actor: null == actor ? _self.actor : actor // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -1653,7 +1654,7 @@ class _$OrderDisputeCopyWithImpl<$Res>
 /// Create a copy of OrderDispute
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? reason = null,Object? detail = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(OrderDispute(
 reason: null == reason ? _self.reason : reason // ignore: cast_nullable_to_non_nullable
 as DisputeReason,detail: freezed == detail ? _self.detail : detail // ignore: cast_nullable_to_non_nullable
 as String?,
@@ -1913,7 +1914,7 @@ class _$OrderPaymentCopyWithImpl<$Res>
 /// Create a copy of OrderPayment
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? state = null,Object? amountCents = null,Object? platformFeeCents = null,}) {
-  return _then(_self.copyWith(
+  return _then(OrderPayment(
 state: null == state ? _self.state : state // ignore: cast_nullable_to_non_nullable
 as PaymentState,amountCents: null == amountCents ? _self.amountCents : amountCents // ignore: cast_nullable_to_non_nullable
 as int,platformFeeCents: null == platformFeeCents ? _self.platformFeeCents : platformFeeCents // ignore: cast_nullable_to_non_nullable
@@ -2179,7 +2180,7 @@ class _$OrderCopyWithImpl<$Res>
 /// Create a copy of Order
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? orderNumber = null,Object? post = null,Object? customer = null,Object? designer = null,Object? status = null,Object? snapshot = null,Object? events = null,Object? createdAt = null,Object? viewerRole = null,Object? notes = null,Object? budgetCents = freezed,Object? quoteCents = freezed,Object? currency = null,Object? dueAt = freezed,Object? tracking = freezed,Object? declineReason = freezed,Object? declineNote = freezed,Object? dispute = freezed,Object? delivery = freezed,Object? payment = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(Order(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,orderNumber: null == orderNumber ? _self.orderNumber : orderNumber // ignore: cast_nullable_to_non_nullable
 as String,post: null == post ? _self.post : post // ignore: cast_nullable_to_non_nullable
@@ -2414,7 +2415,7 @@ return $default(_that.id,_that.orderNumber,_that.post,_that.customer,_that.desig
 
 
 class _Order extends Order {
-  const _Order({required this.id, required this.orderNumber, required this.post, required this.customer, required this.designer, required this.status, required this.snapshot, required final  List<OrderEvent> events, required this.createdAt, required this.viewerRole, this.notes = '', this.budgetCents, this.quoteCents, this.currency = 'NGN', this.dueAt, this.tracking, this.declineReason, this.declineNote, this.dispute, this.delivery, this.payment}): _events = events,super._();
+  const _Order({required this.id, required this.orderNumber, required this.post, required this.customer, required this.designer, required this.status, required this.snapshot, required  List<OrderEvent> events, required this.createdAt, required this.viewerRole, this.notes = '', this.budgetCents, this.quoteCents, this.currency = 'NGN', this.dueAt, this.tracking, this.declineReason, this.declineNote, this.dispute, this.delivery, this.payment}): _events = events,super._();
   
 
 @override final  String id;

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'profile_view_model.dart';
@@ -9,6 +9,7 @@ part of 'profile_view_model.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -70,7 +71,7 @@ class _$OwnProfileStateCopyWithImpl<$Res>
 /// Create a copy of OwnProfileState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? profile = null,Object? followersCount = null,Object? followingCount = null,Object? postsCount = null,Object? designerEnabled = null,Object? vaultFreshness = freezed,Object? vaultMeasuredDaysAgo = freezed,Object? gridPosts = null,Object? savedPosts = null,}) {
-  return _then(_self.copyWith(
+  return _then(OwnProfileState(
 profile: null == profile ? _self.profile : profile // ignore: cast_nullable_to_non_nullable
 as Profile,followersCount: null == followersCount ? _self.followersCount : followersCount // ignore: cast_nullable_to_non_nullable
 as int,followingCount: null == followingCount ? _self.followingCount : followingCount // ignore: cast_nullable_to_non_nullable
@@ -230,7 +231,7 @@ return $default(_that.profile,_that.followersCount,_that.followingCount,_that.po
 
 
 class _OwnProfileState implements OwnProfileState {
-  const _OwnProfileState({required this.profile, this.followersCount = 0, this.followingCount = 0, this.postsCount = 0, this.designerEnabled = false, this.vaultFreshness, this.vaultMeasuredDaysAgo, final  List<Post> gridPosts = const <Post>[], final  List<Post> savedPosts = const <Post>[]}): _gridPosts = gridPosts,_savedPosts = savedPosts;
+  const _OwnProfileState({required this.profile, this.followersCount = 0, this.followingCount = 0, this.postsCount = 0, this.designerEnabled = false, this.vaultFreshness, this.vaultMeasuredDaysAgo,  List<Post> gridPosts = const <Post>[],  List<Post> savedPosts = const <Post>[]}): _gridPosts = gridPosts,_savedPosts = savedPosts;
   
 
 @override final  Profile profile;

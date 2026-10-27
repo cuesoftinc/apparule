@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'manual_entry_view_model.dart';
@@ -9,6 +9,7 @@ part of 'manual_entry_view_model.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -66,7 +67,7 @@ class _$ManualEntryStateCopyWithImpl<$Res>
 /// Create a copy of ManualEntryState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? valuesCm = null,Object? unit = null,Object? saving = null,Object? saved = null,}) {
-  return _then(_self.copyWith(
+  return _then(ManualEntryState(
 valuesCm: null == valuesCm ? _self.valuesCm : valuesCm // ignore: cast_nullable_to_non_nullable
 as Map<String, double>,unit: null == unit ? _self.unit : unit // ignore: cast_nullable_to_non_nullable
 as MeasureUnit,saving: null == saving ? _self.saving : saving // ignore: cast_nullable_to_non_nullable
@@ -212,7 +213,7 @@ return $default(_that.valuesCm,_that.unit,_that.saving,_that.saved);case _:
 
 
 class _ManualEntryState implements ManualEntryState {
-  const _ManualEntryState({final  Map<String, double> valuesCm = const <String, double>{}, this.unit = MeasureUnit.inch, this.saving = false, this.saved = false}): _valuesCm = valuesCm;
+  const _ManualEntryState({ Map<String, double> valuesCm = const <String, double>{}, this.unit = MeasureUnit.inch, this.saving = false, this.saved = false}): _valuesCm = valuesCm;
   
 
 /// Entered values, canonical cm (MI-13: unit is display-only,
