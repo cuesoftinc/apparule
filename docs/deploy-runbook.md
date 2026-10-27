@@ -254,8 +254,9 @@ On `cuesoftinc/apparule`:
    **variables**: `GCP_PROJECT_ID`, `GCP_REGION`, `GCP_WORKLOAD_IDENTITY_PROVIDER`
    (`projects/<number>/locations/global/workloadIdentityPools/<pool>/providers/<provider>`),
    `GCP_DEPLOY_SERVICE_ACCOUNT` (the `apparule-deploy` email).
-2. **Repository secrets**: `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN` (push to
-   `cuesoft/apparule-api-*`).
+2. **Repository secrets**: `DOCKER_USERNAME`, `DOCKER_PASSWORD` (push to
+   `cuesoft/apparule-api-*`), synced from Doppler `apparule/ci`, which references
+   `admin/ci`.
 3. The WIF provider trusts this repository, and `apparule-deploy` grants it
    `roles/iam.workloadIdentityUser`.
 
