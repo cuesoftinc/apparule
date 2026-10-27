@@ -485,6 +485,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Release deploys retry while Cloud Run cannot pull a fresh image.
 - Mobile manual-entry advisory reverts to the soft double-check phrasing
   — `manualEntryDoubleCheck` reads "Double-check this one — outside the
   usual {min}–{max} {unit}.", matching web's `manualAdvisory` verbatim.
