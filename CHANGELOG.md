@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `POST /internal/jobs/<name>` on api/common, guarded by scheduler OIDC token.
+- Rate limiter keys carry the `REDIS_KEY_PREFIX` product prefix.
+- Staging estate documented: Cloud Run, Cloud Scheduler, Aiven, Doppler `stg`.
 - The backend of the ratified system design (S-1…S-15, decided 2026-10-20),
   on the CueLABS shared Kafka (X-11) (#244):
   - `api/common` rebuilt as the Postgres CRUD owner: row-level security, the

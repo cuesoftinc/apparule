@@ -4,14 +4,14 @@ The Go CRUD owner (docs/system-design.md §4): the whole product API, and the
 only client of Postgres. It authorizes every upload and issues the ticket for
 it, receives Paystack webhooks, publishes through a transactional outbox,
 consumes the results of `segmentation` and `commerce`, and runs the
-scheduled sweeps. It makes no image or money decisions; it stores the ones
+scheduled sweeps (Cloud Scheduler POSTs `/internal/jobs/<name>`). It makes no image or money decisions; it stores the ones
 the Python services send.
 
 ## Layout
 
 ```
 cmd/server/            API + Kafka consumers + outbox publisher
-cmd/jobs/              one sweep per run: captures | orders | retention | reconcile | migrate
+cmd/jobs/              one sweep by hand: captures | orders | retention | reconcile | migrate
 cmd/ticketkey/         generates an upload-ticket key pair
 contract/              JSON Schemas for every Kafka message (all services validate against them)
 migrations/            forward-only SQL; Postgres with FORCE row-level security
@@ -25,9 +25,9 @@ internal/repository    every SQL statement; account-scoped or system transaction
 internal/kafka         events, lanes, envelope + claim-check, producer, consumers
 internal/outbox        the outbox publisher (SKIP LOCKED)
 internal/sweep         the scheduled jobs (§6.7)
-internal/storage       Cloud Storage (ADC) or MinIO; copy, signed and public URLs
+internal/storage       Cloud Storage (ADC) or MinIO; copy and signed URLs
 internal/ticket        Ed25519 upload tickets (S-15)
-internal/ratelimit     Redis windows (engineering.md §3)
+internal/ratelimit     Valkey windows under `REDIS_KEY_PREFIX` (engineering.md §3)
 internal/wake          wake-up calls for scaled-to-zero services
 ```
 
@@ -48,6 +48,12 @@ internal/wake          wake-up calls for scaled-to-zero services
   `POST /webhooks/payments` verifies, stores and hands the event to
   `commerce`; `payments.outcome` moves the order and appends balanced ledger
   lines (a deferred trigger rejects anything that doesn't sum to zero).
+- **Sweeps**: `POST /internal/jobs/<name>` runs one sweep (`captures`,
+  `orders`, `reconcile`, `retention`; never `migrate`) and answers
+  `{"job","ms"}`. The caller is Cloud Scheduler: its OIDC token must carry
+  the audience `SCHEDULER_AUDIENCE` and the verified email
+  `SCHEDULER_INVOKER_EMAIL`. Missing token is 401, wrong email 403, either
+  variable unset 503, unknown job 404.
 - **Tenancy** (S-11): handlers run as the caller (`app.account_id`), so RLS
   hides other accounts' vaults, orders and notifications; consumers, sweeps
   and staff run as system.

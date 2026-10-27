@@ -37,6 +37,10 @@ type Config struct {
 	Paystack Paystack
 
 	Limits Limits
+
+	// Cloud Scheduler OIDC for POST /internal/jobs/{name}: unset fails closed.
+	SchedulerAudience     string
+	SchedulerInvokerEmail string
 }
 
 type Kafka struct {
@@ -62,6 +66,9 @@ type Redis struct {
 	Password string
 	TLS      bool
 	DB       int
+
+	// KeyPrefix leads every key: the Valkey ACL allows apparule:* only.
+	KeyPrefix string
 }
 
 type Storage struct {
@@ -122,6 +129,9 @@ func Load() (*Config, error) {
 		FirebaseProjectID:    need("FIREBASE_PROJECT_ID"),
 		FirebaseEmulatorHost: os.Getenv("FIREBASE_AUTH_EMULATOR_HOST"),
 		UploadsURL:           or(os.Getenv("UPLOADS_URL"), "/api/v1/uploads"),
+
+		SchedulerAudience:     strings.TrimRight(strings.TrimSpace(os.Getenv("SCHEDULER_AUDIENCE")), "/"),
+		SchedulerInvokerEmail: strings.TrimSpace(os.Getenv("SCHEDULER_INVOKER_EMAIL")),
 		Kafka: Kafka{
 			Brokers:  split(need("KAFKA_BROKERS")),
 			Username: os.Getenv("KAFKA_USERNAME"),
@@ -135,6 +145,8 @@ func Load() (*Config, error) {
 			Password: os.Getenv("REDIS_PASSWORD"),
 			TLS:      os.Getenv("REDIS_TLS") == "true",
 			DB:       atoi(os.Getenv("REDIS_DB"), 0),
+
+			KeyPrefix: strings.Trim(or(os.Getenv("REDIS_KEY_PREFIX"), "apparule"), ":"),
 		},
 		Storage: Storage{
 			Driver:        or(os.Getenv("STORAGE_DRIVER"), "gcs"),

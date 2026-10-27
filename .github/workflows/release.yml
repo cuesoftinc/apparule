@@ -148,12 +148,6 @@ jobs:
       - name: Deploy api-commerce
         run: gcloud run services update apparule-api-commerce --region "$REGION" --image "$COMMERCE" --quiet
 
-      - name: Point the sweep jobs at the new common image
-        run: |
-          for job in captures orders reconcile retention; do
-            gcloud run jobs update "apparule-sweep-${job}" --region "$REGION" --image "$COMMON" --quiet
-          done
-
       # Don't report success without checking the terminal state: every
       # service's latest revision must be the one serving and Ready.
       - name: Verify revisions are ready

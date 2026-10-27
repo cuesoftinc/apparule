@@ -1,7 +1,8 @@
 // Command server is api/common: the HTTP API, the Kafka consumers and the
 // outbox publisher in one process (system-design.md §4). In cloud it scales
-// to zero with CPU always allocated: whatever publishes for it wakes it,
-// and it wakes segmentation and commerce in turn (shared-messaging.md).
+// to zero: whatever publishes for it wakes it, and it wakes segmentation and
+// commerce in turn (shared-messaging.md). Cloud Scheduler calls
+// POST /internal/jobs/{name} on it.
 package main
 
 import (
@@ -106,9 +107,11 @@ func run() error {
 		}
 		return nil
 	}
+	jobs := &handler.Jobs{Run: a.Jobs(false), Verifier: handler.NewGoogleVerifier(),
+		Audience: cfg.SchedulerAudience, Invoker: cfg.SchedulerInvokerEmail}
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           router.New(&handler.Handlers{S: s}, middleware.Authenticate(verifier, s), cfg.CORSOrigins, ready),
+		Handler:           router.New(&handler.Handlers{S: s}, middleware.Authenticate(verifier, s), cfg.CORSOrigins, ready, jobs),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 

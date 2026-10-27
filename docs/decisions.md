@@ -160,7 +160,7 @@ the post option is a deliberate per-share choice, unchecked every time.
 | S-6 | Money decisions in `api/commerce` (provider-event matching, fee and payout arithmetic, transfers, refunds, reconciliation); `common` persists | ☑ |
 | S-7 | Notification delivery in `api/commerce` (FCM, Brevo); `common` writes the rows | ☑ |
 | S-8 | ~~Config and ledger propagate by transactional outbox, compacted topics.~~ **Amended by X-11:** transactional outbox, no compacted topics; the template travels in `capture.ready` and the ledger slice in `ledger.reconcile_requested` | ☑ |
-| S-9 | ~~Worker pools for `segmentation` and `commerce`; `common` min 1.~~ **Amended by X-11 (2026-10-20):** every Cloud Run service scales to zero with CPU always allocated; publishers wake their consumers with `GET /health` (shared-messaging.md "Scale to zero"); sweeps as Cloud Run jobs | ☑ |
+| S-9 | ~~Worker pools for `segmentation` and `commerce`; `common` min 1.~~ **Amended by X-11 (2026-10-20):** every Cloud Run service scales to zero with request-based CPU; publishers wake their consumers with `GET /health` (shared-messaging.md "Scale to zero"); sweeps as Cloud Scheduler POSTs to `/internal/jobs/<name>` on common | ☑ |
 | S-10 | Transactional counters (no reconciliation job); feed ranking stays SQL in `common` until it becomes a model | ☑ |
 | S-11 | Tenancy in depth: Postgres row-level security; per-prefix Storage IAM; the product's Kafka user | ☑ |
 | S-12 | Paystack webhooks land on `common` (verify, store raw, outbox); interpretation in `commerce` | ☑ |

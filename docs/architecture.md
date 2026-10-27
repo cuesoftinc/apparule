@@ -16,7 +16,6 @@ flowchart LR
     end
 
     WEB[web — Next.js<br/>App Hosting · /api/v1 proxy]
-    LB{{api.apparule.cuesoft.io}}
 
     COMMON[api/common — Go<br/>CRUD · auth · tickets · outbox · sweeps]
     UP[api/uploads — Node<br/>ticketed upload gateway]
@@ -28,12 +27,11 @@ flowchart LR
     R[(Aiven Redis)]
     K[[CueLABS shared Kafka<br/>cuelabs.uploads · requests · results]]
 
-    APP --> LB
+    APP --> COMMON
     BR --> WEB
-    WEB -->|/api/v1| LB
-    PS -->|webhooks| LB
-    LB -->|/api/v1/*| COMMON
-    LB -->|/api/v1/uploads| UP
+    WEB -->|/api/v1 proxy| COMMON
+    PS -->|webhooks| COMMON
+    APP -->|uploads + ticket| UP
 
     UP -->|cleaned images| GCS
     UP -->|capture.uploaded · media.uploaded| K
@@ -177,7 +175,7 @@ sequenceDiagram
 Postgres is the system of record (S-3), read and written only by
 `api/common`, with row-level security on private data (S-11). Object storage
 holds images: `tmp/` (24 h), `captures/` (30 days after save), `media/`
-(published post images, public), `attachments/` and `exports/` (signed
+(published post images), `attachments/` and `exports/` (all served by signed
 URLs), `compute/` (claim-check payloads, 1 day). Redis holds rate-limit
 windows. See [data-model.md](data-model.md).
 
@@ -211,7 +209,7 @@ flowchart LR
 ## 6. Deployment **[Built]**
 
 - **Cloud** (X-3, X-6): Cloud Run services at min 0 (scale to zero with
-  wake-ups), sweeps as Cloud Run jobs, Aiven Postgres and Redis, the shared
+  wake-ups), sweeps as Cloud Scheduler POSTs to common, the shared Aiven Postgres and Valkey, the shared
   Aiven Kafka, Cloud Storage; web on Firebase App Hosting. Tag-gated
   releases. See [deployment.md](deployment.md).
 - **Self-host**: `docker-compose.yml` (Postgres, Kafka KRaft, Redis,

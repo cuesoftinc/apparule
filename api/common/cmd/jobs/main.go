@@ -2,7 +2,8 @@
 //
 //	jobs captures | orders | retention | reconcile | migrate
 //
-// Cloud Scheduler triggers each as a Cloud Run job from this image.
+// Cloud Scheduler reaches the same jobs over POST /internal/jobs/<name> on the
+// common service; this command runs them by hand and applies migrations.
 package main
 
 import (
@@ -18,9 +19,6 @@ import (
 
 	"github.com/cuesoftinc/apparule/api/common/internal/app"
 	"github.com/cuesoftinc/apparule/api/common/internal/config"
-	"github.com/cuesoftinc/apparule/api/common/internal/sweep"
-	"github.com/cuesoftinc/apparule/api/common/internal/wake"
-	"github.com/cuesoftinc/apparule/api/common/migrations"
 )
 
 func main() {
@@ -44,10 +42,7 @@ func run(args []string) error {
 	}
 	defer a.Close()
 
-	sweeper := &sweep.Sweeper{DB: a.DB, Store: a.Store, Services: a.Services, Now: time.Now, Wake: wake.New(),
-		WakeURLs: cfg.Wake, Limits: cfg.Limits}
-	jobs := sweeper.Jobs()
-	jobs["migrate"] = func(ctx context.Context) error { return migrations.Apply(ctx, a.DB.Pool) }
+	jobs := a.Jobs(true)
 
 	names := make([]string, 0, len(jobs))
 	for name := range jobs {

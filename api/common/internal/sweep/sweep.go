@@ -1,6 +1,6 @@
 // Package sweep holds the scheduled jobs (system-design.md §6.7). Cloud
-// Scheduler runs them as Cloud Run jobs from this image (cmd/jobs); all are
-// lookup-then-write and safe to run twice.
+// Scheduler calls POST /internal/jobs/{name} on common; cmd/jobs runs the
+// same map by hand. All are lookup-then-write and safe to run twice.
 package sweep
 
 import (
@@ -33,7 +33,7 @@ type Sweeper struct {
 	Limits   config.Limits
 }
 
-// Jobs maps the cmd/jobs names to their functions.
+// Jobs maps the job names to their functions.
 func (s *Sweeper) Jobs() map[string]func(context.Context) error {
 	return map[string]func(context.Context) error{
 		"captures":  s.Captures,

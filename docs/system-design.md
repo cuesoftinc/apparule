@@ -111,7 +111,6 @@ flowchart LR
 
     subgraph Edge
         WEB[web — Next.js<br/>App Hosting + CDN]
-        LB{{HTTPS load balancer<br/>api.apparule.cuesoft.io}}
     end
 
     COMMON[api/common — Go<br/>CRUD · auth · feed · orders · outbox · sweeps]
@@ -129,13 +128,12 @@ flowchart LR
     UPS[Upstat<br/>events + OTLP]
     EXT[Paystack API · FCM · Brevo]
 
-    APP --> LB
+    APP --> COMMON
     BR --> WEB
-    BR --> LB
-    WEB -->|SSR| LB
-    PS -->|webhooks| LB
-    LB -->|/api/v1/* default| COMMON
-    LB -->|/api/v1/uploads + ticket| UP
+    BR -->|upload + ticket| UP
+    WEB -->|/api/v1/* proxy| COMMON
+    PS -->|webhooks| COMMON
+    APP -->|upload + ticket| UP
 
     UP -->|temp images| GCS
     UP -->|pointers| K
@@ -395,7 +393,7 @@ compacted (X-11): reference data travels inside the request.
 
 ### 6.7 Scheduled sweeps
 
-Cloud Scheduler triggers Cloud Run jobs (architecture.md §8 kept, with
+Cloud Scheduler POSTs `/internal/jobs/<name>` on `api/common` (`apparule-captures`, `apparule-orders`, `apparule-reconcile`, `apparule-retention`) with an OIDC token from `scheduler-invoker`; the handler checks the audience and the invoker and the jobs are created paused until the handlers deploy (architecture.md §8 kept, with
 new owners):
 
 | Job | Image | Cadence | Kind |
@@ -417,9 +415,10 @@ Counter reconciliation (J5) retires (§5.2).
 
 | Host | Routes to | Protocol |
 | --- | --- | --- |
-| `apparule.cuesoft.io` | web | HTTPS |
-| `api.apparule.cuesoft.io` | common (default, including session creation and every `…/ticket` endpoint); uploads for `POST /api/v1/uploads` only | HTTP/JSON; multipart with an `Upload-Ticket` header |
-| `api.apparule.cuesoft.io/webhooks/payments` | common | HTTPS, Paystack-signed |
+| `apparule.cuesoft.io` | web; its server-side proxy sends `/api/v1/*` to common | HTTPS |
+| `https://apparule-api-common-805800737799.us-central1.run.app` | common (including session creation, every `…/ticket` endpoint and `/internal/jobs/<name>`) | HTTP/JSON |
+| `https://apparule-api-uploads-805800737799.us-central1.run.app` | uploads, `POST /api/v1/uploads` only | multipart with an `Upload-Ticket` header |
+| common `/webhooks/payments` | common | HTTPS, Paystack-signed |
 
 The gateway has exactly one public route, and it accepts nothing without a
 ticket from `common`. `segmentation` and `commerce` have **no ingress** at
@@ -498,7 +497,7 @@ engineering.md unchanged.
 ### 9.3 Who watches Apparule
 
 Upstat (Apparule is one of its first-party customers, X-9): uptime checks
-on `api.apparule.cuesoft.io/health` and the web; OTLP traces, logs and
+on common's `/health` and the web; OTLP traces, logs and
 metrics from all four services; alerts on consumer lag for
 `capture.ready` and `payments.*`; product events (flows' instrumentation
 sections) to `/v1/events`.
@@ -520,22 +519,20 @@ volume is negligible (pointers and small JSON).
 | Unit | Cloud Run kind | Scaling |
 | --- | --- | --- |
 | web | Firebase App Hosting | managed |
-| api/common (Go) | Service, CPU always allocated | **0**–5 |
-| api/uploads (Node) | Service | 0–5 |
-| api/segmentation (Python) | Service, CPU always allocated, 2 vCPU / 2 GiB, authenticated only | 0–3 |
-| api/commerce (Python) | Service, CPU always allocated, authenticated only | 0–2 |
-| Sweeps (§6.7) | Cloud Run jobs + Cloud Scheduler | per job |
-| Postgres, Redis | Aiven, GCP us-central1 | — |
-| Kafka | the CueLABS shared Aiven service (X-11) | — |
-| Cloud Storage | default bucket, `apparule/<env>/…`, lifecycle rules on `tmp/` and `compute/` | — |
+| api/common (Go) | Service, request-based CPU | **0**–2 |
+| api/uploads (Node) | Service, request-based CPU, 1 GiB | 0–5 |
+| api/segmentation (Python) | Service, request-based CPU, 2 vCPU / 2 GiB, authenticated only | 0–2 |
+| api/commerce (Python) | Service, request-based CPU, authenticated only | 0–2 |
+| Sweeps (§6.7) | Cloud Scheduler POSTs to common | per job |
+| Postgres, Valkey | the shared Aiven `sandbox-db` and `sandbox-cache`; keys `apparule:*` | n/a |
+| Kafka | the CueLABS shared Aiven service (X-11), SASL user with topic ACLs | n/a |
+| Cloud Storage | `sandbox-e306a.firebasestorage.app`, `apparule/stg/…`, lifecycle rules on `tmp/` and `compute/`; media by signed URL only | n/a |
 
-Every service scales to zero (S-9 as amended). A consumer keeps CPU while
-an instance lives, and whoever publishes for a sleeping service wakes it
+Every service scales to zero (S-9 as amended). CPU is allocated only during requests (no always-on instance, worker pool or Cloud Run job), and whoever publishes for a sleeping service wakes it
 with `GET /health` (shared-messaging.md "Scale to zero"): `uploads` wakes
 `common`; `common`'s outbox wakes `segmentation` or `commerce`; they wake
 `common` after each result; and the sweeps wake whatever has work pending.
-An external HTTPS load balancer with serverless NEGs does the path routing
-in §7.1. Provisioning goes through cuesoft-iac.
+The web proxies `/api/v1/*` to common (§7.1); there is no load balancer. Provisioning goes through cuesoft-iac.
 
 ### 10.2 Self-host (compose + Helm)
 
@@ -606,7 +603,7 @@ docs/
 | **S-6** | **Money decisions in `api/commerce`**: provider-event matching, fee and payout arithmetic, transfers and refunds, reconciliation. `common` persists | architecture.md §8 J4 + webhook handling in common | ☑ 2026-10-20 |
 | **S-7** | **Notification delivery in `api/commerce`** (FCM, Brevo); `common` writes the rows | architecture.md §8 "common → FCM" | ☑ 2026-10-20 |
 | **S-8** | Config and ledger propagate by **transactional outbox**; ~~compacted topics~~ no compacted topics (X-11) | — | ☑ 2026-10-20, amended |
-| **S-9** | ~~Worker pools for `segmentation` and `commerce`; `common` min 1~~ every service scales to zero with wake-ups (X-11); sweeps as Cloud Run jobs | deployment.md §4 | ☑ 2026-10-20, amended |
+| **S-9** | ~~Worker pools for `segmentation` and `commerce`; `common` min 1~~ every service scales to zero with wake-ups (X-11); sweeps as Cloud Scheduler POSTs to common | deployment.md §4 | ☑ 2026-10-20, amended |
 | **S-10** | Counter reconciliation retires (transactional counters). Feed ranking stays SQL in `common` until it becomes a model, then moves to Python | architecture.md §8 J5 | ☑ 2026-10-20 |
 | **S-11** | Tenancy defence in depth: Postgres RLS; per-prefix Storage IAM; per-service Kafka ACLs | engineering.md §6 Firestore rules | ☑ 2026-10-20 |
 | **S-12** | Paystack webhooks land on `common` (verify + store raw + outbox); interpretation in `commerce` | — | ☑ 2026-10-20 |
@@ -682,13 +679,13 @@ the code and in the docs rewritten from this one.
 | I-5 | **Attempts** | Each upload (first or retake) increments `attempt`; `capture.ready` carries it and `capture.measured` echoes it, so a late result for an older attempt is ignored. A retake replaces only its pose's image; the accepted pose's image is reused. | Retakes and re-sends must not race. |
 | I-6 | **Timeouts on the shared bus** | Overdue `processing` sessions are re-sent once after 60 s (`resent_at`) and failed with `pipeline_busy` after 180 s, not 60 s. `awaiting_upload` sessions are deleted 10 minutes after their last live ticket. | X-11's re-send rule, and a cold `segmentation` (scale to zero, MediaPipe load) needs more than 60 s. |
 | I-7 | **mediapipe_2d_v2** | Lengths from the front view's landmarks; girths as an ellipse from the front view's segmentation width and the side view's depth at the same body row; each view scaled by 93% of the stated height; capture-qc.md §4's confidence across both views; every name in the customer's A-10 template. Rows and factors live in one `Calibration` block, uncalibrated until the two-view benchmark (capture-qc.md §3). | A-10b needs every template measure; the segmenter from #204 makes depth measurable. |
-| I-8 | **Media** | Post media and attachments are create-then-upload batches: `POST /media/tickets`, `POST /requests/{id}/attachments/tickets`, polled by `GET /media/batches/{id}`. Published post images move to `media/` and are publicly readable; attachments and exports are served by short-lived signed URLs. Posting needs a designer profile but not KYC (flows/designer.md §1 governs over §6.1's "KYC-complete designer"). | Feeds can't sign hundreds of URLs per page; product docs win over a design slip. |
+| I-8 | **Media** | Post media and attachments are create-then-upload batches: `POST /media/tickets`, `POST /requests/{id}/attachments/tickets`, polled by `GET /media/batches/{id}`. Published post images move to `media/`; every image, attachment and export is served by a short-lived signed URL. Posting needs a designer profile but not KYC (flows/designer.md §1 governs over §6.1's "KYC-complete designer"). | Signed URLs only, by owner ruling; product docs win over a design slip. |
 | I-9 | **Bank verification** | `POST /designer/payout-account` (and `/resolve`) answers `202` with `kyc_state: pending` and sends `payouts.recipient_requested`; `commerce` resolves the name, compares it with the designer's and creates the transfer recipient; the outcome sets `verified` or a reason. | Paystack calls belong to `commerce` (S-6); B8's resolving state becomes a poll. |
 | I-10 | **Pay** | `POST /requests/{id}/pay` returns the order with a `checkout` (reference, amount, email, Paystack public key); the order turns `paid` only when `commerce` settles the charge from the webhook. The webhook is stored by a hash of its raw body (Paystack sends no event id). | Payments settle by webhook, never by a client's word (§6.3). |
 | I-11 | **Ledger integrity** | `ledger_entry` is append-only (update and delete rules), and a deferred constraint trigger rejects a commit whose lines for one outcome don't sum to zero. Outcome ids are uuid5 of their source, so a redelivered decision is stored once. | engineering.md §4's money invariant as a database rule. |
 | I-12 | **RLS mechanics** | `FORCE ROW LEVEL SECURITY` on the vault, orders, threads, payments, notifications, consent and system tables. Transactions set `app.account_id`, or `app.bypass_rls` for consumers, sweeps, webhooks and staff; a notification for another account lifts RLS for that one insert. Public social tables have none. The app connects as a non-superuser that owns its database. | The integration test proves isolation under a non-superuser. |
 | I-13 | **Notifications** | The row is written with the event that causes it; `notifications.created` carries the device tokens (new `device_token` table, `POST /me/devices`), the email for money events, and the rendered text. `capture_result` rows drive a silent push and stay out of the activity list. | `commerce` has no store to look these up in. |
 | I-14 | **Scale to zero** | Every service runs at min 0; publishers wake their consumers with `GET /health` (debounced 10 s); the `captures` sweep wakes `common` and `segmentation` while work is pending, and the other sweeps wake `commerce`. | S-9 as amended. |
-| I-15 | **Local object storage** | Compose runs SeaweedFS (S3 on :8333): MinIO's community images are no longer published. Its anonymous identity may read `media/`. | Fleet parity with Expendit. |
+| I-15 | **Local object storage** | Compose runs SeaweedFS (S3 on :8333): MinIO's community images are no longer published. Cloud serves media by signed URL only. | Fleet parity with Expendit. |
 | I-16 | **Gateway runtime** | NestJS 11, as Expendit's: Nest 12 is ESM-only and Jest's decorator path doesn't support it cleanly yet. | Dependabot holds the major. |
 | I-17 | **Account deletion** | The retention sweep deletes a `deletion_pending` account with nothing in flight; one with order history keeps an anonymized row (the other party's orders reference it) while its vault and posts are deleted. Deleting the Firebase user is still manual. | flows/auth.md §4, within foreign keys. |
