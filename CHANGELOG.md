@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `POST /internal/jobs/<name>` on api/common, guarded by scheduler OIDC token.
+- Rate limiter keys carry the `REDIS_KEY_PREFIX` product prefix.
+- Staging estate documented: Cloud Run, Cloud Scheduler, Aiven, Doppler `stg`.
 - The backend of the ratified system design (S-1…S-15, decided 2026-10-20),
   on the CueLABS shared Kafka (X-11) (#244):
   - `api/common` rebuilt as the Postgres CRUD owner: row-level security, the
@@ -169,6 +172,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Release workflow deploys the API services on merge to main, not tags.
+- Post images are served through signed URLs only.
 - The system of record is Postgres again (S-3 reverses X-5's Firestore);
   architecture.md, deployment.md, api.md, data-model.md §3, setup.md,
   overview.md, the README, flows/vault.md's capture contract and

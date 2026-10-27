@@ -34,7 +34,7 @@ type note struct {
 	RefKind    string // request | post | session | account
 	Text       string
 	Actor      *model.Actor
-	ThumbURL   *string
+	ThumbKey   *string
 	Money      *money
 	// Email marks money events, which commerce mirrors by email (§6.5).
 	Email bool
@@ -58,7 +58,7 @@ func notify(ctx context.Context, tx pgx.Tx, n note) error {
 			return nil
 		}
 		id, at, err := repository.InsertNotification(ctx, tx, repository.NewNotification{
-			AccountID: n.To, Kind: n.Kind, PayloadRef: n.PayloadRef, Text: n.Text, Actor: n.Actor, ThumbURL: n.ThumbURL,
+			AccountID: n.To, Kind: n.Kind, PayloadRef: n.PayloadRef, Text: n.Text, Actor: n.Actor, ThumbKey: n.ThumbKey,
 		})
 		if err != nil {
 			return err
@@ -93,6 +93,9 @@ func (s *Services) Notifications(ctx context.Context, p *Principal, pg Paging) (
 		list, err = repository.ListNotifications(ctx, tx, p.AccountID, pg.Offset, pg.Limit+1)
 		return err
 	})
+	for i := range list {
+		list[i].ThumbURL = s.thumb(ctx, list[i].ThumbKey)
+	}
 	return page(list, pg), err
 }
 

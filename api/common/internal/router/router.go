@@ -16,7 +16,7 @@ import (
 // consumers running.
 type Readiness func(ctx context.Context) error
 
-func New(h *handler.Handlers, auth func(http.Handler) http.Handler, corsOrigins []string, ready Readiness) http.Handler {
+func New(h *handler.Handlers, auth func(http.Handler) http.Handler, corsOrigins []string, ready Readiness, jobs *handler.Jobs) http.Handler {
 	api := http.NewServeMux()
 	routes := map[string]http.HandlerFunc{
 		"GET /api/v1/me":                    h.Me,
@@ -118,6 +118,8 @@ func New(h *handler.Handlers, auth func(http.Handler) http.Handler, corsOrigins 
 	})
 	// Paystack signs its webhooks; no user token (S-12).
 	root.HandleFunc("POST /webhooks/payments", h.PaymentsWebhook)
+	// Cloud Scheduler signs an OIDC token; no user token.
+	root.Handle("POST /internal/jobs/{name}", jobs.Guard(http.HandlerFunc(jobs.Handle)))
 	root.Handle("/api/v1/", auth(api))
 
 	return middleware.Chain(root, middleware.Recover, middleware.RequestID, middleware.Logger, middleware.CORS(corsOrigins))

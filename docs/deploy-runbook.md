@@ -27,18 +27,18 @@ remote set ships.
 
 | Unit | Runs on | Image / source | Notes |
 | --- | --- | --- | --- |
-| `web` | Firebase App Hosting | `web/` from `main` | Proxies `/api/v1/*` to the API services (no browser CORS) |
-| `apparule-api-common` | Cloud Run service | `cuesoft/apparule-api-common` | Go. The only Postgres client; receives Paystack webhooks. Kafka consumers + outbox run in the background while an instance is up |
+| `web` | Firebase App Hosting | `web/` from `main` | Proxies `/api/v1/*` to `apparule-api-common` (no load balancer, no browser CORS); uploads is reached at its `run.app` URL |
+| `apparule-api-common` | Cloud Run service | `cuesoft/apparule-api-common` | Go. The only Postgres client; receives Paystack webhooks. Serves the `/internal/jobs/<name>` sweeps. Kafka consumers + outbox run while an instance is up |
 | `apparule-api-uploads` | Cloud Run service | `cuesoft/apparule-api-uploads` | Node upload gateway (`POST /api/v1/uploads`) |
 | `apparule-api-segmentation` | Cloud Run service | `cuesoft/apparule-api-segmentation` | Python, MediaPipe. Kafka only; reached only by wake-ups |
 | `apparule-api-commerce` | Cloud Run service | `cuesoft/apparule-api-commerce` | Python. Paystack, FCM, Brevo. Kafka only |
-| `apparule-sweep-{captures,orders,reconcile,retention}` | Cloud Run jobs + Cloud Scheduler | `cuesoft/apparule-api-common` | `./jobs <name>` |
-| Postgres, Redis | Aiven | — | |
-| Kafka | the CueLABS shared Aiven service | — | shared with Expendit and Upstat (X-11) |
-| Object storage | the project's default Cloud Storage bucket | — | prefix `apparule/stg/` |
+| `apparule-{captures,orders,reconcile,retention}` | Cloud Scheduler jobs | n/a | `POST /internal/jobs/<name>` on `apparule-api-common` with an OIDC token; created paused until the handlers are deployed |
+| Postgres, Valkey | the shared Aiven `sandbox-db` and `sandbox-cache` | n/a | database `apparule`, user `cuesoft`; keys `apparule:*` |
+| Kafka | the CueLABS shared Aiven service | n/a | shared with Expendit and Upstat (X-11); SASL user `apparule` with topic ACLs |
+| Object storage | `sandbox-e306a.firebasestorage.app` | n/a | prefix `apparule/stg/`; media by signed URL only |
 
-Images are built and deployed by `.github/workflows/release.yml` when a
-`v*` tag is created (§8). **Your infrastructure code creates the resources;
+Images are built and deployed by `.github/workflows/release.yml` on every merge
+to `main` that touches `api/**` (§8). **Your infrastructure code creates the resources;
 the workflow only swaps their image digests.**
 
 ### 1.1 Everything scales to zero
@@ -55,9 +55,9 @@ segmentation ──capture.measured on cuelabs.results──▶ Kafka, then wake
 (commerce works the same way for orders, webhooks, payouts and notifications)
 ```
 
-`common`, `segmentation` and `commerce` keep **CPU always allocated**, so
-once woken they consume in the background until Cloud Run retires the idle
-instance (up to about 15 minutes). The `captures` sweep is the safety net:
+CPU is allocated only while a request is in flight (no always-on instance,
+worker pool or Cloud Run job), so a woken instance consumes while requests
+are open and Cloud Run retires it when idle (up to about 15 minutes). The `captures` sweep is the safety net:
 every minute it re-sends an overdue capture once and wakes common and
 segmentation while work is pending. The first capture after a quiet period
 takes longer (cold start, MediaPipe load, consumer-group join); later ones
@@ -88,20 +88,19 @@ The API verifies tokens against Google's public keys and the project ID, so
 
 ### 3.1 Postgres
 
-Use a dedicated database and a **non-superuser** role. Row-level security
-(S-11) does not apply to superusers or roles with `BYPASSRLS`, and Aiven's
-`avnadmin` should not run the app. As `avnadmin`:
+The app connects as the shared `cuesoft` user, which is not a superuser and
+has no `BYPASSRLS`, so row-level security (S-11) applies. The IaC creates the
+`apparule` database on the shared `sandbox-db`, owned by `avnadmin`; hand it to
+`cuesoft` once, as `avnadmin`:
 
 ```sql
-CREATE ROLE apparule_app LOGIN PASSWORD '<generate>' NOSUPERUSER NOBYPASSRLS;
-CREATE DATABASE apparule OWNER apparule_app;
+ALTER DATABASE apparule OWNER TO cuesoft;
 ```
 
-`DATABASE_URL` =
-`postgres://apparule_app:<password>@<host>:<port>/apparule?sslmode=require`.
+The connection string the app gets (`DATABASE_URL`):
+`postgres://cuesoft:<password>@<host>:<port>/apparule?sslmode=require`.
 Tables are created by the app itself on start (migrations under an advisory
-lock); there is nothing to run by hand. Open question 6 asks whether this
-can share Expendit's Aiven Postgres service as a second database.
+lock); there is nothing to run by hand.
 
 ### 3.2 Kafka (the CueLABS shared bus)
 
@@ -111,10 +110,10 @@ each); the rules are in the CueLABS delivery standard
 (`references/shared-messaging.md`). If Expendit's deploy already created
 them, there is nothing to add but the user. Apparule never creates topics.
 
-Create **one Kafka user, `apparule`**, with read and write on the three
-`cuelabs.*` topics and on consumer groups starting with `apparule-`
+Create **one SASL user, `apparule`**, with topic ACLs for read and write on
+the three `cuelabs.*` topics and on consumer groups starting with `apparule-`
 (`apparule-common`, `apparule-segmentation`, `apparule-commerce`). All four
-services use it.
+services use it. If the free plan refuses SASL, use client certificates.
 
 **Keep-alive belongs to Expendit**: its reaper keeps the service awake and
 powers it back on. Apparule runs no heartbeat or watchdog. While the bus is
@@ -128,32 +127,29 @@ SASL/SCRAM-SHA-256 over TLS.
 
 ### 3.3 Redis
 
-The shared Aiven Redis/Valkey with Apparule on its own database index:
-`REDIS_HOST`, `REDIS_PORT`, `REDIS_USERNAME`, `REDIS_PASSWORD`,
-`REDIS_TLS=true`, `REDIS_DB=<unused index>`. Only `common` uses it, for rate
+The shared Aiven Valkey `sandbox-cache`, user `apparule`, whose ACL allows
+the keys `apparule:*` only: `REDIS_HOST`, `REDIS_PORT`, `REDIS_USERNAME`,
+`REDIS_PASSWORD`, `REDIS_TLS=true`, `REDIS_KEY_PREFIX=apparule` (the
+default). Only `common` uses it, for rate
 limits and the upload quota; if it is unreachable the limits fail open.
 
 ## 4. Cloud Storage
 
-1. Use the project's default bucket with **uniform bucket-level access**.
-   Apparule uses only the prefix `apparule/stg/`.
+1. Use the shared bucket `sandbox-e306a.firebasestorage.app` with
+   **uniform bucket-level access**. Apparule uses only the prefix `apparule/stg/`.
 2. Lifecycle rules: **delete objects older than 1 day with prefix
    `apparule/stg/tmp/`**, and the same for **`apparule/stg/compute/`**.
-3. Published post images are public: grant `allUsers`
-   `roles/storage.objectViewer` with condition
-   `resource.name.startsWith("projects/_/buckets/B/objects/apparule/stg/media/")`.
-   Nothing else in the prefix is public; captures, attachments and exports
-   are served by signed URLs.
+3. No object is public: every file is served by a signed URL.
 
 ## 5. Service accounts and IAM
 
 | Service account | Used by | Roles |
 | --- | --- | --- |
-| `apparule-common` | common, the sweep jobs | `roles/storage.objectAdmin` on the bucket, condition (A); `roles/iam.serviceAccountTokenCreator` **on itself** (signed URLs); `roles/run.invoker` on segmentation and commerce (to wake them) |
+| `apparule-common` | common | `roles/storage.objectAdmin` on the bucket, condition (A); `roles/iam.serviceAccountTokenCreator` **on itself** (signed URLs); `roles/run.invoker` on segmentation and commerce (to wake them) |
 | `apparule-uploads` | uploads | `roles/storage.objectCreator`, condition (B) |
 | `apparule-segmentation` | segmentation | `roles/storage.objectViewer`, condition (C); `roles/storage.objectCreator`, condition (D) |
 | `apparule-commerce` | commerce | `roles/storage.objectAdmin`, condition (D); `roles/firebasecloudmessaging.admin` on the project |
-| `apparule-scheduler` | Cloud Scheduler | `roles/run.invoker` on the four sweep jobs |
+| `scheduler-invoker` | Cloud Scheduler | OIDC token on `POST /internal/jobs/<name>`; audience is the common service URL |
 | `apparule-deploy` | GitHub Actions (WIF) | `roles/run.developer` on the project; `roles/iam.serviceAccountUser` on the runtime accounts |
 
 IAM conditions (`B` = the bucket name):
@@ -186,27 +182,29 @@ cd api/common && go run ./cmd/ticketkey 2026-10
 | `FIREBASE_PROJECT_ID` | ✓ | | | |
 | `UPLOAD_TICKET_PRIVATE_KEY` 🔒 | ✓ | | | |
 | `UPLOAD_TICKET_PUBLIC_KEYS` | | ✓ | | |
-| `UPLOADS_URL` (`https://api.apparule.cuesoft.io/api/v1/uploads`) | ✓ | | | |
+| `UPLOADS_URL` (the uploads `run.app` URL plus `/api/v1/uploads`) | ✓ | | | |
+| `SCHEDULER_AUDIENCE` (the common `run.app` URL) | ✓ | | | |
+| `SCHEDULER_INVOKER_EMAIL` (`scheduler-invoker@sandbox-e306a.iam.gserviceaccount.com`) | ✓ | | | |
 | `KAFKA_BROKERS`, `KAFKA_SSL_CA` | ✓ | ✓ | ✓ | ✓ |
 | `KAFKA_USERNAME`, `KAFKA_PASSWORD` 🔒 | ✓ `apparule` | ✓ | ✓ | ✓ |
-| `REDIS_HOST/PORT/USERNAME`, `REDIS_PASSWORD` 🔒, `REDIS_TLS=true`, `REDIS_DB` | ✓ | | | |
+| `REDIS_HOST/PORT/USERNAME`, `REDIS_PASSWORD` 🔒, `REDIS_TLS=true`, `REDIS_DB`, `REDIS_KEY_PREFIX` | ✓ | | | |
 | `STORAGE_DRIVER=gcs`, `STORAGE_BUCKET`, `STORAGE_PREFIX=apparule/stg` | ✓ | ✓ | ✓ | ✓ |
 | `PAYSTACK_SECRET_KEY` 🔒 | ✓ (webhook signatures) | | | ✓ (API calls) |
 | `PAYSTACK_PUBLIC_KEY` | ✓ (checkout) | | | |
 | `FCM_PROJECT_ID` | | | | ✓ |
 | `BREVO_API_KEY` 🔒, `BREVO_FROM_EMAIL`, `BREVO_FROM_NAME` | | | | ✓ |
 | `CORS_ORIGINS` (the website origin) | ✓ | ✓ | | |
-| `WAKE_COMMON_URL` (the common URL) | ✓ (sweep jobs only) | ✓ | ✓ | ✓ |
-| `WAKE_SEGMENTATION_URL`, `WAKE_COMMERCE_URL` | ✓ (service and jobs) | | | |
+| `WAKE_COMMON_URL` (the common URL) | | ✓ | ✓ | ✓ |
+| `WAKE_SEGMENTATION_URL`, `WAKE_COMMERCE_URL` | ✓ | | | |
 
 The `WAKE_*` values are the services' own `https://…run.app` URLs, without a
 path. Create the services first, then fill these in and redeploy.
 
 Never set in cloud: `FIREBASE_AUTH_EMULATOR_HOST`, `STORAGE_ENDPOINT`, the
-`STORAGE_*_KEY`s and `STORAGE_PUBLIC_BASE_URL` (those are for self-host).
+and the `STORAGE_*_KEY`s (those are for self-host).
 
 **Paystack:** in the dashboard, set the webhook URL to
-`https://api.apparule.cuesoft.io/webhooks/payments`, and use test keys until
+`https://apparule-api-common-805800737799.us-central1.run.app/webhooks/payments`, and use test keys until
 the money flow has run end to end on the sandbox.
 
 **Website (App Hosting, `web/`):**
@@ -220,57 +218,53 @@ the money flow has run end to end on the sandbox.
 
 ## 7. Cloud Run resources (cuesoft-iac stack)
 
-Add these to the `apparule` stack. The first image can be any tag from
+Add these to the `cuesoft` stack (project `sandbox-e306a`, `us-central1`). The first image can be any tag from
 Docker Hub, because every release replaces it by digest.
 
 | Name | Kind | Account | Port | Instances | CPU / memory | CPU allocation | Ingress / auth |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `apparule-api-common` | service | `apparule-common` | 8080 | **0**–2 | 1 / 512 MiB | **always allocated** | all · allow unauthenticated (the app checks Firebase tokens; webhooks check signatures) |
-| `apparule-api-uploads` | service | `apparule-uploads` | 8082 | 0–5 | 1 / 1 GiB, concurrency 20, timeout 60 s | request-based | all · allow unauthenticated (auth is the upload ticket) |
-| `apparule-api-segmentation` | service | `apparule-segmentation` | 8081 | **0**–2 | 2 / 2 GiB, concurrency 2, startup probe ≥ 60 s | **always allocated** | all · **authenticated only** (invoker: `apparule-common`) |
-| `apparule-api-commerce` | service | `apparule-commerce` | 8083 | **0**–2 | 1 / 512 MiB | **always allocated** | all · **authenticated only** (invoker: `apparule-common`) |
-| `apparule-sweep-captures` | job, `./jobs captures` | `apparule-common` | — | 1 task, 0 retries | 1 / 512 MiB | — | Scheduler: `* * * * *` |
-| `apparule-sweep-orders` | job, `./jobs orders` | `apparule-common` | — | 1 task | 1 / 512 MiB | — | Scheduler: `7 * * * *` |
-| `apparule-sweep-reconcile` | job, `./jobs reconcile` | `apparule-common` | — | 1 task | 1 / 512 MiB | — | Scheduler: `13 * * * *` |
-| `apparule-sweep-retention` | job, `./jobs retention` | `apparule-common` | — | 1 task | 1 / 512 MiB | — | Scheduler: `17 3 * * *` |
+| `apparule-api-common` | service | `apparule-common` | 8080 | **0**–2 | 1 / 512 MiB | request-based | all · no IAM check (the app checks Firebase tokens; webhooks check signatures; the sweeps check the scheduler token) |
+| `apparule-api-uploads` | service | `apparule-uploads` | 8082 | 0–5 | 1 / 1 GiB, concurrency 20, timeout 60 s | request-based | all · no IAM check (auth is the upload ticket) |
+| `apparule-api-segmentation` | service | `apparule-segmentation` | 8081 | **0**–2 | 2 / 2 GiB, concurrency 2, startup probe ≥ 60 s | request-based | all · **authenticated only** (invoker: `apparule-common`) |
+| `apparule-api-commerce` | service | `apparule-commerce` | 8083 | **0**–2 | 1 / 512 MiB | request-based | all · **authenticated only** (invoker: `apparule-common`) |
 
-Cloud Scheduler calls each job with an HTTP `POST` to
-`https://run.googleapis.com/v2/projects/<project>/locations/<region>/jobs/<job>:run`,
-authenticated as `apparule-scheduler` (OAuth). `api.apparule.cuesoft.io` is
-an external HTTPS load balancer with serverless NEGs: `/api/v1/uploads` →
-uploads, everything else → common.
+Every service has the URL `https://<service>-805800737799.us-central1.run.app`.
+Cloud Scheduler POSTs `/internal/jobs/<name>` on `apparule-api-common` for
+`captures` (`* * * * *`), `orders` (`7 * * * *`), `reconcile`
+(`13 * * * *`) and `retention` (`17 3 * * *`), with an OIDC token from
+`scheduler-invoker` whose audience is the common URL; the jobs are created
+paused and resumed once this release is deployed. There is no load balancer:
+the web proxies `/api/v1/*` to common.
 
-In gcloud terms: `--min-instances 0` everywhere, and `--no-cpu-throttling`
-on common, segmentation and commerce ("CPU always allocated" keeps their
-Kafka consumers running between requests). The processing services'
-ingress is **all** rather than internal because common and the jobs wake
+In gcloud terms: `--min-instances 0` everywhere, with CPU allocated only
+during requests. The processing services'
+ingress is **all** rather than internal because common wakes
 them over their `run.app` URLs; requiring authentication keeps them
 private (the wake-ups carry an ID token).
 
 **Idle.** While nobody uses the app nothing runs. Each wake keeps an
-instance for up to ~15 minutes. The always-on parts are Aiven (Postgres,
-Redis; Kafka is shared) and the `captures` sweep's short run every minute.
+instance for up to ~15 minutes. Aiven (Postgres, Valkey, Kafka) is shared and stays up; the `captures` sweep wakes common for a short run every minute.
 
 ## 8. GitHub (release workflow)
 
 On `cuesoftinc/apparule`:
 
-1. **Environment `Sandbox`** with required reviewers, and these environment
-   **variables**: `GCP_REGION`, `GCP_WORKLOAD_IDENTITY_PROVIDER`
+1. **Environment `Sandbox`** with these environment
+   **variables**: `GCP_PROJECT_ID`, `GCP_REGION`, `GCP_WORKLOAD_IDENTITY_PROVIDER`
    (`projects/<number>/locations/global/workloadIdentityPools/<pool>/providers/<provider>`),
    `GCP_DEPLOY_SERVICE_ACCOUNT` (the `apparule-deploy` email).
-2. **Repository secrets**: `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN` (push to
-   `cuesoft/apparule-api-*`).
-3. **Tag ruleset** restricting `v*` tag creation to owners.
-4. The WIF provider trusts this repository, and `apparule-deploy` grants it
+2. **Repository secrets**: `DOCKER_USERNAME`, `DOCKER_PASSWORD` (push to
+   `cuesoft/apparule-api-*`), synced from Doppler `apparule/ci`, which references
+   `admin/ci`.
+3. The WIF provider trusts this repository, and `apparule-deploy` grants it
    `roles/iam.workloadIdentityUser`.
 
-## 9. First release and switching the website over
+## 9. First deploy and switching the website over
 
-1. Merge to `main`; confirm the site still works (TEST_MODE, §0).
-2. Create the infrastructure (§2–§7) and fill Doppler (§6).
-3. Tag a release: `git tag v0.2.0 && git push origin v0.2.0`. Approve the
-   `Sandbox` deployment when GitHub asks.
+1. Create the infrastructure (§2–§7) and fill Doppler (§6).
+2. Merge to `main`; the merge deploys the API services. Confirm the site
+   still works (TEST_MODE, §0).
+3. To redeploy without a code change, re-run the latest `release` run.
 4. The workflow fails unless every service's newest revision is Ready and
    common answers `/ready`. Check `apparule-api-common`'s logs for
    `migration applied` (first deploy only) and `listening`.
@@ -294,7 +288,7 @@ On `cuesoftinc/apparule`:
 | --- | --- |
 | Roll back | Redeploy the previous image digest (it is in the earlier release run) with `gcloud run services update <name> --image docker.io/cuesoft/apparule-api-<svc>@sha256:…` |
 | Rotate the ticket key | Generate a new pair with a new kid; **add** its public key to `UPLOAD_TICKET_PUBLIC_KEYS` (comma-separated) and deploy uploads; switch `UPLOAD_TICKET_PRIVATE_KEY` and deploy common; after 5 minutes, drop the old public key |
-| Run migrations alone | `./jobs migrate` (common also runs them on start) |
+| Run migrations alone | `./jobs migrate` by hand (common also runs them on start); the HTTP sweeps exclude it |
 | A capture stuck in "processing" | The `captures` sweep re-sends it after 60 s and fails it with `pipeline_busy` after 180 s; check segmentation's logs and the `wake` lines for `wake failed` |
 | Kafka powered off (idle) | Expendit's reaper powers it back on; uploads answer 503 meanwhile and overdue captures are re-sent from Postgres. Nothing is lost from Postgres |
 | A money outcome needs a human | `payments.outcome` rows of kind `mismatch`, `charge_rejected`, `payout_failed` or `refund_failed` are logged at error level (`money needs attention`) and kept in `payment_outcome` with `resolved_at` empty; resolve in Paystack, then set `resolved_at` |

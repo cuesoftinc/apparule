@@ -146,7 +146,7 @@ Modeling notes:
 | --- | --- | --- |
 | System of record | **Aiven Postgres**, `api/common` its only client (S-3, restoring A-4; X-5's Firestore datastore retired) | The model is relational (workspace → customer → session → snapshot), money needs ACID across rows (D5), and counters update in the same transaction as the row that changes them. |
 | Tenancy | `FORCE ROW LEVEL SECURITY` keyed on the caller's account and workspace; orders visible to their two parties; system tables only to consumers and sweeps (S-11) | Defence in depth behind the service's checks; the app connects as a non-superuser. |
-| Images and exports | Cloud Storage (MinIO-compatible S3 for self-host): `tmp/` 24 h, `captures/` 30 days after save, `media/` public post images, `attachments/` and `exports/` behind signed URLs, `compute/` claim-check payloads 1 day | Large binaries out of the database; bytes never ride the bus. |
+| Images and exports | Cloud Storage (MinIO-compatible S3 for self-host): `tmp/` 24 h, `captures/` 30 days after save, `media/` published post images, `attachments/` and `exports/`, all behind signed URLs, `compute/` claim-check payloads 1 day | Large binaries out of the database; bytes never ride the bus. |
 | Rate limits and quota | Aiven Redis (`REDIS_DB` tenancy, X-5) | Losing it fails limits open for the outage; idempotency and single-use tickets stay in Postgres. |
 | Real-time | FCM push for what changed + polling | Replaces Firestore listeners (S-3). |
 

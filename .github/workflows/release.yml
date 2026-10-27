@@ -1,8 +1,7 @@
-# Release — API services only (X-6, docs/deployment.md §3).
+# Release: API services only (X-6, docs/deployment.md §3).
 #
-# Fires ONLY when a v* tag is created. Tag creation is restricted by a tag
-# ruleset (owner level) and the deploy job runs in the protected `Sandbox`
-# environment with required reviewers, so a merge never deploys by itself.
+# Fires on every merge to main that touches the API services; the deploy job
+# runs in the `Sandbox` environment. No version tags: images carry the sha.
 # The web app is not here: it rides Firebase App Hosting rollouts from main.
 #
 # The Cloud Run resources (services, jobs, env, secrets, IAM) are created by
@@ -12,7 +11,8 @@ name: release
 
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
+    paths: ["api/**", ".github/workflows/release.yml"]
 
 permissions:
   contents: read
@@ -40,16 +40,13 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v4
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Tags
         id: meta
         run: |
-          {
-            echo "version=${GITHUB_REF_NAME}"
-            echo "sha=${GITHUB_SHA::12}"
-          } >> "$GITHUB_OUTPUT"
+          echo "sha=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
 
       - name: Build + push api-common
         id: common
@@ -58,7 +55,6 @@ jobs:
           context: api/common
           push: true
           tags: |
-            cuesoft/apparule-api-common:${{ steps.meta.outputs.version }}
             cuesoft/apparule-api-common:${{ steps.meta.outputs.sha }}
             cuesoft/apparule-api-common:latest
           cache-from: type=gha,scope=common
@@ -73,7 +69,6 @@ jobs:
           file: api/uploads/Dockerfile
           push: true
           tags: |
-            cuesoft/apparule-api-uploads:${{ steps.meta.outputs.version }}
             cuesoft/apparule-api-uploads:${{ steps.meta.outputs.sha }}
             cuesoft/apparule-api-uploads:latest
           cache-from: type=gha,scope=uploads
@@ -88,7 +83,6 @@ jobs:
           file: api/segmentation/Dockerfile
           push: true
           tags: |
-            cuesoft/apparule-api-segmentation:${{ steps.meta.outputs.version }}
             cuesoft/apparule-api-segmentation:${{ steps.meta.outputs.sha }}
             cuesoft/apparule-api-segmentation:latest
           cache-from: type=gha,scope=segmentation
@@ -103,7 +97,6 @@ jobs:
           file: api/commerce/Dockerfile
           push: true
           tags: |
-            cuesoft/apparule-api-commerce:${{ steps.meta.outputs.version }}
             cuesoft/apparule-api-commerce:${{ steps.meta.outputs.sha }}
             cuesoft/apparule-api-commerce:latest
           cache-from: type=gha,scope=commerce
@@ -147,12 +140,6 @@ jobs:
 
       - name: Deploy api-commerce
         run: gcloud run services update apparule-api-commerce --region "$REGION" --image "$COMMERCE" --quiet
-
-      - name: Point the sweep jobs at the new common image
-        run: |
-          for job in captures orders reconcile retention; do
-            gcloud run jobs update "apparule-sweep-${job}" --region "$REGION" --image "$COMMON" --quiet
-          done
 
       # Don't report success without checking the terminal state: every
       # service's latest revision must be the one serving and Ready.

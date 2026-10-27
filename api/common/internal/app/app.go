@@ -1,5 +1,5 @@
 // Package app wires config into dependencies once, for cmd/server and
-// cmd/jobs alike.
+// cmd/jobs alike, and builds the one job map both run.
 package app
 
 import (
@@ -12,7 +12,10 @@ import (
 	"github.com/cuesoftinc/apparule/api/common/internal/repository"
 	"github.com/cuesoftinc/apparule/api/common/internal/service"
 	"github.com/cuesoftinc/apparule/api/common/internal/storage"
+	"github.com/cuesoftinc/apparule/api/common/internal/sweep"
 	"github.com/cuesoftinc/apparule/api/common/internal/ticket"
+	"github.com/cuesoftinc/apparule/api/common/internal/wake"
+	"github.com/cuesoftinc/apparule/api/common/migrations"
 )
 
 type App struct {
@@ -43,6 +46,17 @@ func New(ctx context.Context, cfg *config.Config) (*App, error) {
 		Config: cfg, DB: db, Store: store, Limiter: limiter, Contract: contract,
 		Services: &service.Services{DB: db, Store: store, Tickets: signer, Limiter: limiter, Config: cfg, Now: time.Now},
 	}, nil
+}
+
+// Jobs is the job map for cmd/jobs (withMigrate) and POST /internal/jobs/{name}.
+func (a *App) Jobs(withMigrate bool) map[string]func(context.Context) error {
+	sweeper := &sweep.Sweeper{DB: a.DB, Store: a.Store, Services: a.Services, Now: time.Now, Wake: wake.New(),
+		WakeURLs: a.Config.Wake, Limits: a.Config.Limits}
+	jobs := sweeper.Jobs()
+	if withMigrate {
+		jobs["migrate"] = func(ctx context.Context) error { return migrations.Apply(ctx, a.DB.Pool) }
+	}
+	return jobs
 }
 
 func (a *App) Close() {

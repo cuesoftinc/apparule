@@ -1,5 +1,6 @@
 # api/common. One image, two entry points: ./server (API + consumers +
-# outbox) and ./jobs <name> (Cloud Run jobs, system-design.md §6.7).
+# outbox) and ./jobs <name> (by hand; Cloud Scheduler
+# calls POST /internal/jobs/<name>, system-design.md §6.7).
 # Build context = this directory (the contract is embedded from contract/).
 # ---- build stage ----
 FROM golang:1.26-alpine AS builder

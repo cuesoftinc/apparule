@@ -51,7 +51,7 @@ func (s *Services) Orders(ctx context.Context, p *Principal, role string, pg Pag
 	err := s.as(ctx, p, func(tx pgx.Tx) error {
 		rows, err := repository.ListOrders(ctx, tx, p.AccountID, role, pg.Offset, pg.Limit+1)
 		for _, o := range rows {
-			list = append(list, o.Order)
+			list = append(list, *s.orderOut(ctx, o))
 		}
 		return err
 	})
@@ -63,7 +63,7 @@ func (s *Services) Order(ctx context.Context, p *Principal, id string) (*model.O
 	err := s.as(ctx, p, func(tx pgx.Tx) error {
 		o, err := repository.GetOrder(ctx, tx, id)
 		if err == nil {
-			out = &o.Order
+			out = s.orderOut(ctx, o)
 		}
 		return err
 	})
@@ -132,10 +132,10 @@ func (s *Services) CreateRequest(ctx context.Context, p *Principal, postID strin
 		values := model.SnapshotValues{Method: session.Method, MeasuredAt: session.CreatedAt, Measurements: latestValues(session.Measurements)}
 		thumb := ""
 		if author.ThumbKey != nil {
-			thumb = s.mediaURL(*author.ThumbKey)
+			thumb = *author.ThumbKey
 		}
 		id, err := repository.InsertOrder(ctx, tx, repository.NewOrder{
-			PostID: postID, PostCaption: author.Caption, PostThumbURL: thumb, CustomerAccountID: p.AccountID,
+			PostID: postID, PostCaption: author.Caption, PostThumbKey: thumb, CustomerAccountID: p.AccountID,
 			DesignerID: designer.ID, DesignerAccountID: designer.AccountID, Notes: in.Notes, BudgetCents: in.BudgetCents,
 			TargetDate: in.TargetDate, Delivery: *d, Snapshot: values,
 		})
@@ -155,10 +155,10 @@ func (s *Services) CreateRequest(ctx context.Context, p *Principal, postID strin
 		}
 		title, _, _ := strings.Cut(author.Caption, " — ")
 		if err := notify(ctx, tx, note{To: designer.AccountID, Kind: "status_change", PayloadRef: id, RefKind: "request",
-			Text: fmt.Sprintf("%s requested %s (#%s)", p.Username, title, o.OrderNumber), Actor: s.actor(ctx, tx, p), ThumbURL: optional(thumb)}); err != nil {
+			Text: fmt.Sprintf("%s requested %s (#%s)", p.Username, title, o.OrderNumber), Actor: s.actor(ctx, tx, p), ThumbKey: optional(thumb)}); err != nil {
 			return err
 		}
-		out = &o.Order
+		out = s.orderOut(ctx, o)
 		return nil
 	})
 	return out, err
@@ -203,7 +203,7 @@ func (s *Services) orderAction(ctx context.Context, p *Principal, id, role strin
 		}
 		o, err = repository.GetOrder(ctx, tx, id)
 		if err == nil {
-			out = &o.Order
+			out = s.orderOut(ctx, o)
 		}
 		return err
 	})
@@ -257,7 +257,7 @@ func (s *Services) publishTransition(ctx context.Context, tx pgx.Tx, o *reposito
 // partyNote notifies the other party of a transition.
 func (s *Services) partyNote(ctx context.Context, tx pgx.Tx, o *repository.OrderRow, to, kind, text string, actor *model.Actor) error {
 	return notify(ctx, tx, note{To: to, Kind: kind, PayloadRef: o.ID, RefKind: "request", Text: text, Actor: actor,
-		ThumbURL: optional(o.Post.ThumbURL)})
+		ThumbKey: optional(o.PostThumbKey)})
 }
 
 func (s *Services) Cancel(ctx context.Context, p *Principal, id string) (*model.Order, error) {
@@ -443,7 +443,7 @@ func (s *Services) ResolveDispute(ctx context.Context, p *Principal, id, outcome
 		}
 		o, err = repository.GetOrder(ctx, tx, id)
 		if err == nil {
-			out = &o.Order
+			out = s.orderOut(ctx, o)
 		}
 		return err
 	})

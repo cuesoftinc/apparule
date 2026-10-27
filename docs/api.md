@@ -10,9 +10,10 @@
 
 | Host / path | Routes to | Auth |
 | --- | --- | --- |
-| `api.apparule.cuesoft.io/api/v1/*` | `api/common` | Firebase ID token (bearer), Google only (X-1) |
-| `api.apparule.cuesoft.io/api/v1/uploads` | `api/uploads` | an upload ticket (`Upload-Ticket` header), never a user token |
-| `api.apparule.cuesoft.io/webhooks/payments` | `api/common` | Paystack signature only (`X-Paystack-Signature`, HMAC-SHA512) |
+| `<common run.app URL>/api/v1/*` | `api/common` | Firebase ID token (bearer), Google only (X-1) |
+| `<uploads run.app URL>/api/v1/uploads` | `api/uploads` | an upload ticket (`Upload-Ticket` header), never a user token |
+| `<common run.app URL>/webhooks/payments` | `api/common` | Paystack signature only (`X-Paystack-Signature`, HMAC-SHA512) |
+| `<common run.app URL>/internal/jobs/<name>` | `api/common` | a Cloud Scheduler OIDC token: audience `SCHEDULER_AUDIENCE`, email `SCHEDULER_INVOKER_EMAIL` (401, 403, or 503 when unset) |
 | `apparule.cuesoft.io/api/v1/*` | the web's server-side proxy → the same | as above |
 
 `common` verifies the ID token on every request (audience = the Firebase

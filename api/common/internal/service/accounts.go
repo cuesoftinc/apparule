@@ -254,7 +254,7 @@ func (s *Services) ExportData(ctx context.Context, p *Principal) (map[string]any
 		if err != nil {
 			return err
 		}
-		saved, err := repository.SavedPosts(ctx, tx, p.AccountID, 0, 10_000, s.mediaURL)
+		saved, err := repository.SavedPosts(ctx, tx, p.AccountID, 0, 10_000, s.mediaURL(ctx))
 		if err != nil {
 			return err
 		}
@@ -268,7 +268,7 @@ func (s *Services) ExportData(ctx context.Context, p *Principal) (map[string]any
 		}
 		orderOut := make([]model.Order, len(orders))
 		for i, o := range orders {
-			orderOut[i] = o.Order
+			orderOut[i] = *s.orderOut(ctx, o)
 		}
 		out["account"] = account
 		out["sessions"] = sessionOut

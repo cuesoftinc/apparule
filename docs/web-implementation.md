@@ -48,7 +48,7 @@
 - **Tests**: Vitest + Testing Library for unit/integration (components,
   controllers, mock handlers); Playwright e2e mirroring the design.md §8.4
   prototype journeys, run in TEST_MODE against the mock server; both wired
-  into CI build+test (X-6: merge-to-main never deploys).
+  into CI build+test (X-6: CI itself never deploys).
 - **Legacy / dead-code policy**: live paths carry zero dead code, ever.
   When a replacement is staged, the superseded tree is `git mv`-ed into
   `web/src/legacy/` (structure preserved, excluded from build & routing)
@@ -618,7 +618,7 @@ through the loader untouched. Locked by the home e2e perf canon
 | Unit | Vitest + Testing Library | every `components/ui/*` module (variant axes, states, both themes, reduced-motion fallbacks); model/repository parsing incl. error-envelope handling; controller hooks |
 | Integration | Vitest | mock handlers (envelope, pagination, enum taxonomies, state-machine legality of `/status` transitions); controller ↔ mock-server flows (optimistic MI-18 rollback on scripted failures) |
 | E2E | Playwright, TEST_MODE against the mock server | the design.md §8.4 prototype journeys, web-applicable set: **Marketing site** (Part A scroll + CTA handoff into the app), **Feed** (B1: like/save/follow → post detail → request stepper MI-10 → pay → escrow-held), plus the named state starts — **decline**, **dispute/moderation**, **creator-upsell** (B5 as non-creator), **designer onboarding/KYC → payout** (B8 → B9) |
-| CI | build-and-test workflow | lint + typecheck + Vitest + Playwright on every PR; X-6: merge-to-main never deploys |
+| CI | build-and-test workflow | lint + typecheck + Vitest + Playwright on every PR; X-6: CI itself never deploys |
 
 The §8.4 rule that empty/loading/QA frames stay out of the prototype maps
 here too: Playwright walks real user paths; empty/loading states are
@@ -649,7 +649,7 @@ tree (design.md §6).
       catalog codes; contract types shared with models
 - [ ] Views contain no fetch calls (MVC boundary enforced by review +
       lint rule)
-- [ ] Playwright §8.4 journeys green in CI; merge-to-main never deploys
+- [ ] Playwright §8.4 journeys green in CI; CI itself never deploys
       (X-6)
 
 ## 10. SEO plumbing (as-built, 2026-07-21)

@@ -89,7 +89,7 @@
 | FX-2 | Authz capability middleware + matrix tests | engineering §2 |
 | FX-3 | Rate limiting (shared Redis, X-5 index) | engineering §3 |
 | FX-4 | Never-log CI grep gate | engineering §5 |
-| FX-5 | build-and-test.yml + release.yml (tag-gated) | deployment.md, X-6 |
+| FX-5 | build-and-test.yml + release.yml (deploys on merge) | deployment.md, X-6 |
 | FX-6 | cuesoft-iac apparule stack (Cloud Run ×2, WIF, Doppler) | deployment.md §2 |
 | FX-7 | E2E smoke suite (release gate) | engineering §4 |
 | FX-8 | OTel instrumentation (traces/metrics/log bridge, env-gated export → upstat) | engineering §Telemetry, X-9 |
