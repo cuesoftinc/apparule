@@ -16,7 +16,7 @@
 | `api/segmentation` (Python) | Cloud Run service `apparule-api-segmentation` | cuesoft-iac stack `cuesoft` |
 | `api/commerce` (Python) | Cloud Run service `apparule-api-commerce` | cuesoft-iac stack `cuesoft` |
 | `web` (Next.js) | **Firebase App Hosting** | App Hosting backend |
-| Postgres, Valkey | the shared Aiven `sandbox-db` and `sandbox-cache` (database `apparule`, user `apparule_app`; keys `apparule:*`) | cuesoft-iac |
+| Postgres, Valkey | the shared Aiven `sandbox-db` and `sandbox-cache` (database `apparule`, user `cuesoft`; keys `apparule:*`) | cuesoft-iac |
 | Kafka | the CueLABS shared Aiven service (X-11); three lanes; SASL user `apparule` with topic ACLs | cuesoft-iac; Expendit keeps it awake |
 | Object storage | `sandbox-e306a.firebasestorage.app`, prefix `apparule/stg/`; media by signed URL | cuesoft-iac |
 | `mobile/flutter` | App/Play stores | out of band |

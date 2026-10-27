@@ -33,7 +33,7 @@ remote set ships.
 | `apparule-api-segmentation` | Cloud Run service | `cuesoft/apparule-api-segmentation` | Python, MediaPipe. Kafka only; reached only by wake-ups |
 | `apparule-api-commerce` | Cloud Run service | `cuesoft/apparule-api-commerce` | Python. Paystack, FCM, Brevo. Kafka only |
 | `apparule-{captures,orders,reconcile,retention}` | Cloud Scheduler jobs | n/a | `POST /internal/jobs/<name>` on `apparule-api-common` with an OIDC token; created paused until the handlers are deployed |
-| Postgres, Valkey | the shared Aiven `sandbox-db` and `sandbox-cache` | n/a | database `apparule`, user `apparule_app`; keys `apparule:*` |
+| Postgres, Valkey | the shared Aiven `sandbox-db` and `sandbox-cache` | n/a | database `apparule`, user `cuesoft`; keys `apparule:*` |
 | Kafka | the CueLABS shared Aiven service | n/a | shared with Expendit and Upstat (X-11); SASL user `apparule` with topic ACLs |
 | Object storage | `sandbox-e306a.firebasestorage.app` | n/a | prefix `apparule/stg/`; media by signed URL only |
 
@@ -88,20 +88,19 @@ The API verifies tokens against Google's public keys and the project ID, so
 
 ### 3.1 Postgres
 
-Use a dedicated database and a **non-superuser** role. Row-level security
-(S-11) does not apply to superusers or roles with `BYPASSRLS`, and Aiven's
-`avnadmin` should not run the app. As `avnadmin`:
+The app connects as the shared `cuesoft` user, which is not a superuser and
+has no `BYPASSRLS`, so row-level security (S-11) applies. The IaC creates the
+`apparule` database on the shared `sandbox-db`, owned by `avnadmin`; hand it to
+`cuesoft` once, as `avnadmin`:
 
 ```sql
-CREATE ROLE apparule_app LOGIN PASSWORD '<generate>' NOSUPERUSER NOBYPASSRLS;
-CREATE DATABASE apparule OWNER apparule_app;
+ALTER DATABASE apparule OWNER TO cuesoft;
 ```
 
-`DATABASE_URL` =
-`postgres://apparule_app:<password>@<host>:<port>/apparule?sslmode=require`.
+The connection string the app gets (`DATABASE_URL`):
+`postgres://cuesoft:<password>@<host>:<port>/apparule?sslmode=require`.
 Tables are created by the app itself on start (migrations under an advisory
-lock); there is nothing to run by hand. The database lives on the shared
-Aiven `sandbox-db`.
+lock); there is nothing to run by hand.
 
 ### 3.2 Kafka (the CueLABS shared bus)
 
