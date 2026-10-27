@@ -545,7 +545,7 @@ Self-hosters without Paystack run with `commerce` in notify-only mode.
 ### 10.3 Environment variables (fleet names only)
 
 `DATABASE_URL` · `REDIS_HOST/PORT/USERNAME/PASSWORD/TLS/DB` ·
-`KAFKA_BROKERS/USERNAME/PASSWORD/SSL_CA` · `FIREBASE_PROJECT_ID` ·
+`KAFKA_BROKERS/USERNAME/PASSWORD/SSL_CA` · `GOOGLE_CLOUD_PROJECT` ·
 `STORAGE_BUCKET` · `PAYSTACK_SECRET_KEY` (common, commerce) ·
 `UPLOAD_TICKET_PRIVATE_KEY` (common) · `UPLOAD_TICKET_PUBLIC_KEYS` (uploads; a list, for rotation) ·
 `BREVO_API_KEY/FROM_EMAIL/FROM_NAME` (commerce) · `OTEL_*` ·

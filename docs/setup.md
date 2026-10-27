@@ -17,7 +17,7 @@ Firebase auth emulator, so only a few values matter locally:
 | Variable | Used by | Description |
 |----------|---------|-------------|
 | `UPLOAD_TICKET_PRIVATE_KEY` / `UPLOAD_TICKET_PUBLIC_KEYS` | common / uploads | The upload-ticket key pair (a local-only pair ships in `.env.example`; `go run ./cmd/ticketkey` in `api/common` makes real ones). |
-| `FIREBASE_PROJECT_ID` | common, web | Firebase project; `demo-apparule` with the emulator. |
+| `GOOGLE_CLOUD_PROJECT` | common, web | Firebase project; `demo-apparule` with the emulator. |
 | `PAYSTACK_SECRET_KEY` / `PAYSTACK_PUBLIC_KEY` | common, commerce | Paystack test keys. Empty: checkout is off and commerce runs notify-only. |
 | `FCM_PROJECT_ID`, `BREVO_*` | commerce | Optional push and email delivery. |
 | `CORS_ORIGINS` | common, uploads | Browser origins allowed. |

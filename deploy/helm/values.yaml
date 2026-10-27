@@ -33,7 +33,7 @@ services:
       PORT: "8080"
       CORS_ORIGINS: https://apparule.example.com
       UPLOADS_URL: https://api.apparule.example.com/api/v1/uploads
-      FIREBASE_PROJECT_ID: ""
+      GOOGLE_CLOUD_PROJECT: ""
       REDIS_HOST: redis
       REDIS_PORT: "6379"
     envFrom:

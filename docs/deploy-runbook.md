@@ -179,7 +179,7 @@ cd api/common && go run ./cmd/ticketkey 2026-10
 | Variable | common | uploads | segmentation | commerce |
 | --- | --- | --- | --- | --- |
 | `DATABASE_URL` 🔒 | ✓ | | | |
-| `FIREBASE_PROJECT_ID` | ✓ | | | |
+| `GOOGLE_CLOUD_PROJECT` | ✓ | | | |
 | `UPLOAD_TICKET_PRIVATE_KEY` 🔒 | ✓ | | | |
 | `UPLOAD_TICKET_PUBLIC_KEYS` | | ✓ | | |
 | `UPLOADS_URL` (the uploads `run.app` URL plus `/api/v1/uploads`) | ✓ | | | |
