@@ -41,7 +41,7 @@ dependencies:
   # (Android Photo Picker / iOS PHPicker) behind the abstract
   # `MediaPickerService` seam; dev/CI ride `MediaPickerServiceFake`
   # (bundled §6 sample images, no photo library).
-  image_picker: ^1.2.0
+  image_picker: ^1.2.4
   # Ledger says ^0.20.3, but flutter_localizations (SDK 3.44.7) pins intl
   # 0.20.2 exactly — ^0.20.2 is the widest range the SDK admits.
   intl: ^0.20.2
