@@ -179,7 +179,7 @@ cd api/common && go run ./cmd/ticketkey 2026-10
 | Variable | common | uploads | segmentation | commerce |
 | --- | --- | --- | --- | --- |
 | `DATABASE_URL` 🔒 | ✓ | | | |
-| `GOOGLE_CLOUD_PROJECT` | ✓ | | | |
+| `GOOGLE_CLOUD_PROJECT` | ✓ | | | ✓ (push) |
 | `UPLOAD_TICKET_PRIVATE_KEY` 🔒 | ✓ | | | |
 | `UPLOAD_TICKET_PUBLIC_KEYS` | | ✓ | | |
 | `UPLOADS_URL` (the uploads `run.app` URL plus `/api/v1/uploads`) | ✓ | | | |
@@ -191,7 +191,6 @@ cd api/common && go run ./cmd/ticketkey 2026-10
 | `STORAGE_DRIVER=gcs`, `STORAGE_BUCKET`, `STORAGE_PREFIX=apparule/stg` | ✓ | ✓ | ✓ | ✓ |
 | `PAYSTACK_SECRET_KEY` 🔒 | ✓ (webhook signatures) | | | ✓ (API calls) |
 | `PAYSTACK_PUBLIC_KEY` | ✓ (checkout) | | | |
-| `FCM_PROJECT_ID` | | | | ✓ |
 | `BREVO_API_KEY` 🔒, `BREVO_FROM_EMAIL`, `BREVO_FROM_NAME` | | | | ✓ |
 | `CORS_ORIGINS` (the website origin) | ✓ | ✓ | | |
 | `WAKE_COMMON_URL` (the common URL) | | ✓ | ✓ | ✓ |
@@ -213,8 +212,8 @@ the money flow has run end to end on the sandbox.
 | --- | --- | --- |
 | `NEXT_PUBLIC_TEST_MODE` | build | `1` until §9, then remove |
 | `NEXT_PUBLIC_FIREBASE_API_KEY`, `_AUTH_DOMAIN`, `_PROJECT_ID` | build | from §2 step 3 |
-| `API_ORIGIN` | runtime | the common URL (`https://…run.app`) |
-| `UPLOADS_ORIGIN` | runtime | the uploads URL |
+| `API_URL` | runtime | the common URL (`https://…run.app`) |
+| `UPLOADS_URL` | runtime | the uploads URL |
 
 ## 7. Cloud Run resources (IaC stack)
 
@@ -268,7 +267,7 @@ On `cuesoftinc/apparule`:
 4. The workflow fails unless every service's newest revision is Ready and
    common answers `/ready`. Check `apparule-api-common`'s logs for
    `migration applied` (first deploy only) and `listening`.
-5. In App Hosting, set `API_ORIGIN`, `UPLOADS_ORIGIN` and the
+5. In App Hosting, set `API_URL`, `UPLOADS_URL` and the
    `NEXT_PUBLIC_FIREBASE_*` values, **then remove `NEXT_PUBLIC_TEST_MODE`**
    and roll out.
 6. Smoke test on the site: sign in with Google, accept the terms, choose a

@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     platform_fee_bps: int = 1000
 
     # Push (FCM HTTP v1 via ADC; the project that owns the apps).
-    fcm_project_id: str = ""
+    google_cloud_project: str = ""
     # Money emails (Brevo, §6.5).
     brevo_api_key: str = ""
     brevo_from_email: str = ""

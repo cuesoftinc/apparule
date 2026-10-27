@@ -45,7 +45,7 @@ async def lifespan(app: FastAPI):
     store = from_settings(settings)
     producer = Producer(settings, contract, store)
     waker = Waker(settings.wake_common_url)
-    fcm = FCM(settings.fcm_project_id) if settings.fcm_project_id else None
+    fcm = FCM(settings.google_cloud_project) if settings.google_cloud_project else None
     brevo = Brevo(settings.brevo_api_key, settings.brevo_from_email, settings.brevo_from_name) if settings.brevo_api_key else None
     notifier = Notifier(fcm, brevo, settings.social_window_seconds)
     paystack = Paystack(settings.paystack_secret_key, settings.paystack_base_url) if settings.payments_enabled else None

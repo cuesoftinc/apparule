@@ -101,8 +101,8 @@ services:
     healthPath: /
     env:
       PORT: "3000"
-      API_ORIGIN: http://common:8080
-      UPLOADS_ORIGIN: http://uploads:8082
+      API_URL: http://common:8080
+      UPLOADS_URL: http://uploads:8082
 
 # Sweeps (§6.7), run as CronJobs from the common image.
 jobs:

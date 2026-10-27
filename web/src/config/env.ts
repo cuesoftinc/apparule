@@ -8,7 +8,7 @@
 // Otherwise the app runs against the real backend (system-design.md §7):
 // Firebase Google sign-in (X-1) and /api/v1, which the server-side proxy
 // (src/app/api/v1) forwards to api/common, and /api/v1/uploads to
-// api/uploads. The API origins are read at request time on the server, so
+// api/uploads. The API URLs are read at request time on the server, so
 // one image runs anywhere.
 const testMode = process.env.NEXT_PUBLIC_TEST_MODE === "1";
 
@@ -34,6 +34,6 @@ export const env = {
  * same build serves compose (http://common:8080) and cloud.
  */
 export const serverEnv = () => ({
-  apiOrigin: process.env.API_ORIGIN ?? "http://localhost:8080",
-  uploadsOrigin: process.env.UPLOADS_ORIGIN ?? "http://localhost:8082",
+  apiUrl: process.env.API_URL ?? "http://localhost:8080",
+  uploadsUrl: process.env.UPLOADS_URL ?? "http://localhost:8082",
 });

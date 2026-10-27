@@ -219,7 +219,7 @@ services:
       STORAGE_USE_SSL: ${STORAGE_USE_SSL:-false}
       # Empty = notify-only (self-host without payments, §10.2).
       PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-}
-      FCM_PROJECT_ID: ${FCM_PROJECT_ID:-}
+      GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT:-}
       BREVO_API_KEY: ${BREVO_API_KEY:-}
       BREVO_FROM_EMAIL: ${BREVO_FROM_EMAIL:-}
       WAKE_COMMON_URL: http://common:8080
@@ -268,8 +268,8 @@ services:
       - "3000:3000"
     environment:
       # The /api/v1 proxy forwards here (system-design.md §7.1).
-      API_ORIGIN: http://common:8080
-      UPLOADS_ORIGIN: http://uploads:8082
+      API_URL: http://common:8080
+      UPLOADS_URL: http://uploads:8082
     depends_on:
       common:
         condition: service_healthy
