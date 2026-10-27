@@ -260,13 +260,18 @@ func (s *Sweeper) Retention(ctx context.Context) error {
 	return nil
 }
 
-// Reconcile runs hourly: it hands commerce the last window's movements to
-// compare with Paystack (§6.4).
+// reconcileMargin widens the window on both sides: Paystack dates an item
+// by its own clock and the ledger by when the outcome arrived, so an item
+// near the window's edge sits on either side of it.
+const reconcileMargin = 15 * time.Minute
+
+// Reconcile runs hourly: it hands commerce the hour ending one margin ago,
+// and every movement in that hour widened by the margin, to compare with
+// Paystack by reference (§6.4).
 func (s *Sweeper) Reconcile(ctx context.Context) error {
-	to := s.Now().UTC().Truncate(time.Hour)
-	from := to.Add(-time.Hour)
+	from, to, lookupFrom, lookupTo := reconcileWindow(s.Now())
 	err := s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
-		movements, err := repository.Movements(ctx, tx, from, to)
+		movements, err := repository.Movements(ctx, tx, lookupFrom, lookupTo)
 		if err != nil {
 			return err
 		}
@@ -275,6 +280,7 @@ func (s *Sweeper) Reconcile(ctx context.Context) error {
 		}
 		return repository.Enqueue(ctx, tx, kafka.EventLedgerReconcile, "reconcile", map[string]any{
 			"window":    map[string]string{"from": from.Format(time.RFC3339), "to": to.Format(time.RFC3339)},
+			"lookup":    map[string]string{"from": lookupFrom.Format(time.RFC3339), "to": lookupTo.Format(time.RFC3339)},
 			"movements": movements,
 		})
 	})
@@ -283,6 +289,14 @@ func (s *Sweeper) Reconcile(ctx context.Context) error {
 	}
 	s.wakePending(ctx)
 	return nil
+}
+
+// reconcileWindow is the hour to reconcile and the wider lookup around it,
+// which never reaches past now.
+func reconcileWindow(now time.Time) (from, to, lookupFrom, lookupTo time.Time) {
+	to = now.UTC().Truncate(time.Hour).Add(-reconcileMargin)
+	from = to.Add(-time.Hour)
+	return from, to, from.Add(-reconcileMargin), to.Add(reconcileMargin)
 }
 
 // wakePending wakes common while its outbox holds rows (its publisher sends

@@ -32,6 +32,7 @@ class Producer:
     async def stop(self) -> None:
         await self._producer.stop()
 
-    async def send(self, event: str, key: str, data: dict) -> None:
-        message = await envelope.wrap(event, data, self._contract, self._store, self._settings.storage_prefix)
+    async def send(self, event: str, key: str, data: dict, request_id: str | None = None) -> None:
+        """`request_id` is the request this result answers (first result wins)."""
+        message = await envelope.wrap(event, data, self._contract, self._store, self._settings.storage_prefix, request_id)
         await self._producer.send_and_wait(TOPIC_FOR[event], message, key=key)

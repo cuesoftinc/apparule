@@ -644,9 +644,7 @@ real.
 1. **Kafka that powers off when idle.** *Answered 2026-10-13 (X-11): the
    shared Kafka powers off when idle and Expendit's reaper keeps it alive;
    see the amendment at the top.* Original question: the shared Kafka powers off when idle,
-   and this design has always-on consumers. Is the shared Kafka service on
-   a paid plan (it's also Upstat's S-2 dependency), or does Apparule wait
-   for it?
+   and this design has always-on consumers. Does Apparule wait for it?
 2. **Self-host `/measure`.** Should `segmentation` keep a synchronous
    `POST /measure` for self-hosters who only want the measuring engine,
    without Kafka? It would sit behind a flag and be off in cloud.

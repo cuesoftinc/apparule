@@ -15,12 +15,20 @@ Every message is an [envelope](envelope.schema.json):
 ```json
 {
   "type": "apparule.capture.ready",
-  "version": 1,
+  "version": "1.0",
   "id": "6f1c…",
   "produced_at": "2026-10-19T10:00:00Z",
+  "request_id": "5c2a…:1",
   "data_ref": { "bucket": "…", "key": "apparule/stg/compute/6f1c….json" }
 }
 ```
+
+`request_id` names the piece of work. Every request carries one, kept when
+the owner re-sends it (a capture's is `<session id>:<attempt>`); every result
+carries its request's, and common keeps the first result per `request_id`.
+A message that keeps failing after a few attempts becomes a failed result
+(or a recorded failure in common) and is committed: a stuck partition would
+stall the other products on the lanes.
 
 Apparule's events ride the three lanes of the CueLABS shared message bus
 (decisions.md X-11; the rules are in the CueLABS delivery standard's
@@ -59,8 +67,10 @@ The upload ticket the gateway verifies is specified in
 
 ## Changing a schema
 
-1. Additive change (new optional field): edit the schema, keep `version`.
-2. Breaking change: bump the envelope `version` the producer sends, and make
-   the consumer accept both versions until every producer is upgraded.
+1. Additive change (new optional field): edit the schema and bump the
+   envelope's minor (`1.0` → `1.1`).
+2. Breaking change: bump the major the producer sends. Consumers reject a
+   major they don't support as a contract error, so upgrade every consumer
+   to accept both majors before any producer sends the new one.
 3. Update the matching example in `examples/`. Every service's tests validate
    the examples, so a schema and its consumers can't drift silently.

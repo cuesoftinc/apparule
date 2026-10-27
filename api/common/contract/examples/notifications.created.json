@@ -1,7 +1,8 @@
 {
   "type": "apparule.notifications.created",
-  "version": 1,
+  "version": "1.0",
   "id": "00000000-0000-4000-8000-000000011668",
+  "request_id": "3e4f5a6b-7c8d-4e9f-8a0b-1c2d3e4f5a6b",
   "produced_at": "2026-10-19T10:00:00Z",
   "data": {
     "notification_id": "4d5e6f70-8192-4a3b-8c4d-5e6f70819203",

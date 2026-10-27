@@ -12,6 +12,8 @@ import type { UploadedImage } from './ticket-upload.interceptor';
 
 /** Clients compress to 2048 px on the long edge (flows/vault.md §1); the server re-checks. */
 export const MAX_IMAGE_EDGE = 2048;
+/** Decoded-size bound, so a small file cannot expand past the instance's memory. */
+export const MAX_INPUT_PIXELS = 50_000_000;
 const JPEG_QUALITY = 90;
 
 export interface UploadAccepted {
@@ -112,7 +114,7 @@ export class UploadService {
  */
 export const cleanImage = async (image: UploadedImage): Promise<CleanImage> => {
   try {
-    const { data, info } = await sharp(image.file.buffer, { failOn: 'error' })
+    const { data, info } = await sharp(image.file.buffer, { failOn: 'error', limitInputPixels: MAX_INPUT_PIXELS })
       .rotate()
       .resize({ width: MAX_IMAGE_EDGE, height: MAX_IMAGE_EDGE, fit: 'inside', withoutEnlargement: true })
       .jpeg({ quality: JPEG_QUALITY, mozjpeg: true })

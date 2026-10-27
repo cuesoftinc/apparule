@@ -41,19 +41,29 @@ async def lifespan(app: FastAPI):
     analyzer = PoseAnalyzer(settings.pose_model_path, settings.segmentation_model_path)
     pipeline = CapturePipeline(store, analyzer)
 
-    async def on_capture_ready(msg: dict) -> None:
+    def request_of(msg: dict, request_id: str | None) -> str:
+        # The result carries its request's id; older requests had none.
+        return request_id or f"{msg['session_id']}:{msg['attempt']}"
+
+    async def on_capture_ready(msg: dict, request_id: str | None) -> None:
         start = time.monotonic()
         log.info("capture received", extra={"step": "capture.ready", "session_id": msg["session_id"],
                                             "attempt": msg["attempt"], "template": msg["template"]})
         result = await pipeline.run(msg)
-        await producer.send(topics.CAPTURE_MEASURED, msg["session_id"], result)
+        await producer.send(topics.CAPTURE_MEASURED, msg["session_id"], result, request_of(msg, request_id))
         waker.soon(topics.CAPTURE_MEASURED)
         log.info("capture measured; result sent", extra={
             "step": "capture.measured", "session_id": msg["session_id"], "status": result["status"],
             "qc_code": result.get("qc", {}).get("code"), "qc_pose": result.get("qc", {}).get("pose"),
             "measures": len(result.get("measurements", [])), "ms": round((time.monotonic() - start) * 1000)})
 
-    consumer = Consumer("capture", {topics.CAPTURE_READY: on_capture_ready}, settings, contract, store)
+    async def on_failure(event: str, msg: dict, request_id: str | None) -> None:
+        await producer.send(topics.CAPTURE_MEASURED, msg["session_id"], pipeline.failed(msg), request_of(msg, request_id))
+        waker.soon(topics.CAPTURE_MEASURED)
+        log.info("capture failed; result sent", extra={"step": "capture.measured", "session_id": msg["session_id"],
+                                                       "status": "failed", "error_code": "pipeline_error"})
+
+    consumer = Consumer("capture", {topics.CAPTURE_READY: on_capture_ready}, settings, contract, store, on_failure)
 
     await producer.start()
     await consumer.start()

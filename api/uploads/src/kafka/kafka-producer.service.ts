@@ -6,6 +6,9 @@ import { ContractService } from '../contract/contract.service';
 import { StorageService } from '../storage/storage.service';
 import { UPLOADS_TOPIC } from './topics';
 
+/** `<major>.<minor>` (envelope.schema.json); consumers reject another major. */
+export const ENVELOPE_VERSION = '1.0';
+
 /**
  * Publishes validated envelopes (api/common/contract/envelope.schema.json) on
  * the CueLABS shared bus. Every product can read its lanes, so the payload is
@@ -59,7 +62,8 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
     return this.connected;
   }
 
-  async send(event: string, key: string, data: object): Promise<void> {
+  /** Every upload is a request to common, so it gets its own request_id. */
+  async send(event: string, key: string, data: object, requestId: string = randomUUID()): Promise<void> {
     this.contract.validateData(event, data);
     const id = randomUUID();
     const body = Buffer.from(JSON.stringify(data));
@@ -69,7 +73,14 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
       'application/json',
       createHash('sha256').update(body).digest('hex'),
     );
-    const envelope = { type: event, version: 1, id, produced_at: new Date().toISOString(), data_ref: dataRef };
+    const envelope = {
+      type: event,
+      version: ENVELOPE_VERSION,
+      id,
+      produced_at: new Date().toISOString(),
+      request_id: requestId,
+      data_ref: dataRef,
+    };
     this.contract.validateEnvelope(envelope);
     await this.connect();
     await this.producer.send({ topic: UPLOADS_TOPIC, acks: -1, messages: [{ key, value: JSON.stringify(envelope) }] });

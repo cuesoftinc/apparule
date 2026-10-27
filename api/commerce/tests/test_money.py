@@ -54,6 +54,20 @@ def test_charge_for_an_order_no_longer_quoted_or_unknown(contract):
     assert out["reason"] == "unknown_reference"
 
 
+def test_charge_settles_against_the_checkout_amount_not_the_current_quote(contract):
+    msg = _event()
+    msg["order"]["quote"] = {"amount": 5_000_000, "currency": "NGN"}
+    out = settle.decide(msg, FEE)
+    contract.validate_data(topics.PAYMENTS_OUTCOME, out)
+    assert out["kind"] == "charge_settled" and out["amount"]["amount"] == 4_500_000
+    paid_the_new_quote = _event(amount=5_000_000)
+    paid_the_new_quote["order"]["quote"] = {"amount": 5_000_000, "currency": "NGN"}
+    assert settle.decide(paid_the_new_quote, FEE)["reason"] == "amount_mismatch"
+    no_checkout = _event()
+    del no_checkout["order"]["payment"]
+    assert settle.decide(no_checkout, FEE)["reason"] == "unknown_reference"
+
+
 def test_informational_events_need_no_decision():
     msg = _event()
     msg["event"] = "transfer.success"
@@ -154,6 +168,37 @@ async def test_reconcile_flags_every_disagreement(contract):
     for o in out:
         contract.validate_data(topics.PAYMENTS_OUTCOME, o)
     assert sorted(o["reason"] for o in out) == ["amount_mismatch", "missing_in_ledger", "missing_in_provider"]
+
+
+async def test_reconcile_matches_items_that_cross_the_window_edge(contract):
+    request_id = example("ledger.reconcile_requested")["data"]["movements"][0]["request_id"]
+
+    def movement(ref: str, at: str) -> dict:
+        return {"request_id": request_id, "kind": "charge", "reference": ref, "amount": {"amount": 1000, "currency": "NGN"}, "at": at}
+
+    msg = {
+        "window": {"from": "2026-10-19T09:00:00Z", "to": "2026-10-19T10:00:00Z"},
+        "lookup": {"from": "2026-10-19T08:45:00Z", "to": "2026-10-19T10:15:00Z"},
+        "movements": [
+            movement("111", "2026-10-19T10:05:00Z"),  # paid at 09:59, recorded after the hour
+            movement("222", "2026-10-19T09:01:00Z"),  # paid at 08:58, recorded inside the hour
+            movement("333", "2026-10-19T09:30:00Z"),  # Paystack never had it
+        ],
+    }
+    fake = FakePaystack({
+        ("GET", "/transaction"): ok([
+            {"id": 111, "reference": "apr_a_1", "amount": 1000, "currency": "NGN", "createdAt": "2026-10-19T09:59:30.000Z"},
+            {"id": 222, "reference": "apr_b_1", "amount": 1000, "currency": "NGN", "createdAt": "2026-10-19T08:58:00.000Z"},
+            # After the window: the next run reports it if the ledger still lacks it.
+            {"id": 444, "reference": "apr_c_1", "amount": 1000, "currency": "NGN", "createdAt": "2026-10-19T10:10:00.000Z"},
+        ]),
+        ("GET", "/transfer"): ok([]),
+        ("GET", "/refund"): ok([]),
+    })
+    out = await reconcile.compare(fake.client(), msg)
+    for o in out:
+        contract.validate_data(topics.PAYMENTS_OUTCOME, o)
+    assert [(o["reference"], o["reason"]) for o in out] == [("333", "missing_in_provider")]
 
 
 def test_outcome_ids_differ_by_kind_and_source():

@@ -73,10 +73,10 @@ Two hard-won rules inherited from cueprise, non-negotiable:
 
 | Service | CPU / mem | Concurrency | Instances | CPU allocation | Ingress |
 | --- | --- | --- | --- | --- | --- |
-| api/common | 1 vCPU / 512 MiB | 80 | 0–5 | always | all (via the LB) |
+| api/common | 1 vCPU / 512 MiB | 80 | 0–2 | always | all (via the LB) |
 | api/uploads | 1 vCPU / 512 MiB | 20 | 0–5 | request | all (via the LB) |
-| api/segmentation | 2 vCPU / 2 GiB | 2 | 0–3 | always | internal, authenticated |
-| api/commerce | 1 vCPU / 512 MiB | 20 | 0–2 | always | internal, authenticated |
+| api/segmentation | 2 vCPU / 2 GiB | 2 | 0–2 | always | all, authenticated only (run.invoker) |
+| api/commerce | 1 vCPU / 512 MiB | 20 | 0–2 | always | all, authenticated only (run.invoker) |
 | sweeps | the common image, `./jobs <name>` | — | Cloud Scheduler | — | — |
 
 **Scale to zero** (S-9 as amended, shared-messaging.md): every service runs

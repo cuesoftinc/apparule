@@ -80,9 +80,14 @@ func run() error {
 			kafka.EventPaymentsOutcome: s.OnPaymentOutcome,
 		},
 	}
+	failures := map[string]kafka.Failure{
+		kafka.EventCaptureUploaded: s.OnCaptureUploadedFailed,
+		kafka.EventCaptureMeasured: s.OnCaptureMeasuredFailed,
+		kafka.EventPaymentsOutcome: s.OnPaymentOutcomeFailed,
+	}
 	var running []*kafka.Consumer
 	for topic, handlers := range consumers {
-		c, err := kafka.NewConsumer(cfg.Kafka, "apparule-common", topic, handlers, a.Contract, a.Store)
+		c, err := kafka.NewConsumer(cfg.Kafka, "apparule-common", topic, handlers, failures, a.Contract, a.Store)
 		if err != nil {
 			return err
 		}
@@ -125,7 +130,7 @@ func run() error {
 		defer cancel()
 		return srv.Shutdown(shutdown)
 	})
-	// A consumer that fails stops the whole process: the platform restarts
-	// it and the uncommitted message is redelivered.
+	// Consumers return only when gctx ends: a failing message is retried,
+	// recorded and committed, never a reason to take the HTTP API down.
 	return g.Wait()
 }

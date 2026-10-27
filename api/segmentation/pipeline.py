@@ -40,12 +40,7 @@ class CapturePipeline:
 
     async def run(self, msg: dict) -> dict:
         start = time.monotonic()
-        base = {
-            "session_id": msg["session_id"],
-            "attempt": msg["attempt"],
-            "method": METHOD,
-            "thresholds_version": self._qc.version,
-        }
+        base = self._base(msg)
         images: dict[str, bytes] = {}
         try:
             for pose in POSES:
@@ -64,6 +59,19 @@ class CapturePipeline:
             ms=round((time.monotonic() - start) * 1000),
         )
         return result
+
+    def failed(self, msg: dict) -> dict:
+        """The result for a capture the pipeline kept failing on, so common
+        stops waiting for it."""
+        return {**self._base(msg), "status": "failed", "poses": {}, "error_code": "pipeline_error"}
+
+    def _base(self, msg: dict) -> dict:
+        return {
+            "session_id": msg["session_id"],
+            "attempt": msg["attempt"],
+            "method": METHOD,
+            "thresholds_version": self._qc.version,
+        }
 
     def _measure(self, images: dict[str, bytes], msg: dict) -> dict:
         views: dict[str, View] = {}

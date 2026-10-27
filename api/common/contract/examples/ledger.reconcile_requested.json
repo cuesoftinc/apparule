@@ -1,11 +1,16 @@
 {
   "type": "apparule.ledger.reconcile_requested",
-  "version": 1,
+  "version": "1.0",
   "id": "00000000-0000-4000-8000-00000000f779",
+  "request_id": "1c2d3e4f-5a6b-4c7d-8e8f-9a0b1c2d3e4f",
   "produced_at": "2026-10-19T10:00:00Z",
   "data": {
     "window": {
-      "from": "2026-10-19T09:00:00Z",
+      "from": "2026-10-19T08:45:00Z",
+      "to": "2026-10-19T09:45:00Z"
+    },
+    "lookup": {
+      "from": "2026-10-19T08:30:00Z",
       "to": "2026-10-19T10:00:00Z"
     },
     "movements": [
@@ -16,7 +21,8 @@
         "amount": {
           "amount": 4500000,
           "currency": "NGN"
-        }
+        },
+        "at": "2026-10-19T09:15:04Z"
       }
     ]
   }

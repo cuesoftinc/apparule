@@ -225,9 +225,9 @@ Docker Hub, because every release replaces it by digest.
 
 | Name | Kind | Account | Port | Instances | CPU / memory | CPU allocation | Ingress / auth |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `apparule-api-common` | service | `apparule-common` | 8080 | **0**–5 | 1 / 512 MiB | **always allocated** | all · allow unauthenticated (the app checks Firebase tokens; webhooks check signatures) |
+| `apparule-api-common` | service | `apparule-common` | 8080 | **0**–2 | 1 / 512 MiB | **always allocated** | all · allow unauthenticated (the app checks Firebase tokens; webhooks check signatures) |
 | `apparule-api-uploads` | service | `apparule-uploads` | 8082 | 0–5 | 1 / 1 GiB, concurrency 20, timeout 60 s | request-based | all · allow unauthenticated (auth is the upload ticket) |
-| `apparule-api-segmentation` | service | `apparule-segmentation` | 8081 | **0**–3 | 2 / 2 GiB, concurrency 2, startup probe ≥ 60 s | **always allocated** | all · **authenticated only** (invoker: `apparule-common`) |
+| `apparule-api-segmentation` | service | `apparule-segmentation` | 8081 | **0**–2 | 2 / 2 GiB, concurrency 2, startup probe ≥ 60 s | **always allocated** | all · **authenticated only** (invoker: `apparule-common`) |
 | `apparule-api-commerce` | service | `apparule-commerce` | 8083 | **0**–2 | 1 / 512 MiB | **always allocated** | all · **authenticated only** (invoker: `apparule-common`) |
 | `apparule-sweep-captures` | job, `./jobs captures` | `apparule-common` | — | 1 task, 0 retries | 1 / 512 MiB | — | Scheduler: `* * * * *` |
 | `apparule-sweep-orders` | job, `./jobs orders` | `apparule-common` | — | 1 task | 1 / 512 MiB | — | Scheduler: `7 * * * *` |
@@ -247,10 +247,9 @@ ingress is **all** rather than internal because common and the jobs wake
 them over their `run.app` URLs; requiring authentication keeps them
 private (the wake-ups carry an ID token).
 
-**Cost.** While nobody uses the app nothing runs. Each wake keeps an
-instance for up to ~15 minutes; light use stays inside Cloud Run's monthly
-no-charge allowance. The fixed costs are Aiven (Postgres, Redis; Kafka is
-shared) and the `captures` sweep's short run every minute.
+**Idle.** While nobody uses the app nothing runs. Each wake keeps an
+instance for up to ~15 minutes. The always-on parts are Aiven (Postgres,
+Redis; Kafka is shared) and the `captures` sweep's short run every minute.
 
 ## 8. GitHub (release workflow)
 

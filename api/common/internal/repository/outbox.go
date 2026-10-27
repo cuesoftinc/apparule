@@ -9,30 +9,38 @@ import (
 )
 
 // Enqueue writes an event in the caller's transaction (§6.6): it is sent
-// if and only if the business write commits.
+// if and only if the business write commits. The row gets a new request_id.
 func Enqueue(ctx context.Context, tx pgx.Tx, event, key string, data any) error {
-	_, err := tx.Exec(ctx, `INSERT INTO outbox (event, message_key, payload) VALUES ($1, $2, $3)`, event, key, mustJSON(data))
+	return EnqueueRequest(ctx, tx, event, key, "", data)
+}
+
+// EnqueueRequest is Enqueue with the request_id a re-send must keep; empty
+// means a new one.
+func EnqueueRequest(ctx context.Context, tx pgx.Tx, event, key, requestID string, data any) error {
+	_, err := tx.Exec(ctx, `INSERT INTO outbox (event, message_key, payload, request_id)
+		VALUES ($1, $2, $3, coalesce(nullif($4, ''), gen_random_uuid()::text))`, event, key, mustJSON(data), requestID)
 	return err
 }
 
 type OutboxRow struct {
-	ID      int64
-	Event   string
-	Key     string
-	Payload json.RawMessage
+	ID        int64
+	Event     string
+	Key       string
+	RequestID string
+	Payload   json.RawMessage
 }
 
 // ClaimOutbox locks up to limit unsent rows; concurrent publishers skip
 // each other's rows (SKIP LOCKED).
 func ClaimOutbox(ctx context.Context, tx pgx.Tx, limit int) ([]OutboxRow, error) {
-	rows, err := tx.Query(ctx, `SELECT id, event, message_key, payload FROM outbox WHERE published_at IS NULL
+	rows, err := tx.Query(ctx, `SELECT id, event, message_key, request_id, payload FROM outbox WHERE published_at IS NULL
 		ORDER BY id LIMIT $1 FOR UPDATE SKIP LOCKED`, limit)
 	if err != nil {
 		return nil, err
 	}
 	return collect(rows, func(r pgx.Row) (*OutboxRow, error) {
 		var o OutboxRow
-		return &o, r.Scan(&o.ID, &o.Event, &o.Key, &o.Payload)
+		return &o, r.Scan(&o.ID, &o.Event, &o.Key, &o.RequestID, &o.Payload)
 	})
 }
 
@@ -63,6 +71,13 @@ func PendingOutbox(ctx context.Context, tx pgx.Tx) (map[string]int, error) {
 		out[event] = n
 	}
 	return out, rows.Err()
+}
+
+// ClaimResult reports whether this is the first result for requestID
+// (shared-messaging.md rule 9); it is claimed in the caller's transaction.
+func ClaimResult(ctx context.Context, tx pgx.Tx, requestID, event string) (bool, error) {
+	tag, err := tx.Exec(ctx, `INSERT INTO result_claim (request_id, event) VALUES ($1, $2) ON CONFLICT DO NOTHING`, requestID, event)
+	return tag.RowsAffected() > 0, err
 }
 
 // ── Idempotency (api.md §4) ─────────────────────────────────────────────

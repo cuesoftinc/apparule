@@ -58,6 +58,23 @@ func TestRejectsUnknownFieldsAndBadEnums(t *testing.T) {
 	}
 }
 
+func TestEnvelopeVersionIsMajorDotMinor(t *testing.T) {
+	c, err := LoadContract()
+	if err != nil {
+		t.Fatal(err)
+	}
+	head := `{"type":"apparule.capture.ready","id":"00000000-0000-4000-8000-000000005cce","produced_at":"2026-10-19T10:00:00Z","data":{},`
+	for version, ok := range map[string]bool{`"1.0"`: true, `"2.13"`: true, `1`: false, `"1"`: false, `"v1.0"`: false} {
+		err := c.Validate("envelope", []byte(head+`"version":`+version+`}`))
+		if (err == nil) != ok {
+			t.Errorf("version %s: valid=%v, want %v (%v)", version, err == nil, ok, err)
+		}
+	}
+	if err := c.Validate("envelope", []byte(head+`"version":"1.0","request_id":""}`)); err == nil {
+		t.Error("an empty request_id must be rejected")
+	}
+}
+
 func TestEveryEventRidesASharedLane(t *testing.T) {
 	lanes := map[string]bool{TopicUploads: true, TopicRequests: true, TopicResults: true}
 	for event, topic := range TopicFor {

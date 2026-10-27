@@ -92,9 +92,10 @@ func LockOrder(ctx context.Context, tx pgx.Tx, id string) (*OrderRow, error) {
 	return GetOrder(ctx, tx, id)
 }
 
-// OrderByReference finds the order a payment reference belongs to.
+// OrderByReference finds the order any of its checkout references belongs to.
 func OrderByReference(ctx context.Context, tx pgx.Tx, reference string) (*OrderRow, error) {
-	return scanOrder(tx.QueryRow(ctx, `SELECT `+orderCols+orderFrom+` WHERE pay.reference = $1`, reference))
+	return scanOrder(tx.QueryRow(ctx, `SELECT `+orderCols+orderFrom+`
+		WHERE r.id = (SELECT a.request_id FROM payment_attempt a WHERE a.reference = $1)`, reference))
 }
 
 func ListOrders(ctx context.Context, tx pgx.Tx, accountID, role string, offset, limit int) ([]*OrderRow, error) {

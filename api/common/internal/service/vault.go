@@ -529,10 +529,15 @@ func (s *Services) sendCaptureReady(ctx context.Context, tx pgx.Tx, row *reposit
 	}); err != nil {
 		return err
 	}
-	return repository.Enqueue(ctx, tx, kafka.EventCaptureReady, row.ID, map[string]any{
+	return repository.EnqueueRequest(ctx, tx, kafka.EventCaptureReady, row.ID, captureRequestID(row.ID, attempt), map[string]any{
 		"session_id": row.ID, "attempt": attempt, "method": "mediapipe_2d_v2", "height_cm": *row.InputHeightCM,
 		"template": template, "measures": Templates[template], "poses": posesOut,
 	})
+}
+
+// captureRequestID names one attempt's work; a re-send keeps it.
+func captureRequestID(sessionID string, attempt int) string {
+	return fmt.Sprintf("%s:%d", sessionID, attempt)
 }
 
 // OnCaptureMeasured stores segmentation's verdict for the current attempt.
@@ -560,6 +565,9 @@ func (s *Services) OnCaptureMeasured(ctx context.Context, raw json.RawMessage) e
 		return err
 	}
 	return s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
+		if first, err := s.firstResult(ctx, tx, kafka.EventCaptureMeasured); err != nil || !first {
+			return err
+		}
 		row, err := repository.LockSession(ctx, tx, msg.SessionID)
 		if errors.Is(err, repository.ErrNotFound) {
 			return nil
@@ -611,6 +619,49 @@ func (s *Services) OnCaptureMeasured(ctx context.Context, raw json.RawMessage) e
 		}
 		// A silent push so a backgrounded app refreshes (§6.1).
 		return notify(ctx, tx, note{To: owner, Kind: "capture_result", PayloadRef: row.ID, RefKind: "session", Text: "Your measurements are ready"})
+	})
+}
+
+// OnCaptureUploadedFailed fails a session whose upload could not be stored
+// after retries, so the client stops waiting.
+func (s *Services) OnCaptureUploadedFailed(ctx context.Context, raw json.RawMessage, _ error) error {
+	var msg struct {
+		SessionID string `json:"session_id"`
+	}
+	if err := json.Unmarshal(raw, &msg); err != nil {
+		return err
+	}
+	return s.failSession(ctx, msg.SessionID, func(row *repository.SessionRow) bool {
+		return row.Status == "awaiting_upload" || row.Status == "failed_qc"
+	})
+}
+
+// OnCaptureMeasuredFailed fails the attempt whose result could not be
+// stored after retries.
+func (s *Services) OnCaptureMeasuredFailed(ctx context.Context, raw json.RawMessage, _ error) error {
+	var msg struct {
+		SessionID string `json:"session_id"`
+		Attempt   int    `json:"attempt"`
+	}
+	if err := json.Unmarshal(raw, &msg); err != nil {
+		return err
+	}
+	return s.failSession(ctx, msg.SessionID, func(row *repository.SessionRow) bool {
+		return row.Status == "processing" && row.Attempt == msg.Attempt
+	})
+}
+
+func (s *Services) failSession(ctx context.Context, id string, applies func(*repository.SessionRow) bool) error {
+	code := "pipeline_error"
+	return s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
+		row, err := repository.LockSession(ctx, tx, id)
+		if errors.Is(err, repository.ErrNotFound) {
+			return nil
+		}
+		if err != nil || !applies(row) {
+			return err
+		}
+		return repository.UpdateSession(ctx, tx, id, repository.SessionUpdate{Status: "failed", ErrorCode: &code, ClearProcessing: true})
 	})
 }
 

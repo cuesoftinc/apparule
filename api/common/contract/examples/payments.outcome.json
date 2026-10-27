@@ -1,7 +1,8 @@
 {
   "type": "apparule.payments.outcome",
-  "version": 1,
+  "version": "1.0",
   "id": "00000000-0000-4000-8000-000000013557",
+  "request_id": "9e8d7c6b-5a49-4382-9716-05f4e3d2c1b0",
   "produced_at": "2026-10-19T10:00:00Z",
   "data": {
     "outcome_id": "5e6f7081-92a3-4b4c-8d5e-6f708192a3b4",

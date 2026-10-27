@@ -64,7 +64,7 @@ func (p *Publisher) publishBatch(ctx context.Context) (int, error) {
 		msgs := make([]kgo.Message, 0, len(rows))
 		ids := make([]int64, 0, len(rows))
 		for _, row := range rows {
-			msg, err := p.Producer.Message(ctx, row.Event, row.Key, row.Payload)
+			msg, err := p.Producer.Message(ctx, row.Event, row.Key, row.RequestID, row.Payload)
 			if errors.Is(err, kafka.ErrContract) {
 				// A row that fails its schema can never be sent; park it
 				// as published so it doesn't block the queue, and say so.

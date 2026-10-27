@@ -16,8 +16,19 @@
         "to": { "type": "string", "format": "date-time" }
       }
     },
+    "lookup": {
+      "type": "object",
+      "description": "`window` widened on both sides. Both sides are searched over it, and only items inside `window` whose reference is missing from the other side are reported, so an item that crosses the window's edge is not a mismatch.",
+      "required": ["from", "to"],
+      "additionalProperties": false,
+      "properties": {
+        "from": { "type": "string", "format": "date-time" },
+        "to": { "type": "string", "format": "date-time" }
+      }
+    },
     "movements": {
       "type": "array",
+      "description": "Every movement recorded in `lookup` (or `window` when lookup is absent).",
       "items": {
         "type": "object",
         "required": ["request_id", "kind", "reference", "amount"],
@@ -26,7 +37,8 @@
           "request_id": { "$ref": "defs.schema.json#/$defs/id" },
           "kind": { "enum": ["charge", "payout", "refund"] },
           "reference": { "type": "string", "minLength": 1 },
-          "amount": { "$ref": "defs.schema.json#/$defs/money" }
+          "amount": { "$ref": "defs.schema.json#/$defs/money" },
+          "at": { "type": "string", "format": "date-time", "description": "When the ledger recorded it." }
         }
       }
     }

@@ -28,6 +28,7 @@ from notify import Notifier
 from notify.brevo import Brevo
 from notify.fcm import FCM
 from payments import settle
+from payments.failed import failed_outcome
 from payments.movements import Movements
 from paystack import Paystack
 from storage import from_settings
@@ -50,15 +51,15 @@ async def lifespan(app: FastAPI):
     paystack = Paystack(settings.paystack_secret_key, settings.paystack_base_url) if settings.payments_enabled else None
     log.info("starting", extra={"payments": paystack is not None, "push": fcm is not None, "email": brevo is not None})
 
-    async def send(outcome: dict | None, key: str, step: str, started: float) -> None:
+    async def send(outcome: dict | None, key: str, step: str, started: float, request_id: str | None) -> None:
         if outcome is None:
             return
-        await producer.send(topics.PAYMENTS_OUTCOME, key, outcome)
+        await producer.send(topics.PAYMENTS_OUTCOME, key, outcome, request_id)
         waker.soon(topics.PAYMENTS_OUTCOME)
         log.info("outcome sent", extra={"step": step, "kind": outcome["kind"], "outcome_id": outcome["outcome_id"],
                                         "reason": outcome.get("reason"), "ms": round((time.monotonic() - started) * 1000)})
 
-    async def on_notification(msg: dict) -> None:
+    async def on_notification(msg: dict, request_id: str | None) -> None:
         await notifier.deliver(msg)
         log.info("notification delivered", extra={"step": "notify", "kind": msg["kind"], "notification_id": msg["notification_id"]})
 
@@ -67,31 +68,38 @@ async def lifespan(app: FastAPI):
     if paystack is not None:
         movements = Movements(paystack, settings.platform_fee_bps)
 
-        async def on_provider_event(msg: dict) -> None:
+        async def on_provider_event(msg: dict, request_id: str | None) -> None:
             start = time.monotonic()
             outcome = settle.decide(msg, settings.platform_fee_bps)
             key = outcome.get("request_id", msg["provider_event_id"]) if outcome else ""
-            await send(outcome, key, "payments.provider_event", start)
+            await send(outcome, key, "payments.provider_event", start, request_id)
 
-        async def on_transition(msg: dict) -> None:
+        async def on_transition(msg: dict, request_id: str | None) -> None:
             start = time.monotonic()
-            await send(await movements.on_transition(msg), msg["request_id"], "orders.transition", start)
+            await send(await movements.on_transition(msg), msg["request_id"], "orders.transition", start, request_id)
 
-        async def on_recipient(msg: dict) -> None:
+        async def on_recipient(msg: dict, request_id: str | None) -> None:
             start = time.monotonic()
-            await send(await payouts.verify(paystack, msg), msg["designer_id"], "payouts.recipient_requested", start)
+            await send(await payouts.verify(paystack, msg), msg["designer_id"], "payouts.recipient_requested", start, request_id)
 
-        async def on_reconcile(msg: dict) -> None:
+        async def on_reconcile(msg: dict, request_id: str | None) -> None:
             start = time.monotonic()
             mismatches = await reconcile.compare(paystack, msg)
             for outcome in mismatches:
-                await send(outcome, "reconcile", "ledger.reconcile_requested", start)
+                await send(outcome, "reconcile", "ledger.reconcile_requested", start, request_id)
             log.info("reconciled", extra={"step": "reconcile", "movements": len(msg["movements"]), "mismatches": len(mismatches)})
 
         handlers |= {topics.PROVIDER_EVENT: on_provider_event, topics.ORDERS_TRANSITION: on_transition,
                      topics.RECIPIENT_REQUESTED: on_recipient, topics.RECONCILE_REQUESTED: on_reconcile}
 
-    consumer = Consumer("commerce", handlers, settings, contract, store)
+    async def on_failure(event: str, msg: dict, request_id: str | None) -> None:
+        outcome = failed_outcome(event, msg)
+        if outcome is None:
+            return  # nothing to decide: logged by the consumer and dropped
+        key = outcome.get("request_id") or outcome.get("designer_id") or ""
+        await send(outcome, key, event.removeprefix("apparule."), time.monotonic(), request_id)
+
+    consumer = Consumer("commerce", handlers, settings, contract, store, on_failure)
     await producer.start()
     await consumer.start()
     app.state.consumers = [consumer]

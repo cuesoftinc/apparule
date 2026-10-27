@@ -7,15 +7,18 @@ import json
 import uuid
 from datetime import UTC, datetime
 
-from contract import Contract
+from contract import Contract, ContractError
 from kafka.topics import TOPIC_FOR
 from storage import ObjectStore
 
-VERSION = 1
+# Producers send VERSION; consumers accept SUPPORTED_MAJOR only.
+VERSION = "1.0"
+SUPPORTED_MAJOR = "1"
 
 
-async def wrap(event: str, data: dict, contract: Contract, store: ObjectStore, prefix: str) -> dict:
-    """Validates `data` for `event` and returns the envelope to send."""
+async def wrap(event: str, data: dict, contract: Contract, store: ObjectStore, prefix: str, request_id: str | None = None) -> dict:
+    """Validates `data` for `event` and returns the envelope to send. A
+    result carries the request_id of the request it answers."""
     contract.validate_data(event, data)
     message_id = str(uuid.uuid4())
     envelope: dict = {
@@ -24,10 +27,13 @@ async def wrap(event: str, data: dict, contract: Contract, store: ObjectStore, p
         "id": message_id,
         "produced_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
     }
+    if request_id:
+        envelope["request_id"] = request_id
     body = json.dumps(data, separators=(",", ":")).encode()
     key = f"{prefix}/compute/{message_id}.json"
     await store.put(key, body, "application/json")
     envelope["data_ref"] = {"bucket": store.bucket, "key": key, "size": len(body), "content_type": "application/json"}
+    contract.validate_envelope(envelope)
     return envelope
 
 
@@ -40,10 +46,14 @@ def event_of(value: object) -> str | None:
     return None
 
 
-async def unwrap(topic: str, envelope: dict, contract: Contract, store: ObjectStore) -> tuple[str, dict]:
+async def unwrap(topic: str, envelope: dict, contract: Contract, store: ObjectStore) -> tuple[str, dict, str | None]:
     """Validates the envelope, resolves a data_ref, validates the payload.
-    Returns the event and its data."""
+    Returns the event, its data and its request_id. A major version this
+    code doesn't speak is a contract error."""
     contract.validate_envelope(envelope)
+    major = str(envelope["version"]).split(".", 1)[0]
+    if major != SUPPORTED_MAJOR:
+        raise ContractError(f"unsupported envelope version {envelope['version']}")
     event = envelope["type"]
     if TOPIC_FOR.get(event) != topic:
         raise ValueError(f"event {event} does not belong on topic {topic}")
@@ -52,4 +62,4 @@ async def unwrap(topic: str, envelope: dict, contract: Contract, store: ObjectSt
     else:
         data = envelope["data"]
     contract.validate_data(event, data)
-    return event, data
+    return event, data, envelope.get("request_id")

@@ -1,8 +1,11 @@
 """One consumer group per service (apparule-<service>). It subscribes to the topics its
 events travel on and routes each message on the envelope's type. Offsets are
-committed only after the handler finishes, so a crash mid-message redelivers
-it (at-least-once); every handler is idempotent by key (system-design.md
-§9.2)."""
+committed after the handler finishes, so a crash mid-message redelivers it
+(at-least-once); every handler is idempotent by key (system-design.md §9.2).
+A handler that keeps failing is retried with backoff, answered with a failed
+result where the event is a request, and committed: the lanes are shared, so
+a stuck partition would stall every product on them (shared-messaging.md
+rule 10)."""
 
 import asyncio
 import contextlib
@@ -21,7 +24,13 @@ from storage import ObjectStore
 
 log = logging.getLogger(__name__)
 
-Handler = Callable[[dict], Awaitable[None]]
+# A handler gets the payload and the request_id its results must carry.
+Handler = Callable[[dict, str | None], Awaitable[None]]
+# Called with (event, data, request_id) once a handler has kept failing.
+FailureHandler = Callable[[str, dict, str | None], Awaitable[None]]
+
+ATTEMPTS = 3
+BACKOFF_SECONDS = 1.0
 
 
 def _decode(value: bytes) -> object:
@@ -32,8 +41,66 @@ def _decode(value: bytes) -> object:
         return None
 
 
+class Dispatcher:
+    """Routes one record to its handler; never raises, so the consumer
+    always commits and moves on."""
+
+    def __init__(
+        self,
+        handlers: dict[str, Handler],
+        contract: Contract,
+        store: ObjectStore,
+        on_failure: FailureHandler | None = None,
+        attempts: int = ATTEMPTS,
+        backoff: float = BACKOFF_SECONDS,
+    ):
+        self.handlers = handlers
+        self._contract = contract
+        self._store = store
+        self._on_failure = on_failure
+        self._attempts = attempts
+        self._backoff = backoff
+
+    async def handle(self, topic: str, value: object) -> None:
+        event = envelope.event_of(value)
+        if event not in self.handlers:
+            # The lanes are shared: another product's event, or one another
+            # pool handles. Skip it without a word.
+            return
+        request_id = value.get("request_id") if isinstance(value, dict) else None
+        data: dict | None = None
+        error: Exception | None = None
+        for attempt in range(1, self._attempts + 1):
+            try:
+                event, data, request_id = await envelope.unwrap(topic, value, self._contract, self._store)
+            except (ContractError, ValueError, KeyError):
+                # Can never succeed. Never log the payload (never-log list).
+                log.exception("dropping invalid message", extra={"topic": topic, "request_id": request_id})
+                return
+            except Exception as exc:  # storage: worth another try
+                error = exc
+            else:
+                try:
+                    await self.handlers[event](data, request_id)
+                    return
+                except Exception as exc:
+                    error = exc
+            if attempt < self._attempts:
+                log.warning("handler failed; retrying", extra={"topic": topic, "event": event, "request_id": request_id,
+                                                               "attempt": attempt, "error": type(error).__name__})
+                await asyncio.sleep(self._backoff * 2 ** (attempt - 1))
+        log.error("handler kept failing; recorded and skipped", exc_info=error,
+                  extra={"topic": topic, "event": event, "request_id": request_id, "attempts": self._attempts})
+        if self._on_failure is not None and data is not None:
+            try:
+                await self._on_failure(event, data, request_id)
+            except Exception:
+                log.exception("recording the failure failed", extra={"event": event, "request_id": request_id})
+
+
 class Consumer:
-    """`handlers` maps each event this pool handles to its handler."""
+    """`handlers` maps each event this pool handles to its handler;
+    `on_failure` answers a request whose handler kept failing."""
 
     def __init__(
         self,
@@ -42,12 +109,11 @@ class Consumer:
         settings: Settings,
         contract: Contract,
         store: ObjectStore,
+        on_failure: FailureHandler | None = None,
     ):
         self.group = group
-        self._handlers = handlers
+        self._dispatcher = Dispatcher(handlers, contract, store, on_failure)
         self._topics = sorted({TOPIC_FOR[event] for event in handlers})
-        self._contract = contract
-        self._store = store
         self._consumer = AIOKafkaConsumer(
             *self._topics,
             group_id=settings.kafka_group,
@@ -74,30 +140,17 @@ class Consumer:
         await self._consumer.stop()
 
     async def _run(self) -> None:
-        async for record in self._consumer:
-            if envelope.event_of(record.value) not in self._handlers:
-                # The lanes are shared: another product's event, or one
-                # another pool handles. Skip it without a word.
-                await self._consumer.commit()
-                continue
+        # Runs until stop(): no message or broker error ends it.
+        while True:
             try:
-                event, data = await envelope.unwrap(record.topic, record.value, self._contract, self._store)
-                handler = self._handlers.get(event)
-                if handler is None:
-                    raise ValueError(f"no handler for {event}")
-            except (ContractError, ValueError, KeyError):
-                # A malformed message can never succeed; skip it rather than
-                # block the partition. Never log the payload (never-log list).
-                log.exception("dropping invalid message", extra={"topic": record.topic, "offset": record.offset})
-            else:
-                try:
-                    await handler(data)
-                except Exception:
-                    # Handlers report domain failures as messages; reaching
-                    # here means infrastructure (Kafka, storage) is down.
-                    # Stop without committing so the message is redelivered,
-                    # and fail /ready so the platform restarts the worker.
-                    self.running = False
-                    log.exception("handler failed; stopping consumer", extra={"topic": record.topic, "event": event})
-                    raise
-            await self._consumer.commit()
+                async for record in self._consumer:
+                    await self._dispatcher.handle(record.topic, record.value)
+                    try:
+                        await self._consumer.commit()
+                    except Exception:
+                        log.warning("commit failed; the message may be redelivered",
+                                    extra={"topic": record.topic, "offset": record.offset})
+                return
+            except Exception:
+                log.exception("consumer error; resuming", extra={"group": self.group})
+                await asyncio.sleep(BACKOFF_SECONDS)

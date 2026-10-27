@@ -10,14 +10,48 @@ import (
 	"github.com/cuesoftinc/apparule/api/common/internal/model"
 )
 
-// StartPayment creates (or returns) the pending charge of an order.
+// StartPayment creates the pending charge of an order, or points a pending
+// one at a new checkout reference, and records the attempt with its amount.
 func StartPayment(ctx context.Context, tx pgx.Tx, requestID, reference, currency string, amount int64) (string, error) {
 	var ref string
 	err := tx.QueryRow(ctx, `INSERT INTO payment (request_id, state, reference, currency, amount_cents) VALUES ($1, 'pending', $2, $3, $4)
-		ON CONFLICT (request_id) DO UPDATE SET amount_cents = CASE WHEN payment.state = 'pending' THEN EXCLUDED.amount_cents ELSE payment.amount_cents END,
+		ON CONFLICT (request_id) DO UPDATE SET
+			reference = CASE WHEN payment.state = 'pending' THEN EXCLUDED.reference ELSE payment.reference END,
+			amount_cents = CASE WHEN payment.state = 'pending' THEN EXCLUDED.amount_cents ELSE payment.amount_cents END,
 			updated_at = now()
 		RETURNING reference`, requestID, reference, currency, amount).Scan(&ref)
+	if err != nil || ref != reference {
+		return ref, err
+	}
+	_, err = tx.Exec(ctx, `INSERT INTO payment_attempt (reference, request_id, amount_cents, currency) VALUES ($1, $2, $3, $4)`,
+		reference, requestID, amount, currency)
 	return ref, err
+}
+
+// CountPaymentAttempts counts an order's checkout references so far.
+func CountPaymentAttempts(ctx context.Context, tx pgx.Tx, requestID string) (int, error) {
+	var n int
+	err := tx.QueryRow(ctx, `SELECT count(*) FROM payment_attempt WHERE request_id = $1`, requestID).Scan(&n)
+	return n, err
+}
+
+// PaymentAttemptAmount is what the checkout behind a reference was started
+// for: a charge settles against it, never the current quote.
+func PaymentAttemptAmount(ctx context.Context, tx pgx.Tx, reference string) (int64, string, error) {
+	var amount int64
+	var currency string
+	err := tx.QueryRow(ctx, `SELECT amount_cents, currency FROM payment_attempt WHERE reference = $1`, reference).Scan(&amount, &currency)
+	return amount, currency, translate(err)
+}
+
+// SettlePayment moves a pending payment to held under the reference that
+// settled. It reports false when the payment was not pending, so a second
+// charge never books escrow twice.
+func SettlePayment(ctx context.Context, tx pgx.Tx, requestID string, reference *string, fee *int64, providerRef *string) (bool, error) {
+	tag, err := tx.Exec(ctx, `UPDATE payment SET state = 'held', reference = coalesce($2, reference),
+		platform_fee_cents = coalesce($3, platform_fee_cents), provider_ref = coalesce($4, provider_ref), updated_at = now()
+		WHERE request_id = $1 AND state = 'pending'`, requestID, reference, fee, providerRef)
+	return tag.RowsAffected() > 0, err
 }
 
 // SetPaymentState moves a payment, optionally recording the fee and the
@@ -71,6 +105,22 @@ func RecordOutcome(ctx context.Context, tx pgx.Tx, outcomeID, kind string, reque
 	return tag.RowsAffected() > 0, err
 }
 
+// FlagOutcome marks a stored outcome for a human (refund_needed).
+func FlagOutcome(ctx context.Context, tx pgx.Tx, outcomeID, attention, reason string) error {
+	_, err := tx.Exec(ctx, `UPDATE payment_outcome SET attention = $2, reason = coalesce(reason, $3) WHERE outcome_id = $1`,
+		outcomeID, attention, reason)
+	return err
+}
+
+// RecordUnappliedOutcome keeps an outcome common could not apply, flagged
+// not_applied; one already stored is left as it is.
+func RecordUnappliedOutcome(ctx context.Context, tx pgx.Tx, outcomeID, kind string, requestID, designerID, reason *string, payload json.RawMessage) error {
+	_, err := tx.Exec(ctx, `INSERT INTO payment_outcome (outcome_id, kind, request_id, designer_id, reason, payload, attention)
+		VALUES ($1, $2, $3, $4, $5, $6, 'not_applied') ON CONFLICT (outcome_id) DO NOTHING`,
+		outcomeID, kind, requestID, designerID, reason, []byte(payload))
+	return err
+}
+
 // AppendLedger appends an outcome's lines; the deferred trigger rejects the
 // transaction at commit if they don't sum to zero.
 func AppendLedger(ctx context.Context, tx pgx.Tx, outcomeID, requestID, currency string, lines []LedgerLine) error {
@@ -98,6 +148,7 @@ type Movement struct {
 		Amount   int64  `json:"amount"`
 		Currency string `json:"currency"`
 	} `json:"amount"`
+	At time.Time `json:"at"`
 }
 
 // Movements lists the charges, payouts and refunds recorded in a window.
@@ -105,7 +156,7 @@ func Movements(ctx context.Context, tx pgx.Tx, from, to time.Time) ([]Movement, 
 	rows, err := tx.Query(ctx, `SELECT o.request_id::text,
 			CASE o.kind WHEN 'charge_settled' THEN 'charge' WHEN 'payout_released' THEN 'payout' ELSE 'refund' END,
 			coalesce(o.payload->>'provider_ref', o.payload->>'reference', ''),
-			(o.payload->'amount'->>'amount')::bigint, o.payload->'amount'->>'currency'
+			(o.payload->'amount'->>'amount')::bigint, o.payload->'amount'->>'currency', o.created_at
 		FROM payment_outcome o
 		WHERE o.kind IN ('charge_settled', 'payout_released', 'refund_issued') AND o.created_at >= $1 AND o.created_at < $2
 		ORDER BY o.created_at`, from, to)
@@ -114,7 +165,9 @@ func Movements(ctx context.Context, tx pgx.Tx, from, to time.Time) ([]Movement, 
 	}
 	return collect(rows, func(r pgx.Row) (*Movement, error) {
 		var m Movement
-		return &m, r.Scan(&m.RequestID, &m.Kind, &m.Reference, &m.Amount.Amount, &m.Amount.Currency)
+		err := r.Scan(&m.RequestID, &m.Kind, &m.Reference, &m.Amount.Amount, &m.Amount.Currency, &m.At)
+		m.At = m.At.UTC()
+		return &m, err
 	})
 }
 

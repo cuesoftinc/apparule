@@ -1,7 +1,8 @@
 {
   "type": "apparule.payments.provider_event",
-  "version": 1,
+  "version": "1.0",
   "id": "00000000-0000-4000-8000-00000000b99b",
+  "request_id": "9e8d7c6b-5a49-4382-9716-05f4e3d2c1b0",
   "produced_at": "2026-10-19T10:00:00Z",
   "data": {
     "provider_event_id": "9e8d7c6b-5a49-4382-9716-05f4e3d2c1b0",
@@ -19,6 +20,10 @@
       "request_id": "7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c0d",
       "status": "quoted",
       "quote": {
+        "amount": 4500000,
+        "currency": "NGN"
+      },
+      "payment": {
         "amount": 4500000,
         "currency": "NGN"
       },

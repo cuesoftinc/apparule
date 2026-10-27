@@ -1,7 +1,8 @@
 // Package kafka is the transport: event names and lanes, the envelope with
 // its claim-check (every payload goes by data_ref, §5.3), a producer for the
-// outbox, and consumers that commit only after their handler succeeds
-// (at-least-once, §9.2).
+// outbox, and consumers that commit after their handler succeeds, or after
+// a few failed attempts once the failure is recorded (at-least-once, §9.2;
+// shared-messaging.md rule 10).
 package kafka
 
 import (
@@ -63,13 +64,18 @@ var TopicFor = map[string]string{
 	EventPaymentsOutcome:       TopicResults,
 }
 
-const envelopeVersion = 1
+// Producers send envelopeVersion; consumers accept supportedMajor only.
+const (
+	envelopeVersion = "1.0"
+	supportedMajor  = "1"
+)
 
 type Envelope struct {
 	Type       string          `json:"type"`
-	Version    int             `json:"version"`
+	Version    string          `json:"version"`
 	ID         string          `json:"id"`
 	ProducedAt string          `json:"produced_at"`
+	RequestID  string          `json:"request_id,omitempty"`
 	Data       json.RawMessage `json:"data,omitempty"`
 	DataRef    *ObjectRef      `json:"data_ref,omitempty"`
 }
@@ -143,8 +149,9 @@ func (p *Producer) Close() error { return p.writer.Close() }
 
 // Message builds a validated envelope for an event, addressed to its lane.
 // The data goes to compute/ in storage and the message carries the pointer:
-// every product can read the lanes (shared-messaging.md rule 3).
-func (p *Producer) Message(ctx context.Context, event, key string, data json.RawMessage) (kgo.Message, error) {
+// every product can read the lanes (shared-messaging.md rule 3). requestID
+// is the piece of work the message belongs to, kept on re-send.
+func (p *Producer) Message(ctx context.Context, event, key, requestID string, data json.RawMessage) (kgo.Message, error) {
 	topic, ok := TopicFor[event]
 	if !ok {
 		return kgo.Message{}, fmt.Errorf("%w: no topic for event %s", ErrContract, event)
@@ -152,7 +159,8 @@ func (p *Producer) Message(ctx context.Context, event, key string, data json.Raw
 	if err := p.contract.Validate(event, data); err != nil {
 		return kgo.Message{}, fmt.Errorf("%w: %s: %v", ErrContract, event, err)
 	}
-	env := Envelope{Type: event, Version: envelopeVersion, ID: uuid.NewString(), ProducedAt: time.Now().UTC().Format(time.RFC3339Nano)}
+	env := Envelope{Type: event, Version: envelopeVersion, ID: uuid.NewString(), ProducedAt: time.Now().UTC().Format(time.RFC3339Nano),
+		RequestID: requestID}
 	objKey := fmt.Sprintf("%s/compute/%s.json", p.blobs.Prefix(), env.ID)
 	if err := p.blobs.Put(ctx, objKey, data, "application/json"); err != nil {
 		return kgo.Message{}, err
@@ -172,22 +180,47 @@ func (p *Producer) Write(ctx context.Context, msgs ...kgo.Message) error {
 	return p.writer.WriteMessages(ctx, msgs...)
 }
 
-// Handler processes one validated payload. Returning an error stops the
-// consumer without committing, so the message is redelivered.
+// Handler processes one validated payload. An error is retried a few times
+// with backoff; ctx carries the message's request_id (RequestID).
 type Handler func(ctx context.Context, data json.RawMessage) error
 
+// Failure records, where the handler's domain allows, a message whose
+// handler kept failing; the message is then committed (rule 10).
+type Failure func(ctx context.Context, data json.RawMessage, cause error) error
+
+type requestIDKey struct{}
+
+// RequestID is the request_id of the message being handled, or "".
+func RequestID(ctx context.Context) string {
+	id, _ := ctx.Value(requestIDKey{}).(string)
+	return id
+}
+
+// WithRequestID hands a handler the request_id of its message.
+func WithRequestID(ctx context.Context, id string) context.Context {
+	return context.WithValue(ctx, requestIDKey{}, id)
+}
+
+const (
+	handlerAttempts = 3
+	retryBackoff    = time.Second
+)
+
 // Consumer reads one topic and routes each message to the handler for its
-// event type.
+// event type. It never stops on a bad message: the lanes are shared.
 type Consumer struct {
 	reader   *kgo.Reader
 	topic    string
 	handlers map[string]Handler
+	failures map[string]Failure
 	contract *Contract
 	blobs    Blobs
+	attempts int
+	backoff  time.Duration
 	running  bool
 }
 
-func NewConsumer(cfg config.Kafka, group, topic string, handlers map[string]Handler, contract *Contract, blobs Blobs) (*Consumer, error) {
+func NewConsumer(cfg config.Kafka, group, topic string, handlers map[string]Handler, failures map[string]Failure, contract *Contract, blobs Blobs) (*Consumer, error) {
 	d, _, err := dialer(cfg)
 	if err != nil {
 		return nil, err
@@ -201,13 +234,14 @@ func NewConsumer(cfg config.Kafka, group, topic string, handlers map[string]Hand
 			StartOffset: kgo.FirstOffset,
 			MaxWait:     time.Second,
 		}),
-		topic: topic, handlers: handlers, contract: contract, blobs: blobs,
+		topic: topic, handlers: handlers, failures: failures, contract: contract, blobs: blobs,
+		attempts: handlerAttempts, backoff: retryBackoff,
 	}, nil
 }
 
 func (c *Consumer) Running() bool { return c.running }
 
-// Run blocks until ctx ends or a handler fails.
+// Run blocks until ctx ends; nothing else stops it.
 func (c *Consumer) Run(ctx context.Context) error {
 	c.running = true
 	defer func() { c.running = false; _ = c.reader.Close() }()
@@ -217,57 +251,123 @@ func (c *Consumer) Run(ctx context.Context) error {
 			if ctx.Err() != nil {
 				return nil
 			}
-			return err
+			slog.Warn("fetch failed; retrying", "topic", c.topic, "error", err)
+			if !sleep(ctx, c.backoff) {
+				return nil
+			}
+			continue
 		}
-		event, data, err := c.unwrap(ctx, msg.Value)
-		if errors.Is(err, errNotOurs) {
-			// Another product's event, or one this service doesn't handle.
-		} else if err != nil {
-			// Can never succeed; skip rather than block the partition.
-			// Never log the payload (never-log list).
-			slog.Error("dropping invalid message", "topic", c.topic, "offset", msg.Offset, "error", err)
-		} else if err := c.handlers[event](ctx, data); err != nil {
-			slog.Error("handler failed; stopping consumer", "topic", c.topic, "event", event, "offset", msg.Offset, "error", err)
-			return err
+		if !c.process(ctx, msg.Offset, msg.Value) {
+			return nil // ctx ended mid-work: leave the offset for redelivery
 		}
 		if err := c.reader.CommitMessages(ctx, msg); err != nil && ctx.Err() == nil {
-			return err
+			slog.Warn("commit failed; the message may be redelivered", "topic", c.topic, "offset", msg.Offset, "error", err)
 		}
 	}
 }
 
-// ErrContract marks a message that can never be sent as it is (it fails its
-// schema). Any other error from Message (storage, say) is worth retrying.
+// process handles one message and reports whether its offset may be
+// committed; false only when ctx ended before the work finished.
+func (c *Consumer) process(ctx context.Context, offset int64, raw []byte) bool {
+	env, err := c.unwrap(raw)
+	if errors.Is(err, errNotOurs) {
+		return true // another product's event, or one this service doesn't handle
+	}
+	if err != nil {
+		// Can never succeed; never log the payload (never-log list).
+		slog.Error("dropping invalid message", "topic", c.topic, "offset", offset, "error", err)
+		return true
+	}
+	ctx = WithRequestID(ctx, env.RequestID)
+	var data json.RawMessage
+	for attempt := 1; ; attempt++ {
+		data, err = c.load(ctx, env)
+		if errors.Is(err, ErrContract) {
+			slog.Error("dropping invalid message", "topic", c.topic, "event", env.Type, "offset", offset, "request_id", env.RequestID, "error", err)
+			return true
+		}
+		if err == nil {
+			if err = c.handlers[env.Type](ctx, data); err == nil {
+				return true
+			}
+		}
+		if ctx.Err() != nil {
+			return false
+		}
+		if attempt >= c.attempts {
+			break
+		}
+		slog.Warn("handler failed; retrying", "topic", c.topic, "event", env.Type, "offset", offset, "request_id", env.RequestID,
+			"attempt", attempt, "error", err)
+		if !sleep(ctx, c.backoff<<(attempt-1)) {
+			return false
+		}
+	}
+	slog.Error("handler kept failing; recorded and skipped", "topic", c.topic, "event", env.Type, "offset", offset,
+		"request_id", env.RequestID, "attempts", c.attempts, "error", err)
+	if fail := c.failures[env.Type]; fail != nil && data != nil {
+		if ferr := fail(ctx, data, err); ferr != nil {
+			slog.Error("recording the failure failed", "event", env.Type, "offset", offset, "request_id", env.RequestID, "error", ferr)
+		}
+	}
+	return ctx.Err() == nil
+}
+
+func sleep(ctx context.Context, d time.Duration) bool {
+	t := time.NewTimer(d)
+	defer t.Stop()
+	select {
+	case <-ctx.Done():
+		return false
+	case <-t.C:
+		return true
+	}
+}
+
+// ErrContract marks a message that can never be sent or handled as it is
+// (it fails its schema, or carries a major version this code doesn't
+// speak). Any other error (storage, say) is worth retrying.
 var ErrContract = errors.New("violates the contract")
 
 // errNotOurs marks a message this consumer skips without a word: the lanes
 // are shared, so most messages on them belong to someone else.
 var errNotOurs = errors.New("not handled here")
 
-func (c *Consumer) unwrap(ctx context.Context, raw []byte) (string, json.RawMessage, error) {
+func (c *Consumer) unwrap(raw []byte) (*Envelope, error) {
 	// Read the type first: other products' envelopes are not ours to validate.
 	var head struct {
 		Type string `json:"type"`
 	}
 	if json.Unmarshal(raw, &head) != nil || !strings.HasPrefix(head.Type, Product) {
-		return "", nil, errNotOurs
+		return nil, errNotOurs
 	}
 	if _, ok := c.handlers[head.Type]; !ok || TopicFor[head.Type] != c.topic {
-		return "", nil, errNotOurs
+		return nil, errNotOurs
 	}
 	if err := c.contract.Validate("envelope", raw); err != nil {
-		return "", nil, err
+		return nil, fmt.Errorf("%w: envelope: %v", ErrContract, err)
 	}
 	var env Envelope
 	if err := json.Unmarshal(raw, &env); err != nil {
-		return "", nil, err
+		return nil, fmt.Errorf("%w: envelope: %v", ErrContract, err)
 	}
+	if major, _, _ := strings.Cut(env.Version, "."); major != supportedMajor {
+		return nil, fmt.Errorf("%w: unsupported envelope version %s", ErrContract, env.Version)
+	}
+	return &env, nil
+}
+
+// load resolves the payload (the claim-check) and validates it.
+func (c *Consumer) load(ctx context.Context, env *Envelope) (json.RawMessage, error) {
 	data := env.Data
 	if env.DataRef != nil {
 		var err error
 		if data, err = c.blobs.Get(ctx, env.DataRef.Key); err != nil {
-			return "", nil, err
+			return nil, err
 		}
 	}
-	return env.Type, data, c.contract.Validate(env.Type, data)
+	if err := c.contract.Validate(env.Type, data); err != nil {
+		return nil, fmt.Errorf("%w: %s: %v", ErrContract, env.Type, err)
+	}
+	return data, nil
 }

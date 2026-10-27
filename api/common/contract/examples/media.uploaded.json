@@ -1,7 +1,8 @@
 {
   "type": "apparule.media.uploaded",
-  "version": 1,
+  "version": "1.0",
   "id": "00000000-0000-4000-8000-000000003ddf",
+  "request_id": "2d3e4f5a-6b7c-4d8e-9f0a-0b1c2d3e4f5a",
   "produced_at": "2026-10-19T10:00:00Z",
   "data": {
     "ticket_id": "c9f0f895-fb98-4b91-8f7e-1a2b3c4d5e6f",

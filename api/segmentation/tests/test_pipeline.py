@@ -61,6 +61,14 @@ async def test_missing_image_fails_without_qc(store, contract):
     assert result["status"] == "failed" and result["error_code"] == "image_missing"
 
 
+def test_a_capture_the_pipeline_kept_failing_on_gets_a_failed_result(store, contract):
+    msg = example("capture.ready")["data"]
+    result = CapturePipeline(store, FakeAnalyzer()).failed(msg)
+    contract.validate_data(topics.CAPTURE_MEASURED, result)
+    assert result["status"] == "failed" and result["error_code"] == "pipeline_error"
+    assert (result["session_id"], result["attempt"]) == (msg["session_id"], msg["attempt"])
+
+
 async def test_unknown_measure_is_skipped(store):
     msg = _ready(store)
     msg["measures"] = msg["measures"][:2] + [{"name": "wingspan_of_cape", "min": 1, "max": 2}]

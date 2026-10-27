@@ -38,7 +38,7 @@
         "last4": { "type": "string", "pattern": "^[0-9]{4}$" }
       }
     },
-    "reason": { "type": "string", "description": "A machine code: amount_mismatch, currency_mismatch, unknown_reference, order_not_payable, name_mismatch, account_invalid, provider_error, missing_in_provider, missing_in_ledger." }
+    "reason": { "type": "string", "description": "A machine code: amount_mismatch, currency_mismatch, unknown_reference, order_not_payable, name_mismatch, account_invalid, provider_error, processing_failed, missing_in_provider, missing_in_ledger." }
   },
   "allOf": [
     { "if": { "properties": { "kind": { "enum": ["recipient_verified", "recipient_failed"] } } }, "then": { "required": ["designer_id", "attempt_id"] } },

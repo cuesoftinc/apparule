@@ -1,8 +1,9 @@
 """apparule.payments.provider_event -> a decision about a Paystack event.
 
 charge.success settles an order when the reference names an order that is
-still quoted and the amount and currency match its quote exactly; the money
-moves into escrow. Anything else is rejected with a reason for a human.
+still quoted and the amount and currency match what its checkout was started
+for (the payment row, never the current quote); the money moves into escrow.
+Anything else is rejected with a reason for a human.
 Transfer and refund webhooks confirm or fail what commerce started.
 """
 
@@ -48,12 +49,16 @@ def _charge(msg: dict, data: dict, base: dict, fee_bps: int) -> dict:
         return reject("unknown_reference")
     if order["status"] != "quoted":
         return reject("order_not_payable")
-    if data.get("currency") != order["quote"]["currency"]:
+    # The amount the checkout was started for; the quote may differ since.
+    expected = order.get("payment")
+    if not expected:
+        return reject("unknown_reference")
+    if data.get("currency") != expected["currency"]:
         return reject("currency_mismatch")
     amount = int(data.get("amount", -1))
-    if amount != order["quote"]["amount"]:
+    if amount != expected["amount"]:
         return reject("amount_mismatch")
-    currency = order["quote"]["currency"]
+    currency = expected["currency"]
     fee = platform_fee(amount, fee_bps)
     return {**base, "outcome_id": outcome_id("charge_settled", source), "kind": "charge_settled",
             "request_id": order["request_id"], "reference": reference, "provider_ref": str(data.get("id", "")),

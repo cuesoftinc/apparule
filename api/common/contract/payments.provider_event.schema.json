@@ -21,6 +21,7 @@
         "request_id": { "$ref": "defs.schema.json#/$defs/id" },
         "status": { "$ref": "defs.schema.json#/$defs/order_status" },
         "quote": { "$ref": "defs.schema.json#/$defs/money" },
+        "payment": { "$ref": "defs.schema.json#/$defs/money", "description": "The amount the checkout for this reference was started with; a charge settles only against it." },
         "reference": { "type": "string" }
       }
     }

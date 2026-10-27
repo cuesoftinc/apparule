@@ -286,6 +286,10 @@ func (s *Services) Quote(ctx context.Context, p *Principal, id string, quoteCent
 	}
 	return s.orderAction(ctx, p, id, "designer", func(tx pgx.Tx, o *repository.OrderRow) error {
 		if o.Status == "quoted" {
+			// A checkout in progress settles against the amount it started with.
+			if o.Payment != nil && o.Payment.State == "pending" {
+				return conflict("payment_in_progress", "The customer has started paying this quote, so it can't change now")
+			}
 			if err := repository.Requote(ctx, tx, o.ID, quoteCents, due); err != nil {
 				return err
 			}
@@ -346,7 +350,12 @@ func (s *Services) Pay(ctx context.Context, p *Principal, id string) (*model.Ord
 		if o.Status != "quoted" || o.QuoteCents == nil {
 			return conflict("invalid_transition", "Only a quoted order can be paid")
 		}
-		reference := "apr_" + strings.ReplaceAll(o.ID, "-", "")
+		attempts, err := repository.CountPaymentAttempts(ctx, tx, o.ID)
+		if err != nil {
+			return err
+		}
+		// A new reference per checkout: Paystack never sees one twice.
+		reference := fmt.Sprintf("apr_%s_%d", strings.ReplaceAll(o.ID, "-", ""), attempts+1)
 		ref, err := repository.StartPayment(ctx, tx, o.ID, reference, o.Currency, *o.QuoteCents)
 		if err != nil {
 			return err
@@ -377,13 +386,14 @@ func (s *Services) ConfirmDelivery(ctx context.Context, p *Principal, id string)
 	})
 }
 
-// deliver moves an order to delivered; commerce releases the payout.
+// deliver moves an order to delivered; commerce releases the payout, so
+// the designer is told it is coming.
 func (s *Services) deliver(ctx context.Context, tx pgx.Tx, o *repository.OrderRow, actor string) error {
 	if err := s.move(ctx, tx, o, "delivered", actor, repository.OrderChange{}); err != nil {
 		return err
 	}
-	return s.partyNote(ctx, tx, o, o.CustomerAccountID, "status_change",
-		fmt.Sprintf("Order #%s marked delivered", o.OrderNumber), nil)
+	return s.partyNote(ctx, tx, o, o.DesignerAccountID, "status_change",
+		fmt.Sprintf("Order #%s was delivered; your payout is on its way", o.OrderNumber), nil)
 }
 
 var disputeReasons = map[string]bool{"not_received": true, "not_as_described": true, "size_wrong": true, "other": true}
@@ -664,8 +674,12 @@ func (s *Services) ReceiveWebhook(ctx context.Context, body []byte, signature st
 		var order any
 		if data.Reference != "" {
 			if o, err := repository.OrderByReference(ctx, tx, data.Reference); err == nil && o.QuoteCents != nil {
+				amount, currency, err := repository.PaymentAttemptAmount(ctx, tx, data.Reference)
+				if err != nil {
+					return err
+				}
 				order = map[string]any{"request_id": o.ID, "status": o.Status, "reference": data.Reference,
-					"quote": money{Amount: *o.QuoteCents, Currency: o.Currency}}
+					"quote": money{Amount: *o.QuoteCents, Currency: o.Currency}, "payment": money{Amount: amount, Currency: currency}}
 			} else if err != nil && !errors.Is(err, repository.ErrNotFound) {
 				return err
 			}
@@ -674,7 +688,7 @@ func (s *Services) ReceiveWebhook(ctx context.Context, body []byte, signature st
 		if len(payload) == 0 || payload[0] != '{' {
 			payload = json.RawMessage(`{}`)
 		}
-		return repository.Enqueue(ctx, tx, kafka.EventPaymentsProviderEvent, id, map[string]any{
+		return repository.EnqueueRequest(ctx, tx, kafka.EventPaymentsProviderEvent, id, id, map[string]any{
 			"provider_event_id": id, "provider": "paystack", "event": evt.Event,
 			"received_at": received.UTC().Format(time.RFC3339Nano), "payload": payload, "order": order,
 		})
@@ -711,6 +725,12 @@ func (s *Services) OnPaymentOutcome(ctx context.Context, raw json.RawMessage) er
 		return err
 	}
 	return s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
+		// A reconcile request is answered with one mismatch per item.
+		if m.Kind != "mismatch" {
+			if first, err := s.firstResult(ctx, tx, kafka.EventPaymentsOutcome); err != nil || !first {
+				return err
+			}
+		}
 		fresh, err := repository.RecordOutcome(ctx, tx, m.OutcomeID, m.Kind, m.RequestID, m.DesignerID, m.Reason, raw)
 		if err != nil || !fresh {
 			return err
@@ -743,37 +763,13 @@ func (s *Services) OnPaymentOutcome(ctx context.Context, raw json.RawMessage) er
 		if err != nil {
 			return err
 		}
+		if m.Kind == "charge_settled" {
+			return s.settleCharge(ctx, tx, o, m)
+		}
 		if err := repository.AppendLedger(ctx, tx, m.OutcomeID, o.ID, m.Amount.Currency, m.Ledger); err != nil {
 			return err
 		}
 		switch m.Kind {
-		case "charge_settled":
-			var fee *int64
-			if m.Fee != nil {
-				fee = &m.Fee.Amount
-			}
-			if err := repository.SetPaymentState(ctx, tx, o.ID, "held", fee, m.ProviderRef); err != nil {
-				return err
-			}
-			o.Payment = &model.Payment{State: "held", AmountCents: m.Amount.Amount, Currency: m.Amount.Currency}
-			o.ProviderRef = m.ProviderRef
-			if o.Status != "quoted" {
-				// The order stopped being payable between checkout and the
-				// webhook (quote expired, say). The money is held; a human
-				// refunds it. Never fail the consumer over it.
-				slog.Error("charge settled for an order that is no longer payable", "step", "payments.outcome",
-					"request_id", o.ID, "status", o.Status, "outcome_id", m.OutcomeID)
-				return nil
-			}
-			if err := s.move(ctx, tx, o, "paid", "customer", repository.OrderChange{}); err != nil {
-				return err
-			}
-			if err := notify(ctx, tx, note{To: o.CustomerAccountID, Kind: "status_change", PayloadRef: o.ID, RefKind: "request",
-				Text: fmt.Sprintf("Payment received for order #%s", o.OrderNumber), Money: m.Amount, Email: true}); err != nil {
-				return err
-			}
-			return notify(ctx, tx, note{To: o.DesignerAccountID, Kind: "status_change", PayloadRef: o.ID, RefKind: "request",
-				Text: fmt.Sprintf("Order #%s is funded — start work", o.OrderNumber), Money: m.Amount, Email: true})
 		case "payout_released":
 			if err := repository.SetPaymentState(ctx, tx, o.ID, "released", nil, nil); err != nil {
 				return err
@@ -791,6 +787,74 @@ func (s *Services) OnPaymentOutcome(ctx context.Context, raw json.RawMessage) er
 				Text: fmt.Sprintf("Order #%s was refunded", o.OrderNumber), Money: m.Amount, Email: true})
 		}
 		return nil
+	})
+}
+
+// settleCharge books escrow for the first charge of an order that is still
+// payable. Any other charge is money escrow must not hold: it is flagged
+// for a human to refund, and nothing is booked.
+func (s *Services) settleCharge(ctx context.Context, tx pgx.Tx, o *repository.OrderRow, m outcomeMsg) error {
+	if o.Status != "quoted" {
+		return refundNeeded(ctx, tx, o, m, "order_not_payable")
+	}
+	var fee *int64
+	if m.Fee != nil {
+		fee = &m.Fee.Amount
+	}
+	settled, err := repository.SettlePayment(ctx, tx, o.ID, m.Reference, fee, m.ProviderRef)
+	if err != nil {
+		return err
+	}
+	if !settled {
+		return refundNeeded(ctx, tx, o, m, "duplicate_charge")
+	}
+	if err := repository.AppendLedger(ctx, tx, m.OutcomeID, o.ID, m.Amount.Currency, m.Ledger); err != nil {
+		return err
+	}
+	o.Payment = &model.Payment{State: "held", AmountCents: m.Amount.Amount, Currency: m.Amount.Currency}
+	o.ProviderRef = m.ProviderRef
+	if m.Reference != nil {
+		o.Reference = m.Reference
+	}
+	if err := s.move(ctx, tx, o, "paid", "customer", repository.OrderChange{}); err != nil {
+		return err
+	}
+	if err := notify(ctx, tx, note{To: o.CustomerAccountID, Kind: "status_change", PayloadRef: o.ID, RefKind: "request",
+		Text: fmt.Sprintf("Payment received for order #%s", o.OrderNumber), Money: m.Amount, Email: true}); err != nil {
+		return err
+	}
+	return notify(ctx, tx, note{To: o.DesignerAccountID, Kind: "status_change", PayloadRef: o.ID, RefKind: "request",
+		Text: fmt.Sprintf("Order #%s is funded — start work", o.OrderNumber), Money: m.Amount, Email: true})
+}
+
+func refundNeeded(ctx context.Context, tx pgx.Tx, o *repository.OrderRow, m outcomeMsg, reason string) error {
+	slog.Error("charge settled that escrow must not hold; refund needed", "step", "payments.outcome",
+		"request_id", o.ID, "status", o.Status, "outcome_id", m.OutcomeID, "reason", reason)
+	return repository.FlagOutcome(ctx, tx, m.OutcomeID, "refund_needed", reason)
+}
+
+// firstResult claims the request_id of the result being handled; false
+// means an earlier result for the same request won (shared-messaging.md
+// rule 9).
+func (s *Services) firstResult(ctx context.Context, tx pgx.Tx, event string) (bool, error) {
+	id := kafka.RequestID(ctx)
+	if id == "" {
+		return true, nil
+	}
+	return repository.ClaimResult(ctx, tx, id, event)
+}
+
+// OnPaymentOutcomeFailed keeps a decision common could not apply after
+// retries, flagged for a human (§6.4).
+func (s *Services) OnPaymentOutcomeFailed(ctx context.Context, raw json.RawMessage, cause error) error {
+	var m outcomeMsg
+	if err := json.Unmarshal(raw, &m); err != nil {
+		return err
+	}
+	slog.Error("money needs attention", "step", "payments.outcome", "kind", m.Kind, "outcome_id", m.OutcomeID,
+		"request_id", deref(m.RequestID), "reason", "not_applied", "error", cause)
+	return s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
+		return repository.RecordUnappliedOutcome(ctx, tx, m.OutcomeID, m.Kind, m.RequestID, m.DesignerID, m.Reason, raw)
 	})
 }
 
