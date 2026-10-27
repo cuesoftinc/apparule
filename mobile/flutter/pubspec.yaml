@@ -23,7 +23,7 @@ dependencies:
   # preview + shutter behind the abstract `CameraService` seam; dev/CI
   # ride `CameraServiceFake` (bundled sample frame, no hardware).
   camera: ^0.12.1
-  dio: ^5.11.0
+  dio: ^5.11.1
   firebase_auth: ^6.7.0
   firebase_core: ^4.15.0
   flutter:
