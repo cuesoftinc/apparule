@@ -67,7 +67,7 @@ The [system design](system-design.md) explains why it is shaped this way. See
 - [design.md](design.md) + [pages.md](pages.md) — design language, screens, microinteractions
 - [order-lifecycle.md](order-lifecycle.md) — commission order state machine, permissions, notifications
 - [decisions.md](decisions.md) — the decision register
-- [deployment.md](deployment.md) — Cloud Run + App Hosting contract (cuesoft-iac provisioning, CI/CD)
+- [deployment.md](deployment.md) — Cloud Run + App Hosting contract (IaC provisioning, CI/CD)
 - flows/ — feature flow specs with edge cases: [auth](flows/auth.md), [vault](flows/vault.md), [request](flows/request.md), [designer](flows/designer.md)
 - [capture-qc.md](capture-qc.md) — QC thresholds + measurement-confidence formulas
 - [engineering.md](engineering.md) — error catalog, authz matrix, rate limits, testing strategy, logging rules

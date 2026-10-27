@@ -532,7 +532,7 @@ Every service scales to zero (S-9 as amended). CPU is allocated only during requ
 with `GET /health` (shared-messaging.md "Scale to zero"): `uploads` wakes
 `common`; `common`'s outbox wakes `segmentation` or `commerce`; they wake
 `common` after each result; and the sweeps wake whatever has work pending.
-The web proxies `/api/v1/*` to common (§7.1); there is no load balancer. Provisioning goes through cuesoft-iac.
+The web proxies `/api/v1/*` to common (§7.1); there is no load balancer. Provisioning goes through the IaC stack.
 
 ### 10.2 Self-host (compose + Helm)
 
