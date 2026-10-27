@@ -216,9 +216,9 @@ the money flow has run end to end on the sandbox.
 | `API_ORIGIN` | runtime | the common URL (`https://…run.app`) |
 | `UPLOADS_ORIGIN` | runtime | the uploads URL |
 
-## 7. Cloud Run resources (cuesoft-iac stack)
+## 7. Cloud Run resources (IaC stack)
 
-Add these to the `cuesoft` stack (project `sandbox-e306a`, `us-central1`). The first image can be any tag from
+Add these to the IaC stack (project `sandbox-e306a`, `us-central1`). The first image can be any tag from
 Docker Hub, because every release replaces it by digest.
 
 | Name | Kind | Account | Port | Instances | CPU / memory | CPU allocation | Ingress / auth |
