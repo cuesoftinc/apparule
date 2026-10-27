@@ -55,7 +55,7 @@ dependencies:
   shared_preferences: ^2.5.5
   # Pin-ledger addition (auth cutover): C1's legal links open the
   # canonical Cuesoft policies in the system browser (flows/auth.md §5).
-  url_launcher: ^6.3.2
+  url_launcher: ^6.3.3
 
 dev_dependencies:
   alchemist: ^0.14.1
