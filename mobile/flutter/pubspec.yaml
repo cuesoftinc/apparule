@@ -58,7 +58,7 @@ dependencies:
   url_launcher: ^6.3.2
 
 dev_dependencies:
-  alchemist: ^0.14.0
+  alchemist: ^0.14.1
   # Ledger pins 2.15.2, but that floor requires analyzer >=13.3 while
   # riverpod_generator 4.0.4 (latest) caps at ^12 — the solver settles on
   # the newest build_runner that co-resolves.
