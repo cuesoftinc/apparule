@@ -117,7 +117,7 @@ or, when either is unset, 503.
   `gcloud run services update-traffic` to the prior revision is the fast
   path. A broken release is rolled back before any forward fix.
 - Web env: `NEXT_PUBLIC_FIREBASE_*` values flow Doppler → `apphosting.yaml`;
-  `API_ORIGIN` and `UPLOADS_ORIGIN` are server-side and read per request.
+  `API_URL` and `UPLOADS_URL` are server-side and read per request.
 
 ## 5. Self-host
 

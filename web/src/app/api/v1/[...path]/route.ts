@@ -2,8 +2,8 @@
  * /api/v1/* proxy: the browser talks only to the web origin, and this
  * route handler forwards to the backend the way the load balancer does in
  * cloud (system-design.md §7.1): /api/v1/uploads to api/uploads,
- * everything else to api/common. Origins are read per request
- * (API_ORIGIN, UPLOADS_ORIGIN), so one build runs in compose and cloud.
+ * everything else to api/common. The URLs are read per request
+ * (API_URL, UPLOADS_URL), so one build runs in compose and cloud.
  *
  * Server-side code, not a view: no auth logic here. The bearer token and
  * the upload ticket pass through untouched and the services check them.
@@ -34,10 +34,10 @@ const proxy = async (
   { params }: { params: Promise<{ path: string[] }> },
 ) => {
   const { path } = await params;
-  const { apiOrigin, uploadsOrigin } = serverEnv();
-  const origin = path[0] === "uploads" ? uploadsOrigin : apiOrigin;
+  const { apiUrl, uploadsUrl } = serverEnv();
+  const base = path[0] === "uploads" ? uploadsUrl : apiUrl;
   const incoming = new URL(request.url);
-  const target = `${origin}/api/v1/${path.map(encodeURIComponent).join("/")}${incoming.search}`;
+  const target = `${base}/api/v1/${path.map(encodeURIComponent).join("/")}${incoming.search}`;
 
   const headers = new Headers();
   for (const name of FORWARD_REQUEST) {
