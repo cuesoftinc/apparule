@@ -2,8 +2,8 @@
 
 > Implements decision X-3 for the ratified system design (S-1…S-15,
 > system-design.md §10). The step-by-step for an account owner is the
-> [deploy runbook](deploy-runbook.md). Cloud deploys follow the proven cueprise/getpp
-> patterns; provisioning goes through the **cuesoft-iac** Pulumi ecosystem —
+> [deploy runbook](deploy-runbook.md). Cloud deploys follow proven
+> patterns; provisioning goes through the **IaC** Pulumi stack —
 > never ad-hoc gcloud. Self-hosting via `deploy/` (compose/helm/terraform)
 > shares only images.
 
@@ -11,14 +11,14 @@
 
 | Surface | Runs on | Provisioned by |
 | --- | --- | --- |
-| `api/common` (Go) | Cloud Run service `apparule-api-common` (the sweeps are its `/internal/jobs/<name>` routes) | cuesoft-iac stack `cuesoft`, project `sandbox-e306a`, `us-central1` |
-| `api/uploads` (Node) | Cloud Run service `apparule-api-uploads` | cuesoft-iac stack `cuesoft` |
-| `api/segmentation` (Python) | Cloud Run service `apparule-api-segmentation` | cuesoft-iac stack `cuesoft` |
-| `api/commerce` (Python) | Cloud Run service `apparule-api-commerce` | cuesoft-iac stack `cuesoft` |
+| `api/common` (Go) | Cloud Run service `apparule-api-common` (the sweeps are its `/internal/jobs/<name>` routes) | IaC stack, project `sandbox-e306a`, `us-central1` |
+| `api/uploads` (Node) | Cloud Run service `apparule-api-uploads` | IaC stack |
+| `api/segmentation` (Python) | Cloud Run service `apparule-api-segmentation` | IaC stack |
+| `api/commerce` (Python) | Cloud Run service `apparule-api-commerce` | IaC stack |
 | `web` (Next.js) | **Firebase App Hosting** | App Hosting backend |
-| Postgres, Valkey | the shared Aiven `sandbox-db` and `sandbox-cache` (database `apparule`, user `cuesoft`; keys `apparule:*`) | cuesoft-iac |
-| Kafka | the CueLABS shared Aiven service (X-11); three lanes; SASL user `apparule` with topic ACLs | cuesoft-iac; Expendit keeps it awake |
-| Object storage | `sandbox-e306a.firebasestorage.app`, prefix `apparule/stg/`; media by signed URL | cuesoft-iac |
+| Postgres, Valkey | the shared Aiven `sandbox-db` and `sandbox-cache` (database `apparule`, user `cuesoft`; keys `apparule:*`) | IaC |
+| Kafka | the CueLABS shared Aiven service (X-11); three lanes; SASL user `apparule` with topic ACLs | IaC; Expendit keeps it awake |
+| Object storage | `sandbox-e306a.firebasestorage.app`, prefix `apparule/stg/`; media by signed URL | IaC |
 | `mobile/flutter` | App/Play stores | out of band |
 
 Each service has its `run.app` URL, `https://<service>-805800737799.us-central1.run.app`.
@@ -27,13 +27,13 @@ is no load balancer. Paystack posts to `api/common`'s `/webhooks/payments`.
 `segmentation` and `commerce` accept only authenticated calls (the wake-ups
 carry a Cloud Run ID token).
 
-## 2. Provisioning (cuesoft-iac)
+## 2. Provisioning (IaC)
 
-- **Pulumi, bun runtime**; state in `gs://cuesoft-iac-pulumi-state-bucket`;
+- **Pulumi, bun runtime**; state in a GCS state bucket;
   per-product stack (`Pulumi.<product>.yaml`).
-- Cloud Run services instantiate `common/modules/gcp/cloud-run-service.ts`;
-  the GitHub→GCP deploy identity uses **Workload Identity Federation**
-  (`common/helpers/wif.ts`) — no service-account keys in GitHub.
+- Cloud Run services instantiate the shared Cloud Run service
+  module; the GitHub→GCP deploy identity uses **Workload Identity
+  Federation** — no service-account keys in GitHub.
 - One service account per service (`apparule-common`, `apparule-uploads`,
   `apparule-segmentation`, `apparule-commerce`), each limited to its
   prefixes of the shared bucket (S-11): `uploads` creates objects in `tmp/`
@@ -65,7 +65,7 @@ carry a Cloud Run ID token).
   Run env; the repo's `.env.example` files document every name, Doppler owns
   the values.
 
-## 3. CI/CD (GitHub Actions, cueprise/getpp pattern)
+## 3. CI/CD (GitHub Actions)
 
 | Workflow | Trigger | Does |
 | --- | --- | --- |
@@ -78,7 +78,7 @@ to the sandbox; review and merge rights on `main` are the gate. The deploy job
 runs in the `Sandbox` environment, which holds the WIF variables. No version
 tags: images carry the commit sha and `latest`. The web keeps App Hosting rollouts.
 
-Two hard-won rules inherited from cueprise, non-negotiable:
+Two hard-won rules, non-negotiable:
 
 1. **Deploy by digest, never by tag** — Cloud Run pulls Docker Hub images
    through the `mirror.gcr.io` cache, which has served stale manifests for

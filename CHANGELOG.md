@@ -172,6 +172,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Docs describe provisioning without naming internal repositories.
 - Release workflow deploys the API services on merge to main, not tags.
 - Post images are served through signed URLs only.
 - The system of record is Postgres again (S-3 reverses X-5's Firestore);
