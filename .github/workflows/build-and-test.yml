@@ -104,6 +104,9 @@ jobs:
           cache: pip
           cache-dependency-path: api/segmentation/requirements.txt
 
+      - name: Install system libraries (as in the Dockerfile)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgl1 libglib2.0-0 libegl1 libgles2
+
       - name: Install dependencies
         run: pip install -r requirements.txt pytest pytest-asyncio ruff
 
