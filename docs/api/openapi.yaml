@@ -94,7 +94,7 @@ paths:
                 - { type: object, required: [method, measurements], properties: { method: { const: manual }, measurements: { type: array, items: { type: object, required: [name, value_cm], properties: { name: { type: string }, value_cm: { type: number, minimum: 10, maximum: 200 } } } } } }
                 - { type: object, required: [input_height_cm], properties: { method: { const: capture }, input_height_cm: { type: number, minimum: 100, maximum: 230 } } }
       responses:
-        "201": { description: "Manual: the complete session. Capture: the session (awaiting_upload) with `upload` — POST the photos to /api/v1/uploads with it", content: { application/json: { schema: { $ref: "#/components/schemas/CaptureStarted" } } } }
+        "201": { description: "Manual: the complete session. Capture: the session (awaiting_upload) with `upload`; POST the photos to /api/v1/uploads with it", content: { application/json: { schema: { $ref: "#/components/schemas/CaptureStarted" } } } }
         "403": { description: consent_required }
         "409": { description: template_required (A-10b) }
         "429": { description: rate_limited (captures 10/min, 100/day; uploads 100 MB/day) }
@@ -129,7 +129,7 @@ paths:
     post: { tags: [vault], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Generate PDF/CSV export, requestBody: { content: { application/json: { schema: { type: object, properties: { format: { enum: [pdf, csv] } } } } } }, responses: { "201": { description: Signed URL (TTL) } } }
 
   /api/v1/feed:
-    get: { tags: [social], summary: "Ranked home feed (rank frozen per cursor, 24h lifetime — api.md §5)", parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }], responses: { "200": { description: Posts page } } }
+    get: { tags: [social], summary: "Ranked home feed (rank frozen per cursor, 24h lifetime; api.md §5)", parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }], responses: { "200": { description: Posts page } } }
   /api/v1/explore:
     get:
       tags: [social]
@@ -161,7 +161,7 @@ paths:
   /api/v1/posts/{id}/requests:
     post:
       tags: [requests]
-      summary: Commission request — measurement snapshot frozen server-side
+      summary: Commission request; measurement snapshot frozen server-side
       parameters: [{ $ref: "#/components/parameters/Id" }, { $ref: "#/components/parameters/IdempotencyKey" }]
       requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/RequestCreate" } } } }
       responses:
@@ -182,7 +182,7 @@ paths:
   /api/v1/requests/{id}/pay:
     post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }, { $ref: "#/components/parameters/IdempotencyKey" }], summary: "Start the Paystack checkout; the order turns paid when the charge.success webhook settles (system-design.md §6.3)", responses: { "200": { description: "The order (still quoted) with checkout {provider, reference, amount_cents, currency, email, public_key}" } } }
   /api/v1/requests/{id}/confirm-delivery:
-    post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Customer confirms delivery — releases payout (quote − 10% fee, A-1), responses: { "200": { description: Request } } }
+    post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Customer confirms delivery; releases payout (quote − 10% fee, A-1), responses: { "200": { description: Request } } }
   /api/v1/requests/{id}/dispute:
     post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Open dispute (freezes payout), requestBody: { content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { enum: [not_received, not_as_described, size_wrong, other] }, detail: { type: string } } } } } }, responses: { "200": { description: Request } } }
   /api/v1/requests/{id}/messages:
@@ -230,7 +230,7 @@ paths:
   /webhooks/payments:
     post:
       tags: [webhooks]
-      summary: Paystack webhook — signature-auth only (never bearer); unverified => 401 + ops alert
+      summary: Paystack webhook; signature-auth only (never bearer); unverified => 401 + ops alert
       security: []
       responses: { "200": { description: Processed (idempotent by provider reference) }, "401": { description: Invalid signature } }
 
@@ -249,7 +249,7 @@ components:
       description: "Scope account+endpoint, 24h window; same key + same payload replays the response; different payload => 409 idempotency_conflict (api.md §4)"
   responses:
     Unauthenticated: { description: "unauthenticated | token_expired (client refreshes and retries once)", content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
-    NotFound: { description: "not_found (also returned for cross-tenant access — never 403)", content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+    NotFound: { description: "not_found (also returned for cross-tenant access; never 403)", content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
   schemas:
     Error:
       type: object
@@ -279,7 +279,7 @@ components:
         qc: { type: object, description: "failed_qc only", properties: { code: { type: string }, pose: { enum: [front, side] }, message: { type: string }, guidance: { type: string } } }
         poses: { type: object, description: "capture only: front/side -> accepted | failed | uploaded", additionalProperties: { enum: [accepted, failed, uploaded] } }
         error_code: { type: string, description: "failed only, e.g. pipeline_busy" }
-        input_height_cm: { type: [number, "null"], description: "nullable — null for method: manual (data-model §2)" }
+        input_height_cm: { type: [number, "null"], description: "nullable; null for method: manual (data-model §2)" }
         measurements:
           type: array
           items: { type: object, properties: { name: { type: string }, value_cm: { type: number }, source: { enum: [pipeline, manual_correction] }, confidence: { type: number } } }

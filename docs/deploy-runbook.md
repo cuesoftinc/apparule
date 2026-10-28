@@ -1,7 +1,7 @@
-# Deploy Runbook — GCP + Aiven
+# Deploy Runbook, GCP + Managed Data Services
 
-> For the person deploying Apparule to the company's GCP project and Aiven
-> account. It turns [deployment.md](deployment.md) and the
+> For the person deploying Apparule to a GCP project with managed
+> Postgres, Valkey and Kafka services. It turns [deployment.md](deployment.md) and the
 > [system design](system-design.md) §10 into steps. Everything in the repo
 > is ready; the steps below are the parts only an account owner can do.
 > Work through them in order: each part lists what to create and the exact
@@ -28,14 +28,14 @@ remote set ships.
 | Unit | Runs on | Image / source | Notes |
 | --- | --- | --- | --- |
 | `web` | Firebase App Hosting | `web/` from `main` | Proxies `/api/v1/*` to `apparule-api-common` (no load balancer, no browser CORS); uploads is reached at its `run.app` URL |
-| `apparule-api-common` | Cloud Run service | `cuesoft/apparule-api-common` | Go. The only Postgres client; receives Paystack webhooks. Serves the `/internal/jobs/<name>` sweeps. Kafka consumers + outbox run while an instance is up |
-| `apparule-api-uploads` | Cloud Run service | `cuesoft/apparule-api-uploads` | Node upload gateway (`POST /api/v1/uploads`) |
-| `apparule-api-segmentation` | Cloud Run service | `cuesoft/apparule-api-segmentation` | Python, MediaPipe. Kafka only; reached only by wake-ups |
-| `apparule-api-commerce` | Cloud Run service | `cuesoft/apparule-api-commerce` | Python. Paystack, FCM, Brevo. Kafka only |
+| `apparule-api-common` | Cloud Run service | `apparule-api-common` | Go. The only Postgres client; receives Paystack webhooks. Serves the `/internal/jobs/<name>` sweeps. Kafka consumers + outbox run while an instance is up |
+| `apparule-api-uploads` | Cloud Run service | `apparule-api-uploads` | Node upload gateway (`POST /api/v1/uploads`) |
+| `apparule-api-segmentation` | Cloud Run service | `apparule-api-segmentation` | Python, MediaPipe. Kafka only; reached only by wake-ups |
+| `apparule-api-commerce` | Cloud Run service | `apparule-api-commerce` | Python. Paystack, FCM, Brevo. Kafka only |
 | `apparule-{captures,orders,reconcile,retention}` | Cloud Scheduler jobs | n/a | `POST /internal/jobs/<name>` on `apparule-api-common` with an OIDC token; created paused until the handlers are deployed |
-| Postgres, Valkey | the shared Aiven `sandbox-db` and `sandbox-cache` | n/a | database `apparule`, user `cuesoft`; keys `apparule:*` |
-| Kafka | the CueLABS shared Aiven service | n/a | shared with Expendit and Upstat (X-11); SASL user `apparule` with topic ACLs |
-| Object storage | `sandbox-e306a.firebasestorage.app` | n/a | prefix `apparule/stg/`; media by signed URL only |
+| Postgres, Valkey | a managed Postgres instance and a managed Valkey instance | n/a | database `apparule`; keys `apparule:*` |
+| Kafka | a shared managed Kafka service | n/a | shared with the sibling products (X-11); SASL user `apparule` with topic ACLs |
+| Object storage | your storage bucket | n/a | prefix `apparule/stg/`; media by signed URL only |
 
 Images are built and deployed by `.github/workflows/release.yml` on every merge
 to `main` that touches `api/**` (§8). **Your infrastructure code creates the resources;
@@ -84,30 +84,30 @@ Google sign-in only (X-1). `common` runs the OAuth flow itself (flows/auth.md
 
 `common` needs no service-account JSON for sign-in.
 
-## 3. Aiven
+## 3. Managed data services
 
 ### 3.1 Postgres
 
-The app connects as the shared `cuesoft` user, which is not a superuser and
-has no `BYPASSRLS`, so row-level security (S-11) applies. The IaC creates the
-`apparule` database on the shared `sandbox-db`, owned by `avnadmin`; hand it to
-`cuesoft` once, as `avnadmin`:
+The app connects as a database user that is not a superuser and has no
+`BYPASSRLS`, so row-level security (S-11) applies. Create the `apparule`
+database on the managed Postgres instance as the admin user, then hand it to the
+app user once:
 
 ```sql
-ALTER DATABASE apparule OWNER TO cuesoft;
+ALTER DATABASE apparule OWNER TO <app_user>;
 ```
 
 The connection string the app gets (`DATABASE_URL`):
-`postgres://cuesoft:<password>@<host>:<port>/apparule?sslmode=require`.
+`postgres://<app_user>:<password>@<host>:<port>/apparule?sslmode=require`.
 Tables are created by the app itself on start (migrations under an advisory
 lock); there is nothing to run by hand.
 
-### 3.2 Kafka (the CueLABS shared bus)
+### 3.2 Kafka (the shared bus)
 
 Apparule uses the shared service and its three lanes
 (`cuelabs.uploads`, `cuelabs.requests`, `cuelabs.results`, 2 partitions
-each); the rules are in the CueLABS delivery standard
-(`references/shared-messaging.md`). If Expendit's deploy already created
+each); the rules are in the CueLABS shared-messaging
+contract. If a sibling product's deploy already created
 them, there is nothing to add but the user. Apparule never creates topics.
 
 Create **one SASL user, `apparule`**, with topic ACLs for read and write on
@@ -115,19 +115,19 @@ the three `cuelabs.*` topics and on consumer groups starting with `apparule-`
 (`apparule-common`, `apparule-segmentation`, `apparule-commerce`). All four
 services use it. If the free plan refuses SASL, use client certificates.
 
-**Keep-alive belongs to Expendit**: its reaper keeps the service awake and
+**Keep-alive belongs to a sibling product**: its reaper keeps the service awake and
 powers it back on. Apparule runs no heartbeat or watchdog. While the bus is
 away, uploads answer `503` with `Retry-After`, the outbox holds Apparule's
 messages, and overdue captures are re-sent from Postgres once it returns.
 
 Connection settings for every service: `KAFKA_BROKERS` (`host:port`),
 `KAFKA_USERNAME`, `KAFKA_PASSWORD`, and `KAFKA_SSL_CA` = the **text** of
-Aiven's CA certificate (`-----BEGIN CERTIFICATE-----…`). The clients use
+the provider's CA certificate (`-----BEGIN CERTIFICATE-----…`). The clients use
 SASL/SCRAM-SHA-256 over TLS.
 
 ### 3.3 Redis
 
-The shared Aiven Valkey `sandbox-cache`, user `apparule`, whose ACL allows
+The shared managed Valkey your Valkey instance, user `apparule`, whose ACL allows
 the keys `apparule:*` only: `REDIS_HOST`, `REDIS_PORT`, `REDIS_USERNAME`,
 `REDIS_PASSWORD`, `REDIS_TLS=true`, `REDIS_KEY_PREFIX=apparule` (the
 default). Only `common` uses it, for rate
@@ -135,7 +135,7 @@ limits and the upload quota; if it is unreachable the limits fail open.
 
 ## 4. Cloud Storage
 
-1. Use the shared bucket `sandbox-e306a.firebasestorage.app` with
+1. Use the shared bucket your storage bucket with
    **uniform bucket-level access**. Apparule uses only the prefix `apparule/stg/`.
 2. Lifecycle rules: **delete objects older than 1 day with prefix
    `apparule/stg/tmp/`**, and the same for **`apparule/stg/compute/`**.
@@ -163,7 +163,7 @@ IAM conditions (`B` = the bucket name):
 Enable the APIs: Cloud Run, Cloud Scheduler, IAM Credentials, Firebase
 Cloud Messaging, and Firebase App Hosting.
 
-## 6. Configuration (Doppler `apparule/stg` → Cloud Run / App Hosting)
+## 6. Configuration (your secrets manager → Cloud Run / App Hosting)
 
 Names follow [system-design.md §10.3](system-design.md). Secrets are marked
 🔒. Cloud Run sets `PORT` itself.
@@ -189,7 +189,7 @@ cd api/common && go run ./cmd/ticketkey 2026-10
 | `UPLOAD_TICKET_PUBLIC_KEYS` | | ✓ | | |
 | `UPLOADS_URL` (the uploads `run.app` URL plus `/api/v1/uploads`) | ✓ | | | |
 | `SCHEDULER_AUDIENCE` (the common `run.app` URL) | ✓ | | | |
-| `SCHEDULER_INVOKER_EMAIL` (`scheduler-invoker@sandbox-e306a.iam.gserviceaccount.com`) | ✓ | | | |
+| `SCHEDULER_INVOKER_EMAIL` (`scheduler-invoker@<project-id>.iam.gserviceaccount.com`) | ✓ | | | |
 | `KAFKA_BROKERS`, `KAFKA_SSL_CA` | ✓ | ✓ | ✓ | ✓ |
 | `KAFKA_USERNAME`, `KAFKA_PASSWORD` 🔒 | ✓ `apparule` | ✓ | ✓ | ✓ |
 | `REDIS_HOST/PORT/USERNAME`, `REDIS_PASSWORD` 🔒, `REDIS_TLS=true`, `REDIS_DB`, `REDIS_KEY_PREFIX` | ✓ | | | |
@@ -208,7 +208,7 @@ Never set in cloud: `STORAGE_ENDPOINT` and the `STORAGE_*_KEY`s (those are
 for self-host).
 
 **Paystack:** in the dashboard, set the webhook URL to
-`https://apparule-api-common-805800737799.us-central1.run.app/webhooks/payments`, and use test keys until
+`https://apparule-api-common-<project-number>.us-central1.run.app/webhooks/payments`, and use test keys until
 the money flow has run end to end on the sandbox.
 
 **Website (App Hosting, `web/`):**
@@ -219,10 +219,10 @@ the money flow has run end to end on the sandbox.
 | `API_URL` | runtime | the common URL (`https://…run.app`) |
 | `UPLOADS_URL` | runtime | the uploads URL |
 
-## 7. Cloud Run resources (IaC stack)
+## 7. Cloud Run resources (infrastructure-as-code stack)
 
-Add these to the IaC stack (project `sandbox-e306a`, `us-central1`). The first image can be any tag from
-Docker Hub, because every release replaces it by digest.
+Add these to the infrastructure-as-code stack (your GCP project, `us-central1`). The first image can be any tag from
+the container registry, because every release replaces it by digest.
 
 | Name | Kind | Account | Port | Instances | CPU / memory | CPU allocation | Ingress / auth |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -231,7 +231,7 @@ Docker Hub, because every release replaces it by digest.
 | `apparule-api-segmentation` | service | `apparule-segmentation` | 8081 | **0**–2 | 2 / 2 GiB, concurrency 2, startup probe ≥ 60 s | request-based | all · **authenticated only** (invoker: `apparule-common`) |
 | `apparule-api-commerce` | service | `apparule-commerce` | 8083 | **0**–2 | 1 / 512 MiB | request-based | all · **authenticated only** (invoker: `apparule-common`) |
 
-Every service has the URL `https://<service>-805800737799.us-central1.run.app`.
+Every service has the URL `https://<service>-<project-number>.us-central1.run.app`.
 Cloud Scheduler POSTs `/internal/jobs/<name>` on `apparule-api-common` for
 `captures` (`* * * * *`), `orders` (`7 * * * *`), `reconcile`
 (`13 * * * *`) and `retention` (`17 3 * * *`), with an OIDC token from
@@ -246,7 +246,7 @@ them over their `run.app` URLs; requiring authentication keeps them
 private (the wake-ups carry an ID token).
 
 **Idle.** While nobody uses the app nothing runs. Each wake keeps an
-instance for up to ~15 minutes. Aiven (Postgres, Valkey, Kafka) is shared and stays up; the `captures` sweep wakes common for a short run every minute.
+instance for up to ~15 minutes. The managed Postgres, Valkey and Kafka services stay up; the `captures` sweep wakes common for a short run every minute.
 
 ## 8. GitHub (release workflow)
 
@@ -257,14 +257,14 @@ On `cuesoftinc/apparule`:
    (`projects/<number>/locations/global/workloadIdentityPools/<pool>/providers/<provider>`),
    `GCP_DEPLOY_SERVICE_ACCOUNT` (the `apparule-deploy` email).
 2. **Repository secrets**: `DOCKER_USERNAME`, `DOCKER_PASSWORD` (push to
-   `cuesoft/apparule-api-*`), synced from Doppler `apparule/ci`, which references
+   `apparule-api-*`), synced from your secrets manager, which references
    `admin/ci`.
 3. The WIF provider trusts this repository, and `apparule-deploy` grants it
    `roles/iam.workloadIdentityUser`.
 
 ## 9. First deploy and switching the website over
 
-1. Create the infrastructure (§2–§7) and fill Doppler (§6).
+1. Create the infrastructure (§2–§7) and fill your secrets manager (§6).
 2. Merge to `main`; the merge deploys the API services. Confirm the site
    still works (TEST_MODE, §0).
 3. To redeploy without a code change, re-run the latest `release` run.
@@ -288,11 +288,11 @@ On `cuesoftinc/apparule`:
 
 | Task | How |
 | --- | --- |
-| Roll back | Redeploy the previous image digest (it is in the earlier release run) with `gcloud run services update <name> --image docker.io/cuesoft/apparule-api-<svc>@sha256:…` |
+| Roll back | Redeploy the previous image digest (it is in the earlier release run) with `gcloud run services update <name> --image docker.io/apparule-api-<svc>@sha256:…` |
 | Rotate the ticket key | Generate a new pair with a new kid; **add** its public key to `UPLOAD_TICKET_PUBLIC_KEYS` (comma-separated) and deploy uploads; switch `UPLOAD_TICKET_PRIVATE_KEY` and deploy common; after 5 minutes, drop the old public key |
 | Run migrations alone | `./jobs migrate` by hand (common also runs them on start); the HTTP sweeps exclude it |
 | A capture stuck in "processing" | The `captures` sweep re-sends it after 60 s and fails it with `pipeline_busy` after 180 s; check segmentation's logs and the `wake` lines for `wake failed` |
-| Kafka powered off (idle) | Expendit's reaper powers it back on; uploads answer 503 meanwhile and overdue captures are re-sent from Postgres. Nothing is lost from Postgres |
+| Kafka powered off (idle) | a sibling product's reaper powers it back on; uploads answer 503 meanwhile and overdue captures are re-sent from Postgres. Nothing is lost from Postgres |
 | A money outcome needs a human | `payments.outcome` rows of kind `mismatch`, `charge_rejected`, `payout_failed` or `refund_failed` are logged at error level (`money needs attention`) and kept in `payment_outcome` with `resolved_at` empty; resolve in Paystack, then set `resolved_at` |
 | Resolve a dispute | A staff account calls `POST /api/v1/moderation/requests/{id}/resolve` with `delivered` or `refunded` |
 
@@ -301,5 +301,5 @@ On `cuesoftinc/apparule`:
 The Flutter app's remote repositories (waiting on the API wave and the flavors' `API_URL`),
 the two-view measurement benchmark that calibrates `mediapipe_2d_v2`
 (capture-qc.md §3), SMPL (Phase 5), workspace customers for tailor shops
-(and their consent, open question 7), Upstat events (D2), and OpenTelemetry
+(and their consent, open question 7), the monitoring service events (D2), and OpenTelemetry
 export.

@@ -1,4 +1,4 @@
-# Apparule — API Surface
+# Apparule, API Surface
 
 > The HTTP surface as built (system-design.md §7, S-1…S-15). The web mock
 > server (`web/src/app/api/mock/v1`) defined the contract and `api/common`
@@ -100,7 +100,7 @@ account-scoped with row-level security behind it; cross-account access is
 
 ## 4. Events (ECO-ANALYTICS) **[Planned]**
 
-Landing-page events post directly from the web client to Upstat's event API
+Landing-page events post directly from the web client to the monitoring service's event API
 (D2); product counters (sessions created, requests) are emitted server-side by
 `api/common` once D2 exists. Never measurement values.
 

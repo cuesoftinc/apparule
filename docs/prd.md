@@ -1,4 +1,4 @@
-# Apparule — Product Requirements Breakdown
+# Apparule, Product Requirements Breakdown
 
 > Source: "Apparule Product Requirement Document" (provided 2026-07-15) combined
 > with the repository state on `main`. The linked
@@ -45,7 +45,7 @@ measurement entry must be touch-friendly and responsive. **[PRD §5]**
 | ID | Requirement | Priority | Expanded acceptance criteria |
 | --- | --- | --- | --- |
 | APP-001 | Open-Source Gateway | Must | Prominent GitHub link + contribution guidelines from the landing page; repository README/CONTRIBUTING are the landing targets. |
-| APP-002 | Cloud Access Flow | Must | Sign-in via `account.cuesoft.io` *(X-1: in-app Google/Firebase interim)*; authenticated users can request a cloud instance; request is tracked and acknowledged. Users must accept product-specific ToS (data retention + accuracy disclaimer) before cloud access. **[PRD §7]** |
+| APP-002 | Cloud Access Flow | Must | Sign-in via `account.cuesoft.io` *(X-1: in-app Google sign-in with an API-issued session, interim)*; authenticated users can request a cloud instance; request is tracked and acknowledged. Users must accept product-specific ToS (data retention + accuracy disclaimer) before cloud access. **[PRD §7]** |
 | APP-003 | SMPL Pipeline Demo | Should | Visual/video walkthrough of the SMPL-based measurement process embedded on the landing page. |
 | APP-004 | API Reference | Should | Searchable API documentation for third-party integration. |
 | APP-005 | Privacy Disclosure | Must | Explicit page/section describing how measurements and personal physical data are handled, linking to the Apparule clause in `privacy.cuesoft.io`. |
@@ -54,9 +54,9 @@ measurement entry must be touch-friendly and responsive. **[PRD §5]**
 
 | ID | Requirement | Notes |
 | --- | --- | --- |
-| ECO-AUTH | All login/session management via `account.cuesoft.io` *(X-1 hardened: in-app Google-only over Firebase now; facade later)* | Not blocking (D1 demoted). **[PRD §4.2]** |
+| ECO-AUTH | All login/session management via `account.cuesoft.io` *(X-1 hardened: in-app Google-only sign-in handled by `api/common` now; facade later)* | Not blocking (D1 demoted). **[PRD §4.2]** |
 | ECO-SUPPORT | Route active users needing help to `clients.cuesoft.io` | Link-out only in v1. |
-| ECO-ANALYTICS | Track "Demo Starts" and "GitHub Clicks" via Upstat | Depends on Upstat exposing a generic event-ingestion API (cross-repo dependency D2 — Upstat currently has none). |
+| ECO-ANALYTICS | Track "Demo Starts" and "GitHub Clicks" via the monitoring service | Depends on the monitoring service exposing a generic event-ingestion API (cross-repo dependency D2, the monitoring service currently has none). |
 
 ### 3.3 Implied platform requirements **[Proposed]**
 
@@ -68,14 +68,14 @@ capabilities beyond the web property. Made explicit so they can be scheduled:
 | --- | --- | --- |
 | PLAT-001 | Server-side measurement records | Today `POST /measure` is stateless; nothing is stored anywhere but the phone. "Storing and managing" requires persistent records. |
 | PLAT-002 | Customer management | A tailor manages many customers, each with measurement history. |
-| PLAT-003 | Real authentication | Both current auth endpoints are stubs (`TODO(security-prd)` in `internal/auth/auth.go`): Google login does not verify the ID token; email login is a logged no-op. Real identity is a precondition for storing sensitive records. |
-| PLAT-004 | Garment-workflow export | The "bridge to production" — export measurement sets in shareable/printable form (v1: PDF/CSV export; later: size-chart mapping). |
+| PLAT-003 | Real authentication | `api/common` runs Google OAuth (PKCE) sign-in, rejects unverified Google emails and issues its own session JWT and cookie (X-1); no email or password endpoint exists. Real identity is a precondition for storing sensitive records. |
+| PLAT-004 | Garment-workflow export | The "bridge to production", export measurement sets in shareable/printable form (v1: PDF/CSV export; later: size-chart mapping). |
 | PLAT-005 | SMPL measurement pipeline | Upgrade from the current 2-D landmark approach to SMPL-based 3-D body modeling (see architecture.md §5 for the technical gap and licensing note). |
 
 ## 4. Non-goals (v1)
 
 - Building `account.cuesoft.io`, `clients.cuesoft.io`, or `privacy.cuesoft.io`
-  themselves — they are ecosystem dependencies, consumed not implemented here.
+  themselves, they are ecosystem dependencies, consumed not implemented here.
 - E-commerce/checkout, garment CAD, or pattern drafting.
 - Real-time in-browser 3-D fitting; the SMPL demo is pre-rendered media. **[PRD APP-003]**
 - Direct integrations with garment factories (v1 bridges via exports).
@@ -103,41 +103,41 @@ capabilities beyond the web property. Made explicit so they can be scheduled:
 
 | Metric | Source | Requirement |
 | --- | --- | --- |
-| Demo Starts | Upstat event from walkthrough/demo CTA | ECO-ANALYTICS **[PRD]** |
-| GitHub Clicks | Upstat event from APP-001 gateway | ECO-ANALYTICS **[PRD]** |
+| Demo Starts | Monitoring service event from walkthrough/demo CTA | ECO-ANALYTICS **[PRD]** |
+| GitHub Clicks | Monitoring service event from APP-001 gateway | ECO-ANALYTICS **[PRD]** |
 | Cloud instance requests | api/common (APP-002 flow) | **[Proposed]** |
-| Measurement sessions created / stored records | api/common | **[Proposed]** — the core-value metric |
+| Measurement sessions created / stored records | api/common | **[Proposed]**, the core-value metric |
 
 ## 8. Open questions
 
-1. ~~**`account.cuesoft.io` contract**~~ **RESOLVED (X-1)**: in-app Google-only sign-in over Firebase Auth (`sandbox-e306a`); the facade comes later. Original question — protocol (OIDC? opaque token introspection?),
+1. ~~**`account.cuesoft.io` contract**~~ **RESOLVED (X-1)**: in-app Google-only sign-in handled by `api/common` (Google OAuth with PKCE, API-issued session JWT and cookie); the facade comes later. Original question, protocol (OIDC? opaque token introspection?),
    token audience/claims, and timeline. Blocks APP-002 and PLAT-003's final shape
    (roadmap D1). Interim: local JWT auth hardened enough for records **[Proposed]**.
-2. ~~**Cloud instance model**~~ **RESOLVED (A-5)**: request queue + manual provisioning. Original — "request a cloud instance" reads as
+2. ~~**Cloud instance model**~~ **RESOLVED (A-5)**: request queue + manual provisioning. Original, "request a cloud instance" reads as
    instance-per-customer provisioning rather than one multi-tenant app. v1 treats
    it as a *request queue + manual provisioning* (helm chart already exists per
-   instance) **[Proposed]** — confirm.
-3. ~~**SMPL licensing**~~ **RESOLVED (A-3)**: launch on 2-D, licensing quote in parallel. Original — SMPL model weights are free for research; commercial use
+   instance) **[Proposed]**, confirm.
+3. ~~**SMPL licensing**~~ **RESOLVED (A-3)**: launch on 2-D, licensing quote in parallel. Original, SMPL model weights are free for research; commercial use
    requires a license from Meshcapade/MPI. The hosted commercial cloud likely
    needs SMPL commercial licensing or an alternative body model. Must be resolved
    before PLAT-005 ships in cloud (roadmap risk R1).
-4. ~~**Where records live**~~ **RESOLVED (X-5), then S-3 (2026-10-20)**: Postgres, `api/common` its only client. Original question — README names both Firestore and Aiven Postgres.
+4. ~~**Where records live**~~ **RESOLVED (X-5), then S-3 (2026-10-20)**: Postgres, `api/common` its only client. Original question, the README named both Firestore and managed Postgres.
    data-model.md proposes Postgres as the system of record; confirm.
-5. **Figma designs** — Home canvas is empty; landing implementation (roadmap P0)
+5. **Figma designs**, Home canvas is empty; landing implementation (roadmap P0)
    needs the design pass, or we proceed with a standards-based layout and
    retrofit.
-6. **OPEN (tracked)**: hero H1 copy (pages.md A2 — owner: brand pass) and the
-   Discord server URL (pages.md A8 — owner: community setup) are unresolved
+6. **OPEN (tracked)**: hero H1 copy (pages.md A2, owner: brand pass) and the
+   Discord server URL (pages.md A8, owner: community setup) are unresolved
    content dependencies for Phase 0.
-7. **Metrics targets**: prd §7 metrics are baseline-gathering in v1 — numeric
+7. **Metrics targets**: prd §7 metrics are baseline-gathering in v1, numeric
    targets set after 90 days of data **[Decided]**.
 
 ---
 
-## 9. Scope expansion — social commerce (2026-07-16) **[Directive]**
+## 9. Scope expansion, social commerce (2026-07-16) **[Directive]**
 
 Apparule is a **social network**: users add/take measurements; designers post
-outfits; users like, save, share, and **commission** outfits — a request
+outfits; users like, save, share, and **commission** outfits, a request
 carries the user's measurement snapshot; the designer produces the garment and
 **gets paid**. Look and feel: **instagram.com** (design.md). Platform
 structure: public home page + web dashboard + mobile app (mobile is the

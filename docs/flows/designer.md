@@ -1,6 +1,6 @@
 # Flow: Designer Side (onboarding, quoting, fulfilment)
 
-> The designer's half of the commerce loop — request.md is explicitly the
+> The designer's half of the commerce loop, request.md is explicitly the
 > customer side. State machine + permissions: [order-lifecycle.md](../order-lifecycle.md).
 > Preconditions vary per section.
 
@@ -9,12 +9,12 @@
 ```mermaid
 flowchart TD
     U["User taps 'Become a designer'"] --> UN{username claimed?}
-    CLAIM["claim username — PATCH /me, 409 name_taken retry"]
+    CLAIM["claim username, PATCH /me, 409 name_taken retry"]
     UN -->|no| CLAIM
     UN -->|yes| PROF[create profile: display name, bio]
     CLAIM --> PROF
     PROF --> POSTOK[can publish posts]
-    POSTOK --> KYC[attach payout account — Paystack bank resolution BVN]
+    POSTOK --> KYC[attach payout account, Paystack bank resolution BVN]
     KYC -->|verified| ACCEPT[posts can accept requests]
     KYC -->|failed| RETRY[error surface + retry; support link after 3 fails]
 ```
@@ -44,16 +44,16 @@ From order-lifecycle.md §1, designer-relevant deadlines:
 | --- | --- | --- |
 | `paid`, not started | **T+14d** | system auto-refund + `refunded`; strike recorded |
 | past `due_at`, not shipped | due_at, due_at+7 reminders | customer gets one-click refund-dispute at due_at+14 |
-| `shipped` | — | auto-confirm pays out at T+14 if customer silent |
+| `shipped` | n/a | auto-confirm pays out at T+14 if customer silent |
 
 Strikes **[Decided]**: 3 auto-refund strikes in 90 days pauses the profile
-(posts stop accepting requests) pending support review — protects customers
+(posts stop accepting requests) pending support review, protects customers
 from serial ghosting without permanent bans.
 
 ## 4. Designer workspace (pages.md B3 "As designer" tab)
 
 - Pipeline list grouped by state with deadline chips (quote expiry, due dates,
-  auto-refund countdowns — the escrow clock made visible).
+  auto-refund countdowns, the escrow clock made visible).
 - Order detail: snapshot values (this order only), thread, status actions
   (`in_progress`, `shipped` + optional tracking), decline/quote forms.
 - Earnings (pages.md B6): balance = released payouts; pending = held escrow on
@@ -62,8 +62,7 @@ from serial ghosting without permanent bans.
 
 ## 5. Instrumentation & acceptance
 
-Events: `request_quoted`, `request_declined{reason}`, `payout_released` —
-**must be added to the master registry (upstat api.md §3.4) before
+Events: `request_quoted`, `request_declined{reason}`, `payout_released`, **must be added to the master event registry before
 implementation** (registry-first rule).
 
 - [ ] Non-KYC designer's posts serve `post_unavailable` to request attempts

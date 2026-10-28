@@ -1,4 +1,4 @@
-# Apparule — Pages, Screens & Features
+# Apparule, Pages, Screens & Features
 
 > Every surface of the product, to component level, referencing the design
 > system and microinteractions in [design.md](design.md) (`MI-n`). Three
@@ -6,7 +6,7 @@
 > The social model (posts, likes, requests, payments) is the 2026-07-16
 > scope expansion **[Directive]**; entities in [data-model.md](data-model.md) §5.
 
-## Part A — Public home page (apparule.cuesoft.io)
+## Part A, Public home page (apparule.cuesoft.io)
 
 Standard CueLABS™ open-source product site (shared pattern across the three
 products **[Directive]**): present the product → developers can set it up →
@@ -14,37 +14,37 @@ community links → preview → dual CTA **Try Cloud** / **Self Host**.
 
 | # | Section | Content & components | Interactions |
 | --- | --- | --- | --- |
-| A1 | Nav bar | logo · text links Features · For designers · Docs (GitBook) · GitHub · theme toggle · **Sign in** (gradient CTA, `/signin`) — the parity-canon inventory (design.md §8.2b); the runtime star-count badge is A7b's alone | sticky, blurs on scroll; `github_click` fires on the GitHub link |
+| A1 | Nav bar | logo · text links Features · For designers · Docs (GitBook) · GitHub · theme toggle · **Sign in** (gradient CTA, `/signin`), the parity-canon inventory (design.md §8.2b); the runtime star-count badge is A7b's alone | sticky, blurs on scroll; `github_click` fires on the GitHub link |
 | A2 | Hero | H1 "Precision measurement meets social fashion" (copy pass pending); subcopy; dual CTA **Try Cloud** / **Self Host**; hero visual: phone frame auto-playing a silent feed→capture→request loop | CTA hover lifts 2px; visual loop pauses on hover/reduced-motion |
 | A3 | Problem strip | 3 stat cards (manual-measurement error, fragmented records, lost designer reach) | cards fade-up on scroll-into-view (once) |
 | A4 | Product walkthrough | 4-step horizontal scroll-jacked panel (Capture → Vault → Discover → Commission), each step = **real screen thumbnail** (exported from the Stage-4 Figma frames, not illustrative art **[Directive 2026-07-18]**) + 2 lines | step dots + keyboard arrows; scroll-jack disabled on mobile (vertical stack) |
-| A4b | Feature deep-dives **[Directive 2026-07-18]** | benefit-led split panels (alternating media/text) going deeper than A4's steps: Capture ("a tape measure that lives in your camera"), Vault (history, freshness, consent), Discover & Commission (measurements attached, escrow-protected payment) — each = benefit headline · 2–3 line body · real screen thumbnail · quiet link (docs deep-dive) | panels fade-up on scroll-into-view (once, same rule as A3) |
+| A4b | Feature deep-dives **[Directive 2026-07-18]** | benefit-led split panels (alternating media/text) going deeper than A4's steps: Capture ("a tape measure that lives in your camera"), Vault (history, freshness, consent), Discover & Commission (measurements attached, escrow-protected payment), each = benefit headline · 2–3 line body · real screen thumbnail · quiet link (docs deep-dive) | panels fade-up on scroll-into-view (once, same rule as A3) |
 | A5 | SMPL/AI section (APP-003) | short explainer "AI-assisted body modeling", looping landmark-constellation animation (same asset as MI-12), link → GitBook deep-dive | |
 | A6 | For designers | split panel: "Post outfits, get commissioned, get paid" + earnings screenshot | |
 | A7 | Open-source section | `docker compose up` snippet with copy button · architecture mini-diagram · GitHub + CONTRIBUTING links | copy button ✓ morph |
-| A7b | For developers — Contribute **[Directive 2026-07-18]** | stack line (Flutter · Go `api/common` · Node `api/uploads` · Python `api/segmentation` + `api/commerce`, architecture.md) · "interesting problems" list (on-device capture QC, escrow ledger, single-image SMPL fitting) · links: good-first-issues filter, CONTRIBUTING.md, Discord · GitHub star badge (the live count is populated at runtime; static designs render the badge with no number per the accuracy standard, design.md §8.2b — the only star-count badge on the page) | link cards lift 2px on hover; `github_click` fires here too; star count animates count-up once |
-| A7c | Self-host **[Directive 2026-07-18]** | data-ownership pitch (your measurements on your own metal — nothing leaves your server) · tabbed snippet **Docker Compose \| Helm** (CodeSnippetBlock `tabs=docker/helm`): mirrored two-line commands — `git clone https://github.com/cuesoftinc/apparule` then `cd apparule && docker compose up --build -d` (Makefile `up` target) vs `cd apparule && helm install apparule deploy/helm` — only the final command differs **[Ratified 2026-07-20]** · "what ships" list (`common` · `uploads` · `segmentation` · `commerce` · `web`, per docker-compose.yml) · link → docs quickstart (GitBook) | copy button ✓ morph (shared with A7); `self_host_click` fires here too |
+| A7b | For developers, Contribute **[Directive 2026-07-18]** | stack line (Flutter · Go `api/common` · Node `api/uploads` · Python `api/segmentation` + `api/commerce`, architecture.md) · "interesting problems" list (on-device capture QC, escrow ledger, single-image SMPL fitting) · links: good-first-issues filter, CONTRIBUTING.md, Discord · GitHub star badge (the live count is populated at runtime; static designs render the badge with no number per the accuracy standard, design.md §8.2b, the only star-count badge on the page) | link cards lift 2px on hover; `github_click` fires here too; star count animates count-up once |
+| A7c | Self-host **[Directive 2026-07-18]** | data-ownership pitch (your measurements on your own metal, nothing leaves your server) · tabbed snippet **Docker Compose \| Helm** (CodeSnippetBlock `tabs=docker/helm`): mirrored two-line commands, `git clone https://github.com/cuesoftinc/apparule` then `cd apparule && docker compose up --build -d` (Makefile `up` target) vs `cd apparule && helm install apparule deploy/helm`, only the final command differs **[Ratified 2026-07-20]** · "what ships" list (`common` · `uploads` · `segmentation` · `commerce` · `web`, per docker-compose.yml) · link → docs quickstart (GitBook) | copy button ✓ morph (shared with A7); `self_host_click` fires here too |
 | A8 | Community | Discord card (member count), roadmap link, CueLABS™ note | |
 | A9 | Cloud vs Self-host table (PRD §3) | feature comparison; Cloud column ends in Try Cloud CTA, OSS column in Self Host (→ docs quickstart) | |
 | A9b | FAQ **[Directive 2026-07-18]** | 4–5 product Q&As as accordion rows: "How accurate are the measurements?" · "Who can see my measurements?" (never public; snapshot only inside a request) · "How do designers get paid?" (escrow → payout, order-lifecycle.md) · "Can I self-host?" (→ A7c) · "Is it really open-source?" (license) | one panel open at a time; rows deep-linkable (`#faq-n`) |
-| A9c | Final CTA band **[Directive 2026-07-18]** | full-width gradient band: one-line close + dual CTA **Try Cloud** / **Self Host** (repeats the A2 pair — last conversion point before the footer) | CTA hover lifts 2px (as A2); `try_cloud_click` / `self_host_click` |
-| A10 | Footer | brand block (wordmark + tagline) · Product / Docs / Community / Legal link columns — privacy (APP-005), terms and status live in the Legal column (`privacy/terms/status.cuesoft.io`) · legal bar `© Cuesoft Inc. 2026. Apparule. CueLABS™ Division. MIT License.` with security-policy link (SECURITY.md) · English language selector — the parity-canon inventory (design.md §8.2b) | |
+| A9c | Final CTA band **[Directive 2026-07-18]** | full-width gradient band: one-line close + dual CTA **Try Cloud** / **Self Host** (repeats the A2 pair, last conversion point before the footer) | CTA hover lifts 2px (as A2); `try_cloud_click` / `self_host_click` |
+| A10 | Footer | brand block (wordmark + tagline) · Product / Docs / Community / Legal link columns, privacy (APP-005), terms and status live in the Legal column (`privacy/terms/status.cuesoft.io`) · legal bar `© Cuesoft Inc. 2026. Apparule. CueLABS™ Division. MIT License.` with security-policy link (SECURITY.md) · English language selector, the parity-canon inventory (design.md §8.2b) | |
 
-Analytics events (→ Upstat, D2): `page_view`, `demo_start` (A4 engage),
+Analytics events (→ the monitoring service, D2): `page_view`, `demo_start` (A4 engage),
 `github_click` (A1/A7), `try_cloud_click`, `self_host_click`. **[PRD + Directive]**
 
 Docs: hosted on **GitBook** (Git-synced from this `docs/` folder) **[Directive]**;
 API reference via **Scalar** rendering the OpenAPI spec (docs/api/openapi.yaml)
-embedded at the public `/docs/api` route — the footer Docs column's
+embedded at the public `/docs/api` route, the footer Docs column's
 "API reference" links it. **[Ratified 2026-07-20]**
 
-## Part B — Web dashboard (`apparule.cuesoft.io/dashboard` — canonical [Decided]; "B" routes below are relative to it)
+## Part B, Web dashboard (`apparule.cuesoft.io/dashboard`, canonical [Decided]; "B" routes below are relative to it)
 
 Desktop adaptation of the mobile IA (design.md §2 layout). Left rail: Home,
 Explore, Create, Orders, Vault, Profile, Settings; bottom of rail: theme
 toggle, support (`clients.cuesoft.io`).
 
-### B1 `/app` — Feed
+### B1 `/app`, Feed
 - Story rail (fresh outfits from followed designers, MI-8) above feed.
 - `PostCard` column (630px): MI-1/2/3/4/9 all active; "Request this outfit"
   CTA on designer posts → request stepper (MI-10) in modal.
@@ -53,22 +53,22 @@ toggle, support (`clients.cuesoft.io`).
 - States: skeleton (MI-19) · empty ("Follow designers to fill your feed" +
   explore CTA) · caught-up divider (MI-6).
 
-### B2 `/app/explore` — Discover
+### B2 `/app/explore`, Discover
 - Search bar (designers, styles, tags) with recent-searches dropdown.
 - Masonry grid of outfit posts (1:1 crops); hover: like/comment counts
   overlay fade-in 120ms; click → post modal (IG desktop pattern: media left,
   detail right).
-- Filter chips: style tags, price band, turnaround (≤1w / ≤2w / ≤1m), "Near me" — Near me re-ranks results (city > state > country); it is not a hard filter **[Revised 2026-07-19]**
-  — proximity ranking by designer `profile_location` (data-model.md §2,
+- Filter chips: style tags, price band, turnaround (≤1w / ≤2w / ≤1m), "Near me", Near me re-ranks results (city > state > country); it is not a hard filter **[Revised 2026-07-19]**
+, proximity ranking by designer `profile_location` (data-model.md §2,
   X-10 tier 1); designers without a location simply don't rank in proximity
   results (no hard gate).
 - Post permalinks: every post has a public web route `/p/{post_id}` (share
   target for MI-9; renders post detail, request CTA for signed-in users).
 - Search-results state **[Directive 2026-07-18]**: submitting a query swaps
-  the masonry for sectioned results — Designers (UserRow list, Follow MI-7)
-  above Posts (grid) — with per-section empty copy ("No designers match…").
+  the masonry for sectioned results, Designers (UserRow list, Follow MI-7)
+  above Posts (grid), with per-section empty copy ("No designers match…").
 
-### B3 `/app/orders` — Requests & orders (both roles)
+### B3 `/app/orders`, Requests & orders (both roles)
 - Tabs: **As customer** / **As designer** (designer tab only when creator
   profile enabled).
 - `RequestCard` list; status pills (MI-14): `requested → quoted → paid →
@@ -77,37 +77,37 @@ toggle, support (`clients.cuesoft.io`).
 - Click → order detail: outfit summary · **measurement snapshot** (the exact
   values sent, immutable) · thread (MI-17) · timeline (MI-14) · payment box
   (MI-15: quote → pay → escrow-held → released on delivery confirm)
-  **[Proposed payment model — ratify]**.
+  **[Proposed payment model, ratify]**.
 - Designer actions per state: quote (price + due date) / decline with reason /
   mark in-progress / mark shipped (tracking optional) ; customer: pay, confirm
   delivery (releases payout), open dispute.
 - Decline-with-reason sheet (designer) **[Directive 2026-07-18]**: reason enum
-  (Select, design.md §8.2b) + optional note — reason required per
+  (Select, design.md §8.2b) + optional note, reason required per
   flows/designer.md §2; sets the `declined` pill + notifies the customer.
 - Order dispute flow (either party, order-lifecycle.md §1) **[Directive
   2026-07-18]**: open from paid/in_progress/shipped → reason picker + note →
   order enters `disputed` (payout frozen, PaymentBox dispute-frozen state
   MI-15) → staff-resolved thread (resolve = support/admin only).
 
-### B4 `/app/vault` — Measurement vault
+### B4 `/app/vault`, Measurement vault
 - Header: freshness ring avatar (MI-11) + "Retake" CTA → capture options
   (photo upload / manual entry MI-13). Web capture is **upload-only
   [Decided 2026-07-22, M-12]**: two files (front + side) into the same
-  per-pose QC pipeline — no webcam flow (full-body webcam capture is
+  per-pose QC pipeline, no webcam flow (full-body webcam capture is
   rejected UX: desk-height lens, unreachable controls); the options sheet
   carries a "best experience: guided capture on the mobile app" hint.
-  Phone hand-off QR was CUT from scope — mobile capture covers it
+  Phone hand-off QR was CUT from scope, mobile capture covers it
   **[Decided]**.
 - `MeasurementCard` grid (shoulder, hip, +SMPL girths when available) with
   history sparklines; tap → history sheet (sessions list, method chips,
   delete session).
 - Consent + retention notice inline (data-model.md §4); "Download my data" /
-  "Delete all" links (rights parity with expendit **[Proposed]**).
+  "Delete all" links (rights parity with a sibling product **[Proposed]**).
 
-### B5 `/app/create` — Post an outfit (designer)
+### B5 `/app/create`, Post an outfit (designer)
 - Entry **[Decided 2026-07-22, M-11]**: the rail's Create action opens the
-  two-option chooser — "Take measurements" (→ B4 capture options) +
-  "Post an outfit" (here; designer-gated — non-creators land on the
+  two-option chooser, "Take measurements" (→ B4 capture options) +
+  "Post an outfit" (here; designer-gated, non-creators land on the
   upsell below).
 - Dropzone (≤10 media, reorder by drag; MI-4 preview) → details form
   (caption, style tags, base price or "quote on request", turnaround days,
@@ -116,9 +116,9 @@ toggle, support (`clients.cuesoft.io`).
   to ≤2048px long edge; alt text required (default "Outfit by {designer}").
 - Non-creator users see the creator-profile upsell here ("Become a designer").
 
-### B6 `/app/{username}` — Profiles
+### B6 `/app/{username}`, Profiles
 - Designer: avatar + story ring, follower/following/posts counts, Follow
-  (MI-7), Request CTA, bio, grid/saved tabs — saved is viewer-private, so
+  (MI-7), Request CTA, bio, grid/saved tabs, saved is viewer-private, so
   the tabs render only on your own profile; other viewers see the grid
   alone **[Decided 2026-07-20]**; earnings tab visible only to
   self (payout balance, payout account setup, transaction list) **[Proposed]**.
@@ -128,8 +128,8 @@ toggle, support (`clients.cuesoft.io`).
 - Followers/following lists **[Directive 2026-07-18]**: tapping either count
   opens a UserRow list sheet (Follow/Following morph MI-7; tabs switch the
   two lists).
-- Counts derive from the FOLLOW graph / post list at read time — never from
-  stored per-profile fields — so a header count and its list sheet can never
+- Counts derive from the FOLLOW graph / post list at read time, never from
+  stored per-profile fields, so a header count and its list sheet can never
   disagree, and creating a designer profile preserves the account's counts.
 
 ### B7a `/dashboard/admin/moderation` (staff only)
@@ -140,53 +140,53 @@ toggle, support (`clients.cuesoft.io`).
 ### B7 `/app/settings`
 - Account (Google sign-in per X-1; `account.cuesoft.io` facade later), creator profile toggle,
   payout account (designer), **profile location** (city/state/country,
-  optional — explainer: "used to recommend nearby designers"; X-10 tier 1,
+  optional, explainer: "used to recommend nearby designers"; X-10 tier 1,
   data-model.md §2), notifications, privacy & data (export/delete,
   consent history), language, theme.
 - Sub-screens **[Directive 2026-07-18]**: **Notifications** (per-event
   toggles: quotes, order status, social, payouts) · **Privacy & consent**
   (consent history, capture-data retention notice, data-model.md §4) ·
-  **Account & data** (export / delete-all with confirm — the B4 rights links
+  **Account & data** (export / delete-all with confirm, the B4 rights links
   resolve here).
 
-### B8 `/app/designer/onboarding` — Designer onboarding & KYC **[Directive 2026-07-18]**
+### B8 `/app/designer/onboarding`, Designer onboarding & KYC **[Directive 2026-07-18]**
 - Intro screen (what you get: posts, commissions, payouts; flows/designer.md
   §1) → banking form: bank Select + account number with **Paystack
   resolution states** (resolving spinner → resolved account-name confirm /
   mismatch error, retry + support link after 3 fails) → done.
 - KYC-lapse banner state (Banner warn, design.md §8.2b): posts stop accepting
-  requests, payouts queue until re-verification — persistent until resolved.
+  requests, payouts queue until re-verification, persistent until resolved.
 
-### B9 `/app/earnings` — Earnings & payouts (designer) **[Directive 2026-07-18]**
+### B9 `/app/earnings`, Earnings & payouts (designer) **[Directive 2026-07-18]**
 - Expands the B6 self-only earnings tab into a full screen: EarningsSummary
   cards (released balance / pending escrow) + TransactionRow list (payouts,
   escrow-held, itemized 10% fee lines, provider refs); payout-account status
   chip → B8 to fix.
 
-## Part C — Mobile app (Flutter) — primary surface
+## Part C, Mobile app (Flutter), primary surface
 
 Bottom tab bar: **Home · Explore · ➕ · Orders · Profile** (design.md §3).
 Existing screens (splash/welcome/auth/capture) remain the entry path.
 
 | # | Screen | Spec |
 | --- | --- | --- |
-| C1 | Onboarding | Google-only sign-in (flows/auth.md §5 — one CTA screen; password/verification screens retired); first sign-in hands off to C1b |
-| C1b | Post-signup interstitial | "Take your first measurement" (→C6) or "Explore outfits" (→C3) — skippable; split out of the C1 row 2026-07-18 (the QA loop built it as its own screen). **Mobile-only [Decided 2026-07-22]**: web has no interstitial — the web first-run lands on B1's empty state + the right-column freshness card |
+| C1 | Onboarding | Google-only sign-in (flows/auth.md §5, one CTA screen; password/verification screens retired); first sign-in hands off to C1b |
+| C1b | Post-signup interstitial | "Take your first measurement" (→C6) or "Explore outfits" (→C3), skippable; split out of the C1 row 2026-07-18 (the QA loop built it as its own screen). **Mobile-only [Decided 2026-07-22]**: web has no interstitial, the web first-run lands on B1's empty state + the right-column freshness card |
 | C2 | Home feed | = B1 minus right column; story rail on top; MI-1/2/3/4/5/6/16/18/20 all active |
 | C3 | Explore | search + 3-col grid; long-press peek preview (scale 0.97 + dim, MI haptic light); pull-to-refresh MI-5; search-results state = B2 **[Directive 2026-07-18]** |
 | C4 | Post detail | full-bleed carousel; action row; caption; comments sheet (swipe-up); Request CTA pinned bottom (safe-area) |
-| C5 | Request stepper | MI-10 sheet: Step 1 pick measurement set (vault snapshot picker, freshness warnings); Step 2 notes + budget + delivery (pre-fills from most recent order — no saved address book in v1, data-model.md §6.3); Step 3 review → submit; success: confetti + "view order" |
-| C6 | Capture | two-pose flow (M-10): 5-step guide (intro · get ready · phone setup · front pose · side pose — canvas-first frames, M-8) → front capture "Pose 1 of 2" then right-profile side capture "Pose 2 of 2", silhouette overlay + 3-2-1 countdown per pose (MI-12; centered over-media pose bar, M-9) → height step → processing constellation; results screen: measurement cards stagger-in, "Save to vault" primary, "Retake" quiet; QC failures re-enter the failing pose only (retry never advances the pose counter, capture-qc.md §2); manual-entry fallback (MI-13) |
+| C5 | Request stepper | MI-10 sheet: Step 1 pick measurement set (vault snapshot picker, freshness warnings); Step 2 notes + budget + delivery (pre-fills from most recent order, no saved address book in v1, data-model.md §6.3); Step 3 review → submit; success: confetti + "view order" |
+| C6 | Capture | two-pose flow (M-10): 5-step guide (intro · get ready · phone setup · front pose · side pose, canvas-first frames, M-8) → front capture "Pose 1 of 2" then right-profile side capture "Pose 2 of 2", silhouette overlay + 3-2-1 countdown per pose (MI-12; centered over-media pose bar, M-9) → height step → processing constellation; results screen: measurement cards stagger-in, "Save to vault" primary, "Retake" quiet; QC failures re-enter the failing pose only (retry never advances the pose counter, capture-qc.md §2); manual-entry fallback (MI-13) |
 | C7 | Vault | = B4 adapted; entry from Profile tab header ring |
 | C8 | Orders | = B3 list + detail, incl. the dispute flow and designer decline sheet **[Directive 2026-07-18]**; push notifications drive re-entry (badge MI-16) |
-| C9 | Profile | own: vault ring header, grid of liked/saved, settings gear; others: designer profile = B6. Bio is **designer-scoped** (follows web — `DESIGNER_PROFILE.bio`, data-model.md §5): the edit-profile screen hides the bio field for non-designers **[Decided 2026-07-22]** |
+| C9 | Profile | own: vault ring header, grid of liked/saved, settings gear; others: designer profile = B6. Bio is **designer-scoped** (follows web, `DESIGNER_PROFILE.bio`, data-model.md §5): the edit-profile screen hides the bio field for non-designers **[Decided 2026-07-22]** |
 | C10 | Notifications sheet | activity list (likes, follows, quotes, status changes); grouped by day; swipe-to-clear |
 | C11 | Comments sheet (full) **[Directive 2026-07-18]** | C4's swipe-up sheet expanded to full height: CommentRow list (reply indent, like hearts), composer pinned above keyboard, optimistic post MI-18 |
 | C12 | Followers/following **[Directive 2026-07-18]** | = B6 lists; UserRow + Follow morph (MI-7), tabs Followers / Following |
 | C13 | Designer onboarding & KYC **[Directive 2026-07-18]** | = B8: intro → banking form (Paystack resolution states: resolving / resolved-name confirm / mismatch error) → done; KYC-lapse banner state |
 | C14 | Earnings & payouts **[Directive 2026-07-18]** | = B9: EarningsSummary + TransactionRow list; payout push notifications deep-link here |
 | ➕ | Create chooser **[Decided 2026-07-22, M-11]** | tapping the centre tab opens a two-option chooser sheet (both platforms): "Take measurements" → C6 · "Post an outfit" (designer-gated) → C15 for designers, become-a-designer (C13) for non-designers |
-| C15 | Post composer **[Decided 2026-07-22, M-11]** | = B5 composer mirrored to mobile, trimmed to the ratified v1 contract: device media picker (≤10, JPEG/PNG/WebP, ≤10 MB), required caption, snapshot-attach toggle **default ON** (the post carries the vault's latest measurement-snapshot ref — buyers request with exact measurements), Post CTA disabled/default/loading with per-tile uploading strips; alt text defaults to "Outfit by {designer}"; style tags / base price / turnaround / fabric notes stay web-B5-only in v1 |
+| C15 | Post composer **[Decided 2026-07-22, M-11]** | = B5 composer mirrored to mobile, trimmed to the ratified v1 contract: device media picker (≤10, JPEG/PNG/WebP, ≤10 MB), required caption, snapshot-attach toggle **default ON** (the post carries the vault's latest measurement-snapshot ref, buyers request with exact measurements), Post CTA disabled/default/loading with per-tile uploading strips; alt text defaults to "Outfit by {designer}"; style tags / base price / turnaround / fabric notes stay web-B5-only in v1 |
 
 Push notifications **[Proposed]**: quote received, payment confirmed, status
 changes, delivery confirm reminder (customer), new request (designer).
@@ -203,8 +203,8 @@ changes, delivery confirm reminder (customer), new request (designer).
 | SOC-006 | Payments: customer pay, escrow hold, designer payout, platform fee | Must | B3, B6 earnings **[payment provider + fee % to ratify]** |
 | SOC-007 | Creator profiles (role toggle, earnings) | Must | B6, B7 |
 | SOC-008 | Notifications (in-app + push) | Should | C10 |
-| SOC-009 | Comments moderation, report/block | Should | trust & safety baseline for UGC **[Proposed — required before public launch]** |
-| SOC-010 | Full DMs beyond order threads | Later | — |
+| SOC-009 | Comments moderation, report/block | Should | trust & safety baseline for UGC **[Proposed, required before public launch]** |
+| SOC-010 | Full DMs beyond order threads | Later | n/a |
 
 Cross-refs: data model additions → data-model.md §5; API additions →
 api.md §5; sequencing → roadmap.md (revised phases).

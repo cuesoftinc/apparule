@@ -1,7 +1,7 @@
-# Apparule — Commission Order Lifecycle
+# Apparule, Commission Order Lifecycle
 
 > The full state machine behind SOC-004/005/006 (pages.md B3/C5/C8,
-> data-model.md §5 `REQUEST`). **[Proposed]** — this is the contract the
+> data-model.md §5 `REQUEST`). **[Proposed]**, this is the contract the
 > commerce phase implements; payments/escrow are the ratified A-1 model
 > (Paystack + platform ledger, 10% fee).
 
@@ -32,12 +32,12 @@ stateDiagram-v2
 
 Rules:
 
-- **Measurement snapshot freezes at `requested`** — later vault changes never
+- **Measurement snapshot freezes at `requested`**, later vault changes never
   mutate an order; a re-measure prompts a *new* request.
 - **Quotes expire** after 7 days un-actioned (state → `cancelled`, both
   parties notified) **[Decided, A-7]**.
 - **Auto-confirm**: `shipped` → `delivered` at T+14 days without customer
-  action, after two reminders — protects designer payout from ghosting
+  action, after two reminders, protects designer payout from ghosting
   **[Decided, A-7]**.
 - **Dispute window** ends at delivery confirmation; disputes freeze payout
   and open a support thread (routes to `clients.cuesoft.io` when live).
@@ -46,22 +46,21 @@ Rules:
   strike recorded); an order past `due_at + 14 days` without `shipped`
   surfaces a one-click "request refund" dispute path to the customer with
   reminders to the designer at due_at and due_at+7.
-- Cancellation after `paid` is a refund path, not a `cancelled` transition —
-  money movements only ever resolve through `delivered` (payout) or
+- Cancellation after `paid` is a refund path, not a `cancelled` transition, money movements only ever resolve through `delivered` (payout) or
   `refunded`.
 
 ## 2. Permissions matrix
 
 | Action | Customer | Designer | System |
 | --- | --- | --- | --- |
-| submit request | ✓ (with owned snapshot) | — | — |
-| quote / decline | — | ✓ | quote expiry |
-| pay | ✓ | — | — |
-| start / ship | — | ✓ | — |
-| confirm delivery | ✓ | — | auto-confirm T+14 |
-| open dispute | ✓ | ✓ | — |
-| resolve dispute | — | — | support/admin only |
-| view snapshot values | ✓ (own) | ✓ (this order only) | — |
+| submit request | ✓ (with owned snapshot) | n/a | n/a |
+| quote / decline | n/a | ✓ | quote expiry |
+| pay | ✓ | n/a | n/a |
+| start / ship | n/a | ✓ | n/a |
+| confirm delivery | ✓ | n/a | auto-confirm T+14 |
+| open dispute | ✓ | ✓ | n/a |
+| resolve dispute | n/a | n/a | support/admin only |
+| view snapshot values | ✓ (own) | ✓ (this order only) | n/a |
 
 The snapshot-visibility rule is the privacy core: a designer sees a
 customer's measurements **only inside an order that customer initiated**,
@@ -76,22 +75,22 @@ and only that frozen copy.
 | `refunded` | platform triggers the Paystack refund from the ledger within **1 business day** of the resolving event; full-amount refunds only in v1 (no partials); the platform absorbs provider refund fees **[Decided]** |
 
 Platform fee: **10% of quote** (A-1, ratified); payout timing: **on delivery
-confirmation** — no instant payout in v1 (A-1). Provider: Paystack for NG
+confirmation**, no instant payout in v1 (A-1). Provider: Paystack for NG
 rails; Stripe arrives with international (A-1). All amounts carry `currency`
 (NGN-only v1, data-model §5). Designer payouts require completed KYC
 (`DESIGNER_PROFILE.payout_account` verified) *before* their posts can accept
-requests — not at payout time, when it's too late.
+requests, not at payout time, when it's too late.
 
 ## 4. Notifications map (SOC-008)
 
 | Transition | Customer | Designer |
 | --- | --- | --- |
 | requested | receipt confirmation | **push + badge: new request** |
-| quoted | **push: quote received** (+T-2d expiry reminder) | — |
-| paid | payment receipt | **push: order funded — start work** |
-| in_progress | status update | — |
-| shipped | **push: shipped** (+tracking) | — |
-| auto-confirm reminders (T+7, T+12 after shipped) | reminder ×2 | — |
+| quoted | **push: quote received** (+T-2d expiry reminder) | n/a |
+| paid | payment receipt | **push: order funded, start work** |
+| in_progress | status update | n/a |
+| shipped | **push: shipped** (+tracking) | n/a |
+| auto-confirm reminders (T+7, T+12 after shipped) | reminder ×2 | n/a |
 | delivered | confirmation + review prompt **[Later]** | **push: payout released** |
 | declined / cancelled / disputed / refunded | push | push |
 

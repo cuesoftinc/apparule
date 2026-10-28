@@ -1,4 +1,4 @@
-# Apparule — Engineering Contracts
+# Apparule, Engineering Contracts
 
 > Cross-cutting contracts the flow specs assume: error envelope + catalog,
 > authorization matrix, rate limits, testing strategy, logging rules.
@@ -20,7 +20,7 @@
 | --- | --- |
 | 400 | `invalid_*` (malformed input) |
 | 401 | `unauthenticated`, `token_expired` |
-| 403 | `provider_not_allowed`, `consent_required`, `forbidden`, `account_disabled`, `kyc_incomplete` |
+| 403 | `consent_required`, `forbidden`, `account_disabled`, `kyc_incomplete` |
 | 404 | `not_found` (never distinguishes "exists but not yours") |
 | 409 | `duplicate_request`, `post_unavailable`, `name_taken` (username claim, api.md `/me`), `idempotency_conflict`, `account_has_active_orders` (deletion, flows/auth.md §4) |
 | 422 | QC codes (capture-qc.md §1–2), `snapshot_invalid` |
@@ -39,21 +39,20 @@ membership for vault-of-customers use (SME mode).
 | Resource / action | visitor | user | designer | moderator |
 | --- | --- | --- | --- | --- |
 | Feed/explore read, post detail | ✓ (public posts) | ✓ | ✓ | ✓ |
-| Like/save/comment/follow | — | ✓ | ✓ | ✓ |
-| Create post | — | — | ✓ (designer profile) | — |
-| Post accepts requests | — | — | ✓ (KYC complete, A-2 — `post_unavailable` otherwise; flows/designer.md §1) | — |
-| Own vault (read/write) | — | ✓ self only — **no role ever reads another's vault** | ✓ self | — |
-| Workspace customers/sessions | — | workspace members | — | — |
-| Create request | — | ✓ (verified, vault non-empty, consent) | ✓ as customer | — |
-| Request read/messages | — | party only (customer or that designer) | party only | on dispute |
-| Quote/decline/status | — | — | ✓ own requests | dispute resolution |
-| Pay / confirm delivery / dispute | — | ✓ own orders | — | resolve |
-| Earnings/payout account | — | — | ✓ self | — |
-| Reports/blocks | — | ✓ | ✓ | queue + actions (block semantics: data-model §6.2 — feed filtering, interaction bans, orders survive) |
+| Like/save/comment/follow | n/a | ✓ | ✓ | ✓ |
+| Create post | n/a | n/a | ✓ (designer profile) | n/a |
+| Post accepts requests | n/a | n/a | ✓ (KYC complete, A-2, `post_unavailable` otherwise; flows/designer.md §1) | n/a |
+| Own vault (read/write) | n/a | ✓ self only, **no role ever reads another's vault** | ✓ self | n/a |
+| Workspace customers/sessions | n/a | workspace members | n/a | n/a |
+| Create request | n/a | ✓ (verified, vault non-empty, consent) | ✓ as customer | n/a |
+| Request read/messages | n/a | party only (customer or that designer) | party only | on dispute |
+| Quote/decline/status | n/a | n/a | ✓ own requests | dispute resolution |
+| Pay / confirm delivery / dispute | n/a | ✓ own orders | n/a | resolve |
+| Earnings/payout account | n/a | n/a | ✓ self | n/a |
+| Reports/blocks | n/a | ✓ | ✓ | queue + actions (block semantics: data-model §6.2, feed filtering, interaction bans, orders survive) |
 
 Enforcement: middleware resolves `{account, designer?, workspace?}` from the
-verified token once per request; handlers declare required capability —
-no inline ad-hoc checks.
+verified token once per request; handlers declare required capability, no inline ad-hoc checks.
 
 ## 3. Rate limits (per account unless stated)
 
@@ -86,12 +85,12 @@ not optional). Every service validates the Kafka contract's examples.
 ## 5. Logging & observability
 
 - slog JSON (Go) / structlog-style (Python); every request logs one line:
-  `request_id, route, status, duration_ms, account_id?` — **account id only,
+  `request_id, route, status, duration_ms, account_id?`, **account id only,
   never email**.
 - **Never-log list** (CI grep-gated): measurement values, capture image
   bytes/URLs with tokens, session tokens, handoff codes, payment provider payloads,
   message bodies.
-- Events → Upstat per flow specs (counters only). Cloud Run structured
+- Events → the monitoring service per flow specs (counters only). Cloud Run structured
   logging picks up slog JSON natively.
 
 ## 6. Acceptance
@@ -104,25 +103,25 @@ not optional). Every service validates the Kafka contract's examples.
 
 ## CORS contract (ecosystem standard)
 
-- Env: **`CORS_ORIGINS`** — comma-separated exact origins; no wildcard in
+- Env: **`CORS_ORIGINS`**, comma-separated exact origins; no wildcard in
   cloud; `http://localhost:3000` default for native dev.
 - Behaviour: echo the request Origin **only if allowlisted**; `Vary: Origin`;
-  `Allow-Credentials: false` (bearer auth — no cookies);
+  `Allow-Credentials: false` (bearer auth, no cookies);
   methods `GET,POST,PUT,PATCH,DELETE,OPTIONS`; headers
   `Authorization, Content-Type, Idempotency-Key, X-Org-Id`; preflight 204
   with `Access-Control-Max-Age: 600`.
-- Implemented in api/common and api/uploads (`CORS_ORIGINS` — the ecosystem-standard variable name); uploads allows `POST` and the `Upload-Ticket` header only.
+- Implemented in api/common and api/uploads (`CORS_ORIGINS`, the ecosystem-standard variable name); uploads allows `POST` and the `Upload-Ticket` header only.
 
 ## Telemetry (OpenTelemetry, X-9)
 
 - Traces: OTel SDK auto-instrumentation (HTTP server/client, gRPC, DB) +
   manual spans on domain operations; W3C traceparent propagated on every
   outbound call (incl. service-to-service).
-- Metrics: OTel Meter API — each service registers its KPI instruments
+- Metrics: OTel Meter API, each service registers its KPI instruments
   (request histograms come free; domain counters per the flow specs'
-  instrumentation sections are PRODUCT events via upstat /v1/events, NOT
-  OTel metrics — keep the pipelines separate).
+  instrumentation sections are PRODUCT events via the monitoring service's /v1/events, NOT
+  OTel metrics, keep the pipelines separate).
 - Logs: slog/logging → OTel bridge dual-emit (JSON stdout for Cloud Run +
-  OTLP to upstat). The never-log list applies to BOTH pipelines.
-- Export: direct OTLP, env-gated (no endpoint ⇒ no-op); receiver = upstat
+  OTLP to the monitoring service). The never-log list applies to BOTH pipelines.
+- Export: direct OTLP, env-gated (no endpoint ⇒ no-op); receiver = the monitoring service
   ingest (X-9). Sampling: parent-based, 10% default, errors always.

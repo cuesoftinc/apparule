@@ -9,7 +9,7 @@
 
 ## Configuration
 
-Never commit secrets — provide configuration via `.env` / environment
+Never commit secrets, provide configuration via `.env` / environment
 variables. Compose reads the root `.env` (copy `.env.example`); its defaults
 point every service at the local Postgres, Kafka, Redis and SeaweedFS,
 so only a few values matter locally:
@@ -39,7 +39,7 @@ make down      # stop and remove
 ```
 
 - Web: http://localhost:3000, sign in with Google (redirect flow)
-- API (common): http://localhost:8080 — `/health`, `/ready`
+- API (common): http://localhost:8080, `/health`, `/ready`
 - Uploads: http://localhost:8082 · Segmentation: :8081 · Commerce: :8083
 - S3 (SeaweedFS): :8333 ·
   Kafka: localhost:9094 · Postgres: :5432

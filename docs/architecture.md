@@ -1,4 +1,4 @@
-# Apparule — System Architecture
+# Apparule, System Architecture
 
 > The system as built, from the ratified [system design](system-design.md)
 > (S-1…S-15, decided 2026-10-20). The design holds the reasoning (drivers,
@@ -15,17 +15,17 @@ flowchart LR
         PS[Paystack]
     end
 
-    WEB[web — Next.js<br/>App Hosting · /api/v1 proxy]
+    WEB[web, Next.js<br/>App Hosting · /api/v1 proxy]
 
-    COMMON[api/common — Go<br/>CRUD · auth · tickets · outbox · sweeps]
-    UP[api/uploads — Node<br/>ticketed upload gateway]
-    SEG[api/segmentation — Python<br/>pose QC · measurements]
-    COM[api/commerce — Python<br/>money decisions · push · email]
+    COMMON[api/common, Go<br/>CRUD · auth · tickets · outbox · sweeps]
+    UP[api/uploads, Node<br/>ticketed upload gateway]
+    SEG[api/segmentation, Python<br/>pose QC · measurements]
+    COM[api/commerce, Python<br/>money decisions · push · email]
 
-    PG[(Aiven Postgres<br/>RLS)]
+    PG[(managed Postgres<br/>RLS)]
     GCS[(Cloud Storage<br/>tmp · captures · media · compute)]
-    R[(Aiven Redis)]
-    K[[CueLABS shared Kafka<br/>cuelabs.uploads · requests · results]]
+    R[(managed Redis)]
+    K[[shared Kafka<br/>cuelabs.uploads · requests · results]]
 
     APP --> COMMON
     BR --> WEB
@@ -50,12 +50,12 @@ Four services, named by function and split by role (CueLABS language rule):
 
 | Unit | Lang | Role | Owns | Port |
 | --- | --- | --- | --- | --- |
-| `api/common` | Go | **CRUD** — the whole product API; authorizes every upload; stores every decision | Postgres (sole client); confirmed objects | 8080 |
-| `api/segmentation` | Python | **Processing** — per-pose QC and template measurements | nothing | 8081 |
-| `api/uploads` | Node (NestJS) | **Thin gateway** — verifies tickets, checks and cleans images, hands off by pointer | nothing | 8082 |
-| `api/commerce` | Python | **Processing** — every money decision; push and email delivery | nothing | 8083 |
-| `web` | Next.js | Landing, docs hub, dashboard; proxies `/api/v1` | — | 3000 |
-| `mobile/flutter` | Dart | The app (guided two-pose capture, feed, orders) | local cache | — |
+| `api/common` | Go | **CRUD**, the whole product API; authorizes every upload; stores every decision | Postgres (sole client); confirmed objects | 8080 |
+| `api/segmentation` | Python | **Processing**, per-pose QC and template measurements | nothing | 8081 |
+| `api/uploads` | Node (NestJS) | **Thin gateway**, verifies tickets, checks and cleans images, hands off by pointer | nothing | 8082 |
+| `api/commerce` | Python | **Processing**, every money decision; push and email delivery | nothing | 8083 |
+| `web` | Next.js | Landing, docs hub, dashboard; proxies `/api/v1` | n/a | 3000 |
+| `mobile/flutter` | Dart | The app (guided two-pose capture, feed, orders) | local cache | n/a |
 
 Services talk only through the shared bus (S-2); HTTP between them exists
 solely as a data-free `GET /health` wake-up for scale to zero.
@@ -181,7 +181,7 @@ holds images: `tmp/` (24 h), `captures/` (30 days after save), `media/`
 URLs), `compute/` (claim-check payloads, 1 day). Redis holds rate-limit
 windows. See [data-model.md](data-model.md).
 
-## 5. SMPL pipeline — target measurement engine **[Planned, PRD §5]**
+## 5. SMPL pipeline, target measurement engine **[Planned, PRD §5]**
 
 SMPL (Skinned Multi-Person Linear model) is a parametric 3-D body model: body
 shape is expressed as low-dimensional shape coefficients (β) from which a full
@@ -204,15 +204,15 @@ flowchart LR
   (`mediapipe_2d_v2` vs `smpl_v1`, recorded per session).
 - Fitting needs GPU inference for the cloud offering (open question 5);
   self-hosters keep the CPU-only 2-D method.
-- **Risk R1 — licensing**: SMPL weights are research-licensed; commercial use
+- **Risk R1, licensing**: SMPL weights are research-licensed; commercial use
   requires a Meshcapade/MPI license. Resolve before the cloud pipeline ships
   (prd.md §8.3, A-3).
 
 ## 6. Deployment **[Built]**
 
 - **Cloud** (X-3, X-6): Cloud Run services at min 0 (scale to zero with
-  wake-ups), sweeps as Cloud Scheduler POSTs to common, the shared Aiven Postgres and Valkey, the shared
-  Aiven Kafka, Cloud Storage; web on Firebase App Hosting. Tag-gated
+  wake-ups), sweeps as Cloud Scheduler POSTs to common, the managed Postgres and Valkey, the shared
+  Kafka, Cloud Storage; web on Firebase App Hosting. Tag-gated
   releases. See [deployment.md](deployment.md).
 - **Self-host**: `docker-compose.yml` (Postgres, Kafka KRaft, Redis,
   SeaweedFS, the four services, the sweep loop,
@@ -223,6 +223,6 @@ flowchart LR
 | Dependency | Needed by | Status |
 | --- | --- | --- |
 | D1 `account.cuesoft.io` facade | future identity facade only | **Not blocking** (X-1): in-app Google sign-in with an API-issued session is the ratified interim; the facade can front the same sign-in later. |
-| D2 Upstat event-ingestion API | ECO-ANALYTICS | Upstat has no generic event endpoint today — tracked in upstat's roadmap. |
+| D2 Monitoring service event-ingestion API | ECO-ANALYTICS | The monitoring service has no generic event endpoint today, tracked in the monitoring service's roadmap. |
 | D3 `privacy.cuesoft.io` Apparule clause | APP-005 | Content dependency; page links out. |
-| CueLABS shared Kafka (X-11) | every hand-off | Shared with Expendit and Upstat; Expendit keeps it awake. |
+| shared Kafka (X-11) | every hand-off | Shared with the sibling products; a sibling product keeps it awake. |
