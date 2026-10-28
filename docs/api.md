@@ -1,4 +1,4 @@
-# Apparule, API Surface
+# Apparule — API Surface
 
 > The HTTP surface as built (system-design.md §7, S-1…S-15). The web mock
 > server (`web/src/app/api/mock/v1`) defined the contract and `api/common`

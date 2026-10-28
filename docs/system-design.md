@@ -1,6 +1,6 @@
-# Apparule, System Design
+# Apparule — System Design
 
-> **Status: [Decided] v1, ratified 2026-10-20** (S-1…S-15 in
+> **Status: [Decided] v1 — ratified 2026-10-20** (S-1…S-15 in
 > [decisions.md](decisions.md#system-design-s-1--s-15), approved by the boss,
 > with the 2026-10-13 shared-bus amendment, X-11, folded in). Built the same
 > day; §16 records what building it settled. This document replaces the
@@ -34,7 +34,7 @@
 
 ## Contents
 
-1. Why redesign, audit of the current design
+1. Why redesign — audit of the current design
 2. Design drivers
 3. Architecture overview
 4. Services
@@ -45,14 +45,14 @@
 9. Reliability, failure modes, and capacity
 10. Deployment topology
 11. Repository layout
-12. Doc map, keep, change, retire
+12. Doc map — keep, change, retire
 13. Decisions to ratify
 14. Migration plan
 15. Open questions
 
 ---
 
-## 1. Why redesign, audit of the current design **[Current docs]**
+## 1. Why redesign — audit of the current design **[Current docs]**
 
 This audit is of the **documented design** (architecture.md, data-model.md,
 deployment.md, api.md, and the flow docs), not the code, which is still a
@@ -71,7 +71,7 @@ two-service one it started with.
 | F7 | **The pipeline draft gave the gateway a database.** `uploads` wrote a Postgres staging row, and that row had no cleanup path. | Apparule Pipeline artifact, open item 3 | Breaks the standard's "gateway owns no persisted state"; leaves stale rows. |
 | F8 | **Kafka consumers on scale-to-zero services.** The runtime table sets `common` and `measure` to min 0; a queue consumer at zero instances never wakes. | deployment.md §4 | The pipeline draft would silently stop once idle. |
 | F9 | **The QC contract assumes a synchronous pipeline.** The upload request itself returns `422` per pose. | flows/vault.md §1 step contracts; capture-qc.md | Any queue between upload and QC breaks this contract; it has to be restated as a status. |
-| F10 | **The docs disagree with each other.** architecture.md §2 says Flutter may call `measure` directly for self-host; deployment.md §4 says `measure` has no public ingress; A-4 says Postgres, X-5 says Firestore, data-model.md §2 is drawn relationally. Apparule's place as an the monitoring service customer (events + OTLP) isn't in any system picture. | n/a | Contributors can't tell which design is current. |
+| F10 | **The docs disagree with each other.** architecture.md §2 says Flutter may call `measure` directly for self-host; deployment.md §4 says `measure` has no public ingress; A-4 says Postgres, X-5 says Firestore, data-model.md §2 is drawn relationally. Apparule's place as an the monitoring service customer (events + OTLP) isn't in any system picture. | —   | Contributors can't tell which design is current. |
 
 What *is* solid and carries forward: every product decision (A-1…A-11,
 M-*, X-1…X-10 except X-5's datastore), the flow docs and order state
@@ -110,7 +110,7 @@ flowchart LR
     end
 
     subgraph Edge
-        WEB[web, Next.js<br/>App Hosting + CDN]
+        WEB[web — Next.js<br/>App Hosting + CDN]
     end
 
     COMMON[api/common, Go<br/>CRUD · auth · feed · orders · outbox · sweeps]
@@ -160,7 +160,7 @@ added. `segmentation` is today's `measure` renamed, so it keeps 8081.
 
 | Unit | Lang | Role | Responsibility | Owns | Port |
 | --- | --- | --- | --- | --- | --- |
-| `web` | Next.js | Frontend | Landing, docs hub, `/docs/api`, dashboard (feed, vault, requests, designer workspace, moderation) | n/a | 3000 |
+| `web` | Next.js | Frontend | Landing, docs hub, `/docs/api`, dashboard (feed, vault, requests, designer workspace, moderation) | —   | 3000 |
 | `api/common` | **Go** | **CRUD** | The whole product API: Google sign-in and session JWTs, accounts, workspaces, customers, consent, instance requests, vault and sessions, posts, follows, likes, saves, comments, feed and explore queries, requests and the order state machine's user-driven transitions, threads, reports and blocks, notification rows, exports. **Authorizes every upload** and issues a signed upload ticket for it, counting the bytes it authorizes against the daily upload quota (§6.1). **Receives Paystack webhooks** (verify signature, store raw event). **Outbox publisher.** **Scheduled sweeps** (lookup-then-write: quote expiry, auto-confirm, escrow timeout, retention purge). Persists every decision Python makes. | **Postgres** (sole client), Cloud Storage confirmed prefixes | 8080 |
 | `api/segmentation` | **Python** | Processing | Per-pose image pre-checks and pose QC (capture-qc.md), measurement extraction against the customer's A-10 template, per-measurement confidence. MediaPipe 2-D today; SMPL at Phase E. | nothing; reads temp images, emits via Kafka | 8081 |
 | `api/uploads` | **Node** (NestJS) | Thin gateway | Capture photos (front + side), post media, thread attachments: verifies the upload ticket `common` issued (public key, no call), type/size/decode checks against the ticket's limits, EXIF and GPS stripping, write to temporary Cloud Storage, pointer → Kafka. Stateless. | nothing: no database, no Redis, only `common`'s public keys | 8082 |
@@ -578,7 +578,7 @@ docs/
 
 ---
 
-## 12. Doc map, keep, change, retire
+## 12. Doc map — keep, change, retire
 
 | Doc | Fate |
 | --- | --- |
@@ -604,11 +604,11 @@ docs/
 | **S-5** | **Claim-check**: bytes only in Cloud Storage `tmp/` (24 h lifecycle), pointers on Kafka, `common` moves on save | pipeline draft's staging table | ☑ 2026-10-20 |
 | **S-6** | **Money decisions in `api/commerce`**: provider-event matching, fee and payout arithmetic, transfers and refunds, reconciliation. `common` persists | architecture.md §8 J4 + webhook handling in common | ☑ 2026-10-20 |
 | **S-7** | **Notification delivery in `api/commerce`** (FCM, Brevo); `common` writes the rows | architecture.md §8 "common → FCM" | ☑ 2026-10-20 |
-| **S-8** | Config and ledger propagate by **transactional outbox**; ~~compacted topics~~ no compacted topics (X-11) | n/a | ☑ 2026-10-20, amended |
+| **S-8** | Config and ledger propagate by **transactional outbox**; ~~compacted topics~~ no compacted topics (X-11) | —   | ☑ 2026-10-20, amended |
 | **S-9** | ~~Worker pools for `segmentation` and `commerce`; `common` min 1~~ every service scales to zero with wake-ups (X-11); sweeps as Cloud Scheduler POSTs to common | deployment.md §4 | ☑ 2026-10-20, amended |
 | **S-10** | Counter reconciliation retires (transactional counters). Feed ranking stays SQL in `common` until it becomes a model, then moves to Python | architecture.md §8 J5 | ☑ 2026-10-20 |
 | **S-11** | Tenancy defence in depth: Postgres RLS; per-prefix Storage IAM; per-service Kafka ACLs | engineering.md §6 Firestore rules | ☑ 2026-10-20 |
-| **S-12** | Paystack webhooks land on `common` (verify + store raw + outbox); interpretation in `commerce` | n/a | ☑ 2026-10-20 |
+| **S-12** | Paystack webhooks land on `common` (verify + store raw + outbox); interpretation in `commerce` | —   | ☑ 2026-10-20 |
 | **S-13** | Event types `apparule.<domain>.<event>` on the shared lanes `cuelabs.uploads/requests/results` (X-11) | pipeline draft's `apparule.uploaded/ready/processed` | ☑ 2026-10-20, amended |
 | **S-14** | Ports: common 8080, segmentation 8081 (keeps `measure`'s), uploads 8082, commerce 8083 | pipeline draft (uploads 8081, segmentation 8082) | ☑ 2026-10-20 |
 | **S-15** | **Upload tickets**: `common` authorizes every upload first and issues a single-use, 5-minute ticket signed with its private key (Ed25519); the gateway verifies it with the public key and accepts nothing without one. The gateway is stateless (no database, no Redis); all limits and quotas are enforced in `common` | the pipeline draft's gateway, which stored images before any authorization | ☑ 2026-10-20 |

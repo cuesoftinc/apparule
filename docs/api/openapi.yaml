@@ -94,7 +94,7 @@ paths:
                 - { type: object, required: [method, measurements], properties: { method: { const: manual }, measurements: { type: array, items: { type: object, required: [name, value_cm], properties: { name: { type: string }, value_cm: { type: number, minimum: 10, maximum: 200 } } } } } }
                 - { type: object, required: [input_height_cm], properties: { method: { const: capture }, input_height_cm: { type: number, minimum: 100, maximum: 230 } } }
       responses:
-        "201": { description: "Manual: the complete session. Capture: the session (awaiting_upload) with `upload`; POST the photos to /api/v1/uploads with it", content: { application/json: { schema: { $ref: "#/components/schemas/CaptureStarted" } } } }
+        "201": { description: "Manual: the complete session. Capture: the session (awaiting_upload) with `upload` — POST the photos to /api/v1/uploads with it", content: { application/json: { schema: { $ref: "#/components/schemas/CaptureStarted" } } } }
         "403": { description: consent_required }
         "409": { description: template_required (A-10b) }
         "429": { description: rate_limited (captures 10/min, 100/day; uploads 100 MB/day) }
@@ -129,7 +129,7 @@ paths:
     post: { tags: [vault], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Generate PDF/CSV export, requestBody: { content: { application/json: { schema: { type: object, properties: { format: { enum: [pdf, csv] } } } } } }, responses: { "201": { description: Signed URL (TTL) } } }
 
   /api/v1/feed:
-    get: { tags: [social], summary: "Ranked home feed (rank frozen per cursor, 24h lifetime; api.md §5)", parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }], responses: { "200": { description: Posts page } } }
+    get: { tags: [social], summary: "Ranked home feed (rank frozen per cursor, 24h lifetime — api.md §5)", parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }], responses: { "200": { description: Posts page } } }
   /api/v1/explore:
     get:
       tags: [social]
@@ -230,7 +230,7 @@ paths:
   /webhooks/payments:
     post:
       tags: [webhooks]
-      summary: Paystack webhook; signature-auth only (never bearer); unverified => 401 + ops alert
+      summary: Paystack webhook — signature-auth only (never bearer); unverified => 401 + ops alert
       security: []
       responses: { "200": { description: Processed (idempotent by provider reference) }, "401": { description: Invalid signature } }
 

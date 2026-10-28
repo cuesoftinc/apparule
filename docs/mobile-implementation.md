@@ -1,4 +1,4 @@
-# Apparule, Mobile Implementation Standard
+# Apparule — Mobile Implementation Standard
 
 > How `mobile/flutter` gets built: the **CueLABS™ Mobile (Flutter)
 > Implementation Standard** (ratified 2026-07-21, org-wide
@@ -20,7 +20,7 @@
 
 ## 1. Scope & phases
 
-Mobile is authorized for **apparule only** (2026-07-21, explicit), no
+Mobile is authorized for **apparule only** (2026-07-21, explicit) — no
 sibling product carries a mobile app in its PRD. The build follows the same
 "docs are the contract, mocks before API" method as `web/`, applied to the
 existing `mobile/flutter` project rather than a greenfield tree: the legacy
@@ -31,7 +31,7 @@ nothing.
 Four phases, each closing before the next opens (mirrors the audit ledger's
 **ratified migration order**):
 
-1. **Restructure**, toolchain floor (FVM pin, Dart/AGP/Kotlin/Gradle raised,
+1. **Restructure** — toolchain floor (FVM pin, Dart/AGP/Kotlin/Gradle raised,
    junk purged, no behavior change) → a mobile CI lane (analyze + test,
    closing the X-6/CV-7 gap) → the feature-first skeleton (§3), typed router
    (§5), Riverpod DI (§4), and the token theme (§7) with an en-only l10n
@@ -39,34 +39,34 @@ Four phases, each closing before the next opens (mirrors the audit ledger's
 2. **Design/components**, one `core/ui` module per Figma C-series component
    set (§7), golden-tested, before any screen consumes them, the same
    build-order discipline as `web/`'s W1 stage.
-3. **Screens over seeded fakes**, every C-series screen (§5 route map)
+3. **Screens over seeded fakes** — every C-series screen (§5 route map)
    wired to its ViewModel and repository, backed entirely by `*Fake`
    repositories reading the seed narrative (§6). This is the bulk of the
    work and where the legacy salvage/rewrite/drop ledger (§11) executes.
-4. **API last**, `*Remote` repositories implement the same interfaces the
+4. **API last** — `*Remote` repositories implement the same interfaces the
    fakes already satisfy; `main.dart` (prod, M-7) swaps the provider
    overrides. No screen or ViewModel changes at this step by construction.
 
 Backend integration timing follows the fleet rule: mobile's API wiring and
-the backend services it calls remain separately gated, this doc covers
+the backend services it calls remain separately gated — this doc covers
 phases 1–3 in full and phase 4's client-side contract; the backend itself is
 unauthorized independent of this doc (roadmap.md).
 
 ## 2. Toolchain
 
-- **Flutter 3.44.7 / Dart 3.12**, pinned via **FVM**, `.fvmrc` is the single
+- **Flutter 3.44.7 / Dart 3.12**, pinned via **FVM** — `.fvmrc` is the single
   source of truth (CI reads it via `subosito/flutter-action@v2` with
   `cache: true`; no `v3` of that action exists yet), mirrored as a hard
   `environment: flutter:` pin in `pubspec.yaml`. Android floor **API
-  24**–37; iOS **15**–26, Firebase iOS SDK 12 (`firebase_core` 4.x, §9)
+  24**–37; iOS **15**–26 — Firebase iOS SDK 12 (`firebase_core` 4.x, §9)
   requires iOS 15, so the deployment target is 15.0 across every build
   configuration; the generated SwiftPM package inherits the floor from
   the Xcode project on each `flutter build ios` (no hand-patching).
-- **SwiftPM is the iOS dependency default** at 3.44, CocoaPods' registry
+- **SwiftPM is the iOS dependency default** at 3.44 — CocoaPods' registry
   goes read-only 2026-12-02, so no new CocoaPods dependency is added; the
   existing iOS shell (salvaged per §11) migrates its dependency graph to
   SwiftPM as part of the restructure, not deferred to a later cleanup.
-- **Flavors, exactly two (M-7)**: `dev` and `prod`. There is
+- **Flavors — exactly two (M-7)**: `dev` and `prod`. There is
   ONE real environment, so the sandbox is production (X-6). `dev`
   carries `applicationIdSuffix ".dev"` and rides the fake repositories;
   `prod` carries the bare `io.cuesoft.apparule` id and runs on
@@ -74,7 +74,7 @@ unauthorized independent of this doc (roadmap.md).
   `prod`, the default; `main_dev.dart` = fakes). On iOS the pair is the
   `dev`/`prod` shared schemes over `Debug/Release/Profile-<flavor>`
   build configurations (Flutter's flavor convention), each layering a
-  flavor xcconfig over its mode base, iOS has no suffix mechanism, so
+  flavor xcconfig over its mode base — iOS has no suffix mechanism, so
   `PRODUCT_BUNDLE_IDENTIFIER` is spelled per flavor
   (`io.cuesoft.apparule.dev` / bare). Flavored builds are also what
   scopes the dev-only `assets/seed/` bundle entries: a flavorless
@@ -96,7 +96,7 @@ unauthorized independent of this doc (roadmap.md).
   model Firebase already ships with).
 - Icons/splash: `flutter_launcher_icons` + `flutter_native_splash`,
   configured from the design.md §2 brand construction (white Inter-Bold
-  "A" on the accent gradient, the web favicon adjudication): source
+  "A" on the accent gradient — the web favicon adjudication): source
   PNGs are generated from tokens by `tool/gen_brand_assets.mjs` (the
   mobile sibling of web's `generate-brand-assets.mjs`) into
   `assets/brand/` with sha256 provenance; the launcher icon ships
@@ -105,9 +105,9 @@ unauthorized independent of this doc (roadmap.md).
   C0 frame (canvas 534:9096): the white A centered on the FULL-BLEED
   accent gradient (mode-invariant; Android 12+ splash API can't paint a
   background image, so 12+ keeps token `bg` + the gradient-disc
-  variant). Both flavors share the mark, the per-flavor
+  variant). Both flavors share the mark — the per-flavor
   display name distinguishes side-by-side installs. Version stamp
-  `x.y.z+build`, humans own `x.y.z`, CI stamps the build number from
+  `x.y.z+build` — humans own `x.y.z`, CI stamps the build number from
   `GITHUB_RUN_NUMBER`.
 
 ## 3. Architecture
@@ -121,7 +121,7 @@ ViewModel → repository → service → back up as new state); domain models ar
 immutable; a `domain/` use-case layer appears inside a feature only when
 genuinely earned (multiple ViewModels sharing non-trivial orchestration), most features skip it.
 
-Organization is **feature-first**, not layer-first, no separate top-level
+Organization is **feature-first**, not layer-first — no separate top-level
 `application/` layer exists anywhere in the tree:
 
 ```
@@ -184,7 +184,7 @@ getting a seventh top-level feature; the request stepper (C5) sits in
 `orders` since it is the order-creation flow, not a feed action; comments
 (C11) and explore (C3) stay in `feed` alongside the home feed and post
 detail (C2/C4) since all four operate over the same post/social-graph
-repository. Designer onboarding/KYC (C13) sits with earnings (C14), one
+repository. Designer onboarding/KYC (C13) sits with earnings (C14) — one
 feature for the designer-monetization surface, matching web's B8/B9
 pairing.
 
@@ -203,15 +203,15 @@ conventions, surfaced by `flutter analyze` in CI. Widgets are
 `ConsumerWidget`/`ConsumerStatefulWidget`; form/action submissions use
 Riverpod mutations rather than hand-rolled loading-state fields.
 
-DI = **provider overrides per environment**, `main_dev.dart` /
+DI = **provider overrides per environment** — `main_dev.dart` /
 `main.dart` each build a `ProviderScope` with the repository providers
 overridden to `*Fake` or `*Remote` accordingly (§6, M-7).
-No second DI container (`get_it` is not introduced), Riverpod's provider
+No second DI container (`get_it` is not introduced) — Riverpod's provider
 graph is the only injection mechanism, matching the ratified rejection of
 Bloc (boilerplate at this app's size) and GetX (not standards-grade). The
 legacy app's `provider ^6.0.5` package (`ChangeNotifier`-based state in
 `main.dart`'s static `ValueNotifier`s) is superseded outright, not
-bridged, see §11.
+bridged — see §11.
 
 Naming convention: `xViewModelProvider` (or `xControllerProvider` for
 non-screen-scoped orchestration), generated file `x_view_model.g.dart`
@@ -219,29 +219,29 @@ committed alongside its source (§3 codegen note).
 
 ## 5. Routing
 
-**go_router + go_router_builder**, typed routes, accepted **in maintenance
+**go_router + go_router_builder**, typed routes — accepted **in maintenance
 mode** (first-party, revisit only if a successor package emerges; no
 alternative router is introduced meanwhile). A `StatefulShellRoute` drives
 the persistent tab shell; one top-level `redirect` (via `refreshListenable`
 bound to the session/auth provider) gates every route behind sign-in except
 the auth screen itself, replacing the legacy's push-only Navigator 1.0
-chains (CV-7 in the audit ledger, back-at-root pushing again, "Log Out"
+chains (CV-7 in the audit ledger — back-at-root pushing again, "Log Out"
 pushing Home without clearing the stack).
 
 The router mounts only after the **C0 boot gate** settles the session
 (§9): cold start runs the silent restore behind the branded `BootScreen`
-(C0, gradient wordmark on the token `bg`, continuing the native splash),
+(C0 — gradient wordmark on the token `bg`, continuing the native splash),
 so a signed-in relaunch never flashes C1 and a signed-out boot lands on C1
-with the answer known. C0 precedes the router, it has no route of its
+with the answer known. C0 precedes the router — it has no route of its
 own.
 
 Tab shell per pages.md Part C: **Home · Explore · ➕ · Orders · Profile**
 (design.md §3). The centre `➕` tab opens the **two-option create
 chooser** (M-11, both platforms): "Take measurements" pushes the
-`/capture` flow (§10); "Post an outfit" is designer-gated, designers
+`/capture` flow (§10); "Post an outfit" is designer-gated — designers
 open the post composer (`/create/post`, C15), non-designers route
 to become-a-designer (`/designer/onboarding`). Deep links (App Links/Universal Links, per
-the standard cookbook) are on by default, a post permalink
+the standard cookbook) are on by default — a post permalink
 (`apparule.cuesoft.io/p/{post_id}`, web-implementation.md §4) opens the C4
 post-detail screen in-app when the app is installed.
 
@@ -258,29 +258,29 @@ post-detail screen in-app when the app is installed.
 | `/vault` | Measurement vault | C7 |
 | `/orders` (Orders tab) · `/orders/{id}` | Orders list + detail | C8 |
 | `/profile` (Profile tab) · `/profile/{username}` | Own / other profile | C9 |
-| `/profile/edit` | Edit profile (display name · bio, designer-scoped, hidden for non-designers (pages.md C9) · X-10 location) | C9 |
+| `/profile/edit` | Edit profile (display name · bio — designer-scoped, hidden for non-designers (pages.md C9) · X-10 location) | C9 |
 | `/notifications` | Notifications sheet | C10 |
 | `/profile/{username}/followers` · `/following` | Followers/following | C12 |
-| `/settings` · `/settings/{notifications,privacy,account}` | Settings root + the B7-mobile sub-screens (canvas 207:*), account & data carries the export-first delete ladder | pages.md B7 |
+| `/settings` · `/settings/{notifications,privacy,account}` | Settings root + the B7-mobile sub-screens (canvas 207:*) — account & data carries the export-first delete ladder | pages.md B7 |
 | `/designer/onboarding` | Designer onboarding & KYC | C13 |
-| `/designer/onboarding/payout` | Payout banking form (Paystack states), a sibling under the prefix, not a child (the capture-guide precedent: re-verification entries must not stack a stale intro) | C13 |
+| `/designer/onboarding/payout` | Payout banking form (Paystack states) — a sibling under the prefix, not a child (the capture-guide precedent: re-verification entries must not stack a stale intro) | C13 |
 | `/earnings` | Earnings & payouts | C14 |
-| `/create/post` | Post composer (designer), media grid over the `MediaPickerService` seam (image_picker live / bundled-sample fake), caption, snapshot-attach toggle | C15 |
+| `/create/post` | Post composer (designer) — media grid over the `MediaPickerService` seam (image_picker live / bundled-sample fake), caption, snapshot-attach toggle | C15 |
 
 The ➕ tab is an entry **gesture**, not a shell branch: it opens the
 M-11 chooser sheet over the current tab ("Take measurements" →
-`/capture`, §10; "Post an outfit", designer-gated → `/create/post`
+`/capture`, §10; "Post an outfit" — designer-gated → `/create/post`
 for designers, `/designer/onboarding` otherwise).
 
 ## 6. Data layer & mock-first (TEST_MODE parity)
 
 Every repository is **abstract**, with `*Remote` and `*Fake`
-implementations satisfying the same interface, the compass-app pattern
+implementations satisfying the same interface — the compass-app pattern
 (standards-research.md item 7). ViewModels depend only on the abstract
 type; nothing above the repository boundary knows which implementation is
 active. This is the mobile analogue of web's `TEST_MODE` seam
 (web-implementation.md §5): the two entrypoints (`main_dev.dart`,
-`main.dart`) pick the provider-override set (M-7), both ride fakes
+`main.dart`) pick the provider-override set (M-7) — both ride fakes
 today; `main.dart` (prod) is where `*Remote` is introduced when API
 wiring lands (§1 phase 4). No `if (kDebugMode)` branching inside
 feature code.
@@ -290,10 +290,10 @@ The fakes run the **real session lifecycle** (decided
 through the same secure-storage seam the API-session implementation uses
 for tokens at rest, so a first-ever launch boots signed out to C1, the
 instant fake "Continue with Google" survives relaunches, and sign-out
-purges it back to C1, exactly web TEST_MODE's session behavior, over
+purges it back to C1 — exactly web TEST_MODE's session behavior, over
 the same boot gate prod will use (§9).
 
-`*Fake` repositories read seeded JSON from `assets/seed/`, the
+`*Fake` repositories read seeded JSON from `assets/seed/` — the
 dev-flavor asset scope keeps seed data out of prod bundles. Domain seed
 files (one per domain, mirroring the mock server's grouping,
 web-implementation.md §6) tell the **same story** as the web dashboard's
@@ -306,32 +306,32 @@ The `assets/seed/dev/` bundle, in full:
 | --- | --- | --- |
 | `assets/seed/dev/me.json` | Signed-in test user: non-designer, vault populated across all three freshness states, follows several designers; account fields (email · bio · notification/privacy prefs · consent ledger) for C9/B7 | web §6 "signed-in test user" |
 | `assets/seed/dev/designers.json` | The Nigerian designer-persona cast, incl. `eniola.stitches` (Abuja, proximity-ranking exemplar) | web §6 designer cast |
-| `assets/seed/dev/accounts.json` | The community cast + the full follow edge list, C12 lists and every profile count derive from these edges (follower counts mirror the graph) | web §6 `seedFollows` verbatim |
+| `assets/seed/dev/accounts.json` | The community cast + the full follow edge list — C12 lists and every profile count derive from these edges (follower counts mirror the graph) | web §6 `seedFollows` verbatim |
 | `assets/seed/dev/earnings.json` | The designer-monetization story: `amara.designs` carries the ratified C14 canvas ledger (₦82,500 available / ₦45,000 escrow, Paystack refs) | web canvas A6/B9 demo story |
 | `assets/seed/dev/posts.json` | Published posts over the same CC-sourced photography pool, captions, style tags, NGN price bands | web §6 posts / design.md §8.3 asset pool |
 | `assets/seed/dev/vault_sessions.json` | Scan + manual measurement sessions (the source for `me.json`'s vault and for measurement snapshots frozen into orders) | web §6 vault seed / capture-qc.md |
 | `assets/seed/dev/orders.json` | All ten order-lifecycle states, at least one per role view, incl. an escrow-held payment and a dispute-frozen order | web §6 "all ten states" |
 | `assets/seed/dev/notifications.json` | Every notification kind, part unread | web §6 notifications |
-| `assets/seed/dev/capture_samples.json` | The fake camera's QC scenario catalog, one scenario per fail code plus the happy path and a multi-fault exemplar, carrying the simulated pipeline metrics the real threshold evaluation runs against | capture-qc.md fail-code table |
+| `assets/seed/dev/capture_samples.json` | The fake camera's QC scenario catalog — one scenario per fail code plus the happy path and a multi-fault exemplar, carrying the simulated pipeline metrics the real threshold evaluation runs against | capture-qc.md fail-code table |
 | `assets/seed/dev/sample_frontal.png` | The bundled front-pose frame every fake-camera scenario previews/captures | C6 capture (M-10 front pose) |
 | `assets/seed/dev/sample_side.png` | The bundled side-pose frame (right profile) | C6 capture (M-10 side pose) |
-| `assets/seed/dev/demo/` | The CC-licensed outfit photography pool (12 images + `ATTRIBUTIONS.md`), byte-identical to the web mock's `web/public/demo`, seed posts carry the web's `/demo/…` URL form verbatim, resolved to bundle assets by `seed_media` | web §6 media pool / design.md §8.3 sourcing |
+| `assets/seed/dev/demo/` | The CC-licensed outfit photography pool (12 images + `ATTRIBUTIONS.md`), byte-identical to the web mock's `web/public/demo` — seed posts carry the web's `/demo/…` URL form verbatim, resolved to bundle assets by `seed_media` | web §6 media pool / design.md §8.3 sourcing |
 
 The web seed's moderation queue has no mobile counterpart: filing a
 report (`PostRepository.reportPost`, held in-memory by the fake) is the
-only moderation seam shipped, a `moderation.json` joins the bundle
+only moderation seam shipped — a `moderation.json` joins the bundle
 if/when a queue surface lands.
 
 `*Fake` implementations apply the same invariants the web mock store
 unit-gates (comment counts match comment lists, follower counts mirror the
 follow graph, snapshots are frozen copies, plausible event cadence) rather
-than re-deriving them ad hoc, where practical, the fakes parse the
+than re-deriving them ad hoc — where practical, the fakes parse the
 identical JSON shapes the web mock server already seeds from, so the two
 seed sets can be regenerated from one source later without a divergent
 schema.
 
 **Data models**: `freezed` for domain models (immutable, one per
-repository); `json_serializable` for API models, kept **separate** from
+repository); `json_serializable` for API models — kept **separate** from
 domain models because the Go API's JSON shapes drift from what the UI
 wants (the same separation web's `models/` layer doesn't need to make,
 since it talks to its own mock/API directly). `build_runner` generates
@@ -342,7 +342,7 @@ regenerated in CI only).
 ## 7. Design system
 
 **Material 3 + one `ThemeExtension` per token group**, generated from the
-apparule Figma variables collection (design.md §7), the tokens JSON
+apparule Figma variables collection (design.md §7) — the tokens JSON
 committed in-repo is the reviewed artifact; the generated Dart
 (`lib/src/core/theme/tokens/`) is never hand-edited, matching web's "no raw
 hex in components" discipline (web-implementation.md §1) applied to
@@ -350,10 +350,10 @@ Flutter's theming model instead of CSS variables. Light and dark themes
 build from the same token set (design.md §2's true-black dark palette);
 fonts (Inter) are bundled, not fetched at runtime.
 
-**One `core/ui` module per Figma C-series component set**, constructor
+**One `core/ui` module per Figma C-series component set** — constructor
 parameters mirror the Figma variant axes exactly, the same rule web's
 `components/ui/*` follows for its component sets (web-implementation.md
-§1). Each module is **golden-tested** (`alchemist`, `golden_toolkit` is
+§1). Each module is **golden-tested** (`alchemist` — `golden_toolkit` is
 discontinued) across its variant matrix, both themes; a component is not
 considered done until its goldens exist. MI specs that apply to mobile
 (design.md §4; MI-20 haptics is mobile-only, the one MI not shared with
@@ -362,25 +362,25 @@ table, design.md §2) plus platform haptic feedback where named.
 
 ## 8. Quality gates
 
-CI (mobile lane, closing CV-7, the legacy app has zero tests and no
+CI (mobile lane, closing CV-7 — the legacy app has zero tests and no
 mobile CI lane today):
 
-1. **Format check**, `dart format --set-exit-if-changed`.
-2. **Codegen-fresh check**, `build_runner build` produces no diff against
+1. **Format check** — `dart format --set-exit-if-changed`.
+2. **Codegen-fresh check** — `build_runner build` produces no diff against
    committed `.g.dart`/`.freezed.dart`.
-3. **Static analysis**, `flutter analyze --fatal-infos` with
+3. **Static analysis** — `flutter analyze --fatal-infos` with
    `very_good_analysis` (strict casts/inference/raw-types) plus the
    `riverpod_lint` analyzer plugin.
-4. **Tests**, `flutter test`; the coverage gate (`--coverage` held by
+4. **Tests** — `flutter test`; the coverage gate (`--coverage` held by
    `very_good_coverage`) is deferred to a later wave. Unit tests
    (`mocktail`, not `mockito`) cover ViewModels, repositories, and
    services; widget tests cover every screen rendered over its `*Fake`
    repositories (the phase-3 deliverable, §1); golden tests (`alchemist`)
    cover every `core/ui` module (§7).
-5. **E2E smoke**, `patrol` journeys covering the pages.md §8.4-equivalent
+5. **E2E smoke** — `patrol` journeys covering the pages.md §8.4-equivalent
    critical paths (sign-in → feed → request → capture → vault), run
    **nightly**, not per-PR (patrol's device-farm cost profile).
-6. **Build gate**, every PR runs analyze+test plus an unsigned
+6. **Build gate** — every PR runs analyze+test plus an unsigned
    iOS-simulator build (`mobile-ios`, dev flavor: proves the Xcode flavor
    wiring, the SwiftPM graph at the iOS 15 floor, and that the flavored
    seed assets bundle); no `apk` build job exists yet, and `main`-merge
@@ -390,7 +390,7 @@ mobile CI lane today):
 ## 9. Auth
 
 Google sign-in **only**, carried from X-1/flows/auth.md unchanged in
-substance, mobile has no "email stub" to delete because it never had a
+substance — mobile has no "email stub" to delete because it never had a
 production backend; the legacy screen surface implementing the forbidden
 methods was quarantined at the cutover and removed 2026-07-22
 (CHANGELOG.md).
@@ -422,17 +422,17 @@ The API wiring below stays documented but **gated**: no entrypoint wires
   `apparule` scheme through the plugin's `CallbackActivity`; iOS needs no
   extra setup. Firebase stays for push only (`firebase_core`, §2).
 - **Boot gate**: cold start runs the silent restore behind the branded
-  in-app boot frame (`BootScreen`, gradient wordmark on the token `bg`,
+  in-app boot frame (`BootScreen` — gradient wordmark on the token `bg`,
   continuing the native splash; a quiet spinner only past ~300ms). The
   router mounts only once the session value settles, so a signed-in
   relaunch never flashes C1 and a signed-out boot lands on C1 with the
   answer known. The dev fake persists its session through the same seam
   (§6), so both flavors exercise this exact flow.
-- Session tokens live in `flutter_secure_storage`, never
+- Session tokens live in `flutter_secure_storage` — never
   `SharedPreferences` (the legacy app's session model: plaintext PII as the
   session itself, audit ledger critical finding #3 / CV-2).
 - Wrapped in an abstract `AuthRepository` with `AuthRepositoryApi` and
-  `AuthRepositoryFake` (§6), the fake satisfies the same interface so
+  `AuthRepositoryFake` (§6) — the fake satisfies the same interface so
   every screen downstream of sign-in works identically over seeded data
   before the API wiring lands.
 - Screen inventory: `login_page` becomes the single auth screen (C1, Google CTA + legal links, same copy as web's `/signin`); `sign_up_form`,
@@ -449,7 +449,7 @@ The pose progress renders as a centered over-media bar title ("Pose 1 of
 2" / "Pose 2 of 2", M-9).
 
 - **Flow**: 5-step guide (intro · get ready · phone setup · front pose ·
-  side pose, the canvas-first frames own copy and art, M-8; the ARB
+  side pose — the canvas-first frames own copy and art, M-8; the ARB
   re-keys to the canvas strings) → front capture with the front
   **silhouette overlay** (frame the subject against a body outline) and a
   **3-2-1 countdown** (the legacy `countdown.dart` `AnimatedWidget` is
@@ -479,10 +479,10 @@ The pose progress renders as a centered over-media bar title ("Pose 1 of
   cm); "Save to vault" is primary,
   "Retake" is quiet; a manual-entry fallback exists for QC that never
   clears. Saved results route into the `measurements` feature's vault
-  screen (C7), the same vault a request's measurement-snapshot picker
+  screen (C7) — the same vault a request's measurement-snapshot picker
   (C5) reads from.
 - What does **not** exist yet: the SMPL/girth pipeline (roadmap Phase 3)
-  and the recalibrated two-view girth estimation, capture ships against
+  and the recalibrated two-view girth estimation — capture ships against
   the current 2-D MediaPipe method only; the response schema's
   `method`/`confidence`/`qc` fields are additive, so C6 requires no rework
   when either lands.
@@ -490,7 +490,7 @@ The pose progress renders as a centered over-media bar title ("Pose 1 of
 ## 11. Legacy disposition
 
 Read-only audit of the pre-standard `mobile/flutter` prototype (124
-tracked files, UI-complete, **zero backend integration**, no URLs/`http`
+tracked files, UI-complete, **zero backend integration** — no URLs/`http`
 calls anywhere in `lib/`) produced the salvage ledger the restructure (§1
 phases 1–3) executed. What of that ledger still shapes the current tree
 is below; the quarantine-and-removal history lives in CHANGELOG.md.
@@ -519,7 +519,7 @@ DEBUG-key config); `README.md`/`.metadata`/`.gitignore`.
 
 The outer `mobile/android/` and `mobile/ios/` directories are **reserved
 placeholders for possible future native (non-Flutter) apps** (decided
-2026-07-22, `.gitkeep`-held), the Flutter app's platform dirs
+2026-07-22, `.gitkeep`-held) — the Flutter app's platform dirs
 live inside `mobile/flutter/`.
 
 **Toolchain findings folded into the restructure phase (§1)**: Dart
@@ -538,7 +538,7 @@ so `^0.20.2` is the widest range the SDK admits and the ledger's
 ## 12. Acceptance
 
 - [ ] Mobile CI lane green (format, codegen-fresh, analyze --fatal-infos
-      with the riverpod_lint plugin, flutter test, the coverage gate is
+      with the riverpod_lint plugin, flutter test — the coverage gate is
       deferred to a later wave) before any feature PR merges
 - [ ] `flutter/android`/`flutter/ios` are the Flutter app's platform
       directories and `flutter/web/` is gone; the outer `mobile/android`,
@@ -552,5 +552,5 @@ so `^0.20.2` is the widest range the SDK admits and the ledger's
       saving into the vault (C7)
 - [ ] Every `core/ui` module has goldens across its Figma variant axes,
       both themes
-- [ ] API wiring (phase 4) changes zero ViewModel or screen code, only
+- [ ] API wiring (phase 4) changes zero ViewModel or screen code — only
       provider overrides move from `*Fake` to `*Remote`

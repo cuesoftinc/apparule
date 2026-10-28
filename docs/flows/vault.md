@@ -1,7 +1,7 @@
 # Flow: Measurement Vault (capture, manual entry, history)
 
 > The vault is the profile's data spine (pages.md B4/C6/C7; data-model.md §2).
-> Covers camera capture, manual entry, history, retention, with every edge
+> Covers camera capture, manual entry, history, retention — with every edge
 > case an implementer needs. Requires auth (flows/auth.md) + verified email
 > is NOT required (measuring yourself is private); consent (`tos`,`privacy`)
 > IS required before the first session persists.
@@ -44,9 +44,9 @@ flowchart TD
 | Step | Contract |
 | --- | --- |
 | Height input | 100–230 cm (39–91 in); stored per account, editable in vault; changing height NEVER retro-scales old sessions (they froze their `input_height_cm`) |
-| Upload | create-then-upload (system-design.md §6.1, S-4): `POST /me/sessions {input_height_cm}` with one `Idempotency-Key` (UUID per capture attempt) answers the session and an upload ticket, a retried create returns the same session, never a duplicate; then multipart `image_front` + `image_side`, each ≤ 10 MB, JPEG/PNG/HEIC/WebP, go to `POST /uploads` with the ticket (`202`); the client compresses each to ≤ 2048 px and the gateway re-checks and strips EXIF/GPS; then poll `GET /sessions/{id}` |
+| Upload | create-then-upload (system-design.md §6.1, S-4): `POST /me/sessions {input_height_cm}` with one `Idempotency-Key` (UUID per capture attempt) answers the session and an upload ticket — a retried create returns the same session, never a duplicate; then multipart `image_front` + `image_side`, each ≤ 10 MB, JPEG/PNG/HEIC/WebP, go to `POST /uploads` with the ticket (`202`); the client compresses each to ≤ 2048 px and the gateway re-checks and strips EXIF/GPS; then poll `GET /sessions/{id}` |
 | QC failures | the session turns `failed_qc` with `qc {code, message, guidance, pose}` (file checks, type, size, decode, are still a synchronous `413/415/422` from the gateway naming the pose); `POST /sessions/{id}/poses/{pose}/ticket` retakes only that pose. QC is **per pose** (capture-qc.md §2): the error names the failing pose, first-failure-only within it; the client re-enters that pose's camera (mobile) / re-picks that pose's file (web, M-12), an accepted pose is never discarded; a retry never advances the pose counter. Full code set from capture-qc.md §1–2 with retake copy: `no_body` "Make sure your whole body is visible" · `multiple_bodies` "Make sure you're alone in frame" · `partial_body` "Include head to ankles" · `undecodable_image` "That image couldn't be read, try another photo" · `low_resolution` "Move closer or use a higher-quality camera" · `poor_lighting` "Find better lighting, avoid strong backlight" · `blurry` "Hold steady and retake" · `not_frontal` "Face the camera straight on" · `camera_tilt` "Hold the phone upright" · `arms_position` (front) "Keep arms slightly away from your body" / (side) "Let your arms hang relaxed at your sides" · `too_far` "Move closer, fill more of the frame" · `not_side_profile` "Turn your right side to the camera" |
-| Results (A-10b) | a scan maps the customer's **FULL A-10 template** (women 17 / men 14, §2), one vocabulary for every method **[Decided 2026-07-30]**; capture is template-gated exactly like manual entry (null template interposes the one-time chooser; the mock rejects ungated submits with `template_required`); TEST_MODE seeds + mock pipeline speak only this vocabulary, `api/segmentation` measures every template name with `mediapipe_2d_v2` (system-design.md §16 I-7) |
+| Results (A-10b) | a scan maps the customer's **FULL A-10 template** (women 17 / men 14, §2) — one vocabulary for every method **[Decided 2026-07-30]**; capture is template-gated exactly like manual entry (null template interposes the one-time chooser; the mock rejects ungated submits with `template_required`); TEST_MODE seeds + mock pipeline speak only this vocabulary, `api/segmentation` measures every template name with `mediapipe_2d_v2` (system-design.md §16 I-7) |
 | Unsaved results | server session rows created with `status: pending_save`; auto-purged after 24h unsaved **[Decided default]**; "Retake" purges immediately |
 | Save | flips `status: complete`; both capture images begin their 30-day `retention_until` clock; measurements persist indefinitely |
 
@@ -65,12 +65,12 @@ flowchart TD
 ## 2. Manual entry & corrections
 
 - Manual entry (MI-13): tape values as `method: manual` sessions using the
-  tailor-sourced A-10 templates below, the customer's
+  tailor-sourced A-10 templates below — the customer's
   `measurement_template` (`women | men`, data-model.md §2) selects the
   field set; when it is null the sheet interposes a one-time Women/Men
   chooser and persists the answer (editable later in profile settings).
   Values validated 10–200 cm per measure with the advisory ranges below, out-of-range prompts a "double-check" confirm, not a hard block (bodies
-  vary). Manual sessions carry **no height**, `input_height_cm` is null
+  vary). Manual sessions carry **no height** — `input_height_cm` is null
   for `method: manual` (data-model.md §2; height is a capture-pipeline
   input, not a property of tape values).
 
@@ -116,14 +116,14 @@ flowchart TD
   | `neck` | 25–55 |
 
   Both tables are canonical for web, mobile, and canvas **[Decided
-  2026-07-25, A-10: field list collected from a practicing Nigerian
+  2026-07-25 — A-10: field list collected from a practicing Nigerian
   tailor]**. The 7 measures shared by both templates carry identical
   ranges. Labels render by humanizing the snake_case name
   (`shoulder_to_bust_point` → "Shoulder to bust point"); ranges display
   in the user's unit (inches by default, A-9). Legacy manual names
   (`chest_girth`, `waist_girth`) and the camera-pipeline names
   (`shoulder_width`, `hip_width`) remain valid vocabulary on historical
-  sessions, sessions are immutable; the sheet simply no longer offers
+  sessions — sessions are immutable; the sheet simply no longer offers
   the legacy manual rows. The registry grows server-side, one advisory
   row per new measure.
 - Corrections on pipeline sessions append `source: manual_correction` rows;
@@ -144,7 +144,7 @@ flowchart TD
 ## 4. Instrumentation
 
 `vault_capture_started`, `vault_qc_failed{code, pose}`,
-`vault_session_saved{method}`, `vault_manual_entry`, counters only, never
+`vault_session_saved{method}`, `vault_manual_entry` — counters only, never
 values.
 
 ## 5. Acceptance checklist

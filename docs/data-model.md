@@ -1,4 +1,4 @@
-# Apparule, Data Model
+# Apparule — Data Model
 
 > Companion to [prd.md](prd.md) and [architecture.md](architecture.md).
 > Markers: **[Current]**, **[PRD]**, **[Proposed]**.
@@ -113,12 +113,12 @@ Modeling notes:
   carries its `source` so pipeline output and human corrections coexist per
   session (sequence 4.3 in architecture.md).
 - **`measurement_template` selects the manual-entry field set** (A-10):
-  `women` (17 tape measures) or `men` (14), the tailor-sourced templates
+  `women` (17 tape measures) or `men` (14) — the tailor-sourced templates
   in flows/vault.md §2. Nullable: the manual sheet asks once and persists
   the answer; editable in profile settings. It templates the entry UI
-  only, stored measurement rows stay free-form open vocabulary, so
+  only — stored measurement rows stay free-form open vocabulary, so
   legacy names on historical sessions remain valid.
-- **Sessions are immutable captures; corrections append**, an audit-friendly
+- **Sessions are immutable captures; corrections append** — an audit-friendly
   history rather than destructive edits, given production garments hang off
   these numbers.
 - **`input_height_cm` is nullable, null for `method: manual`** **[Decided
@@ -136,7 +136,7 @@ Modeling notes:
   and pre-fills the request stepper's delivery address (the delivery address
   itself stays frozen per order, §6.3). Designers must set it to be eligible
   for proximity ranking; without it they simply don't rank in "near me"
-  results, no hard gate. Classification: sensitive PII (§4), never logged.
+  results — no hard gate. Classification: sensitive PII (§4), never logged.
 
 ## 3. Storage mapping **[Decided, S-3; built]**
 
@@ -153,7 +153,7 @@ Modeling notes:
 | Class | Data | Rules |
 | --- | --- | --- |
 | High-sensitivity | Capture images, measurements, customer identity | Encrypted at rest; never logged (no image bytes, no measurement values in logs); shortest retention for images; deletion honours `retention_until`; export/delete rights surfaced in dashboard. |
-| Sensitive | Account email, consent records, `profile_location` (self-attested city/state/country, X-10 tier 1) | Standard PII handling; consent rows immutable; profile location never in logs or events. |
+| Sensitive | Account email, consent records, `profile_location` (self-attested city/state/country — X-10 tier 1) | Standard PII handling; consent rows immutable; profile location never in logs or events. |
 | Operational | Session status, pipeline metadata, event counters | No special handling; safe for logs/metrics. |
 
 Deletion semantics: deleting a `CUSTOMER` soft-deletes then hard-purges
@@ -233,7 +233,7 @@ one don't appear in proximity-ranked results (no hard gate).
 
 Every `ACCOUNT` owns exactly one `CUSTOMER` with `kind: self`, auto-created in
 its personal workspace on first session. **The vault IS the self-customer's
-sessions**, `/api/v1/me/sessions` routes alias `customers/{self-id}/sessions`.
+sessions** — `/api/v1/me/sessions` routes alias `customers/{self-id}/sessions`.
 SME mode manages additional `kind: client` customers; the entity path is
 identical, so vault and client-record code share one implementation.
 
@@ -269,11 +269,11 @@ order-essential messages only. Blocks are silent (no notification).
 ### 6.3 Delivery address **[Decided]**
 
 `REQUEST.delivery` embeds `{recipient_name, phone, line1, line2?, city,
-state, country}` frozen at submit (like the snapshot, later address-book
-edits never mutate an order). Classification: **sensitive PII**, same
+state, country}` frozen at submit (like the snapshot — later address-book
+edits never mutate an order). Classification: **sensitive PII** — same
 handling row as customer identity (§4); never in logs or events.
 
-v1 posture **[Proposed]**: **no stored address book**, the request stepper
+v1 posture **[Proposed]**: **no stored address book** — the request stepper
 pre-fills from the account's most recent `REQUEST.delivery` (first order:
 city/state/country seed from `ACCOUNT.profile_location`, §2); a saved
 `ADDRESS` entity is tier-1 (X-10) later scope.
@@ -281,7 +281,7 @@ city/state/country seed from `ACCOUNT.profile_location`, §2); a saved
 ### 6.4 Notifications
 
 `NOTIFICATION { id, account_id, kind, payload_ref (order/post id), read_at,
-created_at }`, retention 90 days; unread badge counts derive from
+created_at }` — retention 90 days; unread badge counts derive from
 `read_at IS NULL`; push delivery via FCM is fire-and-forget (the in-app row
 is the source of truth).
 

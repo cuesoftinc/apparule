@@ -1,21 +1,21 @@
-# Apparule, Decision Sheet
+# Apparule — Decision Sheet
 
 > Every open decision gating the build, in one place. Ratify by checking a
 > box (or telling the docs owner); each ratified decision flips its
 > **[Proposed]** tags across the doc set to **[Decided]** and unblocks the
 > listed phases. Status: ☐ open · ☑ ratified.
 
-> **RATIFIED 2026-07-16**, all recommendations approved wholesale ("decisions
+> **RATIFIED 2026-07-16** — all recommendations approved wholesale ("decisions
 > look solid"). Where other docs still carry **[Proposed]** on these topics,
 > this sheet governs; tags flip to **[Decided]** as docs are next touched.
 
-## A-1 · Payment provider & escrow model, gates Phase 4 (Commerce)
+## A-1 · Payment provider & escrow model — gates Phase 4 (Commerce)
 
 **Question:** who moves the money, and how is "designers get paid" structured?
 
 | Option | For | Against |
 | --- | --- | --- |
-| **(a) Paystack primary (NG rails) + Stripe later for international** ⭐ | Strong NG card/bank/transfer coverage; Stripe-owned (stability); subaccounts + Transfers API fit the payout flow; local currency settlement | True escrow isn't a Paystack product, we implement it as a **platform ledger**: charge to platform account at `paid`, payout via transfer at `delivered` |
+| **(a) Paystack primary (NG rails) + Stripe later for international** ⭐ | Strong NG card/bank/transfer coverage; Stripe-owned (stability); subaccounts + Transfers API fit the payout flow; local currency settlement | True escrow isn't a Paystack product — we implement it as a **platform ledger**: charge to platform account at `paid`, payout via transfer at `delivered` |
 | (b) Flutterwave | Broader multi-Africa coverage | Weaker fit if NG-first; same ledger requirement |
 | (c) Stripe only | One provider globally | NG acquiring/settlement is the weak spot for the core market |
 
@@ -25,7 +25,7 @@ no instant-payout v1) · refunds from platform ledger.
 
 ☑ Ratified: option (a) Paystack + platform ledger · fee 10%
 
-## A-2 · Designer KYC, gates Phase 4
+## A-2 · Designer KYC — gates Phase 4
 
 **Recommendation ⭐:** use the provider's KYC (Paystack subaccount/transfer
 recipient verification: BVN/bank resolution) rather than building our own.
@@ -34,7 +34,7 @@ Custom KYC only if the provider's proves insufficient.
 
 ☑ Ratified
 
-## A-3 · SMPL licensing (R1), gates Phase 5 for cloud
+## A-3 · SMPL licensing (R1) — gates Phase 5 for cloud
 
 | Option | For | Against |
 | --- | --- | --- |
@@ -44,21 +44,21 @@ Custom KYC only if the provider's proves insufficient.
 
 ☑ Ratified: option (b) launch on 2-D, licensing quote in parallel
 
-## A-4 · System of record, gates Phase 2 (Vault)
+## A-4 · System of record — gates Phase 2 (Vault)
 
-> **REVISED by X-5 (2026-07-16): Firestore**, not Postgres, see the
+> **REVISED by X-5 (2026-07-16): Firestore**, not Postgres — see the
 > cross-cutting section. **Restored by S-3 (2026-10-20): Postgres is the
 > system of record again**, with `api/common` its only client. The original
 > recommendation below is kept for the audit trail.
 
 **Recommendation ⭐: Postgres** (managed, already in the declared stack) for all
 domain entities; object storage for capture media; Firestore not used as a
-datastore (auth-only artifacts until D1). Mongo not introduced here, the
+datastore (auth-only artifacts until D1). Mongo not introduced here — the
 relational integrity of workspace→customer→session→snapshot is the point.
 
 ☑ Ratified
 
-## A-5 · Cloud instance model, gates Phase 1 (APP-002)
+## A-5 · Cloud instance model — gates Phase 1 (APP-002)
 
 **Recommendation ⭐:** v1 = **request queue + manual provisioning** (helm chart
 per instance, ops-driven), status surfaced in dashboard. Multi-tenant SaaS is
@@ -66,11 +66,11 @@ a later re-architecture decision made with real demand data.
 
 ☑ Ratified
 
-## A-6 · Trust & safety baseline, ships WITH Phase 3 (Social)
+## A-6 · Trust & safety baseline — ships WITH Phase 3 (Social)
 
 **Recommendation ⭐:** report post/user, block user, designer-verification
 badge, and a minimal admin moderation queue (hide post, suspend account) are
-**launch-blocking for the social phase**, UGC without them doesn't go public.
+**launch-blocking for the social phase** — UGC without them doesn't go public.
 Automated media moderation deferred.
 
 ☑ Ratified
@@ -115,9 +115,9 @@ the vocabulary is open by design.
 
 ☑ Ratified 2026-07-25
 
-**A-10b addendum, one vocabulary, every method** ⭐: the tailor's fields
+**A-10b addendum — one vocabulary, every method** ⭐: the tailor's fields
 are the product vocabulary for EVERY measuring method. A camera scan maps
-the customer's FULL template (women 17 / men 14), TEST_MODE seeds and
+the customer's FULL template (women 17 / men 14) — TEST_MODE seeds and
 the mock pipeline speak only this vocabulary (mock-ahead of the backend
 recalibration, the `notification_prefs` pattern), and capture is
 template-gated exactly like manual entry. The real `api/measure` 2-D
@@ -128,11 +128,11 @@ recalibration fulfills this contract server-side.
 
 ## A-11 · Measurements ride the share sheet (opt-in on posts)
 
-**Recommendation ⭐:** measurements are shareable as readable text, the
+**Recommendation ⭐:** measurements are shareable as readable text — the
 WhatsApp-to-tailor flow. Two surfaces: (1) the **vault** gains a Share
 action that copies/shares the latest values as text ("Shoulder: 16.7 in"
 per line, A-10 template order, active display unit) plus the product
-link; (2) the **post share** becomes a two-option sheet, "share link"
+link; (2) the **post share** becomes a two-option sheet — "share link"
 (the current behavior) and "share link + my measurements" for
 make-me-this-style requests. Body data NEVER rides a share by default:
 the post option is a deliberate per-share choice, unchecked every time.
@@ -194,15 +194,15 @@ gateway answers `503` with `Retry-After` while the bus is away.
   Git-synced from each repo's `docs/`; API refs rendered by **Scalar** from
   OpenAPI, embedded in each docs space. ☑
 - **X-3 Cloud deployment target (RATIFIED)**: all backend
-  services run on **Google Cloud Run** (per-service containers, the same
+  services run on **Google Cloud Run** (per-service containers — the same
   `cuesoft/<repo>-<service>` images); frontends deploy to **Firebase App
-  Hosting**. Helm + terraform in `deploy/` remain the **self-host** path;
+  Hosting**. Helm + terraform in `deploy/` remain the **self-host** path —
   cloud and self-host share images, not manifests. ☑
 - **X-4 AI platform (RATIFIED 2026-07-16)**: AI features use
   **Vertex AI** (Gemini via `{region}-aiplatform.googleapis.com`, ADC from the
   calling service's own service account;
   reference model `gemini-2.5-flash-lite`, region `us-central1`). No
-  consumer-API keys to third-party AI vendors in cloud deployments, data
+  consumer-API keys to third-party AI vendors in cloud deployments — data
   stays inside GCP, which strengthens every privacy disclosure. Self-host
   fallback: bring-your-own Gemini/Groq key via env (existing code path). ☑
 - **X-5 Data plane (RATIFIED 2026-07-16, per-product DB decided by delegation)**:
@@ -220,7 +220,7 @@ gateway answers `503` with `Retry-After` while the bus is away.
   stores. ☑
 - **X-6 Environments & deploy gating (RATIFIED 2026-07-16, deliberate
   deviation from the norm)**: `stg` = **sandbox** and is the ONLY
-  environment, no production deployment exists for these products. Secrets
+  environment — no production deployment exists for these products. Secrets
   live in your secrets manager. Because these repos are **open-source**,
   merge-to-main must NOT deploy: main-merge runs build+test only. **Deploys
   happen exclusively on tag creation (`v*`)**, treated as production-grade:
@@ -231,7 +231,7 @@ gateway answers `503` with `Retry-After` while the bus is away.
   `v*` tags, since the open-source products cut no releases yet.
 - **X-7 Transactional email (RATIFIED 2026-07-16)**: **Brevo REST
   API** for all product email (alert emails, money-event receipts, purge
-  confirmations…), `BREVO_API_KEY`, `BREVO_FROM_EMAIL`,
+  confirmations…) — `BREVO_API_KEY`, `BREVO_FROM_EMAIL`,
   `BREVO_FROM_NAME` in your secrets manager. **No SMTP anywhere**, existing SMTP/gomail
   plumbing retires when next touched. Revises U-4's Resend pick where it
   applied. ☑
@@ -239,30 +239,30 @@ gateway answers `503` with `Retry-After` while the bus is away.
   **HTTP/JSON**. gRPC exists ONLY where the monitoring service needs it: **OTLP/gRPC ingest**
   (OTel industry standard, OBS-001), internal s2s (observability↔common),
   and the existing monitor control plane until monitors-v2. Cloud Run runs
-  gRPC fine with end-to-end HTTP/2 (h2c), already how api/common works.
+  gRPC fine with end-to-end HTTP/2 (h2c) — already how api/common works.
   **Browser gRPC-Web + Envoy is a sunset path**: no new surface uses it
   (U-5); at monitors-v2 (OBS-006) the dashboard goes fully HTTP and Envoy
   retires from the cloud topology. apparule and the sibling products never adopt gRPC. ☑
 - **X-9 Telemetry standard (RATIFIED 2026-07-16)**: **OpenTelemetry
-  everywhere**, traces, custom metrics, and logs from every service via OTel
+  everywhere** — traces, custom metrics, and logs from every service via OTel
   SDKs (Go: otel-go + slog bridge; Python: opentelemetry-python + logging
   handler; Next: @opentelemetry/sdk-node), W3C `traceparent` propagation
   across HTTP and gRPC. **Export: direct OTLP from the SDK in v1** (batch
   processors; collector sidecar on Cloud Run is the documented upgrade path
   for tail sampling/fan-out). **Receiver: the monitoring service's OTLP ingest gateway**
   (OBS-001; gRPC 4317 + HTTP 4318, an ingest-key header via
-  OTEL_EXPORTER_OTLP_HEADERS), sibling products are its first-party
-  customers. **Sibling exporters default to OTLP/HTTP (4318)**, apparule
+  OTEL_EXPORTER_OTLP_HEADERS) — sibling products are its first-party
+  customers. **Sibling exporters default to OTLP/HTTP (4318)** — apparule
   and a sibling product remain 100% HTTP in practice; only the monitoring service hosts gRPC (X-8). Until OBS-001 ships, services instrument NOW with export
   env-gated (unset OTEL_EXPORTER_OTLP_ENDPOINT = no-op). Logs dual-emit:
   JSON stdout stays (Cloud Run native logging) + OTLP to the monitoring service. Operational
   telemetry (X-9) is SEPARATE from product analytics events (the monitoring service
-  /v1/events counters), never mix the pipelines. Env names standard:
+  /v1/events counters) — never mix the pipelines. Env names standard:
   OTEL_SERVICE_NAME, OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_EXPORTER_OTLP_HEADERS,
   OTEL_RESOURCE_ATTRIBUTES. ☑
 - **X-10 Identity, profile & KYC tiers (RATIFIED 2026-07-16)**: layered on
-  X-1, Google-only sign-in stays the sole credential; tiers add profile data and
-  verification, never alternative logins. **Tier 0, Google identity** (all
+  X-1 — Google-only sign-in stays the sole credential; tiers add profile data and
+  verification, never alternative logins. **Tier 0 — Google identity** (all
   products): Google subject (`google_sub`) + Google-verified email; grants all read/basic use.
   **Tier 1, self-attested profile & location** (captured in product
   profile/settings; sensitive PII, never logged): apparule = bio + profile
@@ -300,7 +300,7 @@ gateway answers `503` with `Retry-After` while the bus is away.
 
 ## Mobile (apparule-only)
 
-> Mobile is authorized for apparule alone (2026-07-21, explicit), no
+> Mobile is authorized for apparule alone (2026-07-21, explicit) — no
 > sibling product carries a mobile app in its PRD. These decisions execute the
 > ratified org SKILL.md "Mobile (Flutter)
 > implementation standard" against `mobile/flutter`; full detail lives in
@@ -349,7 +349,7 @@ gateway answers `503` with `Retry-After` while the bus is away.
   builds (mobile-implementation.md §11). *Executed 2026-07-22*: both
   removal conditions met, the Google-only replacement shipped (C1 at
   the auth cutover; QA-convergence ledger all-PASS/FIXED) and the user
-  gave the explicit removal go (decided 2026-07-22), the quarantine
+  gave the explicit removal go (decided 2026-07-22) — the quarantine
   (`lib/legacy/`, `assets/legacy/`, `legacy/web-scaffold/`,
   `legacy/android-agp7/`) was deleted with its excludes;
   mobile-implementation.md §11 carries the removed register. ☑
@@ -358,7 +358,7 @@ gateway answers `503` with `Retry-After` while the bus is away.
   current tooling (AGP 8+, Kotlin DSL, package renamed off the stale
   `com.example.apparule` to match the real `io.cuesoft.apparule`
   applicationId, ARCore/Sceneform dependencies dropped, DEBUG-key release
-  signing replaced) as part of the toolchain-floor migration step, no
+  signing replaced) as part of the toolchain-floor migration step — no
   behavior change. ☑
 - **M-5 Mock-first sequencing, API last (RATIFIED 2026-07-21)**: mirrors
   the web `TEST_MODE` contract (web-implementation.md §5), every
@@ -368,7 +368,7 @@ gateway answers `503` with `Retry-After` while the bus is away.
   designer/order/vault personas** as the web mock server's seed
   (web-implementation.md §6) so both clients tell one coherent demo.
   API wiring is the **last** migration step, behind unchanged repository
-  interfaces, no ViewModel or screen changes at that step.
+  interfaces — no ViewModel or screen changes at that step.
   **Addendum, auth posture (user, 2026-07-22)**: the TEST_MODE-parity
   fakes (both flavors riding `AuthRepositoryFake` over the real
   session-lifecycle seam) are the **ratified state until phase 4**; the API sign-in wiring steps stay documented
@@ -382,7 +382,7 @@ gateway answers `503` with `Retry-After` while the bus is away.
   pose, not extended (CV-4). C6 kept the silhouette overlay + 3-2-1
   countdown (the legacy `countdown.dart` salvaged as-is), the
   `mediapipe_2d_v2` height-scale correction, capture-qc.md's
-  first-failure-only QC surfacing, and the manual-entry fallback, all
+  first-failure-only QC surfacing, and the manual-entry fallback — all
   of which carried into M-10's two-photo flow, the canon now in force. ☑
 - **M-7 Flavor model, two flavors, sandbox is production (RATIFIED
   2026-07-22)**: mobile ships exactly `dev` (fake
@@ -406,7 +406,7 @@ gateway answers `503` with `Retry-After` while the bus is away.
   before the rebuild lane touched the screen). The canvas leads;
   pages.md rows may not point at unframed screens. ☑
 - **M-9 Centered header-bar titles (RATIFIED 2026-07-22)**: sub and over-media app-bar titles center on the **full
-  bar width**, an absolute, full-width, center-aligned text layer over
+  bar width** — an absolute, full-width, center-aligned text layer over
   the bar, never an in-flow element between the slots (in-flow titles
   grow into hidden trailing slots and skew off-center). Leading/trailing
   slots stay in-flow at the edges; the title's horizontal padding
@@ -419,7 +419,7 @@ gateway answers `503` with `Retry-After` while the bus is away.
   ratified from the docs' one-photo contracts as they then stood (api.md
   `POST /measure`, capture-qc.md, flows/vault.md §1); the decision was that
   the web marketing copy ("Two photos. A perfect fit.") was the true
-  product intent all along, the **docs, not the copy, had drifted**.
+  product intent all along — the **docs, not the copy, had drifted**.
   The contracts now carry the two-photo canon: api.md `POST /measure`
   takes multipart `image_front` + `image_side` + `user_height_cm`;
   capture-qc.md defines **per-pose QC** (the front pose keeps the
@@ -434,10 +434,10 @@ gateway answers `503` with `Retry-After` while the bus is away.
   **[Specified: measurement pipeline recalibration needed]** for the
   backend phase. ☑
 - **M-11 Unified create semantics (RATIFIED 2026-07-22)**: the ➕/Create action opens a **two-option chooser on
-  both platforms**, "Take measurements" (capture) and "Post an outfit"
+  both platforms** — "Take measurements" (capture) and "Post an outfit"
   (designer-gated: non-designers route to become-a-designer). Supersedes
   the divergence where web Create was composer-only and mobile ➕ was
-  capture-only, each client was per its contract; the **contracts** had
+  capture-only — each client was per its contract; the **contracts** had
   diverged. The mobile composer (**C15**) is **authorized design-first**
   (M-8): canvas frames come next, mirroring the web B5 composer, and the
   build follows once the frames ratify; until C15 ships, mobile's
@@ -449,7 +449,7 @@ gateway answers `503` with `Retry-After` while the bus is away.
   the controls). The web vault entry surfaces a "best experience: guided
   capture on the mobile app" hint; mobile keeps the live guided camera.
   The composer create flow is upload/import on **both** platforms
-  (already the web idiom; C15 mobile uses the device picker), no live
+  (already the web idiom; C15 mobile uses the device picker) — no live
   camera enters the composer. api.md is unchanged beyond M-10: the
   endpoint takes two images regardless of source. ☑
 - **M-13 Mobile sign-in rides the API's Google SSO handoff (RATIFIED

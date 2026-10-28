@@ -1,4 +1,4 @@
-# Apparule, System Architecture
+# Apparule — System Architecture
 
 > The system as built, from the ratified [system design](system-design.md)
 > (S-1…S-15, decided 2026-10-20). The design holds the reasoning (drivers,
@@ -15,7 +15,7 @@ flowchart LR
         PS[Paystack]
     end
 
-    WEB[web, Next.js<br/>App Hosting · /api/v1 proxy]
+    WEB[web — Next.js<br/>App Hosting · /api/v1 proxy]
 
     COMMON[api/common, Go<br/>CRUD · auth · tickets · outbox · sweeps]
     UP[api/uploads, Node<br/>ticketed upload gateway]
@@ -50,12 +50,12 @@ Four services, named by function and split by role (CueLABS language rule):
 
 | Unit | Lang | Role | Owns | Port |
 | --- | --- | --- | --- | --- |
-| `api/common` | Go | **CRUD**, the whole product API; authorizes every upload; stores every decision | Postgres (sole client); confirmed objects | 8080 |
-| `api/segmentation` | Python | **Processing**, per-pose QC and template measurements | nothing | 8081 |
-| `api/uploads` | Node (NestJS) | **Thin gateway**, verifies tickets, checks and cleans images, hands off by pointer | nothing | 8082 |
-| `api/commerce` | Python | **Processing**, every money decision; push and email delivery | nothing | 8083 |
-| `web` | Next.js | Landing, docs hub, dashboard; proxies `/api/v1` | n/a | 3000 |
-| `mobile/flutter` | Dart | The app (guided two-pose capture, feed, orders) | local cache | n/a |
+| `api/common` | Go | **CRUD** — the whole product API; authorizes every upload; stores every decision | Postgres (sole client); confirmed objects | 8080 |
+| `api/segmentation` | Python | **Processing** — per-pose QC and template measurements | nothing | 8081 |
+| `api/uploads` | Node (NestJS) | **Thin gateway** — verifies tickets, checks and cleans images, hands off by pointer | nothing | 8082 |
+| `api/commerce` | Python | **Processing** — every money decision; push and email delivery | nothing | 8083 |
+| `web` | Next.js | Landing, docs hub, dashboard; proxies `/api/v1` | —   | 3000 |
+| `mobile/flutter` | Dart | The app (guided two-pose capture, feed, orders) | local cache | —   |
 
 Services talk only through the shared bus (S-2); HTTP between them exists
 solely as a data-free `GET /health` wake-up for scale to zero.
@@ -181,7 +181,7 @@ holds images: `tmp/` (24 h), `captures/` (30 days after save), `media/`
 URLs), `compute/` (claim-check payloads, 1 day). Redis holds rate-limit
 windows. See [data-model.md](data-model.md).
 
-## 5. SMPL pipeline, target measurement engine **[Planned, PRD §5]**
+## 5. SMPL pipeline — target measurement engine **[Planned, PRD §5]**
 
 SMPL (Skinned Multi-Person Linear model) is a parametric 3-D body model: body
 shape is expressed as low-dimensional shape coefficients (β) from which a full
@@ -204,7 +204,7 @@ flowchart LR
   (`mediapipe_2d_v2` vs `smpl_v1`, recorded per session).
 - Fitting needs GPU inference for the cloud offering (open question 5);
   self-hosters keep the CPU-only 2-D method.
-- **Risk R1, licensing**: SMPL weights are research-licensed; commercial use
+- **Risk R1 — licensing**: SMPL weights are research-licensed; commercial use
   requires a Meshcapade/MPI license. Resolve before the cloud pipeline ships
   (prd.md §8.3, A-3).
 

@@ -1,6 +1,6 @@
 # Flow: Designer Side (onboarding, quoting, fulfilment)
 
-> The designer's half of the commerce loop, request.md is explicitly the
+> The designer's half of the commerce loop — request.md is explicitly the
 > customer side. State machine + permissions: [order-lifecycle.md](../order-lifecycle.md).
 > Preconditions vary per section.
 
@@ -44,16 +44,16 @@ From order-lifecycle.md §1, designer-relevant deadlines:
 | --- | --- | --- |
 | `paid`, not started | **T+14d** | system auto-refund + `refunded`; strike recorded |
 | past `due_at`, not shipped | due_at, due_at+7 reminders | customer gets one-click refund-dispute at due_at+14 |
-| `shipped` | n/a | auto-confirm pays out at T+14 if customer silent |
+| `shipped` | —   | auto-confirm pays out at T+14 if customer silent |
 
 Strikes **[Decided]**: 3 auto-refund strikes in 90 days pauses the profile
-(posts stop accepting requests) pending support review, protects customers
+(posts stop accepting requests) pending support review — protects customers
 from serial ghosting without permanent bans.
 
 ## 4. Designer workspace (pages.md B3 "As designer" tab)
 
 - Pipeline list grouped by state with deadline chips (quote expiry, due dates,
-  auto-refund countdowns, the escrow clock made visible).
+  auto-refund countdowns — the escrow clock made visible).
 - Order detail: snapshot values (this order only), thread, status actions
   (`in_progress`, `shipped` + optional tracking), decline/quote forms.
 - Earnings (pages.md B6): balance = released payouts; pending = held escrow on

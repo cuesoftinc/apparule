@@ -1,4 +1,4 @@
-# Deployment, Cloud Contract
+# Deployment — Cloud Contract
 
 > Implements decision X-3 for the ratified system design (S-1…S-15,
 > system-design.md §10). The step-by-step for an account owner is the
@@ -32,7 +32,7 @@ carry a Cloud Run ID token).
   per-product stack (`Pulumi.<product>.yaml`).
 - Cloud Run services instantiate the shared Cloud Run service
   module; the GitHub→GCP deploy identity uses **Workload Identity
-  Federation**, no service-account keys in GitHub.
+  Federation** — no service-account keys in GitHub.
 - One service account per service (`apparule-common`, `apparule-uploads`,
   `apparule-segmentation`, `apparule-commerce`), each limited to its
   prefixes of the shared bucket (S-11): `uploads` creates objects in `tmp/`
@@ -68,7 +68,7 @@ carry a Cloud Run ID token).
 
 | Workflow | Trigger | Does |
 | --- | --- | --- |
-| `build-and-test.yml` | PRs **and** push to `main` | per service: Go vet + tests (with a Postgres service for the RLS suite), uploads typecheck/lint/test/build, ruff + pytest for segmentation and commerce, web and mobile gates, **no deploy, no image push** (X-6) |
+| `build-and-test.yml` | PRs **and** push to `main` | per service: Go vet + tests (with a Postgres service for the RLS suite), uploads typecheck/lint/test/build, ruff + pytest for segmentation and commerce, web and mobile gates — **no deploy, no image push** (X-6) |
 | `release.yml` | **push to `main` touching `api/**`** | builds and pushes `cuesoft/apparule-api-{common,uploads,segmentation,commerce}` (tags: sha, `latest`), then in the `Sandbox` environment authenticates by WIF and points the Cloud Run services at the new **digests**; fails unless every new revision is Ready and `common` answers `/ready` |
 
 **Gating (X-6, revised 2026-10-27):** `stg` (sandbox) is the only
@@ -79,10 +79,10 @@ tags: images carry the commit sha and `latest`. The web keeps App Hosting rollou
 
 Two hard-won rules, non-negotiable:
 
-1. **Deploy by digest, never by tag**, Cloud Run pulls Docker Hub images
+1. **Deploy by digest, never by tag** — Cloud Run pulls Docker Hub images
    through the `mirror.gcr.io` cache, which has served stale manifests for
    tags.
-2. **WIF only** (`google-github-actions/auth`), no JSON keys.
+2. **WIF only** (`google-github-actions/auth`) — no JSON keys.
 
 ## 4. Runtime contract (Cloud Run) **[Decided]**
 

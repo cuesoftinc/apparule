@@ -1,8 +1,8 @@
-# Apparule, Web Implementation Standard
+# Apparule — Web Implementation Standard
 
 > How `web/` gets built: the **CueLABS™ Web Implementation Standard**
 > (ratified 2026-07-18, org-wide **[Specified]**) carried in full, plus the
-> Apparule-specific addendum, stage plan, token mapping, route map,
+> Apparule-specific addendum — stage plan, token mapping, route map,
 > TEST_MODE contract, mock server, test strategy, legacy policy. Markers as
 > in [design.md](design.md): **[Specified]** = stated direction,
 > **[Proposed]** = ratifiable decision, **[Decided <date>]** = ratified.
@@ -14,13 +14,13 @@
 
 - **Stack**: Next.js 16 App Router + React 19 + TypeScript; Tailwind maps to
   the token CSS variables (§3). Apparule's `web/` carries no legacy UI kit, new-system components are token/Tailwind-based from day one.
-- **Design tokens**: `web/src/design/tokens.css`, CSS custom properties
+- **Design tokens**: `web/src/design/tokens.css` — CSS custom properties
   mirroring design.md §2 exactly (light on `:root`, dark on
   `[data-theme="dark"]`, honoring `prefers-color-scheme` with manual
   override; spacing 4–64; radii; durations + easings; z layers; on-accent).
-  **No raw hex in components**, the same rule as Figma (design.md §7);
+  **No raw hex in components** — the same rule as Figma (design.md §7);
   documented exceptions carry a code comment.
-- **Components**: `web/src/components/ui/<Name>.tsx`, one module per Figma
+- **Components**: `web/src/components/ui/<Name>.tsx` — one module per Figma
   component set, named exactly as the set (PascalCase, design.md §8.1 naming
   standards); props mirror the variant axes (`kind`/`size`/`state`/…);
   microinteractions from design.md §4 implemented with duration/easing
@@ -28,7 +28,7 @@
   component unit-tested.
 - **MVC**: models = `web/src/models/` (typed entities per
   [data-model.md](data-model.md) + repositories per
-  [api.md](api.md)/[openapi.yaml](api/openapi.yaml), the **only** layer
+  [api.md](api.md)/[openapi.yaml](api/openapi.yaml) — the **only** layer
   that talks to the network); controllers = `web/src/controllers/`
   (feature-scoped hooks/orchestration, own all state; views never fetch);
   views = `web/src/app/**` routes + composed components, render-only.
@@ -54,7 +54,7 @@
   and deleted in a dedicated `chore(web): retire legacy <area>` PR once
   the replacement passes QA + Playwright. The boundary gates (lint +
   `check-boundaries`) keep `src/legacy/` imports banned as the standing
-  guardrail, no such tree exists today. Apparule's application of the
+  guardrail — no such tree exists today. Apparule's application of the
   policy: §8.
 - **Process**: stages W0 → W3 (§2), PR per stage; conventional commits; QA
   loops evaluate the implementation against the Figma file (tokens,
@@ -74,15 +74,15 @@
   local SVGs per the §8.1 icon note), and math/format utilities (d3-scale,
   date-fns, clsx). Fidelity is verified against the Figma file in the stage
   QA loops (screenshot comparison + token/geometry checks).
-- **Command palette**: Apparule ships none, per-product scope, not fleet
+- **Command palette**: Apparule ships none — per-product scope, not fleet
   drift (parity review P12, 2026-07-21). The fleet ⌘K canon applies when
   one exists.
 
-## 2. Stage plan, W0 foundations → W3 dashboards
+## 2. Stage plan — W0 foundations → W3 dashboards
 
 One PR per stage; a stage closes only after its QA loop against the Figma
 file passes (screenshot comparison + token/geometry/state checks against the
-Style Guide, component sets, and screen frames, the same standard as the
+Style Guide, component sets, and screen frames — the same standard as the
 design-phase QA loops, design.md §8).
 
 | Stage | Scope | Closes when |
@@ -136,16 +136,16 @@ screenshot compares had missed:
 (final web-phase gate) walked every §8.4 journey on the TEST_MODE prod
 build at 1440/390, light/dark/reduced-motion, and fixed what it found:
 
-- The quote sheet's due-date calendar was unusable, `DateInput`'s popover
+- The quote sheet's due-date calendar was unusable — `DateInput`'s popover
   sat on the z-20 dropdown layer under the z-40 Sheet. It now uses the
   sheet layer, the same in-sheet fix `Select` received in W3; treat
   "overlay opened from inside a Sheet" as z-40 by default.
 - Branded `not-found.tsx` / `error.tsx` (EmptyState anatomy) replace the
   Next.js defaults.
-- `Button` and `Chip` carry `whitespace-nowrap`, pill labels never wrap
+- `Button` and `Chip` carry `whitespace-nowrap` — pill labels never wrap
   (the 390px comparison CTAs were the live repro).
 - `formatAgoPhrase` ("2d ago" / "just now" / "on 22 May") is the single
-  relative-timestamp formatter, no hand-appended " ago" templates.
+  relative-timestamp formatter — no hand-appended " ago" templates.
 - MI-3's first-save "Saved to your looks" toast now exists (once per
   browser, Toast gained an optional trailing link).
 - Seed coherence: designer `posts_count` is test-locked to the actually
@@ -154,7 +154,7 @@ build at 1440/390, light/dark/reduced-motion, and fixed what it found:
   stats) are e2e-gated across all dashboard routes.
 
 **Link-parity as-built notes (2026-07-19):** the org "Marketing nav,
-footer & theme parity canon" (SKILL.md) applied, nav is four links,
+footer & theme parity canon" (SKILL.md) applied — nav is four links,
 Features · For designers · Docs · GitHub, with GitHub rendered as the
 compact star badge (live count from the cached fetch seam shared with
 A7b; TEST_MODE and failures keep the neutral "Star" label), + theme
@@ -162,7 +162,7 @@ toggle + a **Sign in** text link + the **Try Cloud** gradient primary CTA
 (→ /signin); nav and hero/A9c/comparison CTAs fire `try_cloud_click`.
 Footer is brand block + Product/Docs/Community/**Legal** columns (4/4/4/3
 links) + the verbatim legal bar ("© Cuesoft Inc. 2026. Apparule. CueLABS™
-Division. MIT License.", Cuesoft Inc., CueLABS™ Division and MIT License
+Division. MIT License." — Cuesoft Inc., CueLABS™ Division and MIT License
 are inline links) with the security-policy affordance and language
 selector. All external URLs are the verified-200 canon targets
 (`cuesoft.gitbook.io/apparule/*`, `discord.gg/CDfZxxrxbb`,
@@ -187,7 +187,7 @@ pointer cursor on controls.
   designer onboarding + KYC (B8), and earnings (B9).
 - TEST_MODE dashboard journeys live in `web/e2e/dashboard.spec.ts`: a
   semantic-landmarks sweep across all 15 dashboard screens, plus the §8.4
-  journeys, feed like/save/follow → request stepper → quote → pay →
+  journeys — feed like/save/follow → request stepper → quote → pay →
   escrow-held → thread reply; all ten order-lifecycle states rendering
   from seed; vault upload per-pose QC-failure → re-pick → save, with
   history delete; creator upsell → onboarding (Paystack mismatch + resolve)
@@ -196,16 +196,16 @@ pointer cursor on controls.
   and decline-with-reason + itemized earnings payout.
 - The legacy-quarantine boundary is gated two ways: an eslint
   `no-restricted-imports` rule scoped to `src/legacy/**` (lint-time), and
-  `scripts/check-boundaries.mjs`, the org-shared boundary gate (byte-identical
+  `scripts/check-boundaries.mjs` — the org-shared boundary gate (byte-identical
   across apparule/sibling products, per-repo rule lists inside), wired into
   `npm run lint` via `check:boundaries`.
-- No `src/legacy/` tree exists, nothing has been quarantined; the boundary
+- No `src/legacy/` tree exists — nothing has been quarantined; the boundary
   gates above stay armed for when a retirement stages one.
 - Semantic-HTML landmarks (one `<main>`, one `nav[aria-label="Primary"]`)
   are enforced by e2e across all 15 dashboard screens, not spot-checked.
 
 **Mobile-responsiveness as-built notes (2026-07-19, PR #101):** the P1
-mobile pass **[Specified]**, home and every dashboard route render fully
+mobile pass **[Specified]** — home and every dashboard route render fully
 inside the mobile boundary at 390 (768 sanity); the document never
 side-scrolls, and wide elements scroll within their own containers:
 
@@ -226,7 +226,7 @@ side-scrolls, and wide elements scroll within their own containers:
   capture and history sheets, explore post modal, followers sheet.
 
 **UX & demo-realism as-built notes (2026-07-19, PR #102):** the P1 UX +
-realism pass **[Specified]**, the seed simulates actual user interaction:
+realism pass **[Specified]** — the seed simulates actual user interaction:
 
 - Six community accounts widen the cast; comments, follower sheets and
   notification actors come from multiple users at a plausible cadence
@@ -240,7 +240,7 @@ realism pass **[Specified]**, the seed simulates actual user interaction:
   narratives were recaptioned to little senator / ceremonial robe set /
   resort one-piece to match the licensed pool); verified escrow figures
   (₦45,000 / ₦62,000) are unchanged.
-- Feed comments open the in-app post modal, the public /p permalink is
+- Feed comments open the in-app post modal — the public /p permalink is
   reserved for share targets (MI-9), never in-app navigation.
 - `Select` passes `value ?? ""` to stay Radix-controlled for its whole
   life; overlays opened from other flows inherit the same rule.
@@ -251,7 +251,7 @@ realism pass **[Specified]**, the seed simulates actual user interaction:
   attribution reads "An open-source product by CueLABS™".
 
 **Demo-completeness as-built notes (2026-07-19):** the P1 completeness
-pass **[Specified]**, the review-fix set from the realism pass plus the
+pass **[Specified]** — the review-fix set from the realism pass plus the
 approved gap implementations:
 
 - The post-detail modal (feed, explore, profile grids) opens on the
@@ -261,7 +261,7 @@ approved gap implementations:
   after in-modal interactions.
 - Explore carries the full pages.md B2 chip set: style tags, price bands,
   turnaround time (≤ 1 week / ≤ 2 weeks / ≤ 1 month →
-  `max_turnaround_days`), and "Near me", proximity RANKING by designer
+  `max_turnaround_days`), and "Near me" — proximity RANKING by designer
   `profile_location` vs the caller's (api.md §5 param extension; city >
   state > country, recency within tiers, locationless designers sort
   last, no hard gate). The seed carries one non-Lagos designer
@@ -293,7 +293,7 @@ approved gap implementations:
   build-time string asset (`npm run generate:openapi`, wired as
   `predev`/`prebuild`/`pretypecheck`; output gitignored under
   `src/generated/`). Theme: the embed is forced to the RESOLVED theme
-  via Scalar's `forceDarkModeState` (a creation-time override, the view
+  via Scalar's `forceDarkModeState` (a creation-time override — the view
   mounts after hydration and remounts on theme change, since
   `updateConfiguration` never re-applies it); Scalar's own toggle is
   hidden and its remote default fonts are disabled (self-host ethos).
@@ -305,18 +305,18 @@ approved gap implementations:
   Header construction: the sticky marketing nav (h-16) and Scalar's
   sticky layout coexist via `--scalar-custom-header-height: 64px` on the
   embed wrapper (offsets Scalar's sticky sidebar/mobile bar below the
-  nav and shrinks its viewport math, one coherent page scroll) plus
+  nav and shrinks its viewport math — one coherent page scroll) plus
   `isolate` so no Scalar z-index paints over the nav. The footer Docs
   column's "API reference" links `/docs/api`; `e2e/docs-api.spec.ts`
   pins route 200, a rendered operation from the spec, the served
   document, the footer handoff, the header/scroll sanity and the
   embed-theme sync.
   Payload: Scalar is the app's heaviest dependency, so the page renders
-  it through `ScalarApiReferenceLazy`, a `next/dynamic` `ssr: false`
+  it through `ScalarApiReferenceLazy` — a `next/dynamic` `ssr: false`
   boundary gated on USER INTENT (fleet-uniform, perf audit + payload
   diet 2026-07-21). A `ssr: false` boundary alone only moves Scalar out
   of the first-load chunks (the async group still downloads right after
-  hydration, settled /docs/api JS stayed ~1381K encoded / ~4787K
+  hydration — settled /docs/api JS stayed ~1381K encoded / ~4787K
   decoded, network-recorded on the TEST_MODE prod build), so the import
   fires only on the first pointer/key/wheel/touch/scroll gesture or the
   placeholder's explicit "Load the interactive API reference" button
@@ -327,7 +327,7 @@ approved gap implementations:
   (`100dvh − --scalar-custom-header-height`) so the swap-in shifts no
   layout; the nav/footer chrome stays SSR'd and interactive throughout.
   `e2e/docs-api-payload.spec.ts` (byte-identical fleet spec, keyed by
-  package name, the seo.spec.ts pattern) locks the settled pre-intent
+  package name — the seo.spec.ts pattern) locks the settled pre-intent
   budget (measured + 20% headroom, CDP-recorded encoded transfer; CI
   prod build only) AND that intent still mounts the full reference with
   the spec fetch intact.
@@ -337,14 +337,14 @@ from the Figma ↔ code divergence audit (seed-side details live in §6):
 
 - Thread bubbles carry per-bubble timestamps (B3 frame): bare `HH:mm` for
   same-day messages, `MMM d, HH:mm` (the OrderTimelineRow idiom) when
-  older, side-aligned under the bubble; delivered messages only, never
+  older, side-aligned under the bubble; delivered messages only — never
   sending or typing bubbles.
 - Measurement values render **one decimal everywhere** ("16.7 in", inches are the default display unit, A-9; the frame's "58.0 cm" idiom
   set the one-decimal rule, and cm stays available via the MI-13 toggle)
   via `formatCm`, MeasurementCard, SessionRow, snapshot chips and the
   request stepper share the single formatter, so tnum columns stay
   aligned. Stored values and payloads stay canonical cm.
-- Profile avatars render PLAIN, the measurement-freshness ring is a
+- Profile avatars render PLAIN — the measurement-freshness ring is a
   vault-header affordance (MI-11 **[Decided 2026-07-20]**, design.md §2);
   own profiles (regular-user and designer-self branches) carry no ring
   and fetch no vault, while other designers keep the B6 gradient story
@@ -354,15 +354,15 @@ from the Figma ↔ code divergence audit (seed-side details live in §6):
 - ModerationQueueRow anatomy matches the B7a canvas: headline carries the
   content author when known ("Reported post by @amara.designs"),
   reporters are @-prefixed, and actioned rows render the audit line
-  ("Actioned · hide_comment by @mod.sarah · Jul 15, 09:12", the
+  ("Actioned · hide_comment by @mod.sarah · Jul 15, 09:12" — the
   effective action; `hide_post` on a comment subject reads
   `hide_comment`). Acting morphs the row in place; dismissing removes it;
   the queue banner links "Learn more" to the trust & safety doc.
 - `UserRow` call sites (suggestions, explore designer search, follower
-  sheets) pass `avatar_url` through, the row always supported it.
+  sheets) pass `avatar_url` through — the row always supported it.
 
 Screen-state parity **[Specified 2026-07-18, carried from design.md §8.1]**:
-every data-driven screen ships default, empty, and loading states, the
+every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the
 Figma templates, and the QA loop checks all three.
 
@@ -376,14 +376,14 @@ against its Figma master and fixed the hits:
   `S M T W T F S` header (was Monday-first) at 12 semibold, 36×32 pill
   day cells at 13px (was 32×32 at 14), blank outside-month cells (was
   grayed adjacent-month days), a 1px border-token ring on today, and
-  disabled days at `text-2/50`, today stays `text-2` at full opacity
+  disabled days at `text-2/50` — today stays `text-2` at full opacity
   when the min-date rule disables it. Bottom-edge behavior verified at
   1440×900 and 1440×700: Radix flips the panel above the trigger when
   the space below runs out, never past the viewport and never adding
   document scroll height (locked in `dashboard.spec.ts`, serial fixture
   on `post-chromat-look`).
 - Selects inside sheets (decline/dispute/report/stepper-address) came
-  back clean, the W3 portal-at-z-40 + `max-h-72` pattern holds at both
+  back clean — the W3 portal-at-z-40 + `max-h-72` pattern holds at both
   heights; now locked (`dashboard.spec.ts` decline,
   `floating-layers.spec.ts` report).
 - B1 feed band matches the 176:72 frame exactly: 630px feed column +
@@ -392,7 +392,7 @@ against its Figma master and fixed the hits:
   to 64).
 - The order-detail thread panel fills the band beside the order content
   on `lg` (capped at 70vh) with the composer pinned to its bottom edge,
-  per 179:536, a short thread used to hug and leave ~576px of dead band
+  per 179:536 — a short thread used to hug and leave ~576px of dead band
   under the card. Both bands locked in `band-balance.spec.ts` (±2px).
 
 **Self-host tabbed snippet as-built (2026-07-20, PR #118).** The A7c
@@ -408,7 +408,7 @@ ACTIVE tab's full block; the rendered `$ ` prompts are decorative
 Micro/12 Semi Bold labels on the dark block, active = 2px `link`
 underline, inactive at 60%; tablist semantics with roving tabindex +
 Arrow/Home/End. Both tabs are two lines, so switching never shifts layout
-(apparule carries no extra caption, the "what ships" lines stay). Unit:
+(apparule carries no extra caption — the "what ships" lines stay). Unit:
 `CodeSnippetTabs.test.tsx` (tab state, per-tab copy payload, roving
 focus, copied-morph reset); e2e: `home.spec.ts` pins helm-tab copy → the
 clipboard payload plus the 1440/390 container fit.
@@ -417,12 +417,12 @@ clipboard payload plus the 1440/390 container fit.
 overlay focus contract: it is announced `aria-modal`, and because sheets are
 controlled dialogs with no `RadixDialog.Trigger`, the component captures the
 opener element on open (`onOpenAutoFocus`, before Radix moves focus into the
-panel) and returns focus to it on close, Radix's default would target a
+panel) and returns focus to it on close — Radix's default would target a
 null trigger and drop focus on `<body>`. Callers never manage focus restore
 themselves. Locked by `Sheet.test.tsx` (unit) and `e2e/focus-restore.spec.ts`
 (open → Tab inside → Escape → trigger refocused), the org P4 probe shape.
 
-## 3. Token mapping, design.md §2 → `web/src/design/tokens.css`
+## 3. Token mapping — design.md §2 → `web/src/design/tokens.css`
 
 One custom property per Figma variable in the `apparule/tokens` collection
 (design.md §7); light values on `:root`, dark on `[data-theme="dark"]`
@@ -448,8 +448,8 @@ the cycle, an emulated OS flip in system mode and reload persistence.
 
 | Group | Token names |
 | --- | --- |
-| Color | `--bg` · `--bg-elev` · `--border` · `--text` · `--text-2` · `--accent-start` · `--accent-end` (the two gradient stops, same two-variable shape as Figma, design.md §2 **[Decided 2026-07-17]**) · `--on-accent` · `--link` · `--like` · `--success` · `--warn` · `--error` |
-| Spacing | `--space-4` `--space-8` `--space-12` `--space-16` `--space-24` `--space-32` `--space-48` `--space-64`, the 4px-grid scale, no off-scale values |
+| Color | `--bg` · `--bg-elev` · `--border` · `--text` · `--text-2` · `--accent-start` · `--accent-end` (the two gradient stops — same two-variable shape as Figma, design.md §2 **[Decided 2026-07-17]**) · `--on-accent` · `--link` · `--like` · `--success` · `--warn` · `--error` |
+| Spacing | `--space-4` `--space-8` `--space-12` `--space-16` `--space-24` `--space-32` `--space-48` `--space-64` — the 4px-grid scale, no off-scale values |
 | Radii | `--radius-card: 8px` · `--radius-full: 9999px` (avatars/pills) |
 | Motion | `--duration-fast: 120ms` · `--duration-base: 200ms` · `--duration-slow: 300ms` · `--duration-entrance: 250ms` · `--ease-standard: cubic-bezier(0.2, 0, 0, 1)` · `--ease-exit: cubic-bezier(0.4, 0, 1, 1)` |
 | Z layers | `--z-base: 0` · `--z-sticky: 10` · `--z-dropdown: 20` · `--z-overlay: 30` · `--z-sheet: 40` · `--z-toast: 50` |
@@ -460,10 +460,10 @@ asset at fixed opacities, not a token. The `accent` gradient is composed in
 CSS from `--accent-start`/`--accent-end`; `--on-accent` replaces raw white
 on gradient/destructive fills (exception: on-media capture UI, by design).
 Tabular numerals (`font-variant-numeric: tabular-nums`) apply wherever the
-design.md §7 `tnum` note applies, measurement values and money.
+design.md §7 `tnum` note applies — measurement values and money.
 
 **Type as-built (2026-07-20, font-weight audit vs the Figma Home frame).**
-Inter loads via `next/font` in `layout.tsx` (variable font, the ramp's
+Inter loads via `next/font` in `layout.tsx` (variable font — the ramp's
 400/600/700 are real faces, no synthetic bolding) and reaches components as
 `--ap-font-sans` = `var(--font-inter)` + the system stack as fallback; the
 computed family therefore matches the Figma type styles on every platform.
@@ -476,7 +476,7 @@ journey carries the regression lock: per-role computed
 family/weight/size/line-height/letter-spacing plus a `document.fonts.check`
 that the three ramp weights loaded as real Inter faces.
 
-## 4. Route map, pages.md Part A/B → app routes
+## 4. Route map — pages.md Part A/B → app routes
 
 pages.md writes Part B routes with an `/app` shorthand prefix "relative to"
 the canonical `apparule.cuesoft.io/dashboard` base **[Decided]**. This map
@@ -487,11 +487,11 @@ feed at the base itself.
 | --- | --- | --- |
 | Part A (A1–A10 + A4b/A7b/A7c/A9b/A9c) | `/` | Public home page |
 | B2 permalink note | `/p/{post_id}` | Public post detail (MI-9 share target; request CTA for signed-in users) |
-| flows/auth.md §5 | `/signin` | Single auth screen, GoogleAuthButton + legal links (Terms/Privacy open the canonical https://terms.cuesoft.io / https://privacy.cuesoft.io in a new tab) **[Decided 2026-07-18, route canon]** |
-| F0-8 / APP-004 | `/docs/api` | Public API reference, Scalar embed rendering `docs/api/openapi.yaml` (served at `/docs/api/openapi.yaml`); marketing nav chrome, minimal legal strip **[Ratified 2026-07-20]** |
+| flows/auth.md §5 | `/signin` | Single auth screen — GoogleAuthButton + legal links (Terms/Privacy open the canonical https://terms.cuesoft.io / https://privacy.cuesoft.io in a new tab) **[Decided 2026-07-18, route canon]** |
+| F0-8 / APP-004 | `/docs/api` | Public API reference — Scalar embed rendering `docs/api/openapi.yaml` (served at `/docs/api/openapi.yaml`); marketing nav chrome, minimal legal strip **[Ratified 2026-07-20]** |
 | B1 | `/dashboard` | Feed (story rail, PostCard column, freshness + suggestions) |
 | B2 | `/dashboard/explore` | Discover (masonry, filters, search-results state) |
-| B3 | `/dashboard/orders` · `/dashboard/orders/{id}` | Requests & orders, tabs, detail (snapshot, thread, timeline, payment box, decline sheet, dispute flow) |
+| B3 | `/dashboard/orders` · `/dashboard/orders/{id}` | Requests & orders — tabs, detail (snapshot, thread, timeline, payment box, decline sheet, dispute flow) |
 | B4 | `/dashboard/vault` | Measurement vault |
 | B5 | `/dashboard/create` | Post an outfit (designer) / creator upsell |
 | B6 | `/dashboard/{username}` | Profiles (designer / regular; followers/following sheets) |
@@ -502,8 +502,8 @@ feed at the base itself.
 
 `/dashboard/{username}` is a dynamic segment; static siblings (explore,
 orders, …) win route precedence by App Router rules, and those segment
-names are reserved usernames at claim time (api.md `/me`, `409
-name_taken`). Part C (mobile) has no web routes, it is the Flutter phase
+names are reserved usernames at claim time (api.md `/me` — `409
+name_taken`). Part C (mobile) has no web routes — it is the Flutter phase
 (§8).
 
 ## 5. TEST_MODE contract
@@ -519,7 +519,7 @@ on it:
    to `SsoAuthProvider` (X-1 Google-only, bearer-token shape preserved), so
    the provider swaps without touching the views.
 2. **API client**: the models layer's base URL targets the in-app mock
-   server, `/api/mock/v1/*` mirrors the `/api/v1/*` surface path-for-path,
+   server — `/api/mock/v1/*` mirrors the `/api/v1/*` surface path-for-path,
    so repositories are identical in both modes except for the base URL.
 
 Unset (or `0`) → real `SsoAuthProvider` through the same-origin `/api` proxy
@@ -544,20 +544,20 @@ with full CRUD; contract types shared with `src/models/`.
 | Social graph | `POST/DELETE /follows/{designer}` · `POST/DELETE /posts/{id}/like` · `/save` · `GET/POST /posts/{id}/comments` |
 | Trust & safety | `POST /reports` · `POST/DELETE /blocks/{account}` · `GET /moderation/queue` · `POST /moderation/reports/{id}/action` |
 | Requests | `POST /posts/{id}/requests` · `GET /requests?role=` · `GET /requests/{id}` · `/quote` · `/decline` · `/status` · `/messages` |
-| Payments | `POST /requests/{id}/pay` (resolves synchronously to `held`, the mock stands in for the provider round-trip + webhook) · `/confirm-delivery` · `/dispute` |
+| Payments | `POST /requests/{id}/pay` (resolves synchronously to `held` — the mock stands in for the provider round-trip + webhook) · `/confirm-delivery` · `/dispute` |
 | Designer | `POST /designer-profile` (incl. scripted Paystack account-resolution states: resolving → resolved / mismatch, pages.md B8) · `GET /designer/earnings` · `POST /designer/payout-account` |
 | Notifications | `GET /notifications` · `POST /notifications/read` |
 | Capture (B4) | `POST /me/sessions` with multipart images, returns seeded measurement results incl. per-measurement `confidence` and `qc` verdicts (api.md §2 v2 schema); QC-failure codes reproducible via designated fixture images. **Ratified contract (M-10/M-12)**: web capture is **upload-only**, two files (`image_front` + `image_side`), per-pose QC, no webcam flow, with a "best experience: guided capture on the mobile app" hint |
 
-**Seed narrative, the docs-coherent Figma dataset.** The store seeds the
+**Seed narrative — the docs-coherent Figma dataset.** The store seeds the
 same mock content the Figma screens render, so a TEST_MODE boot looks like
 the designs:
 
 - A cast of Nigerian designer personas with published posts using the
-  CC-sourced outfit photography (design.md §8.3, same pool as the Figma
+  CC-sourced outfit photography (design.md §8.3 — same pool as the Figma
   Assets page), captions, style tags, and NGN pricing spread across the
   explore price bands (api.md §5: budget <25k, mid 25–100k, premium >100k).
-  Suggested designers (the B1 rail) carry real photo avatars, each fronts
+  Suggested designers (the B1 rail) carry real photo avatars — each fronts
   their OWN published photography from the licensed pool, so the booted
   rail matches the canvas without new assets or fabricated identities.
 - The signed-in test user: non-designer, vault populated with scan +
@@ -566,13 +566,13 @@ the designs:
   rail + feed content, plus a caught-up divider within reach).
 - Orders covering **all ten states** (requested → … → cancelled), at least
   one per state and per role view, so every StatusPill, OrderTimelineRow,
-  and PaymentBox variant renders from seed, including an escrow-held
+  and PaymentBox variant renders from seed — including an escrow-held
   payment with the itemized 10% fee line and a dispute-frozen order.
   Timestamps follow the **plausible-cadence rule**: each order's events
   spread across real-looking hours (strictly ordered, never a same-minute
   cluster; the order and its frozen snapshot anchor to the requested
   event) and thread messages sit minutes-to-hours around the events they
-  narrate, unit-gated in `store.test.ts`.
+  narrate — unit-gated in `store.test.ts`.
 - Notifications of every kind (like / follow / comment / quote /
   status-change / payout), part unread; a designer persona with
   EarningsSummary balances and TransactionRow history for B9.
@@ -586,20 +586,20 @@ the designs:
   reads); the queue lists open rows first with actioned rows trailing as
   the audit trail, and dismissals drop out.
 - Measurement snapshots frozen per request (vault edits after seed never
-  mutate them, the data-model.md §5 rule holds in the mock too).
+  mutate them — the data-model.md §5 rule holds in the mock too).
 
 **Demo imagery pipeline.** The CC pool lives in `web/public/demo/`
-(originals byte-stable, they are the attributed derivatives manifested in
+(originals byte-stable — they are the attributed derivatives manifested in
 `ATTRIBUTIONS.md`) alongside pre-generated responsive WebP variants
 (`<base>.w128/.w384/.w640/.w960.webp`, from
 `web/scripts/generate-demo-image-variants.mjs`; rerun it when the pool
 changes). All demo imagery renders through `next/image` with a custom
 loader (`src/lib/demo-image-loader.ts`) that maps srcset widths onto those
-variant buckets, the deploy target (Firebase App Hosting adapter)
+variant buckets — the deploy target (Firebase App Hosting adapter)
 disables Next's runtime optimizer, so `/_next/image` never exists in
 production and serve-time optimization can't be assumed. Config
 `deviceSizes`/`imageSizes` mirror the buckets 1:1. Priority discipline:
-exactly one `priority` image per route, on home it's the hero phone
+exactly one `priority` image per route — on home it's the hero phone
 mock's first feed photo (the mobile LCP element); everything else stays
 lazy. Non-path srcs (`blob:` capture previews) stay raw `<img>` and pass
 through the loader untouched. Locked by the home e2e perf canon
@@ -611,7 +611,7 @@ through the loader untouched. Locked by the home e2e perf canon
 | --- | --- | --- |
 | Unit | Vitest + Testing Library | every `components/ui/*` module (variant axes, states, both themes, reduced-motion fallbacks); model/repository parsing incl. error-envelope handling; controller hooks |
 | Integration | Vitest | mock handlers (envelope, pagination, enum taxonomies, state-machine legality of `/status` transitions); controller ↔ mock-server flows (optimistic MI-18 rollback on scripted failures) |
-| E2E | Playwright, TEST_MODE against the mock server | the design.md §8.4 prototype journeys, web-applicable set: **Marketing site** (Part A scroll + CTA handoff into the app), **Feed** (B1: like/save/follow → post detail → request stepper MI-10 → pay → escrow-held), plus the named state starts, **decline**, **dispute/moderation**, **creator-upsell** (B5 as non-creator), **designer onboarding/KYC → payout** (B8 → B9) |
+| E2E | Playwright, TEST_MODE against the mock server | the design.md §8.4 prototype journeys, web-applicable set: **Marketing site** (Part A scroll + CTA handoff into the app), **Feed** (B1: like/save/follow → post detail → request stepper MI-10 → pay → escrow-held), plus the named state starts — **decline**, **dispute/moderation**, **creator-upsell** (B5 as non-creator), **designer onboarding/KYC → payout** (B8 → B9) |
 | CI | build-and-test workflow | lint + typecheck + Vitest + Playwright on every PR; X-6: CI itself never deploys |
 
 The §8.4 rule that empty/loading/QA frames stay out of the prototype maps
@@ -624,10 +624,10 @@ Live paths carry zero dead code. `web/src/legacy/` plus the boundary gates
 (the eslint `no-restricted-imports` rule scoped to `src/legacy/**` and
 `scripts/check-boundaries.mjs`, wired into `npm run lint`) are the standing
 mechanism for future replacements per the §1 policy (quarantine → replace →
-QA → dedicated retirement PR), no such tree exists today; the gates stay
+QA → dedicated retirement PR) — no such tree exists today; the gates stay
 armed. The
 **mobile Flutter app has its own implementation standard**:
-[mobile-implementation.md](mobile-implementation.md), including its own
+[mobile-implementation.md](mobile-implementation.md) — including its own
 application of the quarantine policy over the existing `mobile/flutter`
 tree (design.md §6).
 
@@ -651,26 +651,26 @@ tree (design.md §6).
 Fleet-uniform discoverability layer (same construction in all three
 products; per-product values only):
 
-- **`src/app/sitemap.ts`**, public marketing routes only: `/` and
+- **`src/app/sitemap.ts`** — public marketing routes only: `/` and
   `/docs/api`. No `/dashboard/*`, no `/signin`; `/p/{post_id}` permalinks
   are runtime content, not build-time sitemap entries.
-- **`src/app/robots.ts`**, allow `/`, disallow `/dashboard` and `/api`;
+- **`src/app/robots.ts`** — allow `/`, disallow `/dashboard` and `/api`;
   references `https://apparule.cuesoft.io/sitemap.xml`.
-- **Canonical**, root layout sets
+- **Canonical** — root layout sets
   `metadataBase = https://apparule.cuesoft.io` and
   `alternates.canonical = "./"`, so every route emits its own path as the
   canonical URL.
-- **og/twitter card**, `src/app/opengraph-image.png` (1200×630, App Router
+- **og/twitter card** — `src/app/opengraph-image.png` (1200×630, App Router
   file convention): gradient wordmark + tagline on the light token canvas;
   `twitter:card = summary_large_image`.
 - **Icons**, `src/app/favicon.ico` (16/32/48/256 PNG-in-ICO) and
   `src/app/apple-icon.png` (180×180): white "A" on the accent gradient
   tile (byte-identical with the monitoring service's, neither product's mark).
-- **Provenance**, all three binaries are generated from the design tokens
+- **Provenance** — all three binaries are generated from the design tokens
   by `web/scripts/generate-brand-assets.mjs` (byte-identical across repos,
   config keyed by package name; Inter via `INTER_WOFF2` or the official
   distribution).
-- **Lock**, `web/e2e/seo.spec.ts` (byte-identical across repos) asserts
+- **Lock** — `web/e2e/seo.spec.ts` (byte-identical across repos) asserts
   sitemap 200 + exact route set, robots policy + sitemap reference,
   canonical on `/`, og:image resolves 200 at 1200×630, twitter card, and
   the served favicon's sha256 equals apparule's mark while differing from

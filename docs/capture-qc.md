@@ -1,4 +1,4 @@
-# Apparule, Capture QC & Measurement Confidence Contract
+# Apparule — Capture QC & Measurement Confidence Contract
 
 > The numeric thresholds behind flows/vault.md's QC gate and the confidence
 > value stored per measurement (data-model.md `MEASUREMENT.confidence`).
@@ -11,7 +11,7 @@
 
 ## 1. Image checks
 
-Run **per image**, each pose's photo passes the same table. Brightness
+Run **per image** — each pose's photo passes the same table. Brightness
 and blur are judged **on the person** (the segmentation mask and its
 bounding box), not the whole frame: a person against a bright white wall
 is well lit, and a plain wall is not a blurry photo **[Revised 2026-10-21:
@@ -30,7 +30,7 @@ walls]**. When no person is segmented, the whole frame is used.
 Let `vis(i)` = landmark i visibility. Key sets: HEAD = {nose}, SHOULDERS =
 {11,12}, HIPS = {23,24}, ANKLES = {27,28}.
 
-### Pose 1, front
+### Pose 1 — front
 
 | Check | Rule | Fail code |
 | --- | --- | --- |
@@ -43,7 +43,7 @@ Let `vis(i)` = landmark i visibility. Key sets: HEAD = {nose}, SHOULDERS =
 | Arms clearance | wrist landmarks ≥ 5% image-width away from hip landmarks horizontally (arms slightly out, not fused to torso) | `arms_position` (new code) |
 | Scale sanity | body_height_px ≥ 40% of image height | `too_far` (new code) |
 
-### Pose 2, side (profile) deltas
+### Pose 2 — side (profile) deltas
 
 **[Revised 2026-10-21]** In a true profile the far shoulder, hip, wrist
 and ankle are hidden behind the body, and the pose model only guesses where
@@ -79,7 +79,7 @@ and an accepted pose is never discarded by the other pose's failure
 `scale = user_height_cm / body_height_px` uses the nose→ankle-midpoint
 distance, which is ~93% of true stature (nose≠crown, ankle≠sole). Corrected:
 `scale = (user_height_cm × 0.93) / body_height_px` **[Decided: ships as
-`method: mediapipe_2d_v2`, the correction shifts all outputs ~7%, so it is a
+`method: mediapipe_2d_v2` — the correction shifts all outputs ~7%, so it is a
 new method identifier, never a silent change to v1 sessions]**. Plausibility band: if the
 implied crown-to-sole pixel height maps outside 0.75–1.33× of the claimed
 height when cross-checked against torso proportions (shoulder-to-hip ÷
@@ -87,12 +87,12 @@ stature expected ≈ 0.25±0.08), flag `pipeline_meta.qc.height_suspect = true`
 (session still saves; UI shows "double-check your height" hint).
 
 **Side-pose contribution (M-10)**: girth measures estimate from the two
-views, front width + side depth per landmark pair, combined via an
+views — front width + side depth per landmark pair, combined via an
 elliptical-circumference approximation; the front image alone keeps owning
 the height scale (the nose→ankle axis is most stable in the frontal view).
 The v2 constants (the 0.93 stature correction, the plausibility band, and
 the ellipse-eccentricity defaults for two-view girths) must be
-re-benchmarked for the two-view method, **[Specified: measurement
+re-benchmarked for the two-view method — **[Specified: measurement
 pipeline recalibration needed, backend phase]**.
 
 ## 4. Per-measurement confidence (2-D method)
@@ -107,10 +107,10 @@ confidence(m) = clamp01( mean_vis(m) × frontality_factor × sharpness_factor )
 Stored per `MEASUREMENT` row; UI renders <0.7 with a "low confidence, consider retaking" chip. Two-view girths (M-10) span both images:
 `mean_vis(m)` covers the landmarks of both contributing views, and the
 orientation factor applies per view (frontality on the front image, profile
-orientation on the side), exact factors settle with the recalibration
+orientation on the side) — exact factors settle with the recalibration
 (§3). Manual entries have `confidence = null` (human
 truth isn't scored). SMPL-era confidences (Phase 5) replace this formula
-per-method, the field is method-agnostic by design.
+per-method — the field is method-agnostic by design.
 
 ## 5. Config block (single source)
 
@@ -129,6 +129,6 @@ remain interpretable after tuning.
 - [ ] Confidence values populate and render; manual rows null
 - [ ] Height correction ships behind `pipeline_meta.method` rev with the
       benchmark harness comparing before/after against tape measurements
-- [ ] `height_suspect` hint ("double-check your height", §3), **deferred
+- [ ] `height_suspect` hint ("double-check your height", §3) — **deferred
       [Decided 2026-07-22]**: implemented by neither client; it ships
       with the backend phase's pipeline work, not before

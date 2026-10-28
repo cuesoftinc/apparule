@@ -1,6 +1,6 @@
 # Apparule
 
-Fashion body-measurement and social-commerce platform, capture body
+Fashion body-measurement and social-commerce platform — capture body
 measurements from a phone, keep them in a private vault, and commission
 outfits from designers with a frozen copy of your measurements.
 
@@ -118,11 +118,11 @@ nothing but the local-only ticket key pair already in `.env.example`. See
 Never commit credentials or bake them into an image.
 
 ## Documentation
-- [Hosted docs](https://cuesoft.gitbook.io/apparule), the full documentation site (auto-synced from `docs/`)
+- [Hosted docs](https://cuesoft.gitbook.io/apparule) — the full documentation site (auto-synced from `docs/`)
 
-- [Project overview](docs/overview.md), architecture and components
-- [System design](docs/system-design.md), services, transports, data ownership, flows
-- [Local setup](docs/setup.md), development environment and per-service run commands
+- [Project overview](docs/overview.md) — architecture and components
+- [System design](docs/system-design.md) — services, transports, data ownership, flows
+- [Local setup](docs/setup.md) — development environment and per-service run commands
 
 ## Contributing
 
@@ -131,7 +131,7 @@ and our [Code of Conduct](CODE_OF_CONDUCT.md) before opening a PR.
 
 ## Security
 
-Please report vulnerabilities privately, see our [Security policy](SECURITY.md).
+Please report vulnerabilities privately — see our [Security policy](SECURITY.md).
 
 ## License
 

@@ -1,7 +1,7 @@
 # Flow: Authentication (Google-only, API-issued session)
 
 > Implements decision X-1 as hardened 2026-07-16: **Google sign-in is the
-> only authentication method**, no username/password signup or login,
+> only authentication method** — no username/password signup or login,
 > product-wide. `api/common` runs the Google OAuth code flow and signs its own
 > session JWT; the web app only redirects and exchanges a one-time code.
 
@@ -88,12 +88,12 @@ sequenceDiagram
 `login_page` becomes the single auth screen (Google CTA + legal links).
 `sign_up_form`, `sign_up_screen`, `forgot_password`, `reset_password`,
 `verify_email`, `sms_verification`, `verify_account` are **retired** in the
-social redesign (pages.md C1 updates accordingly), phone verification may
+social redesign (pages.md C1 updates accordingly) — phone verification may
 return later for designer KYC, which Paystack owns anyway (A-2).
 
 ## 6. Instrumentation & acceptance
 
-Events: `auth_signin_completed`, `auth_signin_failed`, `consent_recorded{document}` (emitted by the consent endpoints, F1-5), counters only, per the master registry.
+Events: `auth_signin_completed`, `auth_signin_failed`, `consent_recorded{document}` (emitted by the consent endpoints, F1-5) — counters only, per the master registry.
 
 - [ ] Handoff replay is rejected with `handoff_invalid` (test with a reused code)
 - [ ] Cookie requests from another origin are rejected

@@ -1,4 +1,4 @@
-# Apparule, Engineering Contracts
+# Apparule — Engineering Contracts
 
 > Cross-cutting contracts the flow specs assume: error envelope + catalog,
 > authorization matrix, rate limits, testing strategy, logging rules.
@@ -39,17 +39,17 @@ membership for vault-of-customers use (SME mode).
 | Resource / action | visitor | user | designer | moderator |
 | --- | --- | --- | --- | --- |
 | Feed/explore read, post detail | ✓ (public posts) | ✓ | ✓ | ✓ |
-| Like/save/comment/follow | n/a | ✓ | ✓ | ✓ |
-| Create post | n/a | n/a | ✓ (designer profile) | n/a |
-| Post accepts requests | n/a | n/a | ✓ (KYC complete, A-2, `post_unavailable` otherwise; flows/designer.md §1) | n/a |
-| Own vault (read/write) | n/a | ✓ self only, **no role ever reads another's vault** | ✓ self | n/a |
-| Workspace customers/sessions | n/a | workspace members | n/a | n/a |
-| Create request | n/a | ✓ (verified, vault non-empty, consent) | ✓ as customer | n/a |
-| Request read/messages | n/a | party only (customer or that designer) | party only | on dispute |
-| Quote/decline/status | n/a | n/a | ✓ own requests | dispute resolution |
-| Pay / confirm delivery / dispute | n/a | ✓ own orders | n/a | resolve |
-| Earnings/payout account | n/a | n/a | ✓ self | n/a |
-| Reports/blocks | n/a | ✓ | ✓ | queue + actions (block semantics: data-model §6.2, feed filtering, interaction bans, orders survive) |
+| Like/save/comment/follow | —   | ✓ | ✓ | ✓ |
+| Create post | —   | —   | ✓ (designer profile) | —   |
+| Post accepts requests | —   | —   | ✓ (KYC complete, A-2 — `post_unavailable` otherwise; flows/designer.md §1) | —   |
+| Own vault (read/write) | —   | ✓ self only — **no role ever reads another's vault** | ✓ self | —   |
+| Workspace customers/sessions | —   | workspace members | —   | —   |
+| Create request | —   | ✓ (verified, vault non-empty, consent) | ✓ as customer | —   |
+| Request read/messages | —   | party only (customer or that designer) | party only | on dispute |
+| Quote/decline/status | —   | —   | ✓ own requests | dispute resolution |
+| Pay / confirm delivery / dispute | —   | ✓ own orders | —   | resolve |
+| Earnings/payout account | —   | —   | ✓ self | —   |
+| Reports/blocks | —   | ✓ | ✓ | queue + actions (block semantics: data-model §6.2 — feed filtering, interaction bans, orders survive) |
 
 Enforcement: middleware resolves `{account, designer?, workspace?}` from the
 verified token once per request; handlers declare required capability, no inline ad-hoc checks.
@@ -85,7 +85,7 @@ not optional). Every service validates the Kafka contract's examples.
 ## 5. Logging & observability
 
 - slog JSON (Go) / structlog-style (Python); every request logs one line:
-  `request_id, route, status, duration_ms, account_id?`, **account id only,
+  `request_id, route, status, duration_ms, account_id?` — **account id only,
   never email**.
 - **Never-log list** (CI grep-gated): measurement values, capture image
   bytes/URLs with tokens, session tokens, handoff codes, payment provider payloads,
@@ -103,14 +103,14 @@ not optional). Every service validates the Kafka contract's examples.
 
 ## CORS contract (ecosystem standard)
 
-- Env: **`CORS_ORIGINS`**, comma-separated exact origins; no wildcard in
+- Env: **`CORS_ORIGINS`** — comma-separated exact origins; no wildcard in
   cloud; `http://localhost:3000` default for native dev.
 - Behaviour: echo the request Origin **only if allowlisted**; `Vary: Origin`;
-  `Allow-Credentials: false` (bearer auth, no cookies);
+  `Allow-Credentials: false` (bearer auth — no cookies);
   methods `GET,POST,PUT,PATCH,DELETE,OPTIONS`; headers
   `Authorization, Content-Type, Idempotency-Key, X-Org-Id`; preflight 204
   with `Access-Control-Max-Age: 600`.
-- Implemented in api/common and api/uploads (`CORS_ORIGINS`, the ecosystem-standard variable name); uploads allows `POST` and the `Upload-Ticket` header only.
+- Implemented in api/common and api/uploads (`CORS_ORIGINS` — the ecosystem-standard variable name); uploads allows `POST` and the `Upload-Ticket` header only.
 
 ## Telemetry (OpenTelemetry, X-9)
 
