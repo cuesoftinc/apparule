@@ -1,7 +1,7 @@
-import { Module } from '@nestjs/common';
-import { StorageModule } from '../storage/storage.module';
-import { KafkaProducerService } from './kafka-producer.service';
-import { WakeService } from './wake.service';
+import { Module } from "@nestjs/common";
+import { StorageModule } from "../storage/storage.module";
+import { KafkaProducerService } from "./kafka-producer.service";
+import { WakeService } from "./wake.service";
 
 @Module({
   imports: [StorageModule],

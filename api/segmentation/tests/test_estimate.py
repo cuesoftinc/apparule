@@ -8,8 +8,7 @@ from tests.conftest import example, person
 
 TEMPLATES = {
     "women": [m["name"] for m in example("capture.ready")["data"]["measures"]],
-    "men": ["shoulder", "chest", "waist", "top_length", "thigh", "hip", "knee", "shin", "waist_to_knee",
-            "trouser_length", "trouser_inseam", "biceps", "sleeve_length", "neck"],
+    "men": ["shoulder", "chest", "waist", "top_length", "thigh", "hip", "knee", "shin", "waist_to_knee", "trouser_length", "trouser_inseam", "biceps", "sleeve_length", "neck"],
 }
 
 

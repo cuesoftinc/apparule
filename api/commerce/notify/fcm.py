@@ -41,8 +41,7 @@ class FCM:
             if title:
                 message["notification"] = {"title": title, "body": body or ""}
             else:
-                message["apns"] = {"headers": {"apns-push-type": "background", "apns-priority": "5"},
-                                   "payload": {"aps": {"content-available": 1}}}
+                message["apns"] = {"headers": {"apns-push-type": "background", "apns-priority": "5"}, "payload": {"aps": {"content-available": 1}}}
                 message["android"] = {"priority": "normal"}
             try:
                 response = await self._client.post(self._url, headers=headers, json={"message": message})

@@ -15,9 +15,7 @@ OVERLAY_OUTPUT = "demo/output/segmentation_overlay.png"
 
 # Load model
 
-base_options = python.BaseOptions(
-    model_asset_path=MODEL_PATH
-)
+base_options = python.BaseOptions(model_asset_path=MODEL_PATH)
 
 options = vision.ImageSegmenterOptions(
     base_options=base_options,
@@ -67,13 +65,7 @@ green[:] = (0, 255, 0)
 person_green = cv2.bitwise_and(green, mask_rgb)
 
 # Blend with original image
-overlay = cv2.addWeighted(
-    image,
-    0.7,
-    person_green,
-    0.3,
-    0
-)
+overlay = cv2.addWeighted(image, 0.7, person_green, 0.3, 0)
 
 # Save overlay
 cv2.imwrite(OVERLAY_OUTPUT, overlay)

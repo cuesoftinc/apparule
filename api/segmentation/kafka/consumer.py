@@ -86,11 +86,9 @@ class Dispatcher:
                 except Exception as exc:
                     error = exc
             if attempt < self._attempts:
-                log.warning("handler failed; retrying", extra={"topic": topic, "event": event, "request_id": request_id,
-                                                               "attempt": attempt, "error": type(error).__name__})
+                log.warning("handler failed; retrying", extra={"topic": topic, "event": event, "request_id": request_id, "attempt": attempt, "error": type(error).__name__})
                 await asyncio.sleep(self._backoff * 2 ** (attempt - 1))
-        log.error("handler kept failing; recorded and skipped", exc_info=error,
-                  extra={"topic": topic, "event": event, "request_id": request_id, "attempts": self._attempts})
+        log.error("handler kept failing; recorded and skipped", exc_info=error, extra={"topic": topic, "event": event, "request_id": request_id, "attempts": self._attempts})
         if self._on_failure is not None and data is not None:
             try:
                 await self._on_failure(event, data, request_id)
@@ -148,8 +146,7 @@ class Consumer:
                     try:
                         await self._consumer.commit()
                     except Exception:
-                        log.warning("commit failed; the message may be redelivered",
-                                    extra={"topic": record.topic, "offset": record.offset})
+                        log.warning("commit failed; the message may be redelivered", extra={"topic": record.topic, "offset": record.offset})
                 return
             except Exception:
                 log.exception("consumer error; resuming", extra={"group": self.group})
