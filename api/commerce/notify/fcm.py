@@ -5,6 +5,7 @@ import asyncio
 import logging
 
 import google.auth
+import google.auth.exceptions
 import google.auth.transport.requests
 import httpx
 
@@ -29,7 +30,11 @@ class FCM:
     async def send(self, tokens: list[str], title: str | None = None, body: str | None = None, data: dict | None = None) -> int:
         """Sends one message per device; returns how many FCM accepted.
         Failures are logged by status only, never with the token."""
-        headers = {"Authorization": f"Bearer {await self._token()}"}
+        try:
+            headers = {"Authorization": f"Bearer {await self._token()}"}
+        except google.auth.exceptions.GoogleAuthError as exc:
+            log.warning("push failed", extra={"step": "fcm", "error": type(exc).__name__})
+            return 0
         sent = 0
         for token in tokens:
             message: dict = {"token": token, "data": {k: str(v) for k, v in (data or {}).items()}}
