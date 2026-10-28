@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `APP_RETURN_URLS` allowlist for the mobile app's sign-in return link.
 - `POST /internal/jobs/<name>` on api/common, guarded by scheduler OIDC token.
 - Rate limiter keys carry the `REDIS_KEY_PREFIX` product prefix.
-- Staging estate documented: Cloud Run, Cloud Scheduler, Aiven and the staging secrets config.
+- Staging estate documented: Cloud Run, Cloud Scheduler, managed Kafka and the staging secrets config.
 - The backend of the ratified system design, on the shared CueLABS
   Kafka (#244):
   - `api/common` rebuilt as the Postgres CRUD owner: row-level security, the
@@ -44,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `release.yml`: on a `v*` tag, builds and pushes the four API images and
   points the Cloud Run services and sweep jobs at their digests in the
   protected `Sandbox` environment; `docs/deploy-runbook.md` walks an account
-  owner through GCP, Aiven, Firebase, Paystack and GitHub (#244).
+  owner through GCP, Kafka, Firebase, Paystack and GitHub (#244).
 
 - Datadog service catalog entry for the Apparule system.
 - Root README badge row — License (MIT) + `build-and-test` workflow
@@ -73,7 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - `patrol_finders` (3.6.0, promoted to a direct dev dependency from
     the ratified patrol 4.7.1 pin) drives the SDK's own
     `integration_test` binding — plain `flutter test integration_test
-    --flavor dev` on a device, no native-automation runner.
+--flavor dev` on a device, no native-automation runner.
   - `mobile-e2e` workflow — nightly + manual dispatch, never per-PR
     (§8's device-farm cost profile): Android API 34 x86_64 emulator
     (KVM-accelerated ubuntu runner) running the journey suite against
@@ -113,11 +113,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
     steps — intro (accent measure lines + height arrow), get ready
     (callout chips), phone setup (phone/sightline/light diagram), front
     pose (45° arm rays) and the NEW side pose (right-profile silhouette
-    + turn arrow) — over the canvas-re-keyed ARB copy, including the new
-    step-3 lighting bullet that teaches the `poor_lighting`/`blurry` QC
-    checks up front. The legacy 2023 navy photo art
-    (`guide1`/`guide3`/`guide4`/`guide5`/`step2`) is deleted; Skip
-    renders on revisits only.
+    - turn arrow) — over the canvas-re-keyed ARB copy, including the new
+      step-3 lighting bullet that teaches the `poor_lighting`/`blurry` QC
+      checks up front. The legacy 2023 navy photo art
+      (`guide1`/`guide3`/`guide4`/`guide5`/`step2`) is deleted; Skip
+      renders on revisits only.
   - The M-10 two-pose capture flow: front "Pose 1 of 2" → side "Pose 2
     of 2" (centered over-media pose bar, M-9) → height step only when no
     height is on file → one-request submit (`image_front` +
@@ -285,39 +285,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   follow in their own lanes). **M-10 two-photo capture (reverses
   M-6)**: the product mechanic is two photos, front + side (right
   profile), plus height; api.md `POST /measure` becomes `image_front`
-  + `image_side` + `user_height_cm`, capture-qc.md defines per-pose QC
-  (side pose: `not_side_profile` + arms-relaxed; first-failure-only per
-  pose, pose-2 failures never discard pose 1), flows/vault.md §1 runs
-  the two-capture sequence (QC retry never advances the pose), pages.md
-  C6 and mobile-implementation.md §10 carry the two-pose flow with the
-  5-step guide, and the `mediapipe_2d_v2` formula gains the two-view
-  girth note ([Directive: measurement pipeline recalibration needed]).
-  **M-8 canvas-first**: every shipped screen has a Figma frame —
-  frameless is designed first or dropped. **M-9 centered header-bar
-  titles**: true bar-width centering, chrome-scoped (design.md §8.2b
-  AppBar spec; page-body titles stay left-aligned). **M-11 unified
-  create semantics**: ➕/Create opens a two-option chooser on both
-  platforms — "Take measurements" + "Post an outfit" (designer-gated;
-  non-designers route to become-a-designer); the mobile composer (C15)
-  is authorized design-first, and until it ships mobile's chooser
-  offers capture + become-a-designer only. **M-12 web capture is
-  upload-only**: web users upload the two photos (front + side files,
-  same per-pose QC pipeline); the webcam capture flow is removed
-  (rejected UX — desk-height lens, unreachable controls) and the vault
-  entry hints "best experience: guided capture on the mobile app";
-  mobile keeps the live guided camera; the composer create flow is
-  upload/import on both platforms. **Auth posture**:
-  TEST_MODE-parity fakes are the ratified state until phase 4; Firebase
-  wiring stays documented but gated. **Bio scope**: designer-scoped —
-  C9 edit-profile hides bio for non-designers. **Parity-audit items**:
-  design.md Button `quiet-danger` + the danger-ladder row-rung rule and
-  the entity-navigation rule; pages.md C1b marked mobile-only (web
-  first-run = B1 empty state + freshness card); flows/auth.md §2
-  platform-neutral session-restore decision; flows/vault.md §2 advisory
-  ranges canonized (waist_girth settled at 150); data-model.md
-  `input_height_cm` nullable for `method: manual` (the web 168
-  fabrication ends); capture-qc.md §6 records the `height_suspect` hint
-  as deferred (unimplemented on both clients) (#157).
+  - `image_side` + `user_height_cm`, capture-qc.md defines per-pose QC
+    (side pose: `not_side_profile` + arms-relaxed; first-failure-only per
+    pose, pose-2 failures never discard pose 1), flows/vault.md §1 runs
+    the two-capture sequence (QC retry never advances the pose), pages.md
+    C6 and mobile-implementation.md §10 carry the two-pose flow with the
+    5-step guide, and the `mediapipe_2d_v2` formula gains the two-view
+    girth note ([Directive: measurement pipeline recalibration needed]).
+    **M-8 canvas-first**: every shipped screen has a Figma frame —
+    frameless is designed first or dropped. **M-9 centered header-bar
+    titles**: true bar-width centering, chrome-scoped (design.md §8.2b
+    AppBar spec; page-body titles stay left-aligned). **M-11 unified
+    create semantics**: ➕/Create opens a two-option chooser on both
+    platforms — "Take measurements" + "Post an outfit" (designer-gated;
+    non-designers route to become-a-designer); the mobile composer (C15)
+    is authorized design-first, and until it ships mobile's chooser
+    offers capture + become-a-designer only. **M-12 web capture is
+    upload-only**: web users upload the two photos (front + side files,
+    same per-pose QC pipeline); the webcam capture flow is removed
+    (rejected UX — desk-height lens, unreachable controls) and the vault
+    entry hints "best experience: guided capture on the mobile app";
+    mobile keeps the live guided camera; the composer create flow is
+    upload/import on both platforms. **Auth posture**:
+    TEST_MODE-parity fakes are the ratified state until phase 4; Firebase
+    wiring stays documented but gated. **Bio scope**: designer-scoped —
+    C9 edit-profile hides bio for non-designers. **Parity-audit items**:
+    design.md Button `quiet-danger` + the danger-ladder row-rung rule and
+    the entity-navigation rule; pages.md C1b marked mobile-only (web
+    first-run = B1 empty state + freshness card); flows/auth.md §2
+    platform-neutral session-restore decision; flows/vault.md §2 advisory
+    ranges canonized (waist_girth settled at 150); data-model.md
+    `input_height_cm` nullable for `method: manual` (the web 168
+    fabrication ends); capture-qc.md §6 records the `height_suspect` hint
+    as deferred (unimplemented on both clients) (#157).
 
 - Mobile C14 empty-ledger CTA falls back to the module-canonical
   "Discover designers" → Explore (the C8-empty precedent): its previous
@@ -342,9 +342,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   goldens re-authored on the Linux gate platform (#152).
 - Mobile flavors collapse to the org's two-environment model (product
   decision 2026-07-22): `dev` (fakes/TEST_MODE, applicationIdSuffix
-  `.dev`) and `prod` (bare `io.cuesoft.apparule`, Firebase
-  `sandbox-e306a` — CueLABS production runs on the sandbox account; the
-  staging secrets config name stays `stg`). `main_stg.dart` and the `stg`/`prd`
+  `.dev`) and `prod` (bare `io.cuesoft.apparule`; the staging
+  secrets config name stays `stg`). `main_stg.dart` and the `stg`/`prd`
   Android flavors are gone; `main.dart` is the prod entrypoint, and a
   separate prd tier is added only when a production environment is
   ratified (#146).
@@ -396,7 +395,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - External links converge on `rel="noreferrer"` (which implies `noopener`),
   the shared legal-link idiom, across anchors and `window.open` feature
   strings (#137).
-- The skip-to-content link is now the byte-identical canonical
+- The skip-to-content link is now the canonical
   component: visually hidden via `sr-only` until keyboard focus reveals the
   pill; the first-Tab/Enter-to-`#main` contract is unchanged (#137).
 - `/docs/api`'s Scalar reference now loads on user intent instead of shipping
@@ -625,19 +624,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   capture-options sheet so manual entry is reachable from an empty vault
   (D17); the vault load error renders recovery copy + Retry instead of
   raw error text (D47); per-session delete routes through `VaultActions`
-  + `runAction` with a "Session deleted" toast and rollback-on-failure
-  (D48/D16 — capture and manual-entry saves now ride the same façade, so
-  the C9 freshness ring re-derives after every vault mutation); history
-  rows gain the CSV export action with a toast (D50); the MI-13 unit
-  toggle actually flips through the shared `FlipUnitToggle` (D49,
-  MI-registry row un-skipped); the tape slider is assistive-technology
-  operable via increase/decrease steps (D51); manual-entry rows preview
-  the metric's vault history as a sparkline that animates on value
-  change (D66); the C1b measurement exit `go()`es home before pushing
-  capture so backing out never lands on the dismissed interstitial
-  (D72); `CaptureOptionCard`'s axis renamed `photo-upload` with the
-  two-photo subtitle (M-12), and the C1b/processing/height copy swept to
-  the two-photo canon (#164).
+  - `runAction` with a "Session deleted" toast and rollback-on-failure
+    (D48/D16 — capture and manual-entry saves now ride the same façade, so
+    the C9 freshness ring re-derives after every vault mutation); history
+    rows gain the CSV export action with a toast (D50); the MI-13 unit
+    toggle actually flips through the shared `FlipUnitToggle` (D49,
+    MI-registry row un-skipped); the tape slider is assistive-technology
+    operable via increase/decrease steps (D51); manual-entry rows preview
+    the metric's vault history as a sparkline that animates on value
+    change (D66); the C1b measurement exit `go()`es home before pushing
+    capture so backing out never lands on the dismissed interstitial
+    (D72); `CaptureOptionCard`'s axis renamed `photo-upload` with the
+    two-photo subtitle (M-12), and the C1b/processing/height copy swept to
+    the two-photo canon (#164).
 
 - Mobile Wave 0 interaction infrastructure (the interaction-audit CLASS
   locks — everything the fix lanes build on):
@@ -683,17 +682,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Web B4 two-photo upload capture (M-10 + M-12): the vault measurement
   flow is the two-file upload per the dashboard canvas frame — labeled
   Front/Side dropzones with per-pose states (empty / uploaded thumbnail
-  + Replace / QC-error + hint chip), a Height (cm) row (100–230,
-  prefilled from the latest capture session — never a fabricated
-  default), and the "Get measurements" CTA into the processing
-  constellation and results stagger. QC is per pose: the 422 names the
-  failing pose, only that pose's file re-picks (an accepted pose is
-  never discarded), `QCHintChip` gains the `not_side_profile` code and
-  the side-pose arms copy, and the mock reports the FIRST failure by
-  the capture-qc.md table order (pre-checks before pose rows). The
-  options sheet and upload view carry the "Best experience: guided
-  capture on the Apparule app" hint; `openapi.yaml` POST /me/sessions
-  takes multipart `image_front` + `image_side` + `input_height_cm` (#158).
+  - Replace / QC-error + hint chip), a Height (cm) row (100–230,
+    prefilled from the latest capture session — never a fabricated
+    default), and the "Get measurements" CTA into the processing
+    constellation and results stagger. QC is per pose: the 422 names the
+    failing pose, only that pose's file re-picks (an accepted pose is
+    never discarded), `QCHintChip` gains the `not_side_profile` code and
+    the side-pose arms copy, and the mock reports the FIRST failure by
+    the capture-qc.md table order (pre-checks before pose rows). The
+    options sheet and upload view carry the "Best experience: guided
+    capture on the Apparule app" hint; `openapi.yaml` POST /me/sessions
+    takes multipart `image_front` + `image_side` + `input_height_cm` (#158).
 - Web Create chooser (M-11 unified create semantics): the rail's Create
   pillar opens the two-option chooser — "Take measurements" (primary,
   accent border → B4 capture options via `/dashboard/vault?capture=1`)
@@ -705,8 +704,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   chrome + error-token label, Figma 501:2), with gallery + test
   coverage (#158).
 
-- Web profile counts derive from the follow graph (user-reported live
-  bug): completing become-a-designer onboarding zeroed the profile
+- Web profile counts derive from the follow graph (live bug): completing become-a-designer onboarding zeroed the profile
   header's follower/following counts — `enableDesigner` created the
   DESIGNER_PROFILE with stored zero counts and the B6 header switched
   to reading them, while the graph-backed followers/following sheets
@@ -773,7 +771,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   spelled per flavor (`io.cuesoft.apparule.dev` on dev, bare on prod),
   alongside the per-flavor display name (Apparule Dev / Apparule).
   `flutter build ios --simulator --debug --flavor dev -t
-  lib/main_dev.dart` now bundles the dev-scoped `assets/seed/` entries
+lib/main_dev.dart` now bundles the dev-scoped `assets/seed/` entries
   (verified in the built `.app`) — the flavorless raw-`xcodebuild` path
   shipped fakes with EMPTY seed. iOS deployment target 13.0 → 15.0
   (Firebase iOS SDK 12 requires iOS 15; docs §2 + M-1 amended); the
@@ -887,7 +885,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   dev-flavor app now carries the full social + commerce journey over
   fakes. The §6 seed narrative extends with the web mock's story
   VERBATIM (`assets/seed/dev/{me,designers,posts,orders,
-  notifications}.json`, same personas `kiki.adeyemi`/`amara.designs`/
+notifications}.json`, same personas `kiki.adeyemi`/`amara.designs`/
   `tunde.o`/`maisonbisi`/`eniola.stitches`, same 11 posts + 33 comments
   with count==list invariants, the same ten-lifecycle-state order book
   `#APR-1005…#APR-1058` incl. the frozen child-size snapshot on
@@ -939,7 +937,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   core product journey, one frontal photo + height → measurements → the
   vault, entirely over fakes. The instructional guide is rebuilt
   single-pose from the §11 salvage (kept artwork `guide1/step2/guide3/
-  guide4`, tightened legacy copy; the five copy-pasted `Page1..Page5`
+guide4`, tightened legacy copy; the five copy-pasted `Page1..Page5`
   classes collapse into ONE parameterized page widget; the fifth
   side-pose page stays retired — one frontal photo is the canon),
   skippable only after a first completion (persisted flag), and the ➕
@@ -1045,7 +1043,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   repository contract, the mocked Firebase call sequence and §4 error
   mapping, the C1 widget states, and the redirect matrix.
   `firebase_options*.dart` generation is pending `firebase login
-  --reauth` (expired CLI credentials); `bootstrap(firebaseOptions:)` +
+--reauth` (expired CLI credentials); `bootstrap(firebaseOptions:)` +
   `firebaseAuthRepositoryOverride()` are the one-diff seam for when it
   lands. Pin-ledger addition: `url_launcher ^6.3.2` (legal links) (#146).
 - Mobile feature-first skeleton (restructure step 3,
@@ -1053,13 +1051,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   with the six ratified features (`auth`, `feed`, `measurements`, `orders`,
   `profile`, `earnings`), each seeded with a placeholder screen, a
   `@riverpod` ViewModel, a freezed domain model, and an abstract repository
-  + `*Fake` returning empty data; a typed go_router `StatefulShellRoute`
-  five-tab shell (Home · Explore · ➕ · Orders · Profile) with the auth
-  redirect stubbed always-allow until the auth wave; Riverpod 3 codegen DI
-  (provider overrides per environment across `main_dev` / `main_stg` /
-  `main.dart`); the `core/data` seams (configured Dio `api_client`,
-  secure-storage `persistence_service`); and `assets/seed/` documenting the
-  §6 narrative to come (#143).
+  - `*Fake` returning empty data; a typed go_router `StatefulShellRoute`
+    five-tab shell (Home · Explore · ➕ · Orders · Profile) with the auth
+    redirect stubbed always-allow until the auth wave; Riverpod 3 codegen DI
+    (provider overrides per environment across `main_dev` / `main_stg` /
+    `main.dart`); the `core/data` seams (configured Dio `api_client`,
+    secure-storage `persistence_service`); and `assets/seed/` documenting the
+    §6 narrative to come (#143).
 - Design-token pipeline: `design/tokens/apparule.tokens.json`, the
   37-variable `apparule/tokens` Figma collection (17 color roles in true
   Light/Dark modes, spacing, radii, durations, z-layers), verified against
@@ -1124,7 +1122,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   (#47).
 - Committed `mobile/flutter/pubspec.lock` for reproducible app builds (#54).
 
-- Mobile live-QA affordance sweep (user-reported on-device, 2026-07-22):
+- Mobile live-QA affordance sweep (found on-device, 2026-07-22):
   tapping a designer's avatar or name on a feed PostCard did nothing.
   Fixed at the component, `PostCard` gains `onProfileTap`; the header
   identity (avatar + username) is one labelled tappable and the
@@ -1148,7 +1146,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   centering in leftover flow space, which skewed every back-only title
   right and let long titles run under the slots. The root brand bar
   keeps its left wordmark, exempt per the decision (#159).
-- Mobile like/save to web level (user-reported live-QA): MI-20/MI-1
+- Mobile like/save to web level (found in live QA): MI-20/MI-1
   light haptics on like+save set (un-actions quiet, the MI-2
   asymmetry), the MI-3 "Saved to your looks" first-save toast (once per
   install, persisted gate, View action into the profile), and

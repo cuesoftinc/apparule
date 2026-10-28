@@ -20,7 +20,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 ///
 /// DS-purity: the module takes plain values (no feature domain types);
 /// the timestamp arrives pre-formatted ([timestampLabel]) so the consumer
-/// owns the social relative date idiom ("2h" — fleet adjudication).
+/// owns the social relative date idiom ("2h").
 class PostCard extends StatefulWidget {
   const PostCard({
     required this.username,
@@ -346,7 +346,7 @@ class _PostCardState extends State<PostCard> {
 }
 
 /// The tappable header identity — avatar + username as ONE profile
-/// affordance (the user-reported live-QA defect: neither navigated).
+/// affordance (the live-QA defect: neither navigated).
 /// Layout matches the previous inline anatomy exactly; the tap layer is
 /// behavior-only, so goldens hold.
 class _HeaderIdentity extends StatelessWidget {

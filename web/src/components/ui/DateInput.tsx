@@ -84,7 +84,7 @@ export function DateInput({
         <RadixPopover.Portal>
           <RadixPopover.Content
             sideOffset={4}
-            // Collision-clamp canon (org SKILL.md, 2026-07-19): the calendar
+            // Collision-clamp canon (2026-07-19): the calendar
             // must never clip off a screen edge (found live as a
             // period-picker clipping right on expendit) — 8px viewport pad.
             collisionPadding={8}

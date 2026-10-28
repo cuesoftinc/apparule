@@ -5,8 +5,8 @@
 import { accountRepo } from "@/models/repositories/account-repo";
 import type { AuthProviderAdapter, AuthSession, SignInResult } from "./types";
 
-// Fleet P16 key convention (dictated canon 2026-07-21): `<product>.test-session`
-// in sessionStorage, JSON user payload — one shape across the fleet's e2e
+// Key convention: `<product>.test-session`
+// in sessionStorage, JSON user payload — one shape across e2e
 // tooling. The payload is the account snapshot at sign-in; restore still
 // re-resolves /me so account-state changes (e.g. designer onboarding) are
 // never served stale.

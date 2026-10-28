@@ -1,7 +1,7 @@
 "use client";
 
 // MarketingNav — design.md §8.2b marketing kit, per the org "Marketing nav,
-// footer & theme parity canon" (SKILL.md, revised 2026-07-19): four links
+// footer & theme parity canon" (revised 2026-07-19): four links
 // — Features · For designers · Docs · GitHub, with GitHub rendered as the
 // compact star badge (star glyph + "Star" + the live count from the shared
 // cached fetch seam; TEST_MODE/failure keep the neutral "Star" label,

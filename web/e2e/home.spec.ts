@@ -374,7 +374,7 @@ test.describe("system QA regressions", () => {
   });
 });
 
-// Marketing nav/footer link-parity canon (SKILL.md, ratified 2026-07-19):
+// Marketing nav/footer link-parity canon (ratified 2026-07-19):
 // the exact link sets and verified URLs, asserted on the live DOM.
 test.describe("nav/footer parity canon", () => {
   test("nav carries the four canon links + the Sign in CTA", async ({
@@ -529,7 +529,7 @@ test.describe("nav/footer parity canon", () => {
   test("below md the footer stacks per the canon: full-width brand, 2-col grid, grouped legal cluster (390)", async ({
     page,
   }) => {
-    // Footer mobile structure canon (SKILL.md, pinned 2026-07-19): brand
+    // Footer mobile structure canon (pinned 2026-07-19): brand
     // block full-width first · 4 link columns in a 2-col grid · divider ·
     // legal bar with © first + one grouped wrapping utilities cluster.
     await page.setViewportSize({ width: 390, height: 844 });

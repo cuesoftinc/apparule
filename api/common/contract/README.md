@@ -30,9 +30,8 @@ A message that keeps failing after a few attempts becomes a failed result
 (or a recorded failure in common) and is committed: a stuck partition would
 stall the other products on the lanes.
 
-Apparule's events ride the three lanes of the CueLABS shared message bus
-(decisions.md X-11; the rules are in the CueLABS delivery standard's
-`shared-messaging.md`), which Expendit and Upstat read too. So every producer
+Apparule's events ride the three lanes of the shared message bus
+(decisions.md X-11), which Expendit and Upstat read too. So every producer
 writes the payload to `apparule/<env>/compute/<id>.json` and sends `data_ref`;
 storage permissions keep Apparule's data to itself. `data` inline is accepted
 by the schema for fixtures and tests only. Consumers read `type` first and
@@ -40,18 +39,18 @@ skip, without validating, anything that isn't an Apparule event they handle.
 
 ## Events and lanes
 
-| Event (schema) | Lane | Key | Producer → consumer |
-| --- | --- | --- | --- |
-| [capture.uploaded](capture.uploaded.schema.json) | `cuelabs.uploads` | session id | uploads → common |
-| [media.uploaded](media.uploaded.schema.json) | `cuelabs.uploads` | target id | uploads → common |
-| [capture.ready](capture.ready.schema.json) | `cuelabs.requests` | session id | common (outbox) → segmentation |
-| [orders.transition](orders.transition.schema.json) | `cuelabs.requests` | request id | common (outbox) → commerce |
-| [payments.provider_event](payments.provider_event.schema.json) | `cuelabs.requests` | provider event id | common (outbox) → commerce |
-| [payouts.recipient_requested](payouts.recipient_requested.schema.json) | `cuelabs.requests` | designer id | common (outbox) → commerce |
-| [ledger.reconcile_requested](ledger.reconcile_requested.schema.json) | `cuelabs.requests` | `reconcile` | common's hourly job → commerce |
-| [notifications.created](notifications.created.schema.json) | `cuelabs.requests` | account id | common (outbox) → commerce |
-| [capture.measured](capture.measured.schema.json) | `cuelabs.results` | session id | segmentation → common |
-| [payments.outcome](payments.outcome.schema.json) | `cuelabs.results` | request / designer id | commerce → common |
+| Event (schema)                                                         | Lane               | Key                   | Producer → consumer            |
+| ---------------------------------------------------------------------- | ------------------ | --------------------- | ------------------------------ |
+| [capture.uploaded](capture.uploaded.schema.json)                       | `cuelabs.uploads`  | session id            | uploads → common               |
+| [media.uploaded](media.uploaded.schema.json)                           | `cuelabs.uploads`  | target id             | uploads → common               |
+| [capture.ready](capture.ready.schema.json)                             | `cuelabs.requests` | session id            | common (outbox) → segmentation |
+| [orders.transition](orders.transition.schema.json)                     | `cuelabs.requests` | request id            | common (outbox) → commerce     |
+| [payments.provider_event](payments.provider_event.schema.json)         | `cuelabs.requests` | provider event id     | common (outbox) → commerce     |
+| [payouts.recipient_requested](payouts.recipient_requested.schema.json) | `cuelabs.requests` | designer id           | common (outbox) → commerce     |
+| [ledger.reconcile_requested](ledger.reconcile_requested.schema.json)   | `cuelabs.requests` | `reconcile`           | common's hourly job → commerce |
+| [notifications.created](notifications.created.schema.json)             | `cuelabs.requests` | account id            | common (outbox) → commerce     |
+| [capture.measured](capture.measured.schema.json)                       | `cuelabs.results`  | session id            | segmentation → common          |
+| [payments.outcome](payments.outcome.schema.json)                       | `cuelabs.results`  | request / designer id | commerce → common              |
 
 There are no compacted topics (X-11): the measurement template travels inside
 `capture.ready`, and the ledger slice to reconcile inside

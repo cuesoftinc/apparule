@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import SkipLink from "./SkipLink";
 
-describe("SkipLink (fleet a11y canon)", () => {
+describe("SkipLink", () => {
   it("is a link to #main, visually hidden until focused", () => {
     render(<SkipLink />);
     const link = screen.getByRole("link", { name: "Skip to content" });

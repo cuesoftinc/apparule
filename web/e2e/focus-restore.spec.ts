@@ -1,4 +1,4 @@
-// Overlay focus-restore canon (2026-07-21 a11y audit, fleet finding P4):
+// Overlay focus-restore lock (2026-07-21 a11y audit):
 // closing any Sheet/modal must return focus to the element that opened it.
 // The Sheets are controlled Radix dialogs without a RadixDialog.Trigger, so
 // before the fix Escape dropped focus on <body> — invisible to keyboard and
