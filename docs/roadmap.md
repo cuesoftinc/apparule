@@ -125,5 +125,5 @@ RLS, tickets, outbox, sweeps), `api/uploads`, `api/segmentation` and
 revised phases: **P1** (auth, consent, instance requests), **P2** (vault +
 asynchronous capture), **P3** (social, trust & safety) and **P4** (commerce
 on Paystack, sandbox) have their backend; the web runs against it. Remaining:
-the Flutter `*Remote` repositories (blocked on `flutterfire configure`), the
+the Flutter `*Remote` repositories (blocked on the API wave), the
 two-view measurement benchmark (capture-qc.md §3), and **P5** (SMPL).

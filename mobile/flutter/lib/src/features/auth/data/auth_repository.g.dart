@@ -9,22 +9,22 @@ part of 'auth_repository.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// Overridden per entrypoint (di.dart) — no default implementation exists;
-/// dev runs the fake, prod swaps in Firebase once its options land
-/// (mobile-implementation.md §6/§9).
+/// dev runs the fake, prod swaps in the API implementation once `API_URL`
+/// is set (mobile-implementation.md §6/§9).
 
 @ProviderFor(authRepository)
 final authRepositoryProvider = AuthRepositoryProvider._();
 
 /// Overridden per entrypoint (di.dart) — no default implementation exists;
-/// dev runs the fake, prod swaps in Firebase once its options land
-/// (mobile-implementation.md §6/§9).
+/// dev runs the fake, prod swaps in the API implementation once `API_URL`
+/// is set (mobile-implementation.md §6/§9).
 
 final class AuthRepositoryProvider
     extends $FunctionalProvider<AuthRepository, AuthRepository, AuthRepository>
     with $Provider<AuthRepository> {
   /// Overridden per entrypoint (di.dart) — no default implementation exists;
-  /// dev runs the fake, prod swaps in Firebase once its options land
-  /// (mobile-implementation.md §6/§9).
+  /// dev runs the fake, prod swaps in the API implementation once `API_URL`
+  /// is set (mobile-implementation.md §6/§9).
   AuthRepositoryProvider._()
     : super(
         from: null,
@@ -58,10 +58,10 @@ final class AuthRepositoryProvider
   }
 }
 
-String _$authRepositoryHash() => r'5a3aa3d69d17fbb401107b8d4970cc0ca6a16085';
+String _$authRepositoryHash() => r'd854edbaf0bd7db2ac3a7ec7f8969650e5bee615';
 
 /// App-wide session state (§5/§9): the first value is the silent restore
-/// (`attemptLightweightAuthentication` under Firebase), then the stream
+/// (the stored token read back through `/api/v1/me`), then the stream
 /// follows the repository's session transitions. The router redirect and
 /// its `refreshListenable` hang off this provider.
 ///
@@ -73,7 +73,7 @@ String _$authRepositoryHash() => r'5a3aa3d69d17fbb401107b8d4970cc0ca6a16085';
 final authSessionProvider = AuthSessionProvider._();
 
 /// App-wide session state (§5/§9): the first value is the silent restore
-/// (`attemptLightweightAuthentication` under Firebase), then the stream
+/// (the stored token read back through `/api/v1/me`), then the stream
 /// follows the repository's session transitions. The router redirect and
 /// its `refreshListenable` hang off this provider.
 ///
@@ -90,7 +90,7 @@ final class AuthSessionProvider
         >
     with $FutureModifier<AuthSession?>, $StreamProvider<AuthSession?> {
   /// App-wide session state (§5/§9): the first value is the silent restore
-  /// (`attemptLightweightAuthentication` under Firebase), then the stream
+  /// (the stored token read back through `/api/v1/me`), then the stream
   /// follows the repository's session transitions. The router redirect and
   /// its `refreshListenable` hang off this provider.
   ///

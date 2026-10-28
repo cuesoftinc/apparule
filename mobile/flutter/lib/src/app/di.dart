@@ -1,8 +1,9 @@
+import 'package:apparule/src/core/data/api_client.dart';
 import 'package:apparule/src/core/data/persistence_service.dart';
 import 'package:apparule/src/core/utils/app_flavor.dart';
 import 'package:apparule/src/features/auth/data/auth_repository.dart';
+import 'package:apparule/src/features/auth/data/auth_repository_api.dart';
 import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
-import 'package:apparule/src/features/auth/data/auth_repository_firebase.dart';
 import 'package:apparule/src/features/earnings/data/earnings_repository.dart';
 import 'package:apparule/src/features/earnings/data/earnings_repository_fake.dart';
 import 'package:apparule/src/features/feed/data/media_picker_service.dart';
@@ -19,8 +20,6 @@ import 'package:apparule/src/features/profile/data/notification_repository.dart'
 import 'package:apparule/src/features/profile/data/notification_repository_fake.dart';
 import 'package:apparule/src/features/profile/data/profile_repository.dart';
 import 'package:apparule/src/features/profile/data/profile_repository_fake.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'di.g.dart';
@@ -39,8 +38,7 @@ AppFlavor appFlavor(Ref ref) => throw UnimplementedError(
 
 /// The `*Fake` repository set — dev runs entirely on these (§6); prod
 /// carries them too until the auth/API waves swap in the real
-/// implementations (Firebase auth behind the options files, `*Remote`
-/// at §1 phase 4).
+/// implementations (API auth behind `API_URL`, `*Remote` at §1 phase 4).
 ///
 /// [authRepository] lets a test supply a differently seeded auth fake
 /// (in-memory, pre-signed-in, throwing). The default fake binds the
@@ -124,22 +122,14 @@ List<Override> fakeRepositoryOverrides({
   ),
 ];
 
-/// The real auth override (§9) — google_sign_in 7 into Firebase Auth on
-/// `sandbox-e306a`, tokens at rest via the persistence seam. An
-/// entrypoint may adopt this only after `Firebase.initializeApp` ran with
-/// its flavor's options file (`firebase_options.dart` for prod,
-/// `firebase_options_dev.dart` for dev — bootstrap's `firebaseOptions`
-/// parameter); until `flutterfire configure` lands those files (blocked
-/// on `firebase login --reauth`), no entrypoint wires it and both
+/// The real auth override (§9): the API's Google SSO handoff in a
+/// browser tab, the session token at rest via the persistence seam and
+/// sent as a Bearer by the shared [apiClientProvider]. No entrypoint
+/// wires it until the flavors' `API_URL` and the API wave land; both
 /// flavors stay on the fake set.
-Override firebaseAuthRepositoryOverride() {
-  const serverClientId = String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID');
-  return authRepositoryProvider.overrideWith(
-    (ref) => AuthRepositoryFirebase(
-      firebaseAuth: FirebaseAuth.instance,
-      googleSignIn: GoogleSignIn.instance,
-      persistenceService: ref.watch(persistenceServiceProvider),
-      serverClientId: serverClientId.isEmpty ? null : serverClientId,
-    ),
-  );
-}
+Override apiAuthRepositoryOverride() => authRepositoryProvider.overrideWith(
+  (ref) => AuthRepositoryApi(
+    dio: ref.watch(apiClientProvider),
+    persistenceService: ref.watch(persistenceServiceProvider),
+  ),
+);

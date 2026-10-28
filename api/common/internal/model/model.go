@@ -36,7 +36,7 @@ type DesignerFlags struct {
 
 type Account struct {
 	ID                  string            `json:"id"`
-	FirebaseUID         string            `json:"firebase_uid"`
+	GoogleSub           string            `json:"google_sub"`
 	Email               string            `json:"email"`
 	Username            string            `json:"username"`
 	DisplayName         string            `json:"display_name"`

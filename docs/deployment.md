@@ -89,7 +89,7 @@ Two hard-won rules, non-negotiable:
 
 | Service | CPU / mem | Concurrency | Instances | CPU allocation | Ingress |
 | --- | --- | --- | --- | --- | --- |
-| api/common | 1 vCPU / 512 MiB | 80 | 0–2 | request | all, no IAM check (the app checks Firebase tokens, webhook signatures and the scheduler token) |
+| api/common | 1 vCPU / 512 MiB | 80 | 0–2 | request | all, no IAM check (the app checks session tokens, webhook signatures and the scheduler token) |
 | api/uploads | 1 vCPU / 1 GiB | 20 | 0–5 | request | all, no IAM check (auth is the upload ticket) |
 | api/segmentation | 2 vCPU / 2 GiB | 2 | 0–2 | request | all, authenticated only (invoker `apparule-common`) |
 | api/commerce | 1 vCPU / 512 MiB | 80 | 0–2 | request | all, authenticated only (invoker `apparule-common`) |
@@ -116,14 +116,13 @@ or, when either is unset, 503.
 - Rollback: redeploy the previous image digest (recorded in the release run);
   `gcloud run services update-traffic` to the prior revision is the fast
   path. A broken release is rolled back before any forward fix.
-- Web env: `NEXT_PUBLIC_FIREBASE_*` values flow Doppler → `apphosting.yaml`;
-  `API_URL` and `UPLOADS_URL` are server-side and read per request.
+- Web env: `API_URL` and `UPLOADS_URL` are server-side and read per request.
 
 ## 5. Self-host
 
 `make up` runs the whole stack on compose (system-design.md §10.2):
 Postgres 18 with the non-superuser app role, Kafka 4 (KRaft) with the three
-lanes, Redis, SeaweedFS for S3, the Firebase auth emulator, the four
+lanes, Redis, SeaweedFS for S3, the four
 services, a sweep loop, and the web. The Helm chart (`deploy/helm`) deploys
 the same images with per-service secrets, the sweeps as CronJobs, and an
 optional API ingress host; Terraform installs the chart. Without Paystack

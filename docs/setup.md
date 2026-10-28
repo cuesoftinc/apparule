@@ -11,13 +11,17 @@
 
 Never commit secrets — provide configuration via `.env` / environment
 variables. Compose reads the root `.env` (copy `.env.example`); its defaults
-point every service at the local Postgres, Kafka, Redis, SeaweedFS and
-Firebase auth emulator, so only a few values matter locally:
+point every service at the local Postgres, Kafka, Redis and SeaweedFS,
+so only a few values matter locally:
 
 | Variable | Used by | Description |
 |----------|---------|-------------|
 | `UPLOAD_TICKET_PRIVATE_KEY` / `UPLOAD_TICKET_PUBLIC_KEYS` | common / uploads | The upload-ticket key pair (a local-only pair ships in `.env.example`; `go run ./cmd/ticketkey` in `api/common` makes real ones). |
-| `GOOGLE_CLOUD_PROJECT` | common, commerce, web | Firebase project (and the FCM push project for commerce); `demo-apparule` with the emulator. |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | common | A Google OAuth web client. Register `GOOGLE_REDIRECT_URI` (default `http://localhost:3000/api/v1/auth/sso/google/callback`) as an authorized redirect URI. |
+| `JWT_SECRET` / `SESSION_SECRET` | common | Random secrets that sign the session JWT and seal the session cookie (`openssl rand -base64 48`). |
+| `WEB_URL` | common | The web origin: sign-in redirect target and the cookie origin check. |
+| `APP_RETURN_URLS` | common | Exact mobile sign-in return URLs (default `apparule://app`). |
+| `GOOGLE_CLOUD_PROJECT` | commerce | The FCM push project. |
 | `PAYSTACK_SECRET_KEY` / `PAYSTACK_PUBLIC_KEY` | common, commerce | Paystack test keys. Empty: checkout is off and commerce runs notify-only. |
 | `BREVO_*` | commerce | Optional email delivery. |
 | `CORS_ORIGINS` | common, uploads | Browser origins allowed. |
@@ -34,10 +38,10 @@ make logs      # follow logs
 make down      # stop and remove
 ```
 
-- Web: http://localhost:3000 — sign in with the emulator's Google popup
+- Web: http://localhost:3000, sign in with Google (redirect flow)
 - API (common): http://localhost:8080 — `/health`, `/ready`
 - Uploads: http://localhost:8082 · Segmentation: :8081 · Commerce: :8083
-- Firebase auth emulator: http://localhost:9099 · S3 (SeaweedFS): :8333 ·
+- S3 (SeaweedFS): :8333 ·
   Kafka: localhost:9094 · Postgres: :5432
 
 The web reaches the API through its `/api/v1` proxy, so the browser only
@@ -50,7 +54,7 @@ For the web alone on fixtures (no backend), build with
 ## Running natively (without Docker)
 
 Run the infrastructure from compose (`docker compose up postgres kafka
-kafka-init redis seaweedfs firebase-auth`), copy each service's
+kafka-init redis seaweedfs`), copy each service's
 `.env.example` to `.env`, then:
 
 ```bash

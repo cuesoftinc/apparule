@@ -6,7 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'auth_repository.g.dart';
 
 /// Abstract auth repository (mobile-implementation.md §6/§9) —
-/// `AuthRepositoryFirebase` is the real Google-only flow,
+/// `AuthRepositoryApi` is the real Google-only flow over the API's SSO handoff,
 /// `AuthRepositoryFake` serves dev and tests over the same interface.
 ///
 /// Failures cross this boundary only as `AuthException` — SDK exception
@@ -31,16 +31,16 @@ abstract class AuthRepository {
 }
 
 /// Overridden per entrypoint (di.dart) — no default implementation exists;
-/// dev runs the fake, prod swaps in Firebase once its options land
-/// (mobile-implementation.md §6/§9).
+/// dev runs the fake, prod swaps in the API implementation once `API_URL`
+/// is set (mobile-implementation.md §6/§9).
 @Riverpod(keepAlive: true)
 AuthRepository authRepository(Ref ref) => throw UnimplementedError(
-  'authRepository must be overridden with a *Fake or Firebase '
+  'authRepository must be overridden with a *Fake or API '
   'implementation (mobile-implementation.md §6)',
 );
 
 /// App-wide session state (§5/§9): the first value is the silent restore
-/// (`attemptLightweightAuthentication` under Firebase), then the stream
+/// (the stored token read back through `/api/v1/me`), then the stream
 /// follows the repository's session transitions. The router redirect and
 /// its `refreshListenable` hang off this provider.
 ///

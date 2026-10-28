@@ -6,11 +6,11 @@ import 'package:apparule/src/features/auth/domain/auth_session.dart';
 
 /// TEST_MODE-parity fake (mobile-implementation.md §6/§9): instant
 /// sign-in as the seeded §6 test user, so every screen downstream of
-/// sign-in works identically over fakes before Firebase wiring lands.
+/// sign-in works identically over fakes before the API wiring lands.
 ///
 /// The fake exercises the REAL session lifecycle (boot-flow directive
 /// 2026-07-22): given a [PersistenceService] it persists a session marker
-/// through the same secure-storage seam the Firebase implementation uses
+/// through the same secure-storage seam the API implementation uses
 /// for tokens at rest (§9, CV-2) — a sign-in survives relaunch, restore
 /// finds it, and sign-out purges it, exactly like web's TEST_MODE
 /// session. Without one (unit tests, seeded scenarios) it stays

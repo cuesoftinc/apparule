@@ -10,15 +10,15 @@
 
 | Host / path | Routes to | Auth |
 | --- | --- | --- |
-| `<common run.app URL>/api/v1/*` | `api/common` | Firebase ID token (bearer), Google only (X-1) |
+| `<common run.app URL>/api/v1/*` | `api/common` | session JWT (bearer or session cookie) issued after Google sign-in (X-1); sign-in routes under `/api/v1/auth/*` are public |
 | `<uploads run.app URL>/api/v1/uploads` | `api/uploads` | an upload ticket (`Upload-Ticket` header), never a user token |
 | `<common run.app URL>/webhooks/payments` | `api/common` | Paystack signature only (`X-Paystack-Signature`, HMAC-SHA512) |
 | `<common run.app URL>/internal/jobs/<name>` | `api/common` | a Cloud Scheduler OIDC token: audience `SCHEDULER_AUDIENCE`, email `SCHEDULER_INVOKER_EMAIL` (401, 403, or 503 when unset) |
 | `apparule.cuesoft.io/api/v1/*` | the web's server-side proxy → the same | as above |
 
-`common` verifies the ID token on every request (audience = the Firebase
-project, `sign_in_provider == google.com`; any other provider is `403
-provider_not_allowed`). First sign-in creates the account. Every resource is
+`common` verifies the session JWT on every request (HS256, `JWT_SECRET`);
+cookie requests also need the web origin (flows/auth.md §2). First sign-in
+creates the account. Every resource is
 account-scoped with row-level security behind it; cross-account access is
 `404 not_found`, never `403`. `/health` and `/ready` exist on every service.
 
@@ -28,6 +28,8 @@ account-scoped with row-level security behind it; cross-account access is
 
 | Method & path | Purpose |
 | --- | --- |
+| `GET /auth/sso/google?cv=` · `GET /auth/sso/google/callback` | public: start Google sign-in and receive Google's redirect; the callback redirects to the web with a one-time handoff |
+| `POST /auth/sso/exchange` · `POST /auth/logout` | public: trade `{handoff, verifier}` for the session (`{access_token, expires_in}` plus the session cookie); end the session |
 | `GET /me` · `PATCH /me` | the caller's account; `PATCH` takes `username` (unique, 1×/30 days → `409 name_taken` / `rename_too_soon`), `display_name`, `profile_location` (or `null`), `notification_prefs` (partial), `measurement_template` (`women` \| `men`, never cleared) |
 | `GET /me/export` · `POST /me/deletion` | data export; deletion request (`409 account_has_active_orders` while money is in flight) |
 | `GET /me/saved` | saved posts |

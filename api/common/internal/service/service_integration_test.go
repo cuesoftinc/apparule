@@ -19,6 +19,7 @@ import (
 	"time"
 
 	embeddedpostgres "github.com/fergusstrange/embedded-postgres"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -148,7 +149,11 @@ func setup(t *testing.T) *env {
 }
 
 func (e *env) signIn(t *testing.T, uid, email string) *service.Principal {
-	p, err := e.s.SignIn(context.Background(), &auth.Identity{UID: uid, Email: email, Name: strings.Split(email, "@")[0]})
+	id, err := e.s.SignInGoogle(context.Background(), &auth.Identity{Sub: uid, Email: email, Name: strings.Split(email, "@")[0]})
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, err := e.s.ResolveSession(context.Background(), &auth.Claims{RegisteredClaims: jwt.RegisteredClaims{Subject: id}})
 	if err != nil {
 		t.Fatal(err)
 	}

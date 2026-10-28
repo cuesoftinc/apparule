@@ -64,7 +64,7 @@ no inline ad-hoc checks.
 | Comments | 10/min |
 | Requests | 10 open total (flows/request.md), 20 created/day |
 | Posts (designer) | 20/day |
-| Auth attempts | Firebase-managed |
+| Auth attempts | sign-in starts limited per source and overall (Redis, in-memory fallback) |
 | Media upload bandwidth | 100 MB/day/account |
 
 429 + `Retry-After`; limits enforced in api/common (shared Redis, X-5).
@@ -89,7 +89,7 @@ not optional). Every service validates the Kafka contract's examples.
   `request_id, route, status, duration_ms, account_id?` — **account id only,
   never email**.
 - **Never-log list** (CI grep-gated): measurement values, capture image
-  bytes/URLs with tokens, Firebase ID tokens, payment provider payloads,
+  bytes/URLs with tokens, session tokens, handoff codes, payment provider payloads,
   message bodies.
 - Events → Upstat per flow specs (counters only). Cloud Run structured
   logging picks up slog JSON natively.

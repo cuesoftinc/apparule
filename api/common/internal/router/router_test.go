@@ -39,7 +39,7 @@ func TestInternalJobsRoute(t *testing.T) {
 				},
 				Verifier: allowAll{}, Audience: "https://svc", Invoker: "scheduler@example.com",
 			}
-			h := New(&handler.Handlers{}, func(next http.Handler) http.Handler { return next }, nil,
+			h := New(&handler.Handlers{}, nil, func(next http.Handler) http.Handler { return next }, nil,
 				func(context.Context) error { return nil }, jobs)
 			req := httptest.NewRequest(http.MethodPost, tt.path, nil)
 			req.Header.Set("Authorization", "Bearer t")

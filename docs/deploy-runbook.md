@@ -15,9 +15,9 @@ one build variable:
 
 - **`NEXT_PUBLIC_TEST_MODE=1`**: the site runs on its built-in mock API,
   exactly as today. **Keep this set until the backend is deployed (§9).**
-- **Unset**: the site signs in with Firebase and calls the real API. If
-  the API or the Firebase config isn't there yet, sign-in and every
-  dashboard screen fail.
+- **Unset**: the site signs in with Google through the API and calls the
+  real API. If the API or the Google client config isn't there yet, sign-in
+  and every dashboard screen fail.
 
 So: merge, check the site still works in TEST_MODE, and only remove the
 flag in §9. The Flutter app stays on its fake repositories until its
@@ -63,26 +63,26 @@ segmentation while work is pending. The first capture after a quiet period
 takes longer (cold start, MediaPipe load, consumer-group join); later ones
 take a few seconds.
 
-## 2. Firebase
+## 2. Google sign-in and push
 
-Google sign-in only (X-1). A Firebase project is the GCP project, so use the
-same project as Cloud Run (`sandbox-e306a`).
+Google sign-in only (X-1). `common` runs the OAuth flow itself (flows/auth.md
+§2), so no Firebase web config is involved.
 
-1. **Authentication → Sign-in method → Google → Enable.** Disable
-   email/password (flows/auth.md §6).
-2. **Authentication → Settings → Authorized domains**: add
-   `apparule.cuesoft.io` and the App Hosting backend's own domain
-   (`<backend>--<project>.<region>.hosted.app`).
-3. **Project settings → Your apps → Web app**: note `apiKey`, `authDomain`
-   and `projectId` for §6. They are public by design.
-4. **Cloud Messaging**: enable the Firebase Cloud Messaging API (V1);
+1. **Google Cloud → APIs & Services → Credentials → OAuth client ID (Web
+   application).** Add the authorized redirect URI
+   `https://apparule.cuesoft.io/api/v1/auth/sso/google/callback` (the web
+   origin, because the browser reaches the API through the web proxy). Note
+   the client ID and secret for §6.
+2. **OAuth consent screen**: scopes `openid`, `email`, `profile`.
+3. **Cloud Messaging**: enable the Firebase Cloud Messaging API (V1);
    `commerce` sends with its service account (§5), so no server key.
-5. For the Flutter app: `flutterfire configure` per flavor (needs
-   `firebase login`); it produces the options files the app's real auth and
-   remote repositories wait for.
+4. For the Flutter app: sign-in uses the same API flow, so no Firebase
+   config is needed for it; set the flavor's `API_URL` to the same host
+   as the redirect URI in step 1 (the sign-in state cookie must reach the
+   callback). `flutterfire configure` per flavor (needs `firebase login`)
+   is only for push.
 
-The API verifies tokens against Google's public keys and the project ID, so
-`common` needs **no Firebase key or service-account JSON**.
+`common` needs no service-account JSON for sign-in.
 
 ## 3. Aiven
 
@@ -179,7 +179,12 @@ cd api/common && go run ./cmd/ticketkey 2026-10
 | Variable | common | uploads | segmentation | commerce |
 | --- | --- | --- | --- | --- |
 | `DATABASE_URL` 🔒 | ✓ | | | |
-| `GOOGLE_CLOUD_PROJECT` | ✓ | | | ✓ (push) |
+| `GOOGLE_CLOUD_PROJECT` | | | | ✓ (push) |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` 🔒 | ✓ | | | |
+| `GOOGLE_REDIRECT_URI` (the web origin plus `/api/v1/auth/sso/google/callback`) | ✓ | | | |
+| `WEB_URL` (the website origin) | ✓ | | | |
+| `JWT_SECRET` 🔒, `SESSION_SECRET` 🔒 | ✓ | | | |
+| `JWT_ACCESS_TTL`, `SESSION_COOKIE_NAME`, `OAUTH_STATE_COOKIE` (optional) | ✓ | | | |
 | `UPLOAD_TICKET_PRIVATE_KEY` 🔒 | ✓ | | | |
 | `UPLOAD_TICKET_PUBLIC_KEYS` | | ✓ | | |
 | `UPLOADS_URL` (the uploads `run.app` URL plus `/api/v1/uploads`) | ✓ | | | |
@@ -199,8 +204,8 @@ cd api/common && go run ./cmd/ticketkey 2026-10
 The `WAKE_*` values are the services' own `https://…run.app` URLs, without a
 path. Create the services first, then fill these in and redeploy.
 
-Never set in cloud: `FIREBASE_AUTH_EMULATOR_HOST`, `STORAGE_ENDPOINT`, the
-and the `STORAGE_*_KEY`s (those are for self-host).
+Never set in cloud: `STORAGE_ENDPOINT` and the `STORAGE_*_KEY`s (those are
+for self-host).
 
 **Paystack:** in the dashboard, set the webhook URL to
 `https://apparule-api-common-805800737799.us-central1.run.app/webhooks/payments`, and use test keys until
@@ -211,7 +216,6 @@ the money flow has run end to end on the sandbox.
 | Variable | Available at | Value |
 | --- | --- | --- |
 | `NEXT_PUBLIC_TEST_MODE` | build | `1` until §9, then remove |
-| `NEXT_PUBLIC_FIREBASE_API_KEY`, `_AUTH_DOMAIN`, `_PROJECT_ID` | build | from §2 step 3 |
 | `API_URL` | runtime | the common URL (`https://…run.app`) |
 | `UPLOADS_URL` | runtime | the uploads URL |
 
@@ -222,7 +226,7 @@ Docker Hub, because every release replaces it by digest.
 
 | Name | Kind | Account | Port | Instances | CPU / memory | CPU allocation | Ingress / auth |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `apparule-api-common` | service | `apparule-common` | 8080 | **0**–2 | 1 / 512 MiB | request-based | all · no IAM check (the app checks Firebase tokens; webhooks check signatures; the sweeps check the scheduler token) |
+| `apparule-api-common` | service | `apparule-common` | 8080 | **0**–2 | 1 / 512 MiB | request-based | all · no IAM check (the app checks session tokens; webhooks check signatures; the sweeps check the scheduler token) |
 | `apparule-api-uploads` | service | `apparule-uploads` | 8082 | 0–5 | 1 / 1 GiB, concurrency 20, timeout 60 s | request-based | all · no IAM check (auth is the upload ticket) |
 | `apparule-api-segmentation` | service | `apparule-segmentation` | 8081 | **0**–2 | 2 / 2 GiB, concurrency 2, startup probe ≥ 60 s | request-based | all · **authenticated only** (invoker: `apparule-common`) |
 | `apparule-api-commerce` | service | `apparule-commerce` | 8083 | **0**–2 | 1 / 512 MiB | request-based | all · **authenticated only** (invoker: `apparule-common`) |
@@ -267,9 +271,8 @@ On `cuesoftinc/apparule`:
 4. The workflow fails unless every service's newest revision is Ready and
    common answers `/ready`. Check `apparule-api-common`'s logs for
    `migration applied` (first deploy only) and `listening`.
-5. In App Hosting, set `API_URL`, `UPLOADS_URL` and the
-   `NEXT_PUBLIC_FIREBASE_*` values, **then remove `NEXT_PUBLIC_TEST_MODE`**
-   and roll out.
+5. In App Hosting, set `API_URL` and `UPLOADS_URL`, **then remove
+   `NEXT_PUBLIC_TEST_MODE`** and roll out.
 6. Smoke test on the site: sign in with Google, accept the terms, choose a
    measurement set, upload a front and a side photo, wait for results, save
    them. Follow the trail in the logs by `jsonPayload.step` and the session
@@ -292,11 +295,10 @@ On `cuesoftinc/apparule`:
 | Kafka powered off (idle) | Expendit's reaper powers it back on; uploads answer 503 meanwhile and overdue captures are re-sent from Postgres. Nothing is lost from Postgres |
 | A money outcome needs a human | `payments.outcome` rows of kind `mismatch`, `charge_rejected`, `payout_failed` or `refund_failed` are logged at error level (`money needs attention`) and kept in `payment_outcome` with `resolved_at` empty; resolve in Paystack, then set `resolved_at` |
 | Resolve a dispute | A staff account calls `POST /api/v1/moderation/requests/{id}/resolve` with `delivered` or `refunded` |
-| Delete a Firebase user | After the retention sweep purges or anonymizes an account, delete its Firebase user in the console (not automated yet) |
 
 ## 11. Not built yet
 
-The Flutter app's remote repositories (waiting on `flutterfire configure`),
+The Flutter app's remote repositories (waiting on the API wave and the flavors' `API_URL`),
 the two-view measurement benchmark that calibrates `mediapipe_2d_v2`
 (capture-qc.md §3), SMPL (Phase 5), workspace customers for tailor shops
 (and their consent, open question 7), Upstat events (D2), and OpenTelemetry

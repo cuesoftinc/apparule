@@ -13,7 +13,7 @@ flowchart LR
         WEB[web + dashboard<br/>Next.js — App Hosting]
         MOB[Flutter mobile]
     end
-    FB[Firebase Auth<br/>Google only]
+    GO[Google OAuth<br/>sign-in only]
     subgraph server["GCP Cloud Run (scale to zero)"]
         AC[api/common — Go<br/>CRUD]
         UP[api/uploads — Node<br/>upload gateway]
@@ -48,7 +48,7 @@ flowchart LR
 - **`api/uploads`** — Node (NestJS): the ticketed upload gateway; strips EXIF and GPS.
 - **`api/segmentation`** — Python: per-pose quality checks and measurements (MediaPipe).
 - **`api/commerce`** — Python: Paystack money decisions, push and email delivery.
-- **Auth** — Firebase Authentication, Google sign-in only (X-1).
+- **Auth**: Google sign-in only (X-1); `api/common` runs the OAuth flow and signs its own session JWT.
 - **Data** — Postgres (system of record, S-3), Cloud Storage, shared Aiven Redis, and the CueLABS shared Kafka (X-11).
 
 The [system design](system-design.md) explains why it is shaped this way. See

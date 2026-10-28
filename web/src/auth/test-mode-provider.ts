@@ -1,4 +1,4 @@
-// TEST_MODE auth provider — no Firebase dependency. Sign-in resolves the
+// TEST_MODE auth provider: no Google redirect. Sign-in resolves the
 // seeded mock account (kiki.adeyemi) from the in-app mock server via the
 // account repository; a sessionStorage entry makes the session sticky across
 // reloads within the tab.

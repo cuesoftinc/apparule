@@ -64,7 +64,8 @@ solely as a data-free `GET /health` wake-up for scale to zero.
 
 ### 2.1 api/common (Go) **[Built]**
 
-- **Auth** (X-1): Firebase ID tokens, Google only; first sign-in creates the
+- **Auth** (X-1): Google OAuth sign-in run by common, which signs its own
+  session JWT; first sign-in creates the
   account, its personal workspace and self customer (data-model.md §6.1).
 - **The product API** the web mock defines (system-design.md §7.3): `/me`,
   consent, the vault, posts, feed and explore (frozen rank snapshots),
@@ -107,7 +108,7 @@ Paystack key (self-host).
 ### 2.5 web (Next.js) **[Built]**
 
 The canonical web tree (web-implementation.md). TEST_MODE runs entirely on
-the in-app mock server; otherwise Firebase sign-in and the `/api/v1` proxy,
+the in-app mock server; otherwise Google sign-in through the API and the `/api/v1` proxy,
 which forwards uploads to `api/uploads` and everything else to `api/common`.
 Repositories speak the asynchronous flows (create-then-upload, polling,
 Paystack checkout) behind unchanged signatures.
@@ -115,8 +116,9 @@ Paystack checkout) behind unchanged signatures.
 ### 2.6 mobile/flutter **[Built on fakes; remote repositories planned]**
 
 Feature-first Flutter app (mobile-implementation.md) running on `*Fake`
-repositories; the `*Remote` set and real Firebase auth land once
-`flutterfire configure` produces the options files.
+repositories; the `*Remote` set and the real sign-in (the API's Google
+SSO handoff, as the web does) land with the API wave, and push waits on
+`flutterfire configure`.
 
 ## 3. Core sequences
 
@@ -213,14 +215,14 @@ flowchart LR
   Aiven Kafka, Cloud Storage; web on Firebase App Hosting. Tag-gated
   releases. See [deployment.md](deployment.md).
 - **Self-host**: `docker-compose.yml` (Postgres, Kafka KRaft, Redis,
-  SeaweedFS, the Firebase auth emulator, the four services, the sweep loop,
+  SeaweedFS, the four services, the sweep loop,
   web) and the standard-form Helm chart with CronJobs and an API ingress.
 
 ## 7. Cross-repo dependencies
 
 | Dependency | Needed by | Status |
 | --- | --- | --- |
-| D1 `account.cuesoft.io` facade | future identity facade only | **Not blocking** (X-1): Firebase Auth on `sandbox-e306a` is the ratified interim and the facade fronts the same tokens. |
+| D1 `account.cuesoft.io` facade | future identity facade only | **Not blocking** (X-1): in-app Google sign-in with an API-issued session is the ratified interim; the facade can front the same sign-in later. |
 | D2 Upstat event-ingestion API | ECO-ANALYTICS | Upstat has no generic event endpoint today — tracked in upstat's roadmap. |
 | D3 `privacy.cuesoft.io` Apparule clause | APP-005 | Content dependency; page links out. |
 | CueLABS shared Kafka (X-11) | every hand-off | Shared with Expendit and Upstat; Expendit keeps it awake. |

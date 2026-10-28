@@ -161,7 +161,7 @@ added. `segmentation` is today's `measure` renamed, so it keeps 8081.
 | Unit | Lang | Role | Responsibility | Owns | Port |
 | --- | --- | --- | --- | --- | --- |
 | `web` | Next.js | Frontend | Landing, docs hub, `/docs/api`, dashboard (feed, vault, requests, designer workspace, moderation) | — | 3000 |
-| `api/common` | **Go** | **CRUD** | The whole product API: Firebase auth, accounts, workspaces, customers, consent, instance requests, vault and sessions, posts, follows, likes, saves, comments, feed and explore queries, requests and the order state machine's user-driven transitions, threads, reports and blocks, notification rows, exports. **Authorizes every upload** and issues a signed upload ticket for it, counting the bytes it authorizes against the daily upload quota (§6.1). **Receives Paystack webhooks** (verify signature, store raw event). **Outbox publisher.** **Scheduled sweeps** (lookup-then-write: quote expiry, auto-confirm, escrow timeout, retention purge). Persists every decision Python makes. | **Postgres** (sole client), Cloud Storage confirmed prefixes | 8080 |
+| `api/common` | **Go** | **CRUD** | The whole product API: Google sign-in and session JWTs, accounts, workspaces, customers, consent, instance requests, vault and sessions, posts, follows, likes, saves, comments, feed and explore queries, requests and the order state machine's user-driven transitions, threads, reports and blocks, notification rows, exports. **Authorizes every upload** and issues a signed upload ticket for it, counting the bytes it authorizes against the daily upload quota (§6.1). **Receives Paystack webhooks** (verify signature, store raw event). **Outbox publisher.** **Scheduled sweeps** (lookup-then-write: quote expiry, auto-confirm, escrow timeout, retention purge). Persists every decision Python makes. | **Postgres** (sole client), Cloud Storage confirmed prefixes | 8080 |
 | `api/segmentation` | **Python** | Processing | Per-pose image pre-checks and pose QC (capture-qc.md), measurement extraction against the customer's A-10 template, per-measurement confidence. MediaPipe 2-D today; SMPL at Phase E. | nothing; reads temp images, emits via Kafka | 8081 |
 | `api/uploads` | **Node** (NestJS) | Thin gateway | Capture photos (front + side), post media, thread attachments: verifies the upload ticket `common` issued (public key, no call), type/size/decode checks against the ticket's limits, EXIF and GPS stripping, write to temporary Cloud Storage, pointer → Kafka. Stateless. | nothing: no database, no Redis, only `common`'s public keys | 8082 |
 | `api/commerce` | **Python** | Processing | **Money:** interprets Paystack events (does this charge settle order X for amount Y?), computes payout = quote − 10 % fee, executes transfers and refunds through the Paystack API, reconciles the ledger against Paystack hourly. **Notify:** delivers push (FCM) and money emails (Brevo) for every notification row `common` writes. | nothing; its view of the ledger comes from Kafka | 8083 |
@@ -459,7 +459,7 @@ engineering.md unchanged.
 
 | Concern | Control |
 | --- | --- |
-| **User auth** | Firebase ID tokens, Google provider only (`provider_not_allowed` otherwise, X-1), verified in `common` (Go) against Google's public keys. The gateway doesn't need them: it accepts only upload tickets. No shared `JWT_SECRET`. |
+| **User auth** | Google sign-in only (X-1): `common` (Go) runs the OAuth code flow with PKCE and a one-time handoff (flows/auth.md §2), then signs its own session JWT with `JWT_SECRET` (bearer or HttpOnly session cookie, cookie requests origin-checked). The gateway doesn't need it: it accepts only upload tickets, so `JWT_SECRET` is `common`'s alone. |
 | **Authz** | engineering.md §2 matrix as a capability table in `common`, applied **before** any upload: `common` issues an upload ticket only after checking consent, ownership, account state and rate limits. The gateway verifies the ticket's signature, expiry and limits with `common`'s public key, and cannot mint tickets itself. Tickets are single use (`jti`). |
 | **Tenancy** | `account_id` / `workspace_id` everywhere; Postgres row-level security as defence in depth. Cross-account access returns `not_found`. No role ever reads another account's vault. |
 | **Machine identity** | Kafka ACLs: one SASL user per service with topic-level grants (only `common` can read `capture.measured`; only `commerce` can read `payments.*`). Cloud Storage IAM per prefix: `uploads` write-only on `tmp/`, `segmentation` read-only on `tmp/`, `common` read/write on everything. |
@@ -545,13 +545,15 @@ Self-hosters without Paystack run with `commerce` in notify-only mode.
 ### 10.3 Environment variables (fleet names only)
 
 `DATABASE_URL` · `REDIS_HOST/PORT/USERNAME/PASSWORD/TLS/DB` ·
-`KAFKA_BROKERS/USERNAME/PASSWORD/SSL_CA` · `GOOGLE_CLOUD_PROJECT` ·
+`KAFKA_BROKERS/USERNAME/PASSWORD/SSL_CA` · `GOOGLE_CLOUD_PROJECT` (commerce push) ·
+`GOOGLE_CLIENT_ID/CLIENT_SECRET/REDIRECT_URI` · `JWT_SECRET` · `JWT_ACCESS_TTL` · `SESSION_SECRET` ·
+`SESSION_COOKIE_NAME` · `OAUTH_STATE_COOKIE` · `WEB_URL` · `APP_RETURN_URLS` (common) ·
 `STORAGE_BUCKET` · `PAYSTACK_SECRET_KEY` (common, commerce) ·
 `UPLOAD_TICKET_PRIVATE_KEY` (common) · `UPLOAD_TICKET_PUBLIC_KEYS` (uploads; a list, for rotation) ·
 `BREVO_API_KEY/FROM_EMAIL/FROM_NAME` (commerce) · `OTEL_*` ·
 `CORS_ORIGINS`.
 
-Retired: `JWT_SECRET`, `FIREBASE_CONFIG_PATH` (ADC on Cloud Run),
+Retired: `FIREBASE_CONFIG_PATH`, `FIREBASE_AUTH_EMULATOR_HOST`,
 `MEASURE_URL`.
 
 ---
@@ -597,7 +599,7 @@ docs/
 | --- | --- | --- | --- |
 | **S-1** | Units: web · `api/common` (Go, CRUD) · `api/uploads` (Node, gateway) · `api/segmentation` (Python, was `measure`) · `api/commerce` (Python) | architecture.md §2–§3, deployment.md §1 | ☑ 2026-10-20 |
 | **S-2** | **Aiven Kafka** between services; no synchronous internal calls | architecture.md §2 "internal call", §8 s2s IAM | ☑ 2026-10-20 |
-| **S-3** | **Postgres (Aiven) is the system of record**, `api/common` its only client. Real-time via FCM push + polling; offline via a local cache in the Flutter app. Keeps X-5's Firebase Auth, Redis, Doppler and Cloud Storage parts | X-5 datastore (Firestore); restores A-4 | ☑ 2026-10-20 |
+| **S-3** | **Postgres (Aiven) is the system of record**, `api/common` its only client. Real-time via FCM push + polling; offline via a local cache in the Flutter app. Keeps X-5's Redis, Doppler and Cloud Storage parts | X-5 datastore (Firestore); restores A-4 | ☑ 2026-10-20 |
 | **S-4** | **Asynchronous capture**: create the session on `common`, upload with a ticket, `202` + polled status; `failed_qc {code, pose}`; per-pose retake ticket; file checks stay synchronous at the gateway | flows/vault.md §1, capture-qc.md response, api.md measure contract | ☑ 2026-10-20 |
 | **S-5** | **Claim-check**: bytes only in Cloud Storage `tmp/` (24 h lifecycle), pointers on Kafka, `common` moves on save | pipeline draft's staging table | ☑ 2026-10-20 |
 | **S-6** | **Money decisions in `api/commerce`**: provider-event matching, fee and payout arithmetic, transfers and refunds, reconciliation. `common` persists | architecture.md §8 J4 + webhook handling in common | ☑ 2026-10-20 |
@@ -628,7 +630,7 @@ real.
 
 | Phase | Delivers | Exit criteria | Maps to |
 | --- | --- | --- | --- |
-| **A. Foundations** | Provision Postgres, Kafka, Redis (cloud + compose); `common` on Postgres: Firebase auth, consent, instance requests, outbox, migrations, contract tests | Auth, consent and instance-request surfaces run against real `common`; contract suite green for them | Roadmap P1 |
+| **A. Foundations** | Provision Postgres, Kafka, Redis (cloud + compose); `common` on Postgres: Google sign-in, consent, instance requests, outbox, migrations, contract tests | Auth, consent and instance-request surfaces run against real `common`; contract suite green for them | Roadmap P1 |
 | **B. Vault + capture** | `uploads`; `measure` → `segmentation` as a Kafka worker with per-pose QC and A-10 templates; capture topics; polling UI on web and app; save/retake; sweeps for stuck and unsaved sessions | capture → QC fail → retake one pose → save, on both surfaces; retention jobs live | Roadmap P2 |
 | **C. Social** | Post media and attachments through `uploads`; feed/explore SQL ranking; follows, likes, saves, comments with transactional counters; reports and blocks; notification rows + `commerce` notify-only (FCM) | post → follow → feed → like/comment E2E with T&S actions; pushes arrive | Roadmap P3 |
 | **D. Commerce** | Webhook receiver, `provider_event`, ledger; `commerce` money consumers; escrow timeout, quote expiry, auto-confirm sweeps; reconciliation job | request → quote → pay → deliver → payout on Paystack sandbox; money invariant property test green; disputes freeze payouts | Roadmap P4 |
@@ -688,4 +690,4 @@ the code and in the docs rewritten from this one.
 | I-14 | **Scale to zero** | Every service runs at min 0; publishers wake their consumers with `GET /health` (debounced 10 s); the `captures` sweep wakes `common` and `segmentation` while work is pending, and the other sweeps wake `commerce`. | S-9 as amended. |
 | I-15 | **Local object storage** | Compose runs SeaweedFS (S3 on :8333): MinIO's community images are no longer published. Cloud serves media by signed URL only. | Fleet parity with Expendit. |
 | I-16 | **Gateway runtime** | NestJS 11, as Expendit's: Nest 12 is ESM-only and Jest's decorator path doesn't support it cleanly yet. | Dependabot holds the major. |
-| I-17 | **Account deletion** | The retention sweep deletes a `deletion_pending` account with nothing in flight; one with order history keeps an anonymized row (the other party's orders reference it) while its vault and posts are deleted. Deleting the Firebase user is still manual. | flows/auth.md §4, within foreign keys. |
+| I-17 | **Account deletion** | The retention sweep deletes a `deletion_pending` account with nothing in flight; one with order history keeps an anonymized row (the other party's orders reference it) while its vault and posts are deleted.  | flows/auth.md §4, within foreign keys. |

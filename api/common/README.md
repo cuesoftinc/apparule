@@ -16,7 +16,7 @@ cmd/ticketkey/         generates an upload-ticket key pair
 contract/              JSON Schemas for every Kafka message (all services validate against them)
 migrations/            forward-only SQL; Postgres with FORCE row-level security
 internal/config        typed env config (fails fast)
-internal/auth          Firebase ID tokens, Google only (X-1)
+internal/auth          Google OAuth code flow, session JWTs (X-1)
 internal/middleware    request id, logs, CORS, auth → principal
 internal/router        the /api/v1 surface (the web mock's contract)
 internal/handler       thin HTTP handlers

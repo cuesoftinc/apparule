@@ -24,6 +24,7 @@ import (
 	"github.com/cuesoftinc/apparule/api/common/internal/kafka"
 	"github.com/cuesoftinc/apparule/api/common/internal/middleware"
 	"github.com/cuesoftinc/apparule/api/common/internal/outbox"
+	"github.com/cuesoftinc/apparule/api/common/internal/ratelimit"
 	"github.com/cuesoftinc/apparule/api/common/internal/router"
 	"github.com/cuesoftinc/apparule/api/common/internal/wake"
 	"github.com/cuesoftinc/apparule/api/common/migrations"
@@ -45,6 +46,9 @@ func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
+	if err := cfg.RequireAuth(); err != nil {
+		return err
+	}
 	a, err := app.New(ctx, cfg)
 	if err != nil {
 		return err
@@ -95,7 +99,7 @@ func run() error {
 		running = append(running, c)
 	}
 
-	verifier := auth.NewVerifier(cfg.FirebaseProjectID, cfg.FirebaseEmulatorHost != "")
+	sso := handler.NewAuthHandler(cfg, s, ratelimit.NewSSOStore(a.Limiter), auth.NewGoogleSSO(cfg.Auth.GoogleClientID, cfg.Auth.GoogleClientSecret))
 	ready := func(ctx context.Context) error {
 		if err := a.DB.Ping(ctx); err != nil {
 			return err
@@ -111,7 +115,7 @@ func run() error {
 		Audience: cfg.SchedulerAudience, Invoker: cfg.SchedulerInvokerEmail}
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           router.New(&handler.Handlers{S: s}, middleware.Authenticate(verifier, s), cfg.CORSOrigins, ready, jobs),
+		Handler:           router.New(&handler.Handlers{S: s}, sso, middleware.Authenticate(cfg, s), cfg.CORSOrigins, ready, jobs),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 

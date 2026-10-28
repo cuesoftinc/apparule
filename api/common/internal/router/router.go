@@ -16,7 +16,7 @@ import (
 // consumers running.
 type Readiness func(ctx context.Context) error
 
-func New(h *handler.Handlers, auth func(http.Handler) http.Handler, corsOrigins []string, ready Readiness, jobs *handler.Jobs) http.Handler {
+func New(h *handler.Handlers, sso *handler.AuthHandler, auth func(http.Handler) http.Handler, corsOrigins []string, ready Readiness, jobs *handler.Jobs) http.Handler {
 	api := http.NewServeMux()
 	routes := map[string]http.HandlerFunc{
 		"GET /api/v1/me":                    h.Me,
@@ -116,6 +116,13 @@ func New(h *handler.Handlers, auth func(http.Handler) http.Handler, corsOrigins 
 		}
 		_, _ = w.Write([]byte(`{"status":"ready"}`))
 	})
+	// Sign-in is public: the session does not exist yet.
+	if sso != nil {
+		root.HandleFunc("GET /api/v1/auth/sso/google", sso.GoogleLogin)
+		root.HandleFunc("GET /api/v1/auth/sso/google/callback", sso.GoogleCallback)
+		root.HandleFunc("POST /api/v1/auth/sso/exchange", sso.ExchangeSSOHandoff)
+		root.HandleFunc("POST /api/v1/auth/logout", sso.Logout)
+	}
 	// Paystack signs its webhooks; no user token (S-12).
 	root.HandleFunc("POST /webhooks/payments", h.PaymentsWebhook)
 	// Cloud Scheduler signs an OIDC token; no user token.

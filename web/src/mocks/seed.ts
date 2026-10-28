@@ -57,7 +57,7 @@ function defaultPrefs() {
 export const seedAccounts: Account[] = [
   {
     id: "acc-kiki",
-    firebase_uid: "test-uid-kiki",
+    google_sub: "test-uid-kiki",
     email: "kiki.adeyemi@example.com",
     username: "kiki.adeyemi",
     display_name: "Kiki Adeyemi",
@@ -78,7 +78,7 @@ export const seedAccounts: Account[] = [
   },
   {
     id: "acc-amara",
-    firebase_uid: "test-uid-amara",
+    google_sub: "test-uid-amara",
     email: "amara@example.com",
     username: "amara.designs",
     display_name: "Amara Designs",
@@ -97,7 +97,7 @@ export const seedAccounts: Account[] = [
   },
   {
     id: "acc-tunde",
-    firebase_uid: "test-uid-tunde",
+    google_sub: "test-uid-tunde",
     email: "tunde@example.com",
     username: "tunde.o",
     display_name: "Tunde Okonkwo",
@@ -119,7 +119,7 @@ export const seedAccounts: Account[] = [
   },
   {
     id: "acc-bisi",
-    firebase_uid: "test-uid-bisi",
+    google_sub: "test-uid-bisi",
     email: "bisi@example.com",
     username: "maisonbisi",
     display_name: "Maison Bisi",
@@ -138,7 +138,7 @@ export const seedAccounts: Account[] = [
   },
   {
     id: "acc-eniola",
-    firebase_uid: "test-uid-eniola",
+    google_sub: "test-uid-eniola",
     email: "eniola@example.com",
     username: "eniola.stitches",
     display_name: "Eniola Stitches",
@@ -161,7 +161,7 @@ export const seedAccounts: Account[] = [
     // Platform moderator — the B7a audit-trail actor (the actioned queue
     // row reads "… by @mod.sarah"). Staff, not a designer; no social edges.
     id: "acc-sarah",
-    firebase_uid: "test-uid-sarah",
+    google_sub: "test-uid-sarah",
     email: "sarah@apparule.example.com",
     username: "mod.sarah",
     display_name: "Sarah Bello",
@@ -193,7 +193,7 @@ function makeCommunityAccount(input: {
 }): Account {
   return {
     id: input.id,
-    firebase_uid: `test-uid-${input.id.replace("acc-", "")}`,
+    google_sub: `test-uid-${input.id.replace("acc-", "")}`,
     email: `${input.username.replace(/\./g, "_")}@example.com`,
     username: input.username,
     display_name: input.displayName,

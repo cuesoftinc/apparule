@@ -26,7 +26,7 @@ flowchart LR
         WEB[web + dashboard<br/>Next.js — App Hosting]
         MOB[Flutter mobile]
     end
-    FB[Firebase Auth<br/>Google only]
+    GS[Google sign-in<br/>OAuth, Google only]
     subgraph server["GCP Cloud Run (scale to zero)"]
         AC[api/common — Go<br/>CRUD]
         UP[api/uploads — Node<br/>upload gateway]
@@ -39,8 +39,8 @@ flowchart LR
         RD[(Aiven Redis)]
         K[[CueLABS shared Kafka]]
     end
-    WEB --> FB
-    MOB --> FB
+    WEB --> GS
+    MOB --> GS
     WEB --> AC
     MOB --> AC
     WEB --> UP
@@ -65,7 +65,7 @@ flowchart LR
 | Messaging      | Kafka (the CueLABS shared Aiven service)            |
 | Web            | Next.js, React, TypeScript                          |
 | Mobile         | Flutter (primary), native Android/iOS               |
-| Auth & data    | Firebase Google-only auth; Aiven Postgres (system of record) & Cloud Storage; shared Aiven Redis |
+| Auth & data    | Google-only sign-in (session JWTs from `common`); Aiven Postgres (system of record) & Cloud Storage; shared Aiven Redis |
 | Infrastructure | Docker, Helm, Terraform, GCP Cloud Run              |
 
 ## Repository structure
@@ -106,7 +106,7 @@ function (never by its language).
 ```bash
 cp .env.example .env
 make up      # build + start the stack: web (:3000), common (:8080), segmentation (:8081),
-             # uploads (:8082), commerce (:8083), plus Postgres, Kafka, Redis, S3, Firebase emulator
+             # uploads (:8082), commerce (:8083), plus Postgres, Kafka, Redis, S3
 make logs    # follow logs
 make down    # stop
 ```

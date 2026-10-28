@@ -138,7 +138,7 @@ toggle, support (`clients.cuesoft.io`).
   audit trail via `REPORT.actioned_by`.
 
 ### B7 `/app/settings`
-- Account (Google sign-in via Firebase per X-1; `account.cuesoft.io` facade later), creator profile toggle,
+- Account (Google sign-in per X-1; `account.cuesoft.io` facade later), creator profile toggle,
   payout account (designer), **profile location** (city/state/country,
   optional — explainer: "used to recommend nearby designers"; X-10 tier 1,
   data-model.md §2), notifications, privacy & data (export/delete,
