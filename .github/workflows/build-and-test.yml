@@ -313,3 +313,25 @@ jobs:
         run: |
           seeds="build/ios/iphonesimulator/Runner.app/Frameworks/App.framework/flutter_assets/assets/seed/dev"
           test -f "$seeds/posts.json" || { echo "::error::dev seed JSONs missing from the .app bundle"; exit 1; }
+
+  terraform:
+    name: deploy/terraform · fmt + validate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: deploy/terraform
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+
+      - name: Format check
+        run: terraform fmt -check -recursive
+
+      - name: Init
+        run: terraform init -backend=false
+
+      - name: Validate
+        run: terraform validate
