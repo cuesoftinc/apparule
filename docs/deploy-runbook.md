@@ -25,17 +25,17 @@ remote set ships.
 
 ## 1. What runs where
 
-| Unit | Runs on | Image / source | Notes |
-| --- | --- | --- | --- |
-| `web` | Firebase App Hosting | `web/` from `main` | Proxies `/api/v1/*` to `apparule-api-common` (no load balancer, no browser CORS); uploads is reached at its `run.app` URL |
-| `apparule-api-common` | Cloud Run service | `cuesoft/apparule-api-common` | Go. The only Postgres client; receives Paystack webhooks. Serves the `/internal/jobs/<name>` sweeps. Kafka consumers + outbox run while an instance is up |
-| `apparule-api-uploads` | Cloud Run service | `cuesoft/apparule-api-uploads` | Node upload gateway (`POST /api/v1/uploads`) |
-| `apparule-api-segmentation` | Cloud Run service | `cuesoft/apparule-api-segmentation` | Python, MediaPipe. Kafka only; reached only by wake-ups |
-| `apparule-api-commerce` | Cloud Run service | `cuesoft/apparule-api-commerce` | Python. Paystack, FCM, Brevo. Kafka only |
-| `apparule-{captures,orders,reconcile,retention}` | Cloud Scheduler jobs | n/a | `POST /internal/jobs/<name>` on `apparule-api-common` with an OIDC token; created paused until the handlers are deployed |
-| Postgres, Valkey | a managed Postgres instance and a managed Valkey instance | n/a | database `apparule`; keys `apparule:*` |
-| Kafka | a shared managed Kafka service | n/a | shared with the sibling products (X-11); SASL user `apparule` with topic ACLs |
-| Object storage | your storage bucket | n/a | prefix `apparule/stg/`; media by signed URL only |
+| Unit                                             | Runs on                                                   | Image / source                      | Notes                                                                                                                                                     |
+| ------------------------------------------------ | --------------------------------------------------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `web`                                            | Firebase App Hosting                                      | `web/` from `main`                  | Proxies `/api/v1/*` to `apparule-api-common` (no load balancer, no browser CORS); uploads is reached at its `run.app` URL                                 |
+| `apparule-api-common`                            | Cloud Run service                                         | `cuesoft/apparule-api-common`       | Go. The only Postgres client; receives Paystack webhooks. Serves the `/internal/jobs/<name>` sweeps. Kafka consumers + outbox run while an instance is up |
+| `apparule-api-uploads`                           | Cloud Run service                                         | `cuesoft/apparule-api-uploads`      | Node upload gateway (`POST /api/v1/uploads`)                                                                                                              |
+| `apparule-api-segmentation`                      | Cloud Run service                                         | `cuesoft/apparule-api-segmentation` | Python, MediaPipe. Kafka only; reached only by wake-ups                                                                                                   |
+| `apparule-api-commerce`                          | Cloud Run service                                         | `cuesoft/apparule-api-commerce`     | Python. Paystack, FCM, Brevo. Kafka only                                                                                                                  |
+| `apparule-{captures,orders,reconcile,retention}` | Cloud Scheduler jobs                                      | n/a                                 | `POST /internal/jobs/<name>` on `apparule-api-common` with an OIDC token; created paused until the handlers are deployed                                  |
+| Postgres, Valkey                                 | a managed Postgres instance and a managed Valkey instance | n/a                                 | database `apparule`; keys `apparule:*`                                                                                                                    |
+| Kafka                                            | a shared managed Kafka service                            | n/a                                 | shared with the sibling products (X-11); SASL user `apparule` with topic ACLs                                                                             |
+| Object storage                                   | your storage bucket                                       | n/a                                 | prefix `apparule/stg/`; media by signed URL only                                                                                                          |
 
 Images are built and deployed by `.github/workflows/release.yml` on every merge
 to `main` that touches `api/**` (§8). **Your infrastructure code creates the resources;
@@ -106,7 +106,7 @@ lock); there is nothing to run by hand.
 
 Apparule uses the shared service and its three lanes
 (`cuelabs.uploads`, `cuelabs.requests`, `cuelabs.results`, 2 partitions
-each); the rules are in the CueLABS shared-messaging
+each); the rules are in the shared messaging
 contract. If a sibling product's deploy already created
 them, there is nothing to add but the user. Apparule never creates topics.
 
@@ -143,14 +143,14 @@ limits and the upload quota; if it is unreachable the limits fail open.
 
 ## 5. Service accounts and IAM
 
-| Service account | Used by | Roles |
-| --- | --- | --- |
-| `apparule-common` | common | `roles/storage.objectAdmin` on the bucket, condition (A); `roles/iam.serviceAccountTokenCreator` **on itself** (signed URLs); `roles/run.invoker` on segmentation and commerce (to wake them) |
-| `apparule-uploads` | uploads | `roles/storage.objectCreator`, condition (B) |
-| `apparule-segmentation` | segmentation | `roles/storage.objectViewer`, condition (C); `roles/storage.objectCreator`, condition (D) |
-| `apparule-commerce` | commerce | `roles/storage.objectAdmin`, condition (D); `roles/firebasecloudmessaging.admin` on the project |
-| `scheduler-invoker` | Cloud Scheduler | OIDC token on `POST /internal/jobs/<name>`; audience is the common service URL |
-| `apparule-deploy` | GitHub Actions (WIF) | `roles/run.developer` on the project; `roles/iam.serviceAccountUser` on the runtime accounts |
+| Service account         | Used by              | Roles                                                                                                                                                                                         |
+| ----------------------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apparule-common`       | common               | `roles/storage.objectAdmin` on the bucket, condition (A); `roles/iam.serviceAccountTokenCreator` **on itself** (signed URLs); `roles/run.invoker` on segmentation and commerce (to wake them) |
+| `apparule-uploads`      | uploads              | `roles/storage.objectCreator`, condition (B)                                                                                                                                                  |
+| `apparule-segmentation` | segmentation         | `roles/storage.objectViewer`, condition (C); `roles/storage.objectCreator`, condition (D)                                                                                                     |
+| `apparule-commerce`     | commerce             | `roles/storage.objectAdmin`, condition (D); `roles/firebasecloudmessaging.admin` on the project                                                                                               |
+| `scheduler-invoker`     | Cloud Scheduler      | OIDC token on `POST /internal/jobs/<name>`; audience is the common service URL                                                                                                                |
+| `apparule-deploy`       | GitHub Actions (WIF) | `roles/run.developer` on the project; `roles/iam.serviceAccountUser` on the runtime accounts                                                                                                  |
 
 IAM conditions (`B` = the bucket name):
 
@@ -176,30 +176,30 @@ cd api/common && go run ./cmd/ticketkey 2026-10
 # UPLOAD_TICKET_PUBLIC_KEYS=2026-10:…   → uploads only
 ```
 
-| Variable | common | uploads | segmentation | commerce |
-| --- | --- | --- | --- | --- |
-| `DATABASE_URL` 🔒 | ✓ | | | |
-| `GOOGLE_CLOUD_PROJECT` | | | | ✓ (push) |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` 🔒 | ✓ | | | |
-| `GOOGLE_REDIRECT_URI` (the web origin plus `/api/v1/auth/sso/google/callback`) | ✓ | | | |
-| `WEB_URL` (the website origin) | ✓ | | | |
-| `JWT_SECRET` 🔒, `SESSION_SECRET` 🔒 | ✓ | | | |
-| `JWT_ACCESS_TTL`, `SESSION_COOKIE_NAME`, `OAUTH_STATE_COOKIE` (optional) | ✓ | | | |
-| `UPLOAD_TICKET_PRIVATE_KEY` 🔒 | ✓ | | | |
-| `UPLOAD_TICKET_PUBLIC_KEYS` | | ✓ | | |
-| `UPLOADS_URL` (the uploads `run.app` URL plus `/api/v1/uploads`) | ✓ | | | |
-| `SCHEDULER_AUDIENCE` (the common `run.app` URL) | ✓ | | | |
-| `SCHEDULER_INVOKER_EMAIL` (`scheduler-invoker@<project-id>.iam.gserviceaccount.com`) | ✓ | | | |
-| `KAFKA_BROKERS`, `KAFKA_SSL_CA` | ✓ | ✓ | ✓ | ✓ |
-| `KAFKA_USERNAME`, `KAFKA_PASSWORD` 🔒 | ✓ `apparule` | ✓ | ✓ | ✓ |
-| `REDIS_HOST/PORT/USERNAME`, `REDIS_PASSWORD` 🔒, `REDIS_TLS=true`, `REDIS_DB`, `REDIS_KEY_PREFIX` | ✓ | | | |
-| `STORAGE_DRIVER=gcs`, `STORAGE_BUCKET`, `STORAGE_PREFIX=apparule/stg` | ✓ | ✓ | ✓ | ✓ |
-| `PAYSTACK_SECRET_KEY` 🔒 | ✓ (webhook signatures) | | | ✓ (API calls) |
-| `PAYSTACK_PUBLIC_KEY` | ✓ (checkout) | | | |
-| `BREVO_API_KEY` 🔒, `BREVO_FROM_EMAIL`, `BREVO_FROM_NAME` | | | | ✓ |
-| `CORS_ORIGINS` (the website origin) | ✓ | ✓ | | |
-| `WAKE_COMMON_URL` (the common URL) | | ✓ | ✓ | ✓ |
-| `WAKE_SEGMENTATION_URL`, `WAKE_COMMERCE_URL` | ✓ | | | |
+| Variable                                                                                          | common                 | uploads | segmentation | commerce      |
+| ------------------------------------------------------------------------------------------------- | ---------------------- | ------- | ------------ | ------------- |
+| `DATABASE_URL` 🔒                                                                                 | ✓                      |         |              |               |
+| `GOOGLE_CLOUD_PROJECT`                                                                            |                        |         |              | ✓ (push)      |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` 🔒                                                     | ✓                      |         |              |               |
+| `GOOGLE_REDIRECT_URI` (the web origin plus `/api/v1/auth/sso/google/callback`)                    | ✓                      |         |              |               |
+| `WEB_URL` (the website origin)                                                                    | ✓                      |         |              |               |
+| `JWT_SECRET` 🔒, `SESSION_SECRET` 🔒                                                              | ✓                      |         |              |               |
+| `JWT_ACCESS_TTL`, `SESSION_COOKIE_NAME`, `OAUTH_STATE_COOKIE` (optional)                          | ✓                      |         |              |               |
+| `UPLOAD_TICKET_PRIVATE_KEY` 🔒                                                                    | ✓                      |         |              |               |
+| `UPLOAD_TICKET_PUBLIC_KEYS`                                                                       |                        | ✓       |              |               |
+| `UPLOADS_URL` (the uploads `run.app` URL plus `/api/v1/uploads`)                                  | ✓                      |         |              |               |
+| `SCHEDULER_AUDIENCE` (the common `run.app` URL)                                                   | ✓                      |         |              |               |
+| `SCHEDULER_INVOKER_EMAIL` (`scheduler-invoker@<project-id>.iam.gserviceaccount.com`)              | ✓                      |         |              |               |
+| `KAFKA_BROKERS`, `KAFKA_SSL_CA`                                                                   | ✓                      | ✓       | ✓            | ✓             |
+| `KAFKA_USERNAME`, `KAFKA_PASSWORD` 🔒                                                             | ✓ `apparule`           | ✓       | ✓            | ✓             |
+| `REDIS_HOST/PORT/USERNAME`, `REDIS_PASSWORD` 🔒, `REDIS_TLS=true`, `REDIS_DB`, `REDIS_KEY_PREFIX` | ✓                      |         |              |               |
+| `STORAGE_DRIVER=gcs`, `STORAGE_BUCKET`, `STORAGE_PREFIX=apparule/stg`                             | ✓                      | ✓       | ✓            | ✓             |
+| `PAYSTACK_SECRET_KEY` 🔒                                                                          | ✓ (webhook signatures) |         |              | ✓ (API calls) |
+| `PAYSTACK_PUBLIC_KEY`                                                                             | ✓ (checkout)           |         |              |               |
+| `BREVO_API_KEY` 🔒, `BREVO_FROM_EMAIL`, `BREVO_FROM_NAME`                                         |                        |         |              | ✓             |
+| `CORS_ORIGINS` (the website origin)                                                               | ✓                      | ✓       |              |               |
+| `WAKE_COMMON_URL` (the common URL)                                                                |                        | ✓       | ✓            | ✓             |
+| `WAKE_SEGMENTATION_URL`, `WAKE_COMMERCE_URL`                                                      | ✓                      |         |              |               |
 
 The `WAKE_*` values are the services' own `https://…run.app` URLs, without a
 path. Create the services first, then fill these in and redeploy.
@@ -213,23 +213,23 @@ the money flow has run end to end on the sandbox.
 
 **Website (App Hosting, `web/`):**
 
-| Variable | Available at | Value |
-| --- | --- | --- |
-| `NEXT_PUBLIC_TEST_MODE` | build | `true` until §9, then remove |
-| `API_URL` | runtime | the common URL (`https://…run.app`) |
-| `UPLOADS_URL` | runtime | the uploads URL |
+| Variable                | Available at | Value                               |
+| ----------------------- | ------------ | ----------------------------------- |
+| `NEXT_PUBLIC_TEST_MODE` | build        | `true` until §9, then remove        |
+| `API_URL`               | runtime      | the common URL (`https://…run.app`) |
+| `UPLOADS_URL`           | runtime      | the uploads URL                     |
 
 ## 7. Cloud Run resources (infrastructure-as-code stack)
 
 Add these to the infrastructure-as-code stack (your GCP project, `us-central1`). The first image can be any tag from
 Docker Hub, because every release replaces it by digest.
 
-| Name | Kind | Account | Port | Instances | CPU / memory | CPU allocation | Ingress / auth |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `apparule-api-common` | service | `apparule-common` | 8080 | **0**–2 | 1 / 512 MiB | request-based | all · no IAM check (the app checks session tokens; webhooks check signatures; the sweeps check the scheduler token) |
-| `apparule-api-uploads` | service | `apparule-uploads` | 8082 | 0–5 | 1 / 1 GiB, concurrency 20, timeout 60 s | request-based | all · no IAM check (auth is the upload ticket) |
-| `apparule-api-segmentation` | service | `apparule-segmentation` | 8081 | **0**–2 | 2 / 2 GiB, concurrency 2, startup probe ≥ 60 s | request-based | all · **authenticated only** (invoker: `apparule-common`) |
-| `apparule-api-commerce` | service | `apparule-commerce` | 8083 | **0**–2 | 1 / 512 MiB | request-based | all · **authenticated only** (invoker: `apparule-common`) |
+| Name                        | Kind    | Account                 | Port | Instances | CPU / memory                                   | CPU allocation | Ingress / auth                                                                                                      |
+| --------------------------- | ------- | ----------------------- | ---- | --------- | ---------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `apparule-api-common`       | service | `apparule-common`       | 8080 | **0**–2   | 1 / 512 MiB                                    | request-based  | all · no IAM check (the app checks session tokens; webhooks check signatures; the sweeps check the scheduler token) |
+| `apparule-api-uploads`      | service | `apparule-uploads`      | 8082 | 0–5       | 1 / 1 GiB, concurrency 20, timeout 60 s        | request-based  | all · no IAM check (auth is the upload ticket)                                                                      |
+| `apparule-api-segmentation` | service | `apparule-segmentation` | 8081 | **0**–2   | 2 / 2 GiB, concurrency 2, startup probe ≥ 60 s | request-based  | all · **authenticated only** (invoker: `apparule-common`)                                                           |
+| `apparule-api-commerce`     | service | `apparule-commerce`     | 8083 | **0**–2   | 1 / 512 MiB                                    | request-based  | all · **authenticated only** (invoker: `apparule-common`)                                                           |
 
 Every service has the URL `https://<service>-<project-number>.us-central1.run.app`.
 Cloud Scheduler POSTs `/internal/jobs/<name>` on `apparule-api-common` for
@@ -286,15 +286,15 @@ On `cuesoftinc/apparule`:
 
 ## 10. Day-2
 
-| Task | How |
-| --- | --- |
-| Roll back | Redeploy the previous image digest (it is in the earlier release run) with `gcloud run services update <name> --image docker.io/cuesoft/apparule-api-<svc>@sha256:…` |
-| Rotate the ticket key | Generate a new pair with a new kid; **add** its public key to `UPLOAD_TICKET_PUBLIC_KEYS` (comma-separated) and deploy uploads; switch `UPLOAD_TICKET_PRIVATE_KEY` and deploy common; after 5 minutes, drop the old public key |
-| Run migrations alone | `./jobs migrate` by hand (common also runs them on start); the HTTP sweeps exclude it |
-| A capture stuck in "processing" | The `captures` sweep re-sends it after 60 s and fails it with `pipeline_busy` after 180 s; check segmentation's logs and the `wake` lines for `wake failed` |
-| Kafka powered off (idle) | a sibling product's reaper powers it back on; uploads answer 503 meanwhile and overdue captures are re-sent from Postgres. Nothing is lost from Postgres |
-| A money outcome needs a human | `payments.outcome` rows of kind `mismatch`, `charge_rejected`, `payout_failed` or `refund_failed` are logged at error level (`money needs attention`) and kept in `payment_outcome` with `resolved_at` empty; resolve in Paystack, then set `resolved_at` |
-| Resolve a dispute | A staff account calls `POST /api/v1/moderation/requests/{id}/resolve` with `delivered` or `refunded` |
+| Task                            | How                                                                                                                                                                                                                                                       |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Roll back                       | Redeploy the previous image digest (it is in the earlier release run) with `gcloud run services update <name> --image docker.io/cuesoft/apparule-api-<svc>@sha256:…`                                                                                      |
+| Rotate the ticket key           | Generate a new pair with a new kid; **add** its public key to `UPLOAD_TICKET_PUBLIC_KEYS` (comma-separated) and deploy uploads; switch `UPLOAD_TICKET_PRIVATE_KEY` and deploy common; after 5 minutes, drop the old public key                            |
+| Run migrations alone            | `./jobs migrate` by hand (common also runs them on start); the HTTP sweeps exclude it                                                                                                                                                                     |
+| A capture stuck in "processing" | The `captures` sweep re-sends it after 60 s and fails it with `pipeline_busy` after 180 s; check segmentation's logs and the `wake` lines for `wake failed`                                                                                               |
+| Kafka powered off (idle)        | a sibling product's reaper powers it back on; uploads answer 503 meanwhile and overdue captures are re-sent from Postgres. Nothing is lost from Postgres                                                                                                  |
+| A money outcome needs a human   | `payments.outcome` rows of kind `mismatch`, `charge_rejected`, `payout_failed` or `refund_failed` are logged at error level (`money needs attention`) and kept in `payment_outcome` with `resolved_at` empty; resolve in Paystack, then set `resolved_at` |
+| Resolve a dispute               | A staff account calls `POST /api/v1/moderation/requests/{id}/resolve` with `delivered` or `refunded`                                                                                                                                                      |
 
 ## 11. Not built yet
 

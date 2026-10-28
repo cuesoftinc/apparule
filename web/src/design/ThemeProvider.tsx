@@ -2,8 +2,7 @@
 
 /**
  * Theme provider — tri-state light | dark | system (docs/design.md §2, §7;
- * theme contract ratified 2026-07-20, identical across apparule, expendit
- * and upstat):
+ * theme contract ratified 2026-07-20, shared across products):
  *
  * - `preference` is what the user chose; persisted at `apparule.theme`
  *   ("light"/"dark"/"system" all stored explicitly; KEY ABSENT = light,

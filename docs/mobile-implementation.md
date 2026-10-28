@@ -7,7 +7,7 @@
 > reference, plus the apparule-specific contract, phase plan, architecture
 > tree, routing/data conventions, the C6 capture contract, and the legacy
 > disposition ledger. This doc is the full detail the SKILL section points
-> to; the SKILL section is the org canon and is never duplicated here beyond
+> to; the SKILL section is never duplicated here beyond
 > what apparule needs to build against it. Markers as in
 > [design.md](design.md): **[Specified]** = stated direction,
 > **[Proposed]** = ratifiable decision, **[Decided <date>]** = ratified.
@@ -47,7 +47,7 @@ Four phases, each closing before the next opens (mirrors the audit ledger's
    fakes already satisfy; `main.dart` (prod, M-7) swaps the provider
    overrides. No screen or ViewModel changes at this step by construction.
 
-Backend integration timing follows the fleet rule: mobile's API wiring and
+Backend integration timing follows the standing rule: mobile's API wiring and
 the backend services it calls remain separately gated — this doc covers
 phases 1–3 in full and phase 4's client-side contract; the backend itself is
 unauthorized independent of this doc (roadmap.md).
@@ -175,7 +175,7 @@ mobile/flutter/
 ```
 
 The six top-level features (`auth`, `feed`, `measurements`, `orders`,
-`profile`, `earnings`) are the ratified set (SKILL canon); the C-series →
+`profile`, `earnings`) are the ratified set (ratified set); the C-series →
 feature mapping above is this doc's scoping decision, made the same way
 `web/`'s route map resolved pages.md's shorthand (web-implementation.md
 §4): notifications (C10) sit in `profile` (its entry point is the profile
@@ -245,27 +245,27 @@ the standard cookbook) are on by default — a post permalink
 (`apparule.cuesoft.io/p/{post_id}`, web-implementation.md §4) opens the C4
 post-detail screen in-app when the app is installed.
 
-| Route | Screen | pages.md |
-| --- | --- | --- |
-| `/signin` | Single Google-CTA auth screen | C1 (flows/auth.md §5) |
-| `/onboarding/first-action` | Post-signup interstitial | C1b |
-| `/` (Home tab) | Home feed | C2 |
-| `/explore` (Explore tab) | Search + grid | C3 |
-| `/post/{id}` | Post detail | C4 |
-| `/post/{id}/comments` | Comments sheet (full) | C11 |
-| `/request/{postId}` | Request stepper | C5 |
-| `/capture` (via the ➕ chooser, M-11) | Measurement capture | C6 |
-| `/vault` | Measurement vault | C7 |
-| `/orders` (Orders tab) · `/orders/{id}` | Orders list + detail | C8 |
-| `/profile` (Profile tab) · `/profile/{username}` | Own / other profile | C9 |
-| `/profile/edit` | Edit profile (display name · bio — designer-scoped, hidden for non-designers (pages.md C9) · X-10 location) | C9 |
-| `/notifications` | Notifications sheet | C10 |
-| `/profile/{username}/followers` · `/following` | Followers/following | C12 |
-| `/settings` · `/settings/{notifications,privacy,account}` | Settings root + the B7-mobile sub-screens (canvas 207:*) — account & data carries the export-first delete ladder | pages.md B7 |
-| `/designer/onboarding` | Designer onboarding & KYC | C13 |
-| `/designer/onboarding/payout` | Payout banking form (Paystack states) — a sibling under the prefix, not a child (the capture-guide precedent: re-verification entries must not stack a stale intro) | C13 |
-| `/earnings` | Earnings & payouts | C14 |
-| `/create/post` | Post composer (designer) — media grid over the `MediaPickerService` seam (image_picker live / bundled-sample fake), caption, snapshot-attach toggle | C15 |
+| Route                                                     | Screen                                                                                                                                                              | pages.md              |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| `/signin`                                                 | Single Google-CTA auth screen                                                                                                                                       | C1 (flows/auth.md §5) |
+| `/onboarding/first-action`                                | Post-signup interstitial                                                                                                                                            | C1b                   |
+| `/` (Home tab)                                            | Home feed                                                                                                                                                           | C2                    |
+| `/explore` (Explore tab)                                  | Search + grid                                                                                                                                                       | C3                    |
+| `/post/{id}`                                              | Post detail                                                                                                                                                         | C4                    |
+| `/post/{id}/comments`                                     | Comments sheet (full)                                                                                                                                               | C11                   |
+| `/request/{postId}`                                       | Request stepper                                                                                                                                                     | C5                    |
+| `/capture` (via the ➕ chooser, M-11)                     | Measurement capture                                                                                                                                                 | C6                    |
+| `/vault`                                                  | Measurement vault                                                                                                                                                   | C7                    |
+| `/orders` (Orders tab) · `/orders/{id}`                   | Orders list + detail                                                                                                                                                | C8                    |
+| `/profile` (Profile tab) · `/profile/{username}`          | Own / other profile                                                                                                                                                 | C9                    |
+| `/profile/edit`                                           | Edit profile (display name · bio — designer-scoped, hidden for non-designers (pages.md C9) · X-10 location)                                                         | C9                    |
+| `/notifications`                                          | Notifications sheet                                                                                                                                                 | C10                   |
+| `/profile/{username}/followers` · `/following`            | Followers/following                                                                                                                                                 | C12                   |
+| `/settings` · `/settings/{notifications,privacy,account}` | Settings root + the B7-mobile sub-screens (canvas 207:*) — account & data carries the export-first delete ladder                                                    | pages.md B7           |
+| `/designer/onboarding`                                    | Designer onboarding & KYC                                                                                                                                           | C13                   |
+| `/designer/onboarding/payout`                             | Payout banking form (Paystack states) — a sibling under the prefix, not a child (the capture-guide precedent: re-verification entries must not stack a stale intro) | C13                   |
+| `/earnings`                                               | Earnings & payouts                                                                                                                                                  | C14                   |
+| `/create/post`                                            | Post composer (designer) — media grid over the `MediaPickerService` seam (image_picker live / bundled-sample fake), caption, snapshot-attach toggle                 | C15                   |
 
 The ➕ tab is an entry **gesture**, not a shell branch: it opens the
 M-11 chooser sheet over the current tab ("Take measurements" →
@@ -302,20 +302,20 @@ coherent world, not two disconnected demos; the C6 capture seam's
 non-domain seeds and the shared photography pool ship alongside them.
 The `assets/seed/dev/` bundle, in full:
 
-| Seed file | Domain | Ties to (web parity) |
-| --- | --- | --- |
-| `assets/seed/dev/me.json` | Signed-in test user: non-designer, vault populated across all three freshness states, follows several designers; account fields (email · bio · notification/privacy prefs · consent ledger) for C9/B7 | web §6 "signed-in test user" |
-| `assets/seed/dev/designers.json` | The Nigerian designer-persona cast, incl. `eniola.stitches` (Abuja, proximity-ranking exemplar) | web §6 designer cast |
-| `assets/seed/dev/accounts.json` | The community cast + the full follow edge list — C12 lists and every profile count derive from these edges (follower counts mirror the graph) | web §6 `seedFollows` verbatim |
-| `assets/seed/dev/earnings.json` | The designer-monetization story: `amara.designs` carries the ratified C14 canvas ledger (₦82,500 available / ₦45,000 escrow, Paystack refs) | web canvas A6/B9 demo story |
-| `assets/seed/dev/posts.json` | Published posts over the same CC-sourced photography pool, captions, style tags, NGN price bands | web §6 posts / design.md §8.3 asset pool |
-| `assets/seed/dev/vault_sessions.json` | Scan + manual measurement sessions (the source for `me.json`'s vault and for measurement snapshots frozen into orders) | web §6 vault seed / capture-qc.md |
-| `assets/seed/dev/orders.json` | All ten order-lifecycle states, at least one per role view, incl. an escrow-held payment and a dispute-frozen order | web §6 "all ten states" |
-| `assets/seed/dev/notifications.json` | Every notification kind, part unread | web §6 notifications |
-| `assets/seed/dev/capture_samples.json` | The fake camera's QC scenario catalog — one scenario per fail code plus the happy path and a multi-fault exemplar, carrying the simulated pipeline metrics the real threshold evaluation runs against | capture-qc.md fail-code table |
-| `assets/seed/dev/sample_frontal.png` | The bundled front-pose frame every fake-camera scenario previews/captures | C6 capture (M-10 front pose) |
-| `assets/seed/dev/sample_side.png` | The bundled side-pose frame (right profile) | C6 capture (M-10 side pose) |
-| `assets/seed/dev/demo/` | The CC-licensed outfit photography pool (12 images + `ATTRIBUTIONS.md`), byte-identical to the web mock's `web/public/demo` — seed posts carry the web's `/demo/…` URL form verbatim, resolved to bundle assets by `seed_media` | web §6 media pool / design.md §8.3 sourcing |
+| Seed file                              | Domain                                                                                                                                                                                                                          | Ties to (web parity)                        |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| `assets/seed/dev/me.json`              | Signed-in test user: non-designer, vault populated across all three freshness states, follows several designers; account fields (email · bio · notification/privacy prefs · consent ledger) for C9/B7                           | web §6 "signed-in test user"                |
+| `assets/seed/dev/designers.json`       | The Nigerian designer-persona cast, incl. `eniola.stitches` (Abuja, proximity-ranking exemplar)                                                                                                                                 | web §6 designer cast                        |
+| `assets/seed/dev/accounts.json`        | The community cast + the full follow edge list — C12 lists and every profile count derive from these edges (follower counts mirror the graph)                                                                                   | web §6 `seedFollows` verbatim               |
+| `assets/seed/dev/earnings.json`        | The designer-monetization story: `amara.designs` carries the ratified C14 canvas ledger (₦82,500 available / ₦45,000 escrow, Paystack refs)                                                                                     | web canvas A6/B9 demo story                 |
+| `assets/seed/dev/posts.json`           | Published posts over the same CC-sourced photography pool, captions, style tags, NGN price bands                                                                                                                                | web §6 posts / design.md §8.3 asset pool    |
+| `assets/seed/dev/vault_sessions.json`  | Scan + manual measurement sessions (the source for `me.json`'s vault and for measurement snapshots frozen into orders)                                                                                                          | web §6 vault seed / capture-qc.md           |
+| `assets/seed/dev/orders.json`          | All ten order-lifecycle states, at least one per role view, incl. an escrow-held payment and a dispute-frozen order                                                                                                             | web §6 "all ten states"                     |
+| `assets/seed/dev/notifications.json`   | Every notification kind, part unread                                                                                                                                                                                            | web §6 notifications                        |
+| `assets/seed/dev/capture_samples.json` | The fake camera's QC scenario catalog — one scenario per fail code plus the happy path and a multi-fault exemplar, carrying the simulated pipeline metrics the real threshold evaluation runs against                           | capture-qc.md fail-code table               |
+| `assets/seed/dev/sample_frontal.png`   | The bundled front-pose frame every fake-camera scenario previews/captures                                                                                                                                                       | C6 capture (M-10 front pose)                |
+| `assets/seed/dev/sample_side.png`      | The bundled side-pose frame (right profile)                                                                                                                                                                                     | C6 capture (M-10 side pose)                 |
+| `assets/seed/dev/demo/`                | The CC-licensed outfit photography pool (12 images + `ATTRIBUTIONS.md`), byte-identical to the web mock's `web/public/demo` — seed posts carry the web's `/demo/…` URL form verbatim, resolved to bundle assets by `seed_media` | web §6 media pool / design.md §8.3 sourcing |
 
 The web seed's moderation queue has no mobile counterpart: filing a
 report (`PostRepository.reportPost`, held in-memory by the fake) is the
@@ -384,8 +384,7 @@ mobile CI lane today):
    iOS-simulator build (`mobile-ios`, dev flavor: proves the Xcode flavor
    wiring, the SwiftPM graph at the iOS 15 floor, and that the flavored
    seed assets bundle); no `apk` build job exists yet, and `main`-merge
-   itself never deploys (X-6, matching the web fleet's build+test-only
-   gate).
+   itself never deploys (X-6, matching the web build+test-only gate).
 
 ## 9. Auth
 
@@ -403,7 +402,7 @@ The API wiring below stays documented but **gated**: no entrypoint wires
 
 - **Same flow as the web (M-13)**: `AuthRepositoryApi` opens
   `GET {API_URL}/api/v1/auth/sso/google?return_to=apparule://app&cv=<S256
-  challenge>` in a browser tab (`flutter_web_auth_2`, callback scheme
+challenge>` in a browser tab (`flutter_web_auth_2`, callback scheme
   `apparule`); the API runs Google's code flow and returns to
   `apparule://app/auth/callback?handoff=<code>`. The app posts
   `{handoff, verifier}` to `/api/v1/auth/sso/exchange`, stores the returned

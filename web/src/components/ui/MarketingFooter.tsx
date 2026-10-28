@@ -1,5 +1,5 @@
 // MarketingFooter — design.md §8.2b marketing kit, laid out to the org
-// "Marketing nav, footer & theme parity canon" (SKILL.md, ratified
+// "Marketing nav, footer & theme parity canon" (ratified
 // 2026-07-19): brand block + 4 link columns (Product · Docs · Community ·
 // Legal) + legal bar (verbatim © line · security policy · language).
 // pages.md A10's privacy/terms/clause links live in the Legal column now.

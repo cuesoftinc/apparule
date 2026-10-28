@@ -58,8 +58,7 @@
   policy: §8.
 - **Process**: stages W0 → W3 (§2), PR per stage; conventional commits; QA
   loops evaluate the implementation against the Figma file (tokens,
-  geometry, states, interactions) before a stage closes; docs + the org
-  SKILL.md updated with every deviation.
+  geometry, states, interactions) before a stage closes; docs updated with every deviation.
 - **Component reuse policy [Decided 2026-07-18]**: pixel-fidelity to the
   Figma file wins. All **visual** components are built in-house from the
   token layer, no styled component kits in new code (no MUI, no
@@ -74,9 +73,7 @@
   local SVGs per the §8.1 icon note), and math/format utilities (d3-scale,
   date-fns, clsx). Fidelity is verified against the Figma file in the stage
   QA loops (screenshot comparison + token/geometry checks).
-- **Command palette**: Apparule ships none — per-product scope, not fleet
-  drift (parity review P12, 2026-07-21). The fleet ⌘K canon applies when
-  one exists.
+- **Command palette**: Apparule ships none — per-product scope (2026-07-21). The ⌘K convention applies when one exists.
 
 ## 2. Stage plan — W0 foundations → W3 dashboards
 
@@ -85,12 +82,12 @@ file passes (screenshot comparison + token/geometry/state checks against the
 Style Guide, component sets, and screen frames — the same standard as the
 design-phase QA loops, design.md §8).
 
-| Stage | Scope | Closes when |
-| --- | --- | --- |
-| **W0 Foundations** | `tokens.css` (§3) + Tailwind mapping · MVC skeleton (`models/`, `controllers/`, `components/ui/`) · `AuthProvider` interface + `TestModeAuthProvider` · mock server + seed dataset (§5–6) · Vitest + Playwright harnesses wired into CI build+test | tokens render both themes correctly vs the Style Guide page; TEST_MODE boots to a stubbed dashboard against the mock server; CI green |
-| **W1 Components** | `components/ui/*` per the design.md §8.1 build order (atoms → molecules → cards) and §8.2/§8.2b contract rows, web-applicable MI specs (MI-1…MI-19; MI-20 haptics is mobile-only) · unit tests per component | every built component passes QA vs its Figma component set (variants, states, both themes, motion specs) |
-| **W2 Home** **[Done 2026-07-19, PR #87]** | Part A screens (§4): A1–A10 + iteration rows A4b/A7b/A7c/A9b/A9c · analytics events to the monitoring service (D2: `page_view`, `demo_start`, `github_click`, `try_cloud_click`, `self_host_click`) · live GitHub star fetch (A1/A7b) | QA vs the Stage-5 Figma page; Playwright covers the "Marketing site" §8.4 flow incl. the CTA handoff |
-| **W3 Dashboards** **[Done 2026-07-19, PR #91]** | Part B routes (§4): B1–B9 + B7a · feature controllers · request stepper, payments UI, vault, moderation | QA vs the Stage-4 Figma frames + prototype flows; Playwright covers the §8.4 dashboard journeys (§7) |
+| Stage                                           | Scope                                                                                                                                                                                                                                              | Closes when                                                                                                                           |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **W0 Foundations**                              | `tokens.css` (§3) + Tailwind mapping · MVC skeleton (`models/`, `controllers/`, `components/ui/`) · `AuthProvider` interface + `TestModeAuthProvider` · mock server + seed dataset (§5–6) · Vitest + Playwright harnesses wired into CI build+test | tokens render both themes correctly vs the Style Guide page; TEST_MODE boots to a stubbed dashboard against the mock server; CI green |
+| **W1 Components**                               | `components/ui/*` per the design.md §8.1 build order (atoms → molecules → cards) and §8.2/§8.2b contract rows, web-applicable MI specs (MI-1…MI-19; MI-20 haptics is mobile-only) · unit tests per component                                       | every built component passes QA vs its Figma component set (variants, states, both themes, motion specs)                              |
+| **W2 Home** **[Done 2026-07-19, PR #87]**       | Part A screens (§4): A1–A10 + iteration rows A4b/A7b/A7c/A9b/A9c · analytics events to the monitoring service (D2: `page_view`, `demo_start`, `github_click`, `try_cloud_click`, `self_host_click`) · live GitHub star fetch (A1/A7b)              | QA vs the Stage-5 Figma page; Playwright covers the "Marketing site" §8.4 flow incl. the CTA handoff                                  |
+| **W3 Dashboards** **[Done 2026-07-19, PR #91]** | Part B routes (§4): B1–B9 + B7a · feature controllers · request stepper, payments UI, vault, moderation                                                                                                                                            | QA vs the Stage-4 Figma frames + prototype flows; Playwright covers the §8.4 dashboard journeys (§7)                                  |
 
 **W2 as-built notes (2026-07-19, PR #87):**
 
@@ -153,8 +150,7 @@ build at 1440/390, light/dark/reduced-motion, and fixed what it found:
 - 390px overflow fixes (order-detail grid, moderation actions, profile
   stats) are e2e-gated across all dashboard routes.
 
-**Link-parity as-built notes (2026-07-19):** the org "Marketing nav,
-footer & theme parity canon" (SKILL.md) applied — nav is four links,
+**Link-parity as-built notes (2026-07-19):** the "Marketing nav, footer & theme parity" rule applied — nav is four links,
 Features · For designers · Docs · GitHub, with GitHub rendered as the
 compact star badge (live count from the cached fetch seam shared with
 A7b; TEST_MODE and failures keep the neutral "Star" label), + theme
@@ -196,8 +192,7 @@ pointer cursor on controls.
   and decline-with-reason + itemized earnings payout.
 - The legacy-quarantine boundary is gated two ways: an eslint
   `no-restricted-imports` rule scoped to `src/legacy/**` (lint-time), and
-  `scripts/check-boundaries.mjs` — the org-shared boundary gate (byte-identical
-  across apparule/sibling products, per-repo rule lists inside), wired into
+  `scripts/check-boundaries.mjs` — the boundary gate (per-repo rule list inside), wired into
   `npm run lint` via `check:boundaries`.
 - No `src/legacy/` tree exists — nothing has been quarantined; the boundary
   gates above stay armed for when a retirement stages one.
@@ -298,7 +293,7 @@ approved gap implementations:
   `updateConfiguration` never re-applies it); Scalar's own toggle is
   hidden and its remote default fonts are disabled (self-host ethos).
   Scalar's developer toolbar is pinned off (`showDeveloperTools:
-  "never"`, the `"localhost"` default surfaced author chrome on the
+"never"`, the `"localhost"` default surfaced author chrome on the
   public reference in local/TEST_MODE runs), and Agent Scalar is
   disabled outright (`agent: { disabled: true }`, it auto-enables on
   localhost-class hosts, the same leak class).
@@ -313,7 +308,7 @@ approved gap implementations:
   embed-theme sync.
   Payload: Scalar is the app's heaviest dependency, so the page renders
   it through `ScalarApiReferenceLazy` — a `next/dynamic` `ssr: false`
-  boundary gated on USER INTENT (fleet-uniform, perf audit + payload
+  boundary gated on USER INTENT (perf audit + payload
   diet 2026-07-21). A `ssr: false` boundary alone only moves Scalar out
   of the first-load chunks (the async group still downloads right after
   hydration — settled /docs/api JS stayed ~1381K encoded / ~4787K
@@ -326,8 +321,7 @@ approved gap implementations:
   gesture. The placeholder reserves the embed's viewport slice
   (`100dvh − --scalar-custom-header-height`) so the swap-in shifts no
   layout; the nav/footer chrome stays SSR'd and interactive throughout.
-  `e2e/docs-api-payload.spec.ts` (byte-identical fleet spec, keyed by
-  package name — the seo.spec.ts pattern) locks the settled pre-intent
+  `e2e/docs-api-payload.spec.ts` (keyed by package name, the seo.spec.ts pattern) locks the settled pre-intent
   budget (measured + 20% headroom, CDP-recorded encoded transfer; CI
   prod build only) AND that intent still mounts the full reference with
   the spec fetch intact.
@@ -446,13 +440,13 @@ The Scalar embed follows `resolvedTheme` (F0-8 note, §2). Unit tests pin
 the storage convention, live system tracking and cycle order; e2e pins
 the cycle, an emulated OS flip in system mode and reload persistence.
 
-| Group | Token names |
-| --- | --- |
-| Color | `--bg` · `--bg-elev` · `--border` · `--text` · `--text-2` · `--accent-start` · `--accent-end` (the two gradient stops — same two-variable shape as Figma, design.md §2 **[Decided 2026-07-17]**) · `--on-accent` · `--link` · `--like` · `--success` · `--warn` · `--error` |
-| Spacing | `--space-4` `--space-8` `--space-12` `--space-16` `--space-24` `--space-32` `--space-48` `--space-64` — the 4px-grid scale, no off-scale values |
-| Radii | `--radius-card: 8px` · `--radius-full: 9999px` (avatars/pills) |
-| Motion | `--duration-fast: 120ms` · `--duration-base: 200ms` · `--duration-slow: 300ms` · `--duration-entrance: 250ms` · `--ease-standard: cubic-bezier(0.2, 0, 0, 1)` · `--ease-exit: cubic-bezier(0.4, 0, 1, 1)` |
-| Z layers | `--z-base: 0` · `--z-sticky: 10` · `--z-dropdown: 20` · `--z-overlay: 30` · `--z-sheet: 40` · `--z-toast: 50` |
+| Group    | Token names                                                                                                                                                                                                                                                                 |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Color    | `--bg` · `--bg-elev` · `--border` · `--text` · `--text-2` · `--accent-start` · `--accent-end` (the two gradient stops — same two-variable shape as Figma, design.md §2 **[Decided 2026-07-17]**) · `--on-accent` · `--link` · `--like` · `--success` · `--warn` · `--error` |
+| Spacing  | `--space-4` `--space-8` `--space-12` `--space-16` `--space-24` `--space-32` `--space-48` `--space-64` — the 4px-grid scale, no off-scale values                                                                                                                             |
+| Radii    | `--radius-card: 8px` · `--radius-full: 9999px` (avatars/pills)                                                                                                                                                                                                              |
+| Motion   | `--duration-fast: 120ms` · `--duration-base: 200ms` · `--duration-slow: 300ms` · `--duration-entrance: 250ms` · `--ease-standard: cubic-bezier(0.2, 0, 0, 1)` · `--ease-exit: cubic-bezier(0.4, 0, 1, 1)`                                                                   |
+| Z layers | `--z-base: 0` · `--z-sticky: 10` · `--z-dropdown: 20` · `--z-overlay: 30` · `--z-sheet: 40` · `--z-toast: 50`                                                                                                                                                               |
 
 Notes: Apparule has no chart series palette (the ecosystem row applies only
 where a product has one). The Afrocentric pattern (design.md §2) is an
@@ -483,22 +477,22 @@ the canonical `apparule.cuesoft.io/dashboard` base **[Decided]**. This map
 resolves that notation **[Proposed]**: `/app/X` ⇒ `/dashboard/X`, with the
 feed at the base itself.
 
-| pages.md | Route | Screen |
-| --- | --- | --- |
-| Part A (A1–A10 + A4b/A7b/A7c/A9b/A9c) | `/` | Public home page |
-| B2 permalink note | `/p/{post_id}` | Public post detail (MI-9 share target; request CTA for signed-in users) |
-| flows/auth.md §5 | `/signin` | Single auth screen — GoogleAuthButton + legal links (Terms/Privacy open the canonical https://terms.cuesoft.io / https://privacy.cuesoft.io in a new tab) **[Decided 2026-07-18, route canon]** |
-| F0-8 / APP-004 | `/docs/api` | Public API reference — Scalar embed rendering `docs/api/openapi.yaml` (served at `/docs/api/openapi.yaml`); marketing nav chrome, minimal legal strip **[Ratified 2026-07-20]** |
-| B1 | `/dashboard` | Feed (story rail, PostCard column, freshness + suggestions) |
-| B2 | `/dashboard/explore` | Discover (masonry, filters, search-results state) |
-| B3 | `/dashboard/orders` · `/dashboard/orders/{id}` | Requests & orders — tabs, detail (snapshot, thread, timeline, payment box, decline sheet, dispute flow) |
-| B4 | `/dashboard/vault` | Measurement vault |
-| B5 | `/dashboard/create` | Post an outfit (designer) / creator upsell |
-| B6 | `/dashboard/{username}` | Profiles (designer / regular; followers/following sheets) |
-| B7 | `/dashboard/settings` + sub-screens `/dashboard/settings/notifications` · `/dashboard/settings/privacy` · `/dashboard/settings/account` | Settings + the three 2026-07-18 sub-screens |
-| B7a | `/dashboard/admin/moderation` | Moderation queue (staff only) |
-| B8 | `/dashboard/designer/onboarding` | Designer onboarding & KYC |
-| B9 | `/dashboard/earnings` | Earnings & payouts (designer) |
+| pages.md                              | Route                                                                                                                                   | Screen                                                                                                                                                                                          |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Part A (A1–A10 + A4b/A7b/A7c/A9b/A9c) | `/`                                                                                                                                     | Public home page                                                                                                                                                                                |
+| B2 permalink note                     | `/p/{post_id}`                                                                                                                          | Public post detail (MI-9 share target; request CTA for signed-in users)                                                                                                                         |
+| flows/auth.md §5                      | `/signin`                                                                                                                               | Single auth screen — GoogleAuthButton + legal links (Terms/Privacy open the canonical https://terms.cuesoft.io / https://privacy.cuesoft.io in a new tab) **[Decided 2026-07-18, route canon]** |
+| F0-8 / APP-004                        | `/docs/api`                                                                                                                             | Public API reference — Scalar embed rendering `docs/api/openapi.yaml` (served at `/docs/api/openapi.yaml`); marketing nav chrome, minimal legal strip **[Ratified 2026-07-20]**                 |
+| B1                                    | `/dashboard`                                                                                                                            | Feed (story rail, PostCard column, freshness + suggestions)                                                                                                                                     |
+| B2                                    | `/dashboard/explore`                                                                                                                    | Discover (masonry, filters, search-results state)                                                                                                                                               |
+| B3                                    | `/dashboard/orders` · `/dashboard/orders/{id}`                                                                                          | Requests & orders — tabs, detail (snapshot, thread, timeline, payment box, decline sheet, dispute flow)                                                                                         |
+| B4                                    | `/dashboard/vault`                                                                                                                      | Measurement vault                                                                                                                                                                               |
+| B5                                    | `/dashboard/create`                                                                                                                     | Post an outfit (designer) / creator upsell                                                                                                                                                      |
+| B6                                    | `/dashboard/{username}`                                                                                                                 | Profiles (designer / regular; followers/following sheets)                                                                                                                                       |
+| B7                                    | `/dashboard/settings` + sub-screens `/dashboard/settings/notifications` · `/dashboard/settings/privacy` · `/dashboard/settings/account` | Settings + the three 2026-07-18 sub-screens                                                                                                                                                     |
+| B7a                                   | `/dashboard/admin/moderation`                                                                                                           | Moderation queue (staff only)                                                                                                                                                                   |
+| B8                                    | `/dashboard/designer/onboarding`                                                                                                        | Designer onboarding & KYC                                                                                                                                                                       |
+| B9                                    | `/dashboard/earnings`                                                                                                                   | Earnings & payouts (designer)                                                                                                                                                                   |
 
 `/dashboard/{username}` is a dynamic segment; static siblings (explore,
 orders, …) win route precedence by App Router rules, and those segment
@@ -514,8 +508,7 @@ on it:
 1. **Auth**: the `AuthProvider` resolves to `TestModeAuthProvider`, GoogleAuthButton navigates straight to `/dashboard` as the seeded test
    user (§6), no Google redirect, no popup. Session stickiness within
    the tab is a sessionStorage entry keyed `apparule.test-session` holding
-   the JSON user payload (fleet P16 convention: `<product>.test-session`,
-   sessionStorage, JSON user). The interface is identical
+   the JSON user payload (convention: `<product>.test-session`, sessionStorage, JSON user). The interface is identical
    to `SsoAuthProvider` (X-1 Google-only, bearer-token shape preserved), so
    the provider swaps without touching the views.
 2. **API client**: the models layer's base URL targets the in-app mock
@@ -536,18 +529,18 @@ taxonomies (order states, QC codes, report reasons, notification kinds).
 Backed by one seeded in-memory store (module singleton, dev-persistent)
 with full CRUD; contract types shared with `src/models/`.
 
-| Group | Mocked endpoints (under `/api/mock/v1`) |
-| --- | --- |
-| Auth & consent | `GET/PATCH /me` · `GET/POST /consent` |
-| Vault (self-customer alias, data-model.md §6.1) | `GET/POST /me/sessions` · `GET /sessions/{id}` · `PATCH /sessions/{id}/measurements` · `POST /sessions/{id}/exports` |
-| Posts | `POST /posts` · `GET /posts/{id}` · `GET /feed` · `GET /explore?q&tags&price_band&max_turnaround_days&near_me` · `DELETE /posts/{id}` |
-| Social graph | `POST/DELETE /follows/{designer}` · `POST/DELETE /posts/{id}/like` · `/save` · `GET/POST /posts/{id}/comments` |
-| Trust & safety | `POST /reports` · `POST/DELETE /blocks/{account}` · `GET /moderation/queue` · `POST /moderation/reports/{id}/action` |
-| Requests | `POST /posts/{id}/requests` · `GET /requests?role=` · `GET /requests/{id}` · `/quote` · `/decline` · `/status` · `/messages` |
-| Payments | `POST /requests/{id}/pay` (resolves synchronously to `held` — the mock stands in for the provider round-trip + webhook) · `/confirm-delivery` · `/dispute` |
-| Designer | `POST /designer-profile` (incl. scripted Paystack account-resolution states: resolving → resolved / mismatch, pages.md B8) · `GET /designer/earnings` · `POST /designer/payout-account` |
-| Notifications | `GET /notifications` · `POST /notifications/read` |
-| Capture (B4) | `POST /me/sessions` with multipart images, returns seeded measurement results incl. per-measurement `confidence` and `qc` verdicts (api.md §2 v2 schema); QC-failure codes reproducible via designated fixture images. **Ratified contract (M-10/M-12)**: web capture is **upload-only**, two files (`image_front` + `image_side`), per-pose QC, no webcam flow, with a "best experience: guided capture on the mobile app" hint |
+| Group                                           | Mocked endpoints (under `/api/mock/v1`)                                                                                                                                                                                                                                                                                                                                                                                          |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auth & consent                                  | `GET/PATCH /me` · `GET/POST /consent`                                                                                                                                                                                                                                                                                                                                                                                            |
+| Vault (self-customer alias, data-model.md §6.1) | `GET/POST /me/sessions` · `GET /sessions/{id}` · `PATCH /sessions/{id}/measurements` · `POST /sessions/{id}/exports`                                                                                                                                                                                                                                                                                                             |
+| Posts                                           | `POST /posts` · `GET /posts/{id}` · `GET /feed` · `GET /explore?q&tags&price_band&max_turnaround_days&near_me` · `DELETE /posts/{id}`                                                                                                                                                                                                                                                                                            |
+| Social graph                                    | `POST/DELETE /follows/{designer}` · `POST/DELETE /posts/{id}/like` · `/save` · `GET/POST /posts/{id}/comments`                                                                                                                                                                                                                                                                                                                   |
+| Trust & safety                                  | `POST /reports` · `POST/DELETE /blocks/{account}` · `GET /moderation/queue` · `POST /moderation/reports/{id}/action`                                                                                                                                                                                                                                                                                                             |
+| Requests                                        | `POST /posts/{id}/requests` · `GET /requests?role=` · `GET /requests/{id}` · `/quote` · `/decline` · `/status` · `/messages`                                                                                                                                                                                                                                                                                                     |
+| Payments                                        | `POST /requests/{id}/pay` (resolves synchronously to `held` — the mock stands in for the provider round-trip + webhook) · `/confirm-delivery` · `/dispute`                                                                                                                                                                                                                                                                       |
+| Designer                                        | `POST /designer-profile` (incl. scripted Paystack account-resolution states: resolving → resolved / mismatch, pages.md B8) · `GET /designer/earnings` · `POST /designer/payout-account`                                                                                                                                                                                                                                          |
+| Notifications                                   | `GET /notifications` · `POST /notifications/read`                                                                                                                                                                                                                                                                                                                                                                                |
+| Capture (B4)                                    | `POST /me/sessions` with multipart images, returns seeded measurement results incl. per-measurement `confidence` and `qc` verdicts (api.md §2 v2 schema); QC-failure codes reproducible via designated fixture images. **Ratified contract (M-10/M-12)**: web capture is **upload-only**, two files (`image_front` + `image_side`), per-pose QC, no webcam flow, with a "best experience: guided capture on the mobile app" hint |
 
 **Seed narrative — the docs-coherent Figma dataset.** The store seeds the
 same mock content the Figma screens render, so a TEST_MODE boot looks like
@@ -607,12 +600,12 @@ through the loader untouched. Locked by the home e2e perf canon
 
 ## 7. Test strategy
 
-| Layer | Tooling | Scope |
-| --- | --- | --- |
-| Unit | Vitest + Testing Library | every `components/ui/*` module (variant axes, states, both themes, reduced-motion fallbacks); model/repository parsing incl. error-envelope handling; controller hooks |
-| Integration | Vitest | mock handlers (envelope, pagination, enum taxonomies, state-machine legality of `/status` transitions); controller ↔ mock-server flows (optimistic MI-18 rollback on scripted failures) |
-| E2E | Playwright, TEST_MODE against the mock server | the design.md §8.4 prototype journeys, web-applicable set: **Marketing site** (Part A scroll + CTA handoff into the app), **Feed** (B1: like/save/follow → post detail → request stepper MI-10 → pay → escrow-held), plus the named state starts — **decline**, **dispute/moderation**, **creator-upsell** (B5 as non-creator), **designer onboarding/KYC → payout** (B8 → B9) |
-| CI | build-and-test workflow | lint + typecheck + Vitest + Playwright on every PR; X-6: CI itself never deploys |
+| Layer       | Tooling                                       | Scope                                                                                                                                                                                                                                                                                                                                                                          |
+| ----------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Unit        | Vitest + Testing Library                      | every `components/ui/*` module (variant axes, states, both themes, reduced-motion fallbacks); model/repository parsing incl. error-envelope handling; controller hooks                                                                                                                                                                                                         |
+| Integration | Vitest                                        | mock handlers (envelope, pagination, enum taxonomies, state-machine legality of `/status` transitions); controller ↔ mock-server flows (optimistic MI-18 rollback on scripted failures)                                                                                                                                                                                        |
+| E2E         | Playwright, TEST_MODE against the mock server | the design.md §8.4 prototype journeys, web-applicable set: **Marketing site** (Part A scroll + CTA handoff into the app), **Feed** (B1: like/save/follow → post detail → request stepper MI-10 → pay → escrow-held), plus the named state starts — **decline**, **dispute/moderation**, **creator-upsell** (B5 as non-creator), **designer onboarding/KYC → payout** (B8 → B9) |
+| CI          | build-and-test workflow                       | lint + typecheck + Vitest + Playwright on every PR; X-6: CI itself never deploys                                                                                                                                                                                                                                                                                               |
 
 The §8.4 rule that empty/loading/QA frames stay out of the prototype maps
 here too: Playwright walks real user paths; empty/loading states are
@@ -635,8 +628,7 @@ tree (design.md §6).
 
 - [ ] `tokens.css` matches design.md §2 / the `apparule/tokens` collection
       exactly, both themes; no raw hex in components (CI grep-gated)
-- [ ] W0–W3 each closed by a Figma QA loop before merge; deviations landed
-      in docs + the org SKILL.md
+- [ ] W0–W3 each closed by a Figma QA loop before merge; deviations landed in docs
 - [ ] TEST_MODE boots to `/dashboard` with the §6 seed rendering the
       Figma-coherent narrative; no Google redirect
 - [ ] Every mocked endpoint speaks the engineering.md §1 envelope with
@@ -648,8 +640,7 @@ tree (design.md §6).
 
 ## 10. SEO plumbing (as-built, 2026-07-21)
 
-Fleet-uniform discoverability layer (same construction in all three
-products; per-product values only):
+Discoverability layer (per-product values only):
 
 - **`src/app/sitemap.ts`** — public marketing routes only: `/` and
   `/docs/api`. No `/dashboard/*`, no `/signin`; `/p/{post_id}` permalinks
@@ -665,12 +656,11 @@ products; per-product values only):
   `twitter:card = summary_large_image`.
 - **Icons**, `src/app/favicon.ico` (16/32/48/256 PNG-in-ICO) and
   `src/app/apple-icon.png` (180×180): white "A" on the accent gradient
-  tile (byte-identical with the monitoring service's, neither product's mark).
+  tile (neither product's mark).
 - **Provenance** — all three binaries are generated from the design tokens
-  by `web/scripts/generate-brand-assets.mjs` (byte-identical across repos,
-  config keyed by package name; Inter via `INTER_WOFF2` or the official
+  by `web/scripts/generate-brand-assets.mjs` (config keyed by package name; Inter via `INTER_WOFF2` or the official
   distribution).
-- **Lock** — `web/e2e/seo.spec.ts` (byte-identical across repos) asserts
+- **Lock** — `web/e2e/seo.spec.ts` asserts
   sitemap 200 + exact route set, robots policy + sitemap reference,
   canonical on `/`, og:image resolves 200 at 1200×630, twitter card, and
   the served favicon's sha256 equals apparule's mark while differing from

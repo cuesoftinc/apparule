@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-// Web app manifest (fleet SEO plumbing): installability identity served at
+// Web app manifest (SEO plumbing): installability identity served at
 // /manifest.webmanifest, linked automatically from every route's <head>.
 // Identity mirrors the home metadata (page.tsx); colors are the design.md §2
 // light tokens — `bg` #ffffff, `accent-start` #e1306c (light-primary

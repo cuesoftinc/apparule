@@ -102,7 +102,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         <div className="sticky top-0 hidden h-screen shrink-0 min-[1264px]:block">
           <NavRail activeKey={activeKey} items={items} expanded />
         </div>
-        {/* id + tabIndex: the SkipLink (root layout, P15) targets #main and
+        {/* id + tabIndex: the SkipLink (root layout) targets #main and
             focus must land programmatically. */}
         <main id="main" tabIndex={-1} className="min-w-0 flex-1">
           {children}
