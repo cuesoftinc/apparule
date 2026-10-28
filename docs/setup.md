@@ -49,7 +49,7 @@ ever talks to :3000. `NEXT_PUBLIC_*` values are inlined into the web image at
 build time, so `make up` rebuilds the web image when they change.
 
 For the web alone on fixtures (no backend), build with
-`NEXT_PUBLIC_TEST_MODE=1`: the app runs on its in-app mock server.
+`NEXT_PUBLIC_TEST_MODE=true`: the app runs on its in-app mock server.
 
 ## Running natively (without Docker)
 

@@ -33,7 +33,7 @@
   that talks to the network); controllers = `web/src/controllers/`
   (feature-scoped hooks/orchestration, own all state; views never fetch);
   views = `web/src/app/**` routes + composed components, render-only.
-- **TEST_MODE**: `NEXT_PUBLIC_TEST_MODE=1` → GoogleAuthButton navigates
+- **TEST_MODE**: `NEXT_PUBLIC_TEST_MODE=true` → GoogleAuthButton navigates
   straight to the dashboard (no sign-in redirect), and the API client targets the
   in-app mock server (§5). Auth sits behind an `AuthProvider` interface in
   `web/src/auth/` (`TestModeAuthProvider` in test mode, `SsoAuthProvider` (Google
@@ -511,7 +511,7 @@ name_taken`). Part C (mobile) has no web routes — it is the Flutter phase
 
 ## 5. TEST_MODE contract
 
-`NEXT_PUBLIC_TEST_MODE=1` (build-time inlined, like all `NEXT_PUBLIC_*` —
+`NEXT_PUBLIC_TEST_MODE=true` (build-time inlined, like all `NEXT_PUBLIC_*` —
 [setup.md](setup.md)) switches exactly two seams; nothing else may branch
 on it:
 
