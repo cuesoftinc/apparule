@@ -4,7 +4,7 @@
 // Google 'G' mark + "Continue with Google" · state: default / pressed /
 // loading / disabled · theme via tokens.
 //
-// Behavior (web-standard TEST_MODE rule): with NEXT_PUBLIC_TEST_MODE=1 the
+// Behavior (web-standard TEST_MODE rule): with NEXT_PUBLIC_TEST_MODE=true the
 // sign-in resolves against the mock server and routes straight to
 // /dashboard; without it, the button hands the browser to the API's Google
 // flow and /auth/callback finishes sign-in on return.

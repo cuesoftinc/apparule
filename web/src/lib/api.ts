@@ -1,7 +1,7 @@
 // HTTP transport for the repository layer (src/models/repositories — the
 // ONLY layer that talks to the network, per the web standard's MVC rule).
 //
-// TEST_MODE (NEXT_PUBLIC_TEST_MODE=1) targets the in-app mock server at
+// TEST_MODE (NEXT_PUBLIC_TEST_MODE=true) targets the in-app mock server at
 // /api/mock; otherwise the same-origin /api proxy (src/app/api/v1), which
 // forwards to api/common and api/uploads, with the API's session token as the
 // bearer, or its session cookie after a reload (system-design.md §8).

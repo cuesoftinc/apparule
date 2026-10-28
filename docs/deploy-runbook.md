@@ -13,7 +13,7 @@ The website rides **Firebase App Hosting rollouts from `main`**. After this
 branch merges, App Hosting rebuilds `web/`, and how it behaves depends on
 one build variable:
 
-- **`NEXT_PUBLIC_TEST_MODE=1`**: the site runs on its built-in mock API,
+- **`NEXT_PUBLIC_TEST_MODE=true`**: the site runs on its built-in mock API,
   exactly as today. **Keep this set until the backend is deployed (§9).**
 - **Unset**: the site signs in with Google through the API and calls the
   real API. If the API or the Google client config isn't there yet, sign-in
@@ -215,7 +215,7 @@ the money flow has run end to end on the sandbox.
 
 | Variable | Available at | Value |
 | --- | --- | --- |
-| `NEXT_PUBLIC_TEST_MODE` | build | `1` until §9, then remove |
+| `NEXT_PUBLIC_TEST_MODE` | build | `true` until §9, then remove |
 | `API_URL` | runtime | the common URL (`https://…run.app`) |
 | `UPLOADS_URL` | runtime | the uploads URL |
 
