@@ -37,7 +37,7 @@ dependencies:
   # (ASWebAuthenticationSession / Custom Tabs) and returns on apparule://.
   flutter_web_auth_2: ^5.1.0
   freezed_annotation: ^3.1.0
-  go_router: ^18.0.1
+  go_router: ^18.1.1
   # Pin-ledger addition (C15 composer wave) — FLAGGED: not yet in the
   # ratified standards-research ledger. The first-party media picker
   # (Android Photo Picker / iOS PHPicker) behind the abstract
