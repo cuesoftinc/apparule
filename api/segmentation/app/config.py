@@ -88,7 +88,7 @@ class QCThresholds:
 class Calibration:
     """mediapipe_2d_v2 constants (capture-qc.md §3). Uncalibrated defaults:
     the two-view method still owes its re-benchmark against tape measurements
-    (the recalibration directive), so these are tuning knobs, not findings."""
+    (pending recalibration), so these are tuning knobs, not findings."""
 
     # Nose-to-ankle is ~93% of stature.
     stature_correction: float = 0.93

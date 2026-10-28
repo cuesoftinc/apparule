@@ -8,8 +8,8 @@ import 'package:apparule/src/features/auth/domain/auth_session.dart';
 /// sign-in as the seeded §6 test user, so every screen downstream of
 /// sign-in works identically over fakes before the API wiring lands.
 ///
-/// The fake exercises the REAL session lifecycle (boot-flow directive
-/// 2026-07-22): given a [PersistenceService] it persists a session marker
+/// The fake exercises the REAL session lifecycle: given a
+/// [PersistenceService] it persists a session marker
 /// through the same secure-storage seam the API implementation uses
 /// for tokens at rest (§9, CV-2) — a sign-in survives relaunch, restore
 /// finds it, and sign-out purges it, exactly like web's TEST_MODE

@@ -35,7 +35,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       # The three shared lanes are created explicitly by kafka-init, as on
-      # the shared Aiven service (X-11).
+      # the managed Kafka service (X-11).
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
     ports:
       - "9094:9094"

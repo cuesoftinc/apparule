@@ -4,10 +4,8 @@ import 'package:apparule/src/core/utils/app_flavor.dart';
 import 'package:apparule/src/features/feed/data/media_picker_service_live.dart';
 import 'package:apparule/src/features/measurements/data/camera_service_live.dart';
 
-/// prod entrypoint (the default) — CueLABS production runs on the sandbox
-/// account (org environment ruling, user directive 2026-07-22): bare
-/// applicationId `io.cuesoft.apparule`, Firebase `sandbox-e306a`, env
-/// from the Doppler `apparule/stg` config (the config NAME stays `stg`).
+/// prod entrypoint (the default): bare applicationId
+/// `io.cuesoft.apparule`, env from your secrets manager.
 ///
 /// Still on the fake override set: the real auth swap is one diff here
 /// once the flavor's `API_URL` is set in its env file:

@@ -102,7 +102,7 @@ func dialer(cfg config.Kafka) (*kgo.Dialer, *kgo.Transport, error) {
 	if cfg.Username == "" {
 		return d, t, nil
 	}
-	// Aiven: SASL/SCRAM over TLS, the product's own Kafka user (X-11).
+	// SASL/SCRAM over TLS, the product's own Kafka user (X-11).
 	mechanism, err := scram.Mechanism(scram.SHA256, cfg.Username, cfg.Password)
 	if err != nil {
 		return nil, nil, err

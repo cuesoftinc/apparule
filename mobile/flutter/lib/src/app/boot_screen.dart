@@ -5,14 +5,14 @@ import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:flutter/material.dart';
 
 /// How long the silent restore may run before the boot frame admits a
-/// progress affordance (boot-flow directive 2026-07-22: no spinners
+/// progress affordance (no spinners
 /// unless restore exceeds ~300ms — over fakes it resolves in
 /// milliseconds, so the spinner is a slow-network Firebase contingency).
 const Duration kBootSpinnerDelay = Duration(milliseconds: 300);
 
 /// The in-app boot state — the frame between the native splash and the
 /// router while the silent session restore runs (mobile-implementation.md
-/// §9; boot-flow directive 2026-07-22). A minimal branded surface: the
+/// §9). A minimal branded surface: the
 /// gradient wordmark centered on the token background — the same brand
 /// construction as the native splash and C1, so cold start reads as one
 /// continuous surface and a signed-out boot never flashes C1 chrome.
