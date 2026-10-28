@@ -5,7 +5,7 @@
 > save, share, and commission outfits with their measurements attached, and
 > designers get paid. This document defines the visual system and the
 > microinteraction vocabulary that every page/screen in [pages.md](pages.md)
-> draws from. Markers: **[Directive]** = user-stated direction (2026-07-16),
+> draws from. Markers: **[Specified]** = stated direction (2026-07-16),
 > **[Proposed]** = ratifiable design decision, **[Decided <date>]** = ratified
 > decision.
 
@@ -92,7 +92,7 @@
 | Radii (product) | 8px cards/sheets, full-round avatars/pills |
 | Product note | haptics per MI-20 |
 
-- **Cursor affordance**: enabled interactive controls show `cursor: pointer`, one base-layer rule on `button:not(:disabled)`, `[role="button"]:not([aria-disabled="true"])`, `select:not(:disabled)`, `summary`, `label[for]`; links use the native pointer; disabled controls keep the default cursor. [Directive 2026-07-19]
+- **Cursor affordance**: enabled interactive controls show `cursor: pointer`, one base-layer rule on `button:not(:disabled)`, `[role="button"]:not([aria-disabled="true"])`, `select:not(:disabled)`, `summary`, `label[for]`; links use the native pointer; disabled controls keep the default cursor. [Specified 2026-07-19]
 
 These rows are standardized in the org SKILL.md, a change here is an
 ecosystem change, PR'd to all three design.md files together.
@@ -206,7 +206,7 @@ this document must never diverge.
 > Style Guide page (already live, §7). Components become Figma components
 > with variants exactly as listed; screens assemble from instances only.
 
-**Canvas hygiene [Directive 2026-07-18].** Design canvases carry **product
+**Canvas hygiene [Specified 2026-07-18].** Design canvases carry **product
 copy only**, text a user would actually see. Spec annotations (MI
 references, requirement IDs, implementation notes) live in component
 descriptions and in these docs, never on the screens themselves.
@@ -227,7 +227,7 @@ import, the parity audit requires these Lucide glyphs: `shield-check` (MI-15
 pay morph, PaymentBox escrow-held) · `more-horizontal` (PostCard ⋯ overflow,
 moderation/action menus) · `chevron-down` (Select trigger, expandable
 snapshot values in stepper review, caption "more") · `calendar` (quote
-due-date, stepper target date) · `sun` + `moon` (NavRail theme toggle; `moon` also seeds the marketing-nav `ThemeToggle` master, [Directive 2026-07-19]) ·
+due-date, stepper target date) · `sun` + `moon` (NavRail theme toggle; `moon` also seeds the marketing-nav `ThemeToggle` master, [Specified 2026-07-19]) ·
 `copy` (MI-9 desktop copy-link popover; A7 snippet copy) · `alert-triangle`
 (freshness/turnaround soft warnings, KYC-lapse banner, dispute states) ·
 `info` (escrow explainer, consent/retention notice, "near me" explainer) ·
@@ -241,7 +241,7 @@ auth CTA, the GitHub mark (home page), and others as needed, are **not
 Lucide**: they enter as approved additions per the shared-foundations
 iconography rule (§2).
 
-**Stage 4 screen-state rule [Directive 2026-07-18].** Every data-driven
+**Stage 4 screen-state rule [Specified 2026-07-18].** Every data-driven
 screen template ships **three frames**: default, empty (EmptyState + its
 first-run copy; demo-data toggle where a flow specs one), and loading
 (Skeleton). A template isn't done until all three exist. **As built
@@ -348,7 +348,7 @@ Stage 5 and non-blocking; everything else feeds Stages 1–4.
 
 | Component | Variants × states |
 | --- | --- |
-| MarketingNav / MarketingFooter | nav: logo + 4 text links (Features · For designers · Docs · GitHub, the GitHub item renders as a compact star badge: GitHubMark(14) + star glyph(12) + neutral "Star" label (fleet-wide construction, reconciled 2026-07-20)) + `ThemeToggle` + "Sign in" text link (`/signin`) + "Try Cloud" gradient-primary CTA · state: top / stuck-blurred · footer: brand block (wordmark + tagline) + 4 pinned link columns, Product (Features · Try Cloud · Self Host · For designers) · Docs (Docs · Quickstart · API reference · Self-host guide) · Community (GitHub · Discord · Roadmap · CueLABS™) · Legal (Privacy · Terms · Status), + legal bar `© Cuesoft Inc. 2026. Apparule. CueLABS™ Division. MIT License.` with security-policy link (SECURITY.md) + English language selector · theme ×2 · **[Directive 2026-07-19]:** built to the cross-product "Marketing nav, footer & theme parity canon" (generator SKILL.md), one link inventory across apparule/sibling products, rendered in apparule's light 4-column design, with the `ThemeToggle` master; all hrefs are the canon's canonical URLs · **[Revised 2026-07-19]:** the nav's GitHub star badge is neutral on canvas, GitHubMark + star glyph + "Star" label, no count (the live star count is runtime behavior; masters carry no invented numbers, accuracy standard below) |
+| MarketingNav / MarketingFooter | nav: logo + 4 text links (Features · For designers · Docs · GitHub, the GitHub item renders as a compact star badge: GitHubMark(14) + star glyph(12) + neutral "Star" label (fleet-wide construction, reconciled 2026-07-20)) + `ThemeToggle` + "Sign in" text link (`/signin`) + "Try Cloud" gradient-primary CTA · state: top / stuck-blurred · footer: brand block (wordmark + tagline) + 4 pinned link columns, Product (Features · Try Cloud · Self Host · For designers) · Docs (Docs · Quickstart · API reference · Self-host guide) · Community (GitHub · Discord · Roadmap · CueLABS™) · Legal (Privacy · Terms · Status), + legal bar `© Cuesoft Inc. 2026. Apparule. CueLABS™ Division. MIT License.` with security-policy link (SECURITY.md) + English language selector · theme ×2 · **[Specified 2026-07-19]:** built to the cross-product "Marketing nav, footer & theme parity canon" (generator SKILL.md), one link inventory across apparule/sibling products, rendered in apparule's light 4-column design, with the `ThemeToggle` master; all hrefs are the canon's canonical URLs · **[Revised 2026-07-19]:** the nav's GitHub star badge is neutral on canvas, GitHubMark + star glyph + "Star" label, no count (the live star count is runtime behavior; masters carry no invented numbers, accuracy standard below) |
 | Home section kit | StatCard ×3 (fade-up) · WalkthroughStep (screenshot + 2 lines + step dots) · ComparisonTable (Cloud vs OSS + CTA row) · CodeSnippetBlock (copy → ✓ morph; `tabs: none / docker / helm`, the A7c self-host block ships the mirrored **Docker Compose \| Helm** tab pair, only the final command differing **[Ratified 2026-07-20]**) · CommunityCard (Discord member count) · **status (2026-07-17):** the one remaining unbuilt Stage-5 row (MarketingNav/MarketingFooter are done), in build now; contract stays live, not deferred · **as built (2026-07-18):** WalkthroughStep step dots corrected to ×4 (the A4 walkthrough's four steps; the active dot is set per instance) · the CommunityCard master carries a neutral badge, no member count (accuracy standard below) |
 | FAQItem | question + chevron · state: collapsed / expanded · one-open-at-a-time group, rows deep-linkable (pages.md A9b) · theme ×2 · **as built (2026-07-18):** ≈720px accordion row; chevron rotates 180° on expand/collapse (`base` 200ms), the iteration addition the note below anticipated |
 

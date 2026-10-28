@@ -89,7 +89,7 @@ early (Phase 0 explainer, Phase 3 media upgrade).
 
 ## Revision, social commerce expansion (2026-07-16)
 
-The 2026-07-16 directive (instagram-feel social commerce: posts, likes,
+The 2026-07-16 scope expansion (instagram-feel social commerce: posts, likes,
 requests with measurement snapshots, designer payments) re-shapes the phases.
 Phases 0–1 stand (home page per pages.md Part A; real auth). The build order
 after them becomes:

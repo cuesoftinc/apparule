@@ -9,14 +9,14 @@
 > disposition ledger. This doc is the full detail the SKILL section points
 > to; the SKILL section is the org canon and is never duplicated here beyond
 > what apparule needs to build against it. Markers as in
-> [design.md](design.md): **[Directive]** = user-stated direction,
+> [design.md](design.md): **[Specified]** = stated direction,
 > **[Proposed]** = ratifiable decision, **[Decided <date>]** = ratified.
 > Companion contracts: [web-implementation.md](web-implementation.md) (the
 > sibling client, same mock-first method), [flows/auth.md](flows/auth.md)
 > (Google-only sign-in), [capture-qc.md](capture-qc.md) (QC thresholds +
 > fail codes), [pages.md](pages.md) Part C (the C-series screen inventory),
 > [design.md](design.md) §2 (tokens), [decisions.md](decisions.md) (M-series
-> rulings this doc executes).
+> decisions this doc executes).
 
 ## 1. Scope & phases
 
@@ -285,7 +285,7 @@ today; `main.dart` (prod) is where `*Remote` is introduced when API
 wiring lands (§1 phase 4). No `if (kDebugMode)` branching inside
 feature code.
 
-The fakes run the **real session lifecycle** (user directive
+The fakes run the **real session lifecycle** (decided
 2026-07-22): `AuthRepositoryFake` persists a labeled session marker
 through the same secure-storage seam the API-session implementation uses
 for tokens at rest, so a first-ever launch boots signed out to C1, the
@@ -463,7 +463,7 @@ The pose progress renders as a centered over-media bar title ("Pose 1 of
   `scale = (user_height_cm × 0.93) / body_height_px` correction from the
   front image (capture-qc.md §3,
   `method: mediapipe_2d_v2`); girths estimate from the two views, the
-  **[Directive: measurement pipeline recalibration needed]** marker lives
+  **[Specified: measurement pipeline recalibration needed]** marker lives
   in capture-qc.md §3 and lands with the backend phase.
 - **QC fail codes**: **per pose, first-failure-only** (capture-qc.md
   §1/§2). The front pose surfaces `undecodable_image`, `low_resolution`,
@@ -518,8 +518,8 @@ ARCore/Sceneform dependencies dropped, real release signing replaces the
 DEBUG-key config); `README.md`/`.metadata`/`.gitignore`.
 
 The outer `mobile/android/` and `mobile/ios/` directories are **reserved
-placeholders for possible future native (non-Flutter) apps** (user
-directive 2026-07-22, `.gitkeep`-held), the Flutter app's platform dirs
+placeholders for possible future native (non-Flutter) apps** (decided
+2026-07-22, `.gitkeep`-held), the Flutter app's platform dirs
 live inside `mobile/flutter/`.
 
 **Toolchain findings folded into the restructure phase (§1)**: Dart

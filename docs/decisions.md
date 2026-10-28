@@ -122,7 +122,7 @@ the mock pipeline speak only this vocabulary (mock-ahead of the backend
 recalibration, the `notification_prefs` pattern), and capture is
 template-gated exactly like manual entry. The real `api/measure` 2-D
 service keeps its px internals (capture-qc.md) until the recalibration
-directive fulfills this contract server-side.
+recalibration fulfills this contract server-side.
 
 ☑ Ratified 2026-07-30
 
@@ -193,12 +193,12 @@ gateway answers `503` with `Retry-After` while the bus is away.
 - **X-2 Docs platform**: GitBook org with **one space per product**,
   Git-synced from each repo's `docs/`; API refs rendered by **Scalar** from
   OpenAPI, embedded in each docs space. ☑
-- **X-3 Cloud deployment target (RATIFIED, directive)**: all backend
+- **X-3 Cloud deployment target (RATIFIED)**: all backend
   services run on **Google Cloud Run** (per-service containers, the same
   `cuesoft/<repo>-<service>` images); frontends deploy to **Firebase App
   Hosting**. Helm + terraform in `deploy/` remain the **self-host** path;
   cloud and self-host share images, not manifests. ☑
-- **X-4 AI platform (RATIFIED, directive 2026-07-16)**: AI features use
+- **X-4 AI platform (RATIFIED 2026-07-16)**: AI features use
   **Vertex AI** (Gemini via `{region}-aiplatform.googleapis.com`, ADC from the
   calling service's own service account;
   reference model `gemini-2.5-flash-lite`, region `us-central1`). No
@@ -226,10 +226,10 @@ gateway answers `503` with `Retry-After` while the bus is away.
   happen exclusively on tag creation (`v*`)**, treated as production-grade:
   a GitHub tag ruleset restricts `v*` creation to owner-level access, and the
   deploy workflow additionally runs in a protected GitHub environment. ☑
-  **Revised 2026-10-27 (owner):** "Deploy on merge to main". A merge to
+  **Revised 2026-10-27:** "Deploy on merge to main". A merge to
   `main` that touches `api/**` deploys the API services to the sandbox; no
   `v*` tags, since the open-source products cut no releases yet.
-- **X-7 Transactional email (RATIFIED, directive 2026-07-16)**: **Brevo REST
+- **X-7 Transactional email (RATIFIED 2026-07-16)**: **Brevo REST
   API** for all product email (alert emails, money-event receipts, purge
   confirmations…), `BREVO_API_KEY`, `BREVO_FROM_EMAIL`,
   `BREVO_FROM_NAME` in your secrets manager. **No SMTP anywhere**, existing SMTP/gomail
@@ -243,7 +243,7 @@ gateway answers `503` with `Retry-After` while the bus is away.
   **Browser gRPC-Web + Envoy is a sunset path**: no new surface uses it
   (U-5); at monitors-v2 (OBS-006) the dashboard goes fully HTTP and Envoy
   retires from the cloud topology. apparule and the sibling products never adopt gRPC. ☑
-- **X-9 Telemetry standard (RATIFIED, directive 2026-07-16)**: **OpenTelemetry
+- **X-9 Telemetry standard (RATIFIED 2026-07-16)**: **OpenTelemetry
   everywhere**, traces, custom metrics, and logs from every service via OTel
   SDKs (Go: otel-go + slog bridge; Python: opentelemetry-python + logging
   handler; Next: @opentelemetry/sdk-node), W3C `traceparent` propagation
@@ -260,7 +260,7 @@ gateway answers `503` with `Retry-After` while the bus is away.
   /v1/events counters), never mix the pipelines. Env names standard:
   OTEL_SERVICE_NAME, OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_EXPORTER_OTLP_HEADERS,
   OTEL_RESOURCE_ATTRIBUTES. ☑
-- **X-10 Identity, profile & KYC tiers (RATIFIED, directive 2026-07-16)**: layered on
+- **X-10 Identity, profile & KYC tiers (RATIFIED 2026-07-16)**: layered on
   X-1, Google-only sign-in stays the sole credential; tiers add profile data and
   verification, never alternative logins. **Tier 0, Google identity** (all
   products): Google subject (`google_sub`) + Google-verified email; grants all read/basic use.
@@ -301,7 +301,7 @@ gateway answers `503` with `Retry-After` while the bus is away.
 ## Mobile (apparule-only)
 
 > Mobile is authorized for apparule alone (2026-07-21, explicit), no
-> sibling product carries a mobile app in its PRD. These rulings execute the
+> sibling product carries a mobile app in its PRD. These decisions execute the
 > ratified org SKILL.md "Mobile (Flutter)
 > implementation standard" against `mobile/flutter`; full detail lives in
 > [mobile-implementation.md](mobile-implementation.md).
@@ -331,7 +331,7 @@ gateway answers `503` with `Retry-After` while the bus is away.
   shell (pages.md Part C) with one top-level auth `redirect` off the
   session provider. ☑
 - **M-3 Legacy auth retirement, X-1 execution via the quarantine
-  pattern (RATIFIED 2026-07-21, revised same day per user directive)**:
+  pattern (RATIFIED 2026-07-21, revised same day)**:
   the entire legacy `lib/src/features/auth/` (9 files: password +
   phone/SMS + email-OTP flows, the `sms_autofill` dependency,
   `form_provider`) is **quarantined into `lib/legacy/` at the auth
@@ -349,7 +349,7 @@ gateway answers `503` with `Retry-After` while the bus is away.
   builds (mobile-implementation.md §11). *Executed 2026-07-22*: both
   removal conditions met, the Google-only replacement shipped (C1 at
   the auth cutover; QA-convergence ledger all-PASS/FIXED) and the user
-  gave the explicit removal go (directive 2026-07-22), the quarantine
+  gave the explicit removal go (decided 2026-07-22), the quarantine
   (`lib/legacy/`, `assets/legacy/`, `legacy/web-scaffold/`,
   `legacy/android-agp7/`) was deleted with its excludes;
   mobile-implementation.md §11 carries the removed register. ☑
@@ -385,17 +385,17 @@ gateway answers `503` with `Retry-After` while the bus is away.
   first-failure-only QC surfacing, and the manual-entry fallback, all
   of which carried into M-10's two-photo flow, the canon now in force. ☑
 - **M-7 Flavor model, two flavors, sandbox is production (RATIFIED
-  2026-07-22, user directive)**: mobile ships exactly `dev` (fake
+  2026-07-22)**: mobile ships exactly `dev` (fake
   repositories, `applicationIdSuffix ".dev"`) and `prod` (bare
   `io.cuesoft.apparule`, the push-notification Firebase project, your secrets manager
-  config), the single-environment model treats the sandbox account
-  as production, so a `prd`-vs-`stg` split encodes an environment
+  config), the single-environment model treats the one deployed
+  environment as production, so a `prd`-vs-`stg` split encodes an environment
   that does not exist (X-6). The generic dev/stg/prd trio from the
   industry-standard research is explicitly rejected. A third flavor
   appears only if a separate production environment is ratified;
   the bare application id already rides `prod` so identity migrates
   cleanly. ☑
-- **M-8 Canvas-first rule (RATIFIED 2026-07-22, user directive, org
+- **M-8 Canvas-first rule (RATIFIED 2026-07-22, org
   canon)**: every shipped screen
   has a Figma frame; a frameless screen is **designed first or dropped**.
   Applied same-day, both ways: the mobile `/create` composer placeholder
@@ -405,8 +405,7 @@ gateway answers `503` with `Retry-After` while the bus is away.
   legacy art, was **designed first** (six GuidePage frames landed
   before the rebuild lane touched the screen). The canvas leads;
   pages.md rows may not point at unframed screens. ☑
-- **M-9 Centered header-bar titles (RATIFIED 2026-07-22, user
-  directive)**: sub and over-media app-bar titles center on the **full
+- **M-9 Centered header-bar titles (RATIFIED 2026-07-22)**: sub and over-media app-bar titles center on the **full
   bar width**, an absolute, full-width, center-aligned text layer over
   the bar, never an in-flow element between the slots (in-flow titles
   grow into hidden trailing slots and skew off-center). Leading/trailing
@@ -415,10 +414,10 @@ gateway answers `503` with `Retry-After` while the bus is away.
   are exempt. **Chrome-scoped**: the rule governs header bars only, in-content page titles (the dashboard's h1s, IG-desktop idiom) stay
   left-aligned; never center page-body titles. Spec: design.md §8.2b
   AppBar row. ☑
-- **M-10 Two-photo capture (RATIFIED 2026-07-22, user directive, REVERSES M-6)**: the product mechanic is **two photos, front + side
+- **M-10 Two-photo capture (RATIFIED 2026-07-22, REVERSES M-6)**: the product mechanic is **two photos, front + side
   (right profile), plus height**. The reversal chain, honestly: M-6 was
   ratified from the docs' one-photo contracts as they then stood (api.md
-  `POST /measure`, capture-qc.md, flows/vault.md §1); the user ruled that
+  `POST /measure`, capture-qc.md, flows/vault.md §1); the decision was that
   the web marketing copy ("Two photos. A perfect fit.") was the true
   product intent all along, the **docs, not the copy, had drifted**.
   The contracts now carry the two-photo canon: api.md `POST /measure`
@@ -432,10 +431,9 @@ gateway answers `503` with `Retry-After` while the bus is away.
   mobile-implementation.md §10 describe the two-pose flow with the 5-step
   guide (side pose included); the `mediapipe_2d_v2` formula gains the
   side-pose contribution, girth estimation from two views, marked
-  **[Directive: measurement pipeline recalibration needed]** for the
+  **[Specified: measurement pipeline recalibration needed]** for the
   backend phase. ☑
-- **M-11 Unified create semantics (RATIFIED 2026-07-22, user
-  directive)**: the ➕/Create action opens a **two-option chooser on
+- **M-11 Unified create semantics (RATIFIED 2026-07-22)**: the ➕/Create action opens a **two-option chooser on
   both platforms**, "Take measurements" (capture) and "Post an outfit"
   (designer-gated: non-designers route to become-a-designer). Supersedes
   the divergence where web Create was composer-only and mobile ➕ was
@@ -444,8 +442,7 @@ gateway answers `503` with `Retry-After` while the bus is away.
   (M-8): canvas frames come next, mirroring the web B5 composer, and the
   build follows once the frames ratify; until C15 ships, mobile's
   chooser offers capture + become-a-designer only. ☑
-- **M-12 Web measurement capture is upload-only (RATIFIED 2026-07-22,
-  user directive)**: web users **upload** the two photos, front + side
+- **M-12 Web measurement capture is upload-only (RATIFIED 2026-07-22)**: web users **upload** the two photos, front + side
   files into the same endpoint and per-pose QC pipeline (M-10). The
   webcam capture flow is **removed** from web: full-body webcam capture
   is rejected UX (desk-height lens; no way to frame yourself and reach
@@ -456,7 +453,7 @@ gateway answers `503` with `Retry-After` while the bus is away.
   camera enters the composer. api.md is unchanged beyond M-10: the
   endpoint takes two images regardless of source. ☑
 - **M-13 Mobile sign-in rides the API's Google SSO handoff (RATIFIED
-  2026-10-28, user directive: one sign-in method across
+  2026-10-28: one sign-in method across
   every client)**: the app opens the API's Google sign-in in a browser tab, the
   API hands back to `apparule://app`, and the app exchanges the handoff
   (PKCE verifier) for a session token sent as Bearer. Firebase Auth is

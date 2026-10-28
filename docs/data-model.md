@@ -125,7 +125,7 @@ Modeling notes:
   2026-07-22, parity adjudication]**: height is a capture-pipeline input
   (the capture-qc.md §3 scale correction), not a property of a manual tape
   session, clients never invent a height to satisfy the field (the web
-  manual-entry sheet's fabricated 168 default ends with this ruling; the
+  manual-entry sheet's fabricated 168 default ends here; the
   mobile/canvas position is the model).
 - **`CONSENT_RECORD` is deliberately account-scoped, not workspace-scoped**, the PRD's ToS gate (§7) binds the person accepting.
 - **`CAPTURE_ASSET.retention_until`** operationalizes the retention disclosure:

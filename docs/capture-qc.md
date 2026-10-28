@@ -92,7 +92,7 @@ elliptical-circumference approximation; the front image alone keeps owning
 the height scale (the nose→ankle axis is most stable in the frontal view).
 The v2 constants (the 0.93 stature correction, the plausibility band, and
 the ellipse-eccentricity defaults for two-view girths) must be
-re-benchmarked for the two-view method, **[Directive: measurement
+re-benchmarked for the two-view method, **[Specified: measurement
 pipeline recalibration needed, backend phase]**.
 
 ## 4. Per-measurement confidence (2-D method)
@@ -108,7 +108,7 @@ Stored per `MEASUREMENT` row; UI renders <0.7 with a "low confidence, consider r
 `mean_vis(m)` covers the landmarks of both contributing views, and the
 orientation factor applies per view (frontality on the front image, profile
 orientation on the side), exact factors settle with the recalibration
-directive (§3). Manual entries have `confidence = null` (human
+(§3). Manual entries have `confidence = null` (human
 truth isn't scored). SMPL-era confidences (Phase 5) replace this formula
 per-method, the field is method-agnostic by design.
 

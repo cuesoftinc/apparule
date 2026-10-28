@@ -134,7 +134,7 @@ capabilities beyond the web property. Made explicit so they can be scheduled:
 
 ---
 
-## 9. Scope expansion, social commerce (2026-07-16) **[Directive]**
+## 9. Scope expansion, social commerce (2026-07-16) **[Specified]**
 
 Apparule is a **social network**: users add/take measurements; designers post
 outfits; users like, save, share, and **commission** outfits, a request
@@ -151,5 +151,5 @@ primary social surface; all products converge on this three-surface parity).
 - New open questions: payment provider + escrow model + platform fee
   (SOC-006); UGC trust & safety baseline (SOC-009) required before public
   launch; designer verification (KYC for payouts).
-- Docs platform **[Directive]**: product docs on GitBook (Git-synced from
+- Docs platform **[Specified]**: product docs on GitBook (Git-synced from
   this `docs/` folder); API reference via Scalar from OpenAPI.

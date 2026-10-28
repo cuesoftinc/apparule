@@ -1,10 +1,10 @@
 # Apparule, Web Implementation Standard
 
 > How `web/` gets built: the **CueLABS™ Web Implementation Standard**
-> (ratified 2026-07-18, org-wide **[Directive]**) carried in full, plus the
+> (ratified 2026-07-18, org-wide **[Specified]**) carried in full, plus the
 > Apparule-specific addendum, stage plan, token mapping, route map,
 > TEST_MODE contract, mock server, test strategy, legacy policy. Markers as
-> in [design.md](design.md): **[Directive]** = user-stated direction,
+> in [design.md](design.md): **[Specified]** = stated direction,
 > **[Proposed]** = ratifiable decision, **[Decided <date>]** = ratified.
 > Companion contracts: [engineering.md](engineering.md) (errors, authz,
 > limits), [design.md](design.md) (tokens, components, MI catalog),
@@ -205,7 +205,7 @@ pointer cursor on controls.
   are enforced by e2e across all 15 dashboard screens, not spot-checked.
 
 **Mobile-responsiveness as-built notes (2026-07-19, PR #101):** the P1
-mobile pass **[Directive]**, home and every dashboard route render fully
+mobile pass **[Specified]**, home and every dashboard route render fully
 inside the mobile boundary at 390 (768 sanity); the document never
 side-scrolls, and wide elements scroll within their own containers:
 
@@ -226,7 +226,7 @@ side-scrolls, and wide elements scroll within their own containers:
   capture and history sheets, explore post modal, followers sheet.
 
 **UX & demo-realism as-built notes (2026-07-19, PR #102):** the P1 UX +
-realism pass **[Directive]**, the seed simulates actual user interaction:
+realism pass **[Specified]**, the seed simulates actual user interaction:
 
 - Six community accounts widen the cast; comments, follower sheets and
   notification actors come from multiple users at a plausible cadence
@@ -251,7 +251,7 @@ realism pass **[Directive]**, the seed simulates actual user interaction:
   attribution reads "An open-source product by CueLABS™".
 
 **Demo-completeness as-built notes (2026-07-19):** the P1 completeness
-pass **[Directive]**, the review-fix set from the realism pass plus the
+pass **[Specified]**, the review-fix set from the realism pass plus the
 approved gap implementations:
 
 - The post-detail modal (feed, explore, profile grids) opens on the
@@ -361,7 +361,7 @@ from the Figma ↔ code divergence audit (seed-side details live in §6):
 - `UserRow` call sites (suggestions, explore designer search, follower
   sheets) pass `avatar_url` through, the row always supported it.
 
-Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
+Screen-state parity **[Specified 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states, the
 three-frame rule applies to the implementation exactly as it does to the
 Figma templates, and the QA loop checks all three.
