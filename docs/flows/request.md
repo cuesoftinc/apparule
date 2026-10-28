@@ -10,9 +10,9 @@
 
 | Step | Content | Validation | Errors |
 | --- | --- | --- | --- |
-| 1 · Measurements | vault snapshot picker: latest session preselected; freshness warning if >90d ("Measurements are 4 months old — retake?") — warning, not block; shows exactly which values will be shared | ≥1 measurement in selection; session must be `complete` | vault empty → redirect to vault flow with return-path |
-| 2 · Details | notes (0–500 chars), budget (optional, ≥ post base price if designer set one — soft warning below), delivery address (recipient, phone, line1/2, city, state — frozen into `REQUEST.delivery` at submit, data-model §6.3), target date (≥ designer turnaround, soft warning) | notes length; date ≥ today+turnaround → else "Designer's typical turnaround is 14 days" warning | |
-| 3 · Review | outfit summary, snapshot values (expandable), notes, budget; legal line: accuracy disclaimer + "measurements shared only with this designer for this order" | — | post deleted/designer deactivated since step 1 → `409 post_unavailable` → "This outfit is no longer available" + close |
+| 1 · Measurements | vault snapshot picker: latest session preselected; freshness warning if >90d ("Measurements are 4 months old, retake?"), warning, not block; shows exactly which values will be shared | ≥1 measurement in selection; session must be `complete` | vault empty → redirect to vault flow with return-path |
+| 2 · Details | notes (0–500 chars), budget (optional, ≥ post base price if designer set one, soft warning below), delivery address (recipient, phone, line1/2, city, state, frozen into `REQUEST.delivery` at submit, data-model §6.3), target date (≥ designer turnaround, soft warning) | notes length; date ≥ today+turnaround → else "Designer's typical turnaround is 14 days" warning | |
+| 3 · Review | outfit summary, snapshot values (expandable), notes, budget; legal line: accuracy disclaimer + "measurements shared only with this designer for this order" | —   | post deleted/designer deactivated since step 1 → `409 post_unavailable` → "This outfit is no longer available" + close |
 
 Submit: `POST /api/v1/posts/{id}/requests` with `Idempotency-Key` (UUID per
 stepper session) — double-taps and retries create exactly one request.

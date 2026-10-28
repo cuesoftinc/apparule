@@ -14,7 +14,7 @@ configuration, and documentation for the platform. A Go service owns the product
 API and all data, a Node gateway takes uploads, one Python service turns two
 phone photos into body measurements and another makes every payment decision,
 and a Next.js frontend serves the marketing site and user dashboard. The
-services talk over the CueLABS shared Kafka. For the components and how they
+services talk over the shared Kafka. For the components and how they
 fit together, see [docs/overview.md](docs/overview.md) and the
 [system design](docs/system-design.md).
 
@@ -23,21 +23,21 @@ fit together, see [docs/overview.md](docs/overview.md) and the
 ```mermaid
 flowchart LR
     subgraph clients
-        WEB[web + dashboard<br/>Next.js — App Hosting]
+        WEB[web + dashboard<br/>Next.js, App Hosting]
         MOB[Flutter mobile]
     end
     GS[Google sign-in<br/>OAuth, Google only]
     subgraph server["GCP Cloud Run (scale to zero)"]
-        AC[api/common — Go<br/>CRUD]
-        UP[api/uploads — Node<br/>upload gateway]
-        SG[api/segmentation — Python<br/>pose QC · measurements]
-        CM[api/commerce — Python<br/>payments · notifications]
+        AC[api/common, Go<br/>CRUD]
+        UP[api/uploads, Node<br/>upload gateway]
+        SG[api/segmentation, Python<br/>pose QC · measurements]
+        CM[api/commerce, Python<br/>payments · notifications]
     end
     subgraph data
-        PG[(Aiven Postgres)]
+        PG[(managed Postgres)]
         CS[(Cloud Storage)]
-        RD[(Aiven Redis)]
-        K[[CueLABS shared Kafka]]
+        RD[(managed Redis)]
+        K[[shared Kafka]]
     end
     WEB --> GS
     MOB --> GS
@@ -62,20 +62,20 @@ flowchart LR
 | Upload gateway | Node 24, NestJS, sharp (`api/uploads`)              |
 | Measurement    | Python 3.12, MediaPipe, OpenCV (`api/segmentation`) |
 | Payments       | Python 3.12, Paystack, FCM, Brevo (`api/commerce`)  |
-| Messaging      | Kafka (the CueLABS shared Aiven service)            |
+| Messaging      | Kafka (a shared managed Kafka service)            |
 | Web            | Next.js, React, TypeScript                          |
 | Mobile         | Flutter (primary), native Android/iOS               |
-| Auth & data    | Google-only sign-in (session JWTs from `common`); Aiven Postgres (system of record) & Cloud Storage; shared Aiven Redis |
+| Auth & data    | Google-only sign-in (session JWTs from `common`); managed Postgres (system of record) & Cloud Storage; shared managed Redis |
 | Infrastructure | Docker, Helm, Terraform, GCP Cloud Run              |
 
 ## Repository structure
 
 ```
 api/
-  common/        Go — the product API, the only Postgres client; Kafka contract
-  uploads/       Node — ticketed upload gateway
-  segmentation/  Python — pose QC and body measurements
-  commerce/      Python — payment decisions, push and email
+  common/        Go, the product API, the only Postgres client; Kafka contract
+  uploads/       Node, ticketed upload gateway
+  segmentation/  Python, pose QC and body measurements
+  commerce/      Python, payment decisions, push and email
 web/           Next.js marketing site + user dashboard
 mobile/
   flutter/     Flutter app (primary mobile client)

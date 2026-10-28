@@ -1,10 +1,10 @@
 # Apparule — Web Implementation Standard
 
 > How `web/` gets built: the **CueLABS™ Web Implementation Standard**
-> (ratified 2026-07-18, org-wide **[Directive]**) carried in full, plus the
+> (ratified 2026-07-18, org-wide **[Specified]**) carried in full, plus the
 > Apparule-specific addendum — stage plan, token mapping, route map,
 > TEST_MODE contract, mock server, test strategy, legacy policy. Markers as
-> in [design.md](design.md): **[Directive]** = user-stated direction,
+> in [design.md](design.md): **[Specified]** = stated direction,
 > **[Proposed]** = ratifiable decision, **[Decided <date>]** = ratified.
 > Companion contracts: [engineering.md](engineering.md) (errors, authz,
 > limits), [design.md](design.md) (tokens, components, MI catalog),
@@ -13,8 +13,7 @@
 ## 1. The standard (ecosystem, shared across the three products)
 
 - **Stack**: Next.js 16 App Router + React 19 + TypeScript; Tailwind maps to
-  the token CSS variables (§3). Apparule's `web/` carries no legacy UI kit —
-  new-system components are token/Tailwind-based from day one.
+  the token CSS variables (§3). Apparule's `web/` carries no legacy UI kit, new-system components are token/Tailwind-based from day one.
 - **Design tokens**: `web/src/design/tokens.css` — CSS custom properties
   mirroring design.md §2 exactly (light on `:root`, dark on
   `[data-theme="dark"]`, honoring `prefers-color-scheme` with manual
@@ -63,14 +62,14 @@
   SKILL.md updated with every deviation.
 - **Component reuse policy [Decided 2026-07-18]**: pixel-fidelity to the
   Figma file wins. All **visual** components are built in-house from the
-  token layer — no styled component kits in new code (no MUI, no
+  token layer, no styled component kits in new code (no MUI, no
   shadcn/DaisyUI skins) and no chart libraries (sparklines and any future
-  charts are bespoke SVG built to the Figma specs — e.g. the
+  charts are bespoke SVG built to the Figma specs, e.g. the
   MeasurementCard sparkline). Reuse is allowed only where it is invisible:
-  headless behavior primitives (Radix/Base UI class — dialog, popover,
+  headless behavior primitives (Radix/Base UI class, dialog, popover,
   select, tabs, switch, checkbox, tooltip, accordion semantics with focus
   traps, keyboard nav, ARIA), positioning engines (Floating UI),
-  `lucide-react` (the design system's own icon set, design.md §2 — matches
+  `lucide-react` (the design system's own icon set, design.md §2, matches
   by construction; brand glyphs like the Google 'G' and GitHub mark as
   local SVGs per the §8.1 icon note), and math/format utilities (d3-scale,
   date-fns, clsx). Fidelity is verified against the Figma file in the stage
@@ -90,7 +89,7 @@ design-phase QA loops, design.md §8).
 | --- | --- | --- |
 | **W0 Foundations** | `tokens.css` (§3) + Tailwind mapping · MVC skeleton (`models/`, `controllers/`, `components/ui/`) · `AuthProvider` interface + `TestModeAuthProvider` · mock server + seed dataset (§5–6) · Vitest + Playwright harnesses wired into CI build+test | tokens render both themes correctly vs the Style Guide page; TEST_MODE boots to a stubbed dashboard against the mock server; CI green |
 | **W1 Components** | `components/ui/*` per the design.md §8.1 build order (atoms → molecules → cards) and §8.2/§8.2b contract rows, web-applicable MI specs (MI-1…MI-19; MI-20 haptics is mobile-only) · unit tests per component | every built component passes QA vs its Figma component set (variants, states, both themes, motion specs) |
-| **W2 Home** **[Done 2026-07-19, PR #87]** | Part A screens (§4): A1–A10 + iteration rows A4b/A7b/A7c/A9b/A9c · analytics events to Upstat (D2: `page_view`, `demo_start`, `github_click`, `try_cloud_click`, `self_host_click`) · live GitHub star fetch (A1/A7b) | QA vs the Stage-5 Figma page; Playwright covers the "Marketing site" §8.4 flow incl. the CTA handoff |
+| **W2 Home** **[Done 2026-07-19, PR #87]** | Part A screens (§4): A1–A10 + iteration rows A4b/A7b/A7c/A9b/A9c · analytics events to the monitoring service (D2: `page_view`, `demo_start`, `github_click`, `try_cloud_click`, `self_host_click`) · live GitHub star fetch (A1/A7b) | QA vs the Stage-5 Figma page; Playwright covers the "Marketing site" §8.4 flow incl. the CTA handoff |
 | **W3 Dashboards** **[Done 2026-07-19, PR #91]** | Part B routes (§4): B1–B9 + B7a · feature controllers · request stepper, payments UI, vault, moderation | QA vs the Stage-4 Figma frames + prototype flows; Playwright covers the §8.4 dashboard journeys (§7) |
 
 **W2 as-built notes (2026-07-19, PR #87):**
@@ -102,7 +101,7 @@ design-phase QA loops, design.md §8).
 - FAQ answers 2–5 are authored to the pages.md contract.
 - The theme toggle lives in `MarketingNav`, not a standalone control.
 - Analytics events land on a TEST_MODE queue behind an `AnalyticsTransport`
-  seam — the Upstat transport wires in at D2.
+  seam, the monitoring service transport wires in at D2.
 - The GitHub star badge renders neutral first, then resolves via a runtime
   fetch (no build-time count).
 - Registry `ComparisonTable`, `CommunityCard`, and `WalkthroughStep` were
@@ -198,7 +197,7 @@ pointer cursor on controls.
 - The legacy-quarantine boundary is gated two ways: an eslint
   `no-restricted-imports` rule scoped to `src/legacy/**` (lint-time), and
   `scripts/check-boundaries.mjs` — the org-shared boundary gate (byte-identical
-  across apparule/expendit/upstat, per-repo rule lists inside), wired into
+  across apparule/sibling products, per-repo rule lists inside), wired into
   `npm run lint` via `check:boundaries`.
 - No `src/legacy/` tree exists — nothing has been quarantined; the boundary
   gates above stay armed for when a retirement stages one.
@@ -206,7 +205,7 @@ pointer cursor on controls.
   are enforced by e2e across all 15 dashboard screens, not spot-checked.
 
 **Mobile-responsiveness as-built notes (2026-07-19, PR #101):** the P1
-mobile pass **[Directive]** — home and every dashboard route render fully
+mobile pass **[Specified]** — home and every dashboard route render fully
 inside the mobile boundary at 390 (768 sanity); the document never
 side-scrolls, and wide elements scroll within their own containers:
 
@@ -217,7 +216,7 @@ side-scrolls, and wide elements scroll within their own containers:
   inside an `overflow-x: auto` container that itself fits.
 - The A9 comparison table scrolls horizontally within its card below its
   min-content width (the "Self-host it" CTA was clipped at 390).
-- One `@layer base` rule — `fieldset { min-inline-size: 0 }` — normalizes
+- One `@layer base` rule, `fieldset { min-inline-size: 0 }`, normalizes
   the fieldset default that defeats child truncation (the request
   stepper's snapshot picker overflowed the 390 viewport this way).
 - Thread image attachments carry `max-w-full` so a fixed-width bubble
@@ -227,7 +226,7 @@ side-scrolls, and wide elements scroll within their own containers:
   capture and history sheets, explore post modal, followers sheet.
 
 **UX & demo-realism as-built notes (2026-07-19, PR #102):** the P1 UX +
-realism pass **[Directive]** — the seed simulates actual user interaction:
+realism pass **[Specified]** — the seed simulates actual user interaction:
 
 - Six community accounts widen the cast; comments, follower sheets and
   notification actors come from multiple users at a plausible cadence
@@ -252,13 +251,12 @@ realism pass **[Directive]** — the seed simulates actual user interaction:
   attribution reads "An open-source product by CueLABS™".
 
 **Demo-completeness as-built notes (2026-07-19):** the P1 completeness
-pass **[Directive]** — the review-fix set from the realism pass plus the
+pass **[Specified]** — the review-fix set from the realism pass plus the
 approved gap implementations:
 
 - The post-detail modal (feed, explore, profile grids) opens on the
-  Sheet's `wide` size axis — a real desktop width (896px,
-  viewport-clamped), not a max-width fighting the base `md:w-*` utility —
-  and the owning list re-syncs that post from the server on modal close
+  Sheet's `wide` size axis, a real desktop width (896px,
+  viewport-clamped), not a max-width fighting the base `md:w-*` utility, and the owning list re-syncs that post from the server on modal close
   (`useFeed.syncPost`), so cards never show stale like/save/comment state
   after in-modal interactions.
 - Explore carries the full pages.md B2 chip set: style tags, price bands,
@@ -276,7 +274,7 @@ approved gap implementations:
   caught-up divider on cursor exhaustion.
 - F2-9 session exports: the vault history sheet exports any session as
   CSV or PDF per row through `POST /sessions/{id}/exports` (the mock
-  returns inline data URLs — a real minimal PDF for `pdf` — where the
+  returns inline data URLs, a real minimal PDF for `pdf`, where the
   backend will return signed URLs); e2e asserts real browser downloads.
 - Seed coherence: #APR-1058 ("Little senator") is a gift order freezing
   child-scale manual measurements entered at request time; #APR-1042's
@@ -290,8 +288,8 @@ approved gap implementations:
 - F0-8 Scalar embed at `/docs/api` **[Ratified 2026-07-20]**: the public
   API reference is the `@scalar/api-reference-react` embed
   (`ScalarApiReference` view) under the marketing nav with a minimal
-  legal strip. It renders `docs/api/openapi.yaml` — the single spec
-  source — served by the `/docs/api/openapi.yaml` route handler from a
+  legal strip. It renders `docs/api/openapi.yaml`, the single spec
+  source, served by the `/docs/api/openapi.yaml` route handler from a
   build-time string asset (`npm run generate:openapi`, wired as
   `predev`/`prebuild`/`pretypecheck`; output gitignored under
   `src/generated/`). Theme: the embed is forced to the RESOLVED theme
@@ -300,9 +298,9 @@ approved gap implementations:
   `updateConfiguration` never re-applies it); Scalar's own toggle is
   hidden and its remote default fonts are disabled (self-host ethos).
   Scalar's developer toolbar is pinned off (`showDeveloperTools:
-  "never"` — the `"localhost"` default surfaced author chrome on the
+  "never"`, the `"localhost"` default surfaced author chrome on the
   public reference in local/TEST_MODE runs), and Agent Scalar is
-  disabled outright (`agent: { disabled: true }` — it auto-enables on
+  disabled outright (`agent: { disabled: true }`, it auto-enables on
   localhost-class hosts, the same leak class).
   Header construction: the sticky marketing nav (h-16) and Scalar's
   sticky layout coexist via `--scalar-custom-header-height: 64px` on the
@@ -341,10 +339,9 @@ from the Figma ↔ code divergence audit (seed-side details live in §6):
   same-day messages, `MMM d, HH:mm` (the OrderTimelineRow idiom) when
   older, side-aligned under the bubble; delivered messages only — never
   sending or typing bubbles.
-- Measurement values render **one decimal everywhere** ("16.7 in" —
-  inches are the default display unit, A-9; the frame's "58.0 cm" idiom
+- Measurement values render **one decimal everywhere** ("16.7 in", inches are the default display unit, A-9; the frame's "58.0 cm" idiom
   set the one-decimal rule, and cm stays available via the MI-13 toggle)
-  via `formatCm` — MeasurementCard, SessionRow, snapshot chips and the
+  via `formatCm`, MeasurementCard, SessionRow, snapshot chips and the
   request stepper share the single formatter, so tnum columns stay
   aligned. Stored values and payloads stay canonical cm.
 - Profile avatars render PLAIN — the measurement-freshness ring is a
@@ -364,7 +361,7 @@ from the Figma ↔ code divergence audit (seed-side details live in §6):
 - `UserRow` call sites (suggestions, explore designer search, follower
   sheets) pass `avatar_url` through — the row always supported it.
 
-Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
+Screen-state parity **[Specified 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the
 Figma templates, and the QA loop checks all three.
@@ -401,8 +398,8 @@ against its Figma master and fixed the hits:
 **Self-host tabbed snippet as-built (2026-07-20, PR #118).** The A7c
 compose one-liner is now the user-approved Docker Compose | Helm tab pair
 (Figma proposal 415:2), built as `CodeSnippetTabs` in the §8.2b marketing
-kit beside `CodeSnippetBlock` (whose copy-pill grammar — Copy → ✓ Copied
-morph — it reuses). Mirrored two-line commands: `git clone
+kit beside `CodeSnippetBlock` (whose copy-pill grammar, Copy → ✓ Copied
+morph, it reuses). Mirrored two-line commands: `git clone
 https://github.com/cuesoftinc/apparule` shared; `cd apparule && docker
 compose up --build -d` (the repo's `make up`) vs `cd apparule && helm
 install apparule deploy/helm` (the real chart path). Copy targets the
@@ -432,13 +429,13 @@ One custom property per Figma variable in the `apparule/tokens` collection
 (the tokens.css `prefers-color-scheme` block remains as the no-JS
 fallback only).
 
-**Theme contract as-built (2026-07-20, ratified — identical across
-apparule, expendit and upstat).** The preference is tri-state
+**Theme contract as-built (2026-07-20, ratified, identical across
+the sibling products).** The preference is tri-state
 light | dark | system: `ThemeProvider` persists it at `apparule.theme`
 ("light"/"dark"/"system" all stored explicitly; KEY ABSENT = light,
-apparule's design default — the cross-product storage convention;
+apparule's design default, the cross-product storage convention;
 "system" is never modeled as key-absent), and `data-theme` on `<html>`
-always carries the RESOLVED theme — system resolves via `prefers-color-scheme`
+always carries the RESOLVED theme, system resolves via `prefers-color-scheme`
 and tracks it live (a matchMedia listener updates `data-theme` on an OS
 flip, no reload). The pre-paint init script applies the resolved theme
 (no FOUC in any mode). `ThemeToggle` (marketing nav + NavRail rail item)
@@ -470,10 +467,10 @@ Inter loads via `next/font` in `layout.tsx` (variable font — the ramp's
 400/600/700 are real faces, no synthetic bolding) and reaches components as
 `--ap-font-sans` = `var(--font-inter)` + the system stack as fallback; the
 computed family therefore matches the Figma type styles on every platform.
-The Tailwind ramp utilities pin the styles' tracking — `text-title-lg`
-−0.25px, `text-display` −0.5px, all smaller sizes 0 — so components never
+The Tailwind ramp utilities pin the styles' tracking, `text-title-lg`
+−0.25px, `text-display` −0.5px, all smaller sizes 0, so components never
 hand-set `tracking-*` for ramp roles. Font smoothing stays `antialiased` on
-`<html>` (expendit sets the same pair in CSS; grayscale AA is also how the
+`<html>` (a sibling product sets the same pair in CSS; grayscale AA is also how the
 canvas rasterizes, keeping weights visually comparable). The home e2e
 journey carries the regression lock: per-role computed
 family/weight/size/line-height/letter-spacing plus a `document.fonts.check`
@@ -511,12 +508,10 @@ name_taken`). Part C (mobile) has no web routes — it is the Flutter phase
 
 ## 5. TEST_MODE contract
 
-`NEXT_PUBLIC_TEST_MODE=true` (build-time inlined, like all `NEXT_PUBLIC_*` —
-[setup.md](setup.md)) switches exactly two seams; nothing else may branch
+`NEXT_PUBLIC_TEST_MODE=true` (build-time inlined, like all `NEXT_PUBLIC_*`, [setup.md](setup.md)) switches exactly two seams; nothing else may branch
 on it:
 
-1. **Auth**: the `AuthProvider` resolves to `TestModeAuthProvider` —
-   GoogleAuthButton navigates straight to `/dashboard` as the seeded test
+1. **Auth**: the `AuthProvider` resolves to `TestModeAuthProvider`, GoogleAuthButton navigates straight to `/dashboard` as the seeded test
    user (§6), no Google redirect, no popup. Session stickiness within
    the tab is a sessionStorage entry keyed `apparule.test-session` holding
    the JSON user payload (fleet P16 convention: `<product>.test-session`,
@@ -534,8 +529,8 @@ developed before the backend lands.
 ## 6. Mock server & seed narrative
 
 Route handlers under `web/src/app/api/mock/*` implement the api.md surface
-the web consumes — target-surface paths (§2) plus the social-commerce
-expansion (§5) — with the engineering.md §1 error envelope, its snake_case
+the web consumes, target-surface paths (§2) plus the social-commerce
+expansion (§5), with the engineering.md §1 error envelope, its snake_case
 code catalog, cursor pagination (api.md §4), and the documented enum
 taxonomies (order states, QC codes, report reasons, notification kinds).
 Backed by one seeded in-memory store (module singleton, dev-persistent)
@@ -552,7 +547,7 @@ with full CRUD; contract types shared with `src/models/`.
 | Payments | `POST /requests/{id}/pay` (resolves synchronously to `held` — the mock stands in for the provider round-trip + webhook) · `/confirm-delivery` · `/dispute` |
 | Designer | `POST /designer-profile` (incl. scripted Paystack account-resolution states: resolving → resolved / mismatch, pages.md B8) · `GET /designer/earnings` · `POST /designer/payout-account` |
 | Notifications | `GET /notifications` · `POST /notifications/read` |
-| Capture (B4) | `POST /me/sessions` with multipart images — returns seeded measurement results incl. per-measurement `confidence` and `qc` verdicts (api.md §2 v2 schema); QC-failure codes reproducible via designated fixture images. **Ratified contract (M-10/M-12)**: web capture is **upload-only** — two files (`image_front` + `image_side`), per-pose QC, no webcam flow, with a "best experience: guided capture on the mobile app" hint |
+| Capture (B4) | `POST /me/sessions` with multipart images, returns seeded measurement results incl. per-measurement `confidence` and `qc` verdicts (api.md §2 v2 schema); QC-failure codes reproducible via designated fixture images. **Ratified contract (M-10/M-12)**: web capture is **upload-only**, two files (`image_front` + `image_side`), per-pose QC, no webcam flow, with a "best experience: guided capture on the mobile app" hint |
 
 **Seed narrative — the docs-coherent Figma dataset.** The store seeds the
 same mock content the Figma screens render, so a TEST_MODE boot looks like
@@ -585,8 +580,8 @@ the designs:
   comment and a reported post with thumb + author) plus one ACTIONED
   audit-trail exemplar by the seeded staff moderator (`mod.sarah`).
   Reported comments exist as previews only, so post comment_counts stay
-  honest. The mock's REPORT carries audit fields — `action`,
-  `actioned_by {id, username}`, `actioned_at`, subject author — ahead of
+  honest. The mock's REPORT carries audit fields, `action`,
+  `actioned_by {id, username}`, `actioned_at`, subject author, ahead of
   the data-model.md §6.2 sketch (deviation noted, same as the profile
   reads); the queue lists open rows first with actioned rows trailing as
   the audit trail, and dismissals drop out.
@@ -668,9 +663,9 @@ products; per-product values only):
 - **og/twitter card** — `src/app/opengraph-image.png` (1200×630, App Router
   file convention): gradient wordmark + tagline on the light token canvas;
   `twitter:card = summary_large_image`.
-- **Icons** — `src/app/favicon.ico` (16/32/48/256 PNG-in-ICO) and
+- **Icons**, `src/app/favicon.ico` (16/32/48/256 PNG-in-ICO) and
   `src/app/apple-icon.png` (180×180): white "A" on the accent gradient
-  tile (byte-identical with upstat's — neither product's mark).
+  tile (byte-identical with the monitoring service's, neither product's mark).
 - **Provenance** — all three binaries are generated from the design tokens
   by `web/scripts/generate-brand-assets.mjs` (byte-identical across repos,
   config keyed by package name; Inter via `INTER_WOFF2` or the official

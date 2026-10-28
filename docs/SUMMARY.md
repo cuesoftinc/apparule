@@ -23,6 +23,7 @@
 - [OpenAPI Draft](api/openapi.yaml)
 - [Engineering Contracts](engineering.md)
 - [Web Implementation Standard](web-implementation.md)
+- [Mobile Implementation Standard](mobile-implementation.md)
 - [Deployment](deployment.md)
 - [Deploy Runbook](deploy-runbook.md)
 

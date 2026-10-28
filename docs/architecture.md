@@ -17,15 +17,15 @@ flowchart LR
 
     WEB[web — Next.js<br/>App Hosting · /api/v1 proxy]
 
-    COMMON[api/common — Go<br/>CRUD · auth · tickets · outbox · sweeps]
-    UP[api/uploads — Node<br/>ticketed upload gateway]
-    SEG[api/segmentation — Python<br/>pose QC · measurements]
-    COM[api/commerce — Python<br/>money decisions · push · email]
+    COMMON[api/common, Go<br/>CRUD · auth · tickets · outbox · sweeps]
+    UP[api/uploads, Node<br/>ticketed upload gateway]
+    SEG[api/segmentation, Python<br/>pose QC · measurements]
+    COM[api/commerce, Python<br/>money decisions · push · email]
 
-    PG[(Aiven Postgres<br/>RLS)]
+    PG[(managed Postgres<br/>RLS)]
     GCS[(Cloud Storage<br/>tmp · captures · media · compute)]
-    R[(Aiven Redis)]
-    K[[CueLABS shared Kafka<br/>cuelabs.uploads · requests · results]]
+    R[(managed Redis)]
+    K[[shared Kafka<br/>cuelabs.uploads · requests · results]]
 
     APP --> COMMON
     BR --> WEB
@@ -54,8 +54,8 @@ Four services, named by function and split by role (CueLABS language rule):
 | `api/segmentation` | Python | **Processing** — per-pose QC and template measurements | nothing | 8081 |
 | `api/uploads` | Node (NestJS) | **Thin gateway** — verifies tickets, checks and cleans images, hands off by pointer | nothing | 8082 |
 | `api/commerce` | Python | **Processing** — every money decision; push and email delivery | nothing | 8083 |
-| `web` | Next.js | Landing, docs hub, dashboard; proxies `/api/v1` | — | 3000 |
-| `mobile/flutter` | Dart | The app (guided two-pose capture, feed, orders) | local cache | — |
+| `web` | Next.js | Landing, docs hub, dashboard; proxies `/api/v1` | —   | 3000 |
+| `mobile/flutter` | Dart | The app (guided two-pose capture, feed, orders) | local cache | —   |
 
 Services talk only through the shared bus (S-2); HTTP between them exists
 solely as a data-free `GET /health` wake-up for scale to zero.
@@ -211,8 +211,8 @@ flowchart LR
 ## 6. Deployment **[Built]**
 
 - **Cloud** (X-3, X-6): Cloud Run services at min 0 (scale to zero with
-  wake-ups), sweeps as Cloud Scheduler POSTs to common, the shared Aiven Postgres and Valkey, the shared
-  Aiven Kafka, Cloud Storage; web on Firebase App Hosting. Tag-gated
+  wake-ups), sweeps as Cloud Scheduler POSTs to common, the managed Postgres and Valkey, the shared
+  Kafka, Cloud Storage; web on Firebase App Hosting. Tag-gated
   releases. See [deployment.md](deployment.md).
 - **Self-host**: `docker-compose.yml` (Postgres, Kafka KRaft, Redis,
   SeaweedFS, the four services, the sweep loop,
@@ -223,6 +223,6 @@ flowchart LR
 | Dependency | Needed by | Status |
 | --- | --- | --- |
 | D1 `account.cuesoft.io` facade | future identity facade only | **Not blocking** (X-1): in-app Google sign-in with an API-issued session is the ratified interim; the facade can front the same sign-in later. |
-| D2 Upstat event-ingestion API | ECO-ANALYTICS | Upstat has no generic event endpoint today — tracked in upstat's roadmap. |
+| D2 Monitoring service event-ingestion API | ECO-ANALYTICS | The monitoring service has no generic event endpoint today, tracked in the monitoring service's roadmap. |
 | D3 `privacy.cuesoft.io` Apparule clause | APP-005 | Content dependency; page links out. |
-| CueLABS shared Kafka (X-11) | every hand-off | Shared with Expendit and Upstat; Expendit keeps it awake. |
+| shared Kafka (X-11) | every hand-off | Shared with the sibling products; a sibling product keeps it awake. |

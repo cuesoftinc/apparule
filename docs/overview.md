@@ -10,21 +10,21 @@ measurements; designers quote, get paid through escrow, and deliver.
 ```mermaid
 flowchart LR
     subgraph clients
-        WEB[web + dashboard<br/>Next.js — App Hosting]
+        WEB[web + dashboard<br/>Next.js, App Hosting]
         MOB[Flutter mobile]
     end
     GO[Google OAuth<br/>sign-in only]
     subgraph server["GCP Cloud Run (scale to zero)"]
-        AC[api/common — Go<br/>CRUD]
-        UP[api/uploads — Node<br/>upload gateway]
-        SG[api/segmentation — Python<br/>pose QC · measurements]
-        CM[api/commerce — Python<br/>payments · notifications]
+        AC[api/common, Go<br/>CRUD]
+        UP[api/uploads, Node<br/>upload gateway]
+        SG[api/segmentation, Python<br/>pose QC · measurements]
+        CM[api/commerce, Python<br/>payments · notifications]
     end
     subgraph data
-        PG[(Aiven Postgres)]
+        PG[(managed Postgres)]
         CS[(Cloud Storage)]
-        RD[(Aiven Redis)]
-        K[[CueLABS shared Kafka]]
+        RD[(managed Redis)]
+        K[[shared Kafka]]
     end
     WEB --> FB
     MOB --> FB
@@ -49,7 +49,7 @@ flowchart LR
 - **`api/segmentation`** — Python: per-pose quality checks and measurements (MediaPipe).
 - **`api/commerce`** — Python: Paystack money decisions, push and email delivery.
 - **Auth**: Google sign-in only (X-1); `api/common` runs the OAuth flow and signs its own session JWT.
-- **Data** — Postgres (system of record, S-3), Cloud Storage, shared Aiven Redis, and the CueLABS shared Kafka (X-11).
+- **Data** — Postgres (system of record, S-3), Cloud Storage, shared managed Redis, and the shared Kafka (X-11).
 
 The [system design](system-design.md) explains why it is shaped this way. See
 [setup.md](setup.md) to run the stack locally, and the
@@ -67,7 +67,7 @@ The [system design](system-design.md) explains why it is shaped this way. See
 - [design.md](design.md) + [pages.md](pages.md) — design language, screens, microinteractions
 - [order-lifecycle.md](order-lifecycle.md) — commission order state machine, permissions, notifications
 - [decisions.md](decisions.md) — the decision register
-- [deployment.md](deployment.md) — Cloud Run + App Hosting contract (IaC provisioning, CI/CD)
+- [deployment.md](deployment.md), Cloud Run + App Hosting contract (infrastructure-as-code provisioning, CI/CD)
 - flows/ — feature flow specs with edge cases: [auth](flows/auth.md), [vault](flows/vault.md), [request](flows/request.md), [designer](flows/designer.md)
 - [capture-qc.md](capture-qc.md) — QC thresholds + measurement-confidence formulas
 - [engineering.md](engineering.md) — error catalog, authz matrix, rate limits, testing strategy, logging rules

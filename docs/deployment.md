@@ -3,31 +3,30 @@
 > Implements decision X-3 for the ratified system design (S-1…S-15,
 > system-design.md §10). The step-by-step for an account owner is the
 > [deploy runbook](deploy-runbook.md). Cloud deploys follow proven
-> patterns; provisioning goes through the **IaC** Pulumi stack —
-> never ad-hoc gcloud. Self-hosting via `deploy/` (compose/helm/terraform)
+> patterns; provisioning goes through the **infrastructure-as-code** Pulumi stack, > never ad-hoc gcloud. Self-hosting via `deploy/` (compose/helm/terraform)
 > shares only images.
 
 ## 1. Topology
 
 | Surface | Runs on | Provisioned by |
 | --- | --- | --- |
-| `api/common` (Go) | Cloud Run service `apparule-api-common` (the sweeps are its `/internal/jobs/<name>` routes) | IaC stack, project `sandbox-e306a`, `us-central1` |
-| `api/uploads` (Node) | Cloud Run service `apparule-api-uploads` | IaC stack |
-| `api/segmentation` (Python) | Cloud Run service `apparule-api-segmentation` | IaC stack |
-| `api/commerce` (Python) | Cloud Run service `apparule-api-commerce` | IaC stack |
+| `api/common` (Go) | Cloud Run service `apparule-api-common` (the sweeps are its `/internal/jobs/<name>` routes) | infrastructure-as-code stack, your GCP project, `us-central1` |
+| `api/uploads` (Node) | Cloud Run service `apparule-api-uploads` | infrastructure-as-code stack |
+| `api/segmentation` (Python) | Cloud Run service `apparule-api-segmentation` | infrastructure-as-code stack |
+| `api/commerce` (Python) | Cloud Run service `apparule-api-commerce` | infrastructure-as-code stack |
 | `web` (Next.js) | **Firebase App Hosting** | App Hosting backend |
-| Postgres, Valkey | the shared Aiven `sandbox-db` and `sandbox-cache` (database `apparule`, user `cuesoft`; keys `apparule:*`) | IaC |
-| Kafka | the CueLABS shared Aiven service (X-11); three lanes; SASL user `apparule` with topic ACLs | IaC; Expendit keeps it awake |
-| Object storage | `sandbox-e306a.firebasestorage.app`, prefix `apparule/stg/`; media by signed URL | IaC |
+| Postgres, Valkey | a managed Postgres instance and a managed Valkey instance (database `apparule`; keys `apparule:*`) | infrastructure-as-code |
+| Kafka | a shared managed Kafka service (X-11); three lanes; SASL user `apparule` with topic ACLs | infrastructure-as-code; a sibling product keeps it awake |
+| Object storage | your storage bucket, prefix `apparule/stg/`; media by signed URL | infrastructure-as-code |
 | `mobile/flutter` | App/Play stores | out of band |
 
-Each service has its `run.app` URL, `https://<service>-805800737799.us-central1.run.app`.
+Each service has its `run.app` URL, `https://<service>-<project-number>.us-central1.run.app`.
 The web proxies `/api/v1/*` to `api/common` (uploads to `api/uploads`); there
 is no load balancer. Paystack posts to `api/common`'s `/webhooks/payments`.
 `segmentation` and `commerce` accept only authenticated calls (the wake-ups
 carry a Cloud Run ID token).
 
-## 2. Provisioning (IaC)
+## 2. Provisioning (infrastructure-as-code)
 
 - **Pulumi, bun runtime**; state in a GCS state bucket;
   per-product stack (`Pulumi.<product>.yaml`).
@@ -44,10 +43,10 @@ carry a Cloud Run ID token).
   media is served by signed URLs.
 - Bucket lifecycle: delete `apparule/stg/tmp/` and `compute/` objects after
   1 day.
-- Postgres: the `apparule` database and user on the shared `sandbox-db`,
+- Postgres: the `apparule` database and user on the managed Postgres instance,
   a **non-superuser** role, so row-level security applies (superusers bypass
   it).
-- Valkey: the `apparule` user on the shared `sandbox-cache`, allowed keys
+- Valkey: the `apparule` user on the managed Valkey instance, allowed keys
   `apparule:*` only (`REDIS_KEY_PREFIX`, default `apparule`).
 - Kafka: the `apparule` SASL user with topic ACLs (read and write) on the
   three `cuelabs.*` lanes; consumer groups `apparule-common`,
@@ -56,13 +55,13 @@ carry a Cloud Run ID token).
 - Cloud Scheduler: `apparule-captures`, `apparule-orders`,
   `apparule-reconcile`, `apparule-retention` POST
   `/internal/jobs/<name>` on `apparule-api-common` with an OIDC token
-  (audience the service URL, invoker `scheduler-invoker@sandbox-e306a.iam.gserviceaccount.com`),
+  (audience the service URL, invoker `scheduler-invoker@<project-id>.iam.gserviceaccount.com`),
   created paused until the handlers are deployed.
 - GitHub: the `Sandbox` environment of `cuesoftinc/apparule` gets the
   variables `GCP_PROJECT_ID`, `GCP_REGION`, `GCP_WORKLOAD_IDENTITY_PROVIDER`
   and `GCP_DEPLOY_SERVICE_ACCOUNT`.
-- Secrets flow from **Doppler** (project `apparule`, config `stg`) into Cloud
-  Run env; the repo's `.env.example` files document every name, Doppler owns
+- Secrets flow from **your secrets manager** (project `apparule`, config `stg`) into Cloud
+  Run env; the repo's `.env.example` files document every name, your secrets manager owns
   the values.
 
 ## 3. CI/CD (GitHub Actions)

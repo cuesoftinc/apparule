@@ -9,20 +9,20 @@
 
 | ID | Unit | Delivers | Refs | Deps |
 | --- | --- | --- | --- | --- |
-| F0-1 | Design tokens package | tokens from `apparule/tokens` (Figma) as CSS vars + Tailwind config; light/dark | design.md §2, §7 | — |
+| F0-1 | Design tokens package | tokens from `apparule/tokens` (Figma) as CSS vars + Tailwind config; light/dark | design.md §2, §7 | —   |
 | F0-2 | Web app shell | Next.js layout, nav (A1), footer (A10), theme switch, Lucide setup | pages.md A1/A10 | F0-1 |
 | F0-3 | Hero + problem strip | A2 hero with device-frame loop, A3 stat cards | pages.md A2–A3 | F0-2 |
 | F0-4 | Walkthrough + SMPL explainer | A4 scroll panel, A5 constellation animation asset | pages.md A4–A5, design.md MI-12 | F0-2 |
 | F0-5 | Designers/open-source/community/cloud-vs-oss sections | A6–A9 | pages.md | F0-2 |
 | F0-6 | Privacy page | APP-005 disclosure, retention copy from data-model §4 | pages.md A10, prd §6 | F0-2 |
-| F0-7 | Analytics client wrapper | queued no-op upstat client; events per master registry | upstat api.md §3.4 | F0-2 |
+| F0-7 | Analytics client wrapper | queued no-op monitoring client; events per master registry | the monitoring service api.md §3.4 | F0-2 |
 | F0-8 | Docs hub links | GitBook space links, Scalar embed at /docs/api **[Shipped 2026-07-20]** — public `/docs/api` renders docs/api/openapi.yaml; footer "API reference" points there | openapi.yaml | F0-2 |
 
 ## Phase 1 — Auth + cloud access
 
 | ID | Unit | Delivers | Refs | Deps |
 | --- | --- | --- | --- | --- |
-| F1-1 | Google OAuth client config | Google-only sign-in, redirect URI wiring, Doppler stg secrets | flows/auth §1, X-1/X-5 | — |
+| F1-1 | Google OAuth client config | Google-only sign-in, redirect URI wiring, secrets-manager secrets | flows/auth §1, X-1/X-5 | —   |
 | F1-2 | api/common: token verification middleware | session JWT verify + Google code-flow callback and exchange + ACCOUNT upsert (Postgres) | flows/auth §2/§4, engineering §2 | F1-1 |
 | F1-3 | Web sign-in | single Google CTA screen, redirect flow and callback page, session handling | flows/auth §2–4 | F1-1 |
 | F1-4 | Flutter sign-in rewire | API Google SSO handoff via browser tab (flutter_web_auth_2); retire password screens | flows/auth §5 | F1-1 |
@@ -35,7 +35,7 @@
 | ID | Unit | Delivers | Refs | Deps |
 | --- | --- | --- | --- | --- |
 | F2-1 | Postgres data layer | tables per data-model §2; row-level security (vault isolation); integration tests | data-model, engineering §4 | F1-2 |
-| F2-2 | QC gate in api/segmentation | pre-checks + pose QC + codes + thresholds config | capture-qc §1–2, §5 | — |
+| F2-2 | QC gate in api/segmentation | pre-checks + pose QC + codes + thresholds config | capture-qc §1–2, §5 | —   |
 | F2-3 | Sessions API | POST/GET sessions (idempotent, multipart), Cloud Storage assets, retention field | flows/vault §1, api.md | F2-1, F2-2 |
 | F2-4 | Confidence + plausibility | per-measurement confidence, height-suspect flag | capture-qc §3–4 | F2-2 |
 | F2-5 | Manual entry + corrections | manual sessions, append-only corrections, sanity ranges | flows/vault §2 | F2-1 |
@@ -75,8 +75,8 @@
 
 | ID | Unit | Delivers | Refs | Deps |
 | --- | --- | --- | --- | --- |
-| F5-1 | Licensing decision execution | Meshcapade quote → go/no-go | A-3 | — |
-| F5-2 | Accuracy benchmark harness | tape-vs-pipeline comparison suite | capture-qc §6 | — |
+| F5-1 | Licensing decision execution | Meshcapade quote → go/no-go | A-3 | —   |
+| F5-2 | Accuracy benchmark harness | tape-vs-pipeline comparison suite | capture-qc §6 | —   |
 | F5-3 | Pipeline v2 | QC → fitting → mesh girths → confidence (`method: smpl_v1`) | architecture §5, capture-qc §4 | F5-1, F5-2 |
 | F5-4 | GPU deploy (cloud) | inference node pool / GPU Cloud Run | deployment.md | F5-3 |
 | F5-5 | Landing demo media upgrade | real-pipeline demo replaces preview | pages.md A5 | F5-3 |
@@ -90,6 +90,6 @@
 | FX-3 | Rate limiting (shared Redis, X-5 index) | engineering §3 |
 | FX-4 | Never-log CI grep gate | engineering §5 |
 | FX-5 | build-and-test.yml + release.yml (deploys on merge) | deployment.md, X-6 |
-| FX-6 | IaC stack (Cloud Run ×2, WIF, Doppler) | deployment.md §2 |
+| FX-6 | infrastructure-as-code stack (Cloud Run ×2, WIF, your secrets manager) | deployment.md §2 |
 | FX-7 | E2E smoke suite (release gate) | engineering §4 |
-| FX-8 | OTel instrumentation (traces/metrics/log bridge, env-gated export → upstat) | engineering §Telemetry, X-9 |
+| FX-8 | OTel instrumentation (traces/metrics/log bridge, env-gated export → the monitoring service) | engineering §Telemetry, X-9 |

@@ -20,7 +20,7 @@
 | --- | --- |
 | 400 | `invalid_*` (malformed input) |
 | 401 | `unauthenticated`, `token_expired` |
-| 403 | `provider_not_allowed`, `consent_required`, `forbidden`, `account_disabled`, `kyc_incomplete` |
+| 403 | `consent_required`, `forbidden`, `account_disabled`, `kyc_incomplete` |
 | 404 | `not_found` (never distinguishes "exists but not yours") |
 | 409 | `duplicate_request`, `post_unavailable`, `name_taken` (username claim, api.md `/me`), `idempotency_conflict`, `account_has_active_orders` (deletion, flows/auth.md §4) |
 | 422 | QC codes (capture-qc.md §1–2), `snapshot_invalid` |
@@ -39,21 +39,20 @@ membership for vault-of-customers use (SME mode).
 | Resource / action | visitor | user | designer | moderator |
 | --- | --- | --- | --- | --- |
 | Feed/explore read, post detail | ✓ (public posts) | ✓ | ✓ | ✓ |
-| Like/save/comment/follow | — | ✓ | ✓ | ✓ |
-| Create post | — | — | ✓ (designer profile) | — |
-| Post accepts requests | — | — | ✓ (KYC complete, A-2 — `post_unavailable` otherwise; flows/designer.md §1) | — |
-| Own vault (read/write) | — | ✓ self only — **no role ever reads another's vault** | ✓ self | — |
-| Workspace customers/sessions | — | workspace members | — | — |
-| Create request | — | ✓ (verified, vault non-empty, consent) | ✓ as customer | — |
-| Request read/messages | — | party only (customer or that designer) | party only | on dispute |
-| Quote/decline/status | — | — | ✓ own requests | dispute resolution |
-| Pay / confirm delivery / dispute | — | ✓ own orders | — | resolve |
-| Earnings/payout account | — | — | ✓ self | — |
-| Reports/blocks | — | ✓ | ✓ | queue + actions (block semantics: data-model §6.2 — feed filtering, interaction bans, orders survive) |
+| Like/save/comment/follow | —   | ✓ | ✓ | ✓ |
+| Create post | —   | —   | ✓ (designer profile) | —   |
+| Post accepts requests | —   | —   | ✓ (KYC complete, A-2 — `post_unavailable` otherwise; flows/designer.md §1) | —   |
+| Own vault (read/write) | —   | ✓ self only — **no role ever reads another's vault** | ✓ self | —   |
+| Workspace customers/sessions | —   | workspace members | —   | —   |
+| Create request | —   | ✓ (verified, vault non-empty, consent) | ✓ as customer | —   |
+| Request read/messages | —   | party only (customer or that designer) | party only | on dispute |
+| Quote/decline/status | —   | —   | ✓ own requests | dispute resolution |
+| Pay / confirm delivery / dispute | —   | ✓ own orders | —   | resolve |
+| Earnings/payout account | —   | —   | ✓ self | —   |
+| Reports/blocks | —   | ✓ | ✓ | queue + actions (block semantics: data-model §6.2 — feed filtering, interaction bans, orders survive) |
 
 Enforcement: middleware resolves `{account, designer?, workspace?}` from the
-verified token once per request; handlers declare required capability —
-no inline ad-hoc checks.
+verified token once per request; handlers declare required capability, no inline ad-hoc checks.
 
 ## 3. Rate limits (per account unless stated)
 
@@ -91,7 +90,7 @@ not optional). Every service validates the Kafka contract's examples.
 - **Never-log list** (CI grep-gated): measurement values, capture image
   bytes/URLs with tokens, session tokens, handoff codes, payment provider payloads,
   message bodies.
-- Events → Upstat per flow specs (counters only). Cloud Run structured
+- Events → the monitoring service per flow specs (counters only). Cloud Run structured
   logging picks up slog JSON natively.
 
 ## 6. Acceptance
@@ -118,11 +117,11 @@ not optional). Every service validates the Kafka contract's examples.
 - Traces: OTel SDK auto-instrumentation (HTTP server/client, gRPC, DB) +
   manual spans on domain operations; W3C traceparent propagated on every
   outbound call (incl. service-to-service).
-- Metrics: OTel Meter API — each service registers its KPI instruments
+- Metrics: OTel Meter API, each service registers its KPI instruments
   (request histograms come free; domain counters per the flow specs'
-  instrumentation sections are PRODUCT events via upstat /v1/events, NOT
-  OTel metrics — keep the pipelines separate).
+  instrumentation sections are PRODUCT events via the monitoring service's /v1/events, NOT
+  OTel metrics, keep the pipelines separate).
 - Logs: slog/logging → OTel bridge dual-emit (JSON stdout for Cloud Run +
-  OTLP to upstat). The never-log list applies to BOTH pipelines.
-- Export: direct OTLP, env-gated (no endpoint ⇒ no-op); receiver = upstat
+  OTLP to the monitoring service). The never-log list applies to BOTH pipelines.
+- Export: direct OTLP, env-gated (no endpoint ⇒ no-op); receiver = the monitoring service
   ingest (X-9). Sampling: parent-based, 10% default, errors always.

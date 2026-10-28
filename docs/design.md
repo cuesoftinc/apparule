@@ -5,7 +5,7 @@
 > save, share, and commission outfits with their measurements attached, and
 > designers get paid. This document defines the visual system and the
 > microinteraction vocabulary that every page/screen in [pages.md](pages.md)
-> draws from. Markers: **[Directive]** = user-stated direction (2026-07-16),
+> draws from. Markers: **[Specified]** = stated direction (2026-07-16),
 > **[Proposed]** = ratifiable design decision, **[Decided <date>]** = ratified
 > decision.
 
@@ -33,14 +33,14 @@
 | `border` | #DBDBDB | #262626 | hairline dividers (1px) |
 | `text` | #111111 | #FAFAFA | primary text |
 | `text-2` | #737373 | #A8A8A8 | secondary/meta |
-| `accent` | #E1306C→#F77737 gradient | same | the "Apparule gradient" — story rings, primary CTAs, active states (IG gradient adapted; final hues from brand pass). In Figma the token is two variables, `accent-start` + `accent-end` — gradient stops can't bind a single variable (§7) **[Decided 2026-07-17]** |
+| `accent` | #E1306C→#F77737 gradient | same | the "Apparule gradient", story rings, primary CTAs, active states (IG gradient adapted; final hues from brand pass). In Figma the token is two variables, `accent-start` + `accent-end`, gradient stops can't bind a single variable (§7) **[Decided 2026-07-17]** |
 | `on-accent` | #FFFFFF | #FFFFFF | text/icons on `accent`-gradient and destructive fills — replaces raw white in those contexts (exception: on-media capture UI stays raw white by design) |
 | `link` | #00376B | #E0F1FF | usernames, links |
 | `like` | #ED4956 | #ED4956 | heart active |
 | `success/warn/error` | #2E7D32 / #B26A00 / #C62828 | brightened equivalents | order states, payment states |
 | `accent-text` | #DB2967 | #E73771 | AA text variant — readable text in the accent binds this (final-CTA pill on `on-accent`, active measure value); gradient fills/rings/icons keep `accent-start`/`accent-end`. Derived in OKLCH (L only) from `accent-start` to clear 4.5:1 on `bg`/`bg-elev` |
 | `success-text/warn-text/text-2-text` | #27772C / #985A02 / #696969 | #4ECB71 / #FFB020 / #A8A8A8 | AA text variants for the chip/pill recipe (`text-X` on `bg-X/14`) and plain status text — readable text binds the `-text` variant, fills/borders/icons keep the base hue. Light values darken the base in OKLCH until ≥4.5:1 on the hue's 14% tint; dark base values already clear it, so the dark variants alias them. `error` needs no variant (4.50 on its light tint) |
-| Afrocentric pattern | 4–6% opacity geometric line pattern | — | section backgrounds on home page + empty states only (PRD §2 nuance without noise) |
+| Afrocentric pattern | 4–6% opacity geometric line pattern | —   | section backgrounds on home page + empty states only (PRD §2 nuance without noise) |
 
 ### Type
 
@@ -92,7 +92,7 @@
 | Radii (product) | 8px cards/sheets, full-round avatars/pills |
 | Product note | haptics per MI-20 |
 
-- **Cursor affordance**: enabled interactive controls show `cursor: pointer` — one base-layer rule on `button:not(:disabled)`, `[role="button"]:not([aria-disabled="true"])`, `select:not(:disabled)`, `summary`, `label[for]`; links use the native pointer; disabled controls keep the default cursor. [Directive 2026-07-19]
+- **Cursor affordance**: enabled interactive controls show `cursor: pointer` — one base-layer rule on `button:not(:disabled)`, `[role="button"]:not([aria-disabled="true"])`, `select:not(:disabled)`, `summary`, `label[for]`; links use the native pointer; disabled controls keep the default cursor. [Specified 2026-07-19]
 
 These rows are standardized in the org SKILL.md — a change here is an
 ecosystem change, PR'd to all three design.md files together.
@@ -133,7 +133,7 @@ Numbered so pages.md can reference them as `MI-n`.
 | MI-8 | **Story ring** | 2px gradient ring; consumed → 1px `border` gray; subtle 1.5s rotation on ring while loading content |
 | MI-9 | **Share** | native share sheet (mobile) / copy-link popover (desktop); post flashes 1px gradient border 400ms on copy |
 | MI-10 | **Request stepper** | 3-step sheet (Measurements → Notes/Budget → Review); progress bar fills with 300ms ease; step transitions slide 24px; final CTA shows inline spinner then ✓ morph + confetti burst ≤ 800ms (once per order) |
-| MI-11 | **Measurement freshness ring** | vault-header avatar ring: gradient if measured <30d, amber 30–90d, gray >90d; tooltip "Measured 12 days ago — retake?" — the ring is a vault affordance; profile avatars, including the viewer's own B6 profile, render plain **[Decided 2026-07-20]** |
+| MI-11 | **Measurement freshness ring** | vault-header avatar ring: gradient if measured <30d, amber 30–90d, gray >90d; tooltip "Measured 12 days ago, retake?", the ring is a vault affordance; profile avatars, including the viewer's own B6 profile, render plain **[Decided 2026-07-20]** |
 | MI-12 | **Capture flow** | camera overlay silhouette guide pulses gently; countdown 3-2-1 rings; processing state: landmark constellation animates over photo (the "AI is working" moment — also the SMPL demo asset); results cards stagger-in 60ms apart |
 | MI-13 | **Manual measure input** | tape-measure themed slider + numeric field; value change animates sparkline preview; unit toggle cm/in flips with 3D x-rotation 200ms — inches active by default (A-9), the toggle persists the user's choice; storage stays canonical cm |
 | MI-14 | **Order status pill** | status changes pulse once (scale 1→1.06→1) + color crossfade; timeline dot draws its connector line 400ms |
@@ -160,7 +160,7 @@ Numbered so pages.md can reference them as `MI-n`.
 | Surface | Now | Target |
 | --- | --- | --- |
 | Home (public) | template stub | §pages.md Part A |
-| Dashboard (web app) | — | §pages.md Part B — same IA as mobile, desktop-adapted |
+| Dashboard (web app) | —   | §pages.md Part B — same IA as mobile, desktop-adapted |
 | Mobile (Flutter) | auth + capture screens | §pages.md Part C — the primary social surface |
 
 Component naming is shared across web/Flutter (PostCard ⇄ `post_card.dart`)
@@ -206,7 +206,7 @@ this document must never diverge.
 > Style Guide page (already live, §7). Components become Figma components
 > with variants exactly as listed; screens assemble from instances only.
 
-**Canvas hygiene [Directive 2026-07-18].** Design canvases carry **product
+**Canvas hygiene [Specified 2026-07-18].** Design canvases carry **product
 copy only** — text a user would actually see. Spec annotations (MI
 references, requirement IDs, implementation notes) live in component
 descriptions and in these docs, never on the screens themselves.
@@ -227,7 +227,7 @@ import, the parity audit requires these Lucide glyphs: `shield-check` (MI-15
 pay morph, PaymentBox escrow-held) · `more-horizontal` (PostCard ⋯ overflow,
 moderation/action menus) · `chevron-down` (Select trigger, expandable
 snapshot values in stepper review, caption "more") · `calendar` (quote
-due-date, stepper target date) · `sun` + `moon` (NavRail theme toggle; `moon` also seeds the marketing-nav `ThemeToggle` master, [Directive 2026-07-19]) ·
+due-date, stepper target date) · `sun` + `moon` (NavRail theme toggle; `moon` also seeds the marketing-nav `ThemeToggle` master, [Specified 2026-07-19]) ·
 `copy` (MI-9 desktop copy-link popover; A7 snippet copy) · `alert-triangle`
 (freshness/turnaround soft warnings, KYC-lapse banner, dispute states) ·
 `info` (escrow explainer, consent/retention notice, "near me" explainer) ·
@@ -236,17 +236,16 @@ media dropzone) · `map-pin` (profile location, "near me" filter) · `wallet`
 (earnings/payout surfaces) · `clock` (deadline chips: quote expiry, due
 dates, auto-refund countdowns) · `flag` (report post/comment, SOC-009) ·
 `log-out` (settings sign-out) · `grid-3x3` (the Tabs grid-view icon
-variant). Brand glyphs — the Google 'G' for the X-1
-auth CTA, the GitHub mark (home page), and others as needed — are **not
+variant). Brand glyphs, the Google 'G' for the X-1
+auth CTA, the GitHub mark (home page), and others as needed, are **not
 Lucide**: they enter as approved additions per the shared-foundations
 iconography rule (§2).
 
-**Stage 4 screen-state rule [Directive 2026-07-18].** Every data-driven
+**Stage 4 screen-state rule [Specified 2026-07-18].** Every data-driven
 screen template ships **three frames**: default, empty (EmptyState + its
 first-run copy; demo-data toggle where a flow specs one), and loading
 (Skeleton). A template isn't done until all three exist. **As built
-(2026-07-18 QA loop):** the rule is met on the core data-driven templates —
-default / empty / loading frames exist across feed, explore, vault, orders,
+(2026-07-18 QA loop):** the rule is met on the core data-driven templates, default / empty / loading frames exist across feed, explore, vault, orders,
 and notifications, and their dashboard equivalents.
 
 **Naming standards (canonical across the three products) [Decided
@@ -284,7 +283,7 @@ canonical scheme. The single auth CTA component (X-1) is named
 | EmptyState | feed / vault / orders / explore / notifications (5 illustrated) |
 | Toast | success / error+retry / neutral |
 | Skeleton | kind: line / avatar / media / card (§3 anatomy; MI-19 shimmer) *(as built 2026-07-17)* |
-| CaptureOverlay | guide: searching (silhouette pulses) / aligned (guide turns success) / countdown / qc-hint (chip slot) · pose: front / side (M-10 — the side pose swaps in the right-profile silhouette, arms relaxed) — dashed silhouette vector over camera viewport (MI-12) |
+| CaptureOverlay | guide: searching (silhouette pulses) / aligned (guide turns success) / countdown / qc-hint (chip slot) · pose: front / side (M-10, the side pose swaps in the right-profile silhouette, arms relaxed), dashed silhouette vector over camera viewport (MI-12) |
 | CountdownRing | 3 / 2 / 1 (ring progress + numeral) |
 | QCHintChip | code ×12: no_body / multiple_bodies / partial_body / undecodable_image / low_resolution / poor_lighting / blurry / not_frontal / camera_tilt / arms_position / too_far / not_side_profile (side pose, M-10) — one actionable guidance line each, `arms_position` copy per pose (fail codes [capture-qc.md](capture-qc.md) §1–2; canonical copy [flows/vault.md](flows/vault.md) QC-failures row) |
 | ProcessingConstellation | state: processing (landmark constellation over photo) / success / failed — the "AI is working" moment (MI-12) |
@@ -310,7 +309,7 @@ Stage 5 and non-blocking; everything else feeds Stages 1–4.
 | Component | Variants × states |
 | --- | --- |
 | NavRail | width: collapsed 72 / expanded 244 (≥1264px) · item ×7 (Home / Explore / Create / Orders / Vault / Profile / Settings) × state: default / active / hover · footer slot: theme toggle + support link · theme ×2 · **as built (2026-07-17):** decomposed into `NavRail` (width ×2) + child set `NavRailItem` (expanded ×2 × state ×3) |
-| AppBar | kind: root (title/logo + action slot) / sub (chevron-left + title + trailing action) / over-media (transparent) · theme ×2 · **row alignment (M-9)**: sub/over-media titles center on the full bar width — the title is an absolute, full-width, center-aligned text layer over the bar; leading/trailing slots lay out in-flow at the edges (space-between) and the title's horizontal padding reserves the widest slot, so a hidden trailing slot never skews the title (Flutter AppTopBar: Stack-based, same anatomy). `root` is the brand bar (left wordmark/username), exempt. **Scope — chrome only**: in-content page titles (dashboard h1s, IG-desktop idiom) stay left-aligned; never center page-body titles |
+| AppBar | kind: root (title/logo + action slot) / sub (chevron-left + title + trailing action) / over-media (transparent) · theme ×2 · **row alignment (M-9)**: sub/over-media titles center on the full bar width, the title is an absolute, full-width, center-aligned text layer over the bar; leading/trailing slots lay out in-flow at the edges (space-between) and the title's horizontal padding reserves the widest slot, so a hidden trailing slot never skews the title (Flutter AppTopBar: Stack-based, same anatomy). `root` is the brand bar (left wordmark/username), exempt. **Scope, chrome only**: in-content page titles (dashboard h1s, IG-desktop idiom) stay left-aligned; never center page-body titles |
 | Tabs | kind: text ×2 items ("As customer / As designer") / icon (grid · saved) · state: active / inactive · underline indicator · theme ×2 · **as built (2026-07-17):** `active: first / second` (which item is active) × `kind: text / icon` — semantically the same states, different property shape; the grid glyph moves from an interim inline vector to `icon/grid-3x3` (§8.1) |
 
 **Form & overlay primitives**
@@ -349,14 +348,14 @@ Stage 5 and non-blocking; everything else feeds Stages 1–4.
 
 | Component | Variants × states |
 | --- | --- |
-| MarketingNav / MarketingFooter | nav: logo + 4 text links (Features · For designers · Docs · GitHub — the GitHub item renders as a compact star badge: GitHubMark(14) + star glyph(12) + neutral "Star" label (fleet-wide construction, reconciled 2026-07-20)) + `ThemeToggle` + "Sign in" text link (`/signin`) + "Try Cloud" gradient-primary CTA · state: top / stuck-blurred · footer: brand block (wordmark + tagline) + 4 pinned link columns — Product (Features · Try Cloud · Self Host · For designers) · Docs (Docs · Quickstart · API reference · Self-host guide) · Community (GitHub · Discord · Roadmap · CueLABS™) · Legal (Privacy · Terms · Status) — + legal bar `© Cuesoft Inc. 2026. Apparule. CueLABS™ Division. MIT License.` with security-policy link (SECURITY.md) + English language selector · theme ×2 · **[Directive 2026-07-19]:** built to the cross-product "Marketing nav, footer & theme parity canon" (generator SKILL.md) — one link inventory across apparule/expendit/upstat, rendered in apparule's light 4-column design, with the `ThemeToggle` master; all hrefs are the canon's canonical URLs · **[Revised 2026-07-19]:** the nav's GitHub star badge is neutral on canvas — GitHubMark + star glyph + "Star" label, no count (the live star count is runtime behavior; masters carry no invented numbers — accuracy standard below) |
+| MarketingNav / MarketingFooter | nav: logo + 4 text links (Features · For designers · Docs · GitHub — the GitHub item renders as a compact star badge: GitHubMark(14) + star glyph(12) + neutral "Star" label (fleet-wide construction, reconciled 2026-07-20)) + `ThemeToggle` + "Sign in" text link (`/signin`) + "Try Cloud" gradient-primary CTA · state: top / stuck-blurred · footer: brand block (wordmark + tagline) + 4 pinned link columns, Product (Features · Try Cloud · Self Host · For designers) · Docs (Docs · Quickstart · API reference · Self-host guide) · Community (GitHub · Discord · Roadmap · CueLABS™) · Legal (Privacy · Terms · Status), + legal bar `© Cuesoft Inc. 2026. Apparule. CueLABS™ Division. MIT License.` with security-policy link (SECURITY.md) + English language selector · theme ×2 · **[Specified 2026-07-19]:** built to the cross-product "Marketing nav, footer & theme parity canon" (generator SKILL.md) — one link inventory across apparule/sibling products, rendered in apparule's light 4-column design, with the `ThemeToggle` master; all hrefs are the canon's canonical URLs · **[Revised 2026-07-19]:** the nav's GitHub star badge is neutral on canvas — GitHubMark + star glyph + "Star" label, no count (the live star count is runtime behavior; masters carry no invented numbers — accuracy standard below) |
 | Home section kit | StatCard ×3 (fade-up) · WalkthroughStep (screenshot + 2 lines + step dots) · ComparisonTable (Cloud vs OSS + CTA row) · CodeSnippetBlock (copy → ✓ morph; `tabs: none / docker / helm` — the A7c self-host block ships the mirrored **Docker Compose \| Helm** tab pair, only the final command differing **[Ratified 2026-07-20]**) · CommunityCard (Discord member count) · **status (2026-07-17):** the one remaining unbuilt Stage-5 row (MarketingNav/MarketingFooter are done) — in build now; contract stays live, not deferred · **as built (2026-07-18):** WalkthroughStep step dots corrected to ×4 (the A4 walkthrough's four steps; the active dot is set per instance) · the CommunityCard master carries a neutral badge — no member count (accuracy standard below) |
 | FAQItem | question + chevron · state: collapsed / expanded · one-open-at-a-time group, rows deep-linkable (pages.md A9b) · theme ×2 · **as built (2026-07-18):** ≈720px accordion row; chevron rotates 180° on expand/collapse (`base` 200ms) — the iteration addition the note below anticipated |
 
 *Accuracy standard (2026-07-18):* the marketing stat band (StatCard ×3,
-pages.md A3) carries **product claims only** — ±0.8 in target accuracy (the
+pages.md A3) carries **product claims only**, ±0.8 in target accuracy (the
 A-9 inches display of the pipeline's canonical ±2 cm target) · 2 photos ·
-30-day photo auto-delete — never invented research statistics; the
+30-day photo auto-delete, never invented research statistics; the
 same rule keeps master badges neutral (no star or member counts on canvases).
 
 *Iteration note (2026-07-18):* the home FAQ section (pages.md A9b) implies a
@@ -411,8 +410,7 @@ starting point on its Figma page:
 - Transitions: `DISSOLVE` ~150–200ms for nav/tab switches; `SMART_ANIMATE`
   for pushes and backs; `AFTER_TIMEOUT` for async verification states
   (e.g. processing → results), which advance on their own.
-- Empty, loading, QA, and index frames stay **out** of the flow by design —
-  they exist for the §8.1 screen-state rule and for QA, not for wiring; the
+- Empty, loading, QA, and index frames stay **out** of the flow by design, they exist for the §8.1 screen-state rule and for QA, not for wiring; the
   prototype walks real user paths only.
 
 **Reachability.** Verified by BFS over the reaction graph from each flow's

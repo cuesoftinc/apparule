@@ -14,7 +14,7 @@
 > and where each piece of work runs. It supersedes the earlier "Apparule
 > Pipeline" draft, which covered the capture pipeline only.
 >
-> **Language rule (CueLABS standard, applied the same way as Upstat's
+> **Language rule (CueLABS standard, applied the same way as the monitoring service's
 > system design):**
 > - **Go does CRUD only.** `api/common` owns and persists all data.
 > - **Python does all processing:** every decision, such as pose QC,
@@ -23,13 +23,13 @@
 > - **No serverless functions.** The standard reserves them for probes,
 >   and Apparule has none.
 >
-> Services are named by function and connected through Aiven Kafka.
+> Services are named by function and connected through Kafka.
 >
 > **On the shared message bus (X-11).** Apparule's Kafka is the one service
-> shared with Expendit and Upstat, under the CueLABS delivery standard's
+> shared with the sibling products, under the CueLABS delivery standard's
 > `references/shared-messaging.md`: three shared lanes, pointer-only
 > payloads, no compacted topics, the service's own retention (up to 3 days),
-> one Kafka user (`apparule`), and Expendit as the keep-alive owner. Every
+> one Kafka user (`apparule`), and a sibling product as the keep-alive owner. Every
 > section below is written for it.
 
 ## Contents
@@ -71,7 +71,7 @@ two-service one it started with.
 | F7 | **The pipeline draft gave the gateway a database.** `uploads` wrote a Postgres staging row, and that row had no cleanup path. | Apparule Pipeline artifact, open item 3 | Breaks the standard's "gateway owns no persisted state"; leaves stale rows. |
 | F8 | **Kafka consumers on scale-to-zero services.** The runtime table sets `common` and `measure` to min 0; a queue consumer at zero instances never wakes. | deployment.md §4 | The pipeline draft would silently stop once idle. |
 | F9 | **The QC contract assumes a synchronous pipeline.** The upload request itself returns `422` per pose. | flows/vault.md §1 step contracts; capture-qc.md | Any queue between upload and QC breaks this contract; it has to be restated as a status. |
-| F10 | **The docs disagree with each other.** architecture.md §2 says Flutter may call `measure` directly for self-host; deployment.md §4 says `measure` has no public ingress; A-4 says Postgres, X-5 says Firestore, data-model.md §2 is drawn relationally. Apparule's place as an Upstat customer (events + OTLP) isn't in any system picture. | — | Contributors can't tell which design is current. |
+| F10 | **The docs disagree with each other.** architecture.md §2 says Flutter may call `measure` directly for self-host; deployment.md §4 says `measure` has no public ingress; A-4 says Postgres, X-5 says Firestore, data-model.md §2 is drawn relationally. Apparule's place as an the monitoring service customer (events + OTLP) isn't in any system picture. | —   | Contributors can't tell which design is current. |
 
 What *is* solid and carries forward: every product decision (A-1…A-11,
 M-*, X-1…X-10 except X-5's datastore), the flow docs and order state
@@ -113,19 +113,19 @@ flowchart LR
         WEB[web — Next.js<br/>App Hosting + CDN]
     end
 
-    COMMON[api/common — Go<br/>CRUD · auth · feed · orders · outbox · sweeps]
-    UP[api/uploads — Node<br/>thin gateway]
+    COMMON[api/common, Go<br/>CRUD · auth · feed · orders · outbox · sweeps]
+    UP[api/uploads, Node<br/>thin gateway]
 
-    subgraph Python — processing
-        SEG[api/segmentation — Python<br/>pose QC · measurements]
-        COM[api/commerce — Python<br/>payouts · refunds · reconciliation · notify]
+    subgraph Python, processing
+        SEG[api/segmentation, Python<br/>pose QC · measurements]
+        COM[api/commerce, Python<br/>payouts · refunds · reconciliation · notify]
     end
 
-    PG[(Aiven Postgres)]
+    PG[(managed Postgres)]
     GCS[(Cloud Storage)]
-    R[(Aiven Redis)]
-    K[[Aiven Kafka]]
-    UPS[Upstat<br/>events + OTLP]
+    R[(managed Redis)]
+    K[[Kafka]]
+    UPS[the monitoring service<br/>events + OTLP]
     EXT[Paystack API · FCM · Brevo]
 
     APP --> COMMON
@@ -160,7 +160,7 @@ added. `segmentation` is today's `measure` renamed, so it keeps 8081.
 
 | Unit | Lang | Role | Responsibility | Owns | Port |
 | --- | --- | --- | --- | --- | --- |
-| `web` | Next.js | Frontend | Landing, docs hub, `/docs/api`, dashboard (feed, vault, requests, designer workspace, moderation) | — | 3000 |
+| `web` | Next.js | Frontend | Landing, docs hub, `/docs/api`, dashboard (feed, vault, requests, designer workspace, moderation) | —   | 3000 |
 | `api/common` | **Go** | **CRUD** | The whole product API: Google sign-in and session JWTs, accounts, workspaces, customers, consent, instance requests, vault and sessions, posts, follows, likes, saves, comments, feed and explore queries, requests and the order state machine's user-driven transitions, threads, reports and blocks, notification rows, exports. **Authorizes every upload** and issues a signed upload ticket for it, counting the bytes it authorizes against the daily upload quota (§6.1). **Receives Paystack webhooks** (verify signature, store raw event). **Outbox publisher.** **Scheduled sweeps** (lookup-then-write: quote expiry, auto-confirm, escrow timeout, retention purge). Persists every decision Python makes. | **Postgres** (sole client), Cloud Storage confirmed prefixes | 8080 |
 | `api/segmentation` | **Python** | Processing | Per-pose image pre-checks and pose QC (capture-qc.md), measurement extraction against the customer's A-10 template, per-measurement confidence. MediaPipe 2-D today; SMPL at Phase E. | nothing; reads temp images, emits via Kafka | 8081 |
 | `api/uploads` | **Node** (NestJS) | Thin gateway | Capture photos (front + side), post media, thread attachments: verifies the upload ticket `common` issued (public key, no call), type/size/decode checks against the ticket's limits, EXIF and GPS stripping, write to temporary Cloud Storage, pointer → Kafka. Stateless. | nothing: no database, no Redis, only `common`'s public keys | 8082 |
@@ -194,11 +194,11 @@ pipeline draft's Postgres staging table.
 
 | Store | Holds | Written by | Read by | Source of truth? |
 | --- | --- | --- | --- | --- |
-| **Aiven Postgres** | Every domain entity (data-model.md §2, §5, §6) + ledger + raw provider events + outbox | `api/common` | `api/common` | Yes |
+| **managed Postgres** | Every domain entity (data-model.md §2, §5, §6) + ledger + raw provider events + outbox | `api/common` | `api/common` | Yes |
 | **Cloud Storage** `apparule/<env>/tmp/…` | Uploaded images before a decision | `uploads` | `segmentation` (captures), `common` (to move) | No; 24 h lifecycle rule deletes leftovers |
 | **Cloud Storage** `apparule/<env>/{captures,media,attachments,exports}/…` | Confirmed capture images (30-day retention), post media, thread attachments, exports | `common` (moves from `tmp/`) | `common` (signed URLs) | Yes, for blobs |
-| **Aiven Kafka** (shared, X-11) | Hand-offs on the three lanes (§5.3), by pointer | per event | per event | No; a short buffer. Overdue work is re-sent from Postgres. |
-| **Aiven Redis** (`REDIS_DB` index, X-5) | Per-account rate limits (engineering.md §3) and the daily upload quota (100 MB/day/account, counted when tickets are issued) | `common` | `common` | No. Losing it is survivable (§9.2). |
+| **Kafka** (shared, X-11) | Hand-offs on the three lanes (§5.3), by pointer | per event | per event | No; a short buffer. Overdue work is re-sent from Postgres. |
+| **managed Redis** (`REDIS_DB` index, X-5) | Per-account rate limits (engineering.md §3) and the daily upload quota (100 MB/day/account, counted when tickets are issued) | `common` | `common` | No. Losing it is survivable (§9.2). |
 
 `uploads`, `segmentation` and `commerce` use no Redis and no database.
 The gateway is stateless; the two Python services keep only in-memory
@@ -416,8 +416,8 @@ Counter reconciliation (J5) retires (§5.2).
 | Host | Routes to | Protocol |
 | --- | --- | --- |
 | `apparule.cuesoft.io` | web; its server-side proxy sends `/api/v1/*` to common | HTTPS |
-| `https://apparule-api-common-805800737799.us-central1.run.app` | common (including session creation, every `…/ticket` endpoint and `/internal/jobs/<name>`) | HTTP/JSON |
-| `https://apparule-api-uploads-805800737799.us-central1.run.app` | uploads, `POST /api/v1/uploads` only | multipart with an `Upload-Ticket` header |
+| `https://apparule-api-common-<project-number>.us-central1.run.app` | common (including session creation, every `…/ticket` endpoint and `/internal/jobs/<name>`) | HTTP/JSON |
+| `https://apparule-api-uploads-<project-number>.us-central1.run.app` | uploads, `POST /api/v1/uploads` only | multipart with an `Upload-Ticket` header |
 | common `/webhooks/payments` | common | HTTPS, Paystack-signed |
 
 The gateway has exactly one public route, and it accepts nothing without a
@@ -465,7 +465,7 @@ engineering.md unchanged.
 | **Machine identity** | Kafka ACLs: one SASL user per service with topic-level grants (only `common` can read `capture.measured`; only `commerce` can read `payments.*`). Cloud Storage IAM per prefix: `uploads` write-only on `tmp/`, `segmentation` read-only on `tmp/`, `common` read/write on everything. |
 | **Money** | Paystack signature verified before storing; raw events stored before acting; all provider calls idempotent by request id; the Paystack secret key lives only in `common` (webhook HMAC) and `commerce` (API calls). |
 | **Privacy** | EXIF and GPS stripped at the gateway before the image touches storage. Measurement values only on one 24 h, single-reader topic. Never-log list (engineering.md §5) applies to all four services and both telemetry pipelines, CI-grep-gated. |
-| **Secrets** | Doppler `apparule/stg` → Cloud Run env. Per-service, least-privilege credentials for Kafka, Postgres and Redis. The ticket-signing private key lives only in `common`; `uploads` gets the public key. Rotation publishes the new public key first, keeps both for one ticket lifetime, then retires the old one. |
+| **Secrets** | your secrets manager → Cloud Run env. Per-service, least-privilege credentials for Kafka, Postgres and Redis. The ticket-signing private key lives only in `common`; `uploads` gets the public key. Rotation publishes the new public key first, keeps both for one ticket lifetime, then retires the old one. |
 | **Abuse** | Every limit is enforced in `common` before a ticket exists: engineering.md §3 rate limits and the 100 MB/day upload quota. The ticket carries the byte and image limits (10 MB per image, 2 images per capture), and the gateway rejects anything without a valid ticket after a signature check, before reading the body. |
 
 ---
@@ -496,7 +496,7 @@ engineering.md unchanged.
 
 ### 9.3 Who watches Apparule
 
-Upstat (Apparule is one of its first-party customers, X-9): uptime checks
+the monitoring service (Apparule is one of its first-party customers, X-9): uptime checks
 on common's `/health` and the web; OTLP traces, logs and
 metrics from all four services; alerts on consumer lag for
 `capture.ready` and `payments.*`; product events (flows' instrumentation
@@ -524,15 +524,15 @@ volume is negligible (pointers and small JSON).
 | api/segmentation (Python) | Service, request-based CPU, 2 vCPU / 2 GiB, authenticated only | 0–2 |
 | api/commerce (Python) | Service, request-based CPU, authenticated only | 0–2 |
 | Sweeps (§6.7) | Cloud Scheduler POSTs to common | per job |
-| Postgres, Valkey | the shared Aiven `sandbox-db` and `sandbox-cache`; keys `apparule:*` | n/a |
-| Kafka | the CueLABS shared Aiven service (X-11), SASL user with topic ACLs | n/a |
-| Cloud Storage | `sandbox-e306a.firebasestorage.app`, `apparule/stg/…`, lifecycle rules on `tmp/` and `compute/`; media by signed URL only | n/a |
+| Postgres, Valkey | a managed Postgres instance and a managed Valkey instance; keys `apparule:*` | n/a |
+| Kafka | a shared managed Kafka service (X-11), SASL user with topic ACLs | n/a |
+| Cloud Storage | your storage bucket, `apparule/stg/…`, lifecycle rules on `tmp/` and `compute/`; media by signed URL only | n/a |
 
 Every service scales to zero (S-9 as amended). CPU is allocated only during requests (no always-on instance, worker pool or Cloud Run job), and whoever publishes for a sleeping service wakes it
 with `GET /health` (shared-messaging.md "Scale to zero"): `uploads` wakes
 `common`; `common`'s outbox wakes `segmentation` or `commerce`; they wake
 `common` after each result; and the sweeps wake whatever has work pending.
-The web proxies `/api/v1/*` to common (§7.1); there is no load balancer. Provisioning goes through the IaC stack.
+The web proxies `/api/v1/*` to common (§7.1); there is no load balancer. Provisioning goes through the infrastructure-as-code stack.
 
 ### 10.2 Self-host (compose + Helm)
 
@@ -562,14 +562,14 @@ Retired: `FIREBASE_CONFIG_PATH`, `FIREBASE_AUTH_EMULATOR_HOST`,
 
 ```
 api/
-  common/          Go — CRUD owner (module github.com/cuesoftinc/apparule/api/common)
+  common/          Go, CRUD owner (module github.com/cuesoftinc/apparule/api/common)
     cmd/{server,jobs}/
     internal/{config,handler,middleware,model,repository,service,router,outbox,consumer,sweep}
     migrations/    Go owns the schema
     contract/      JSON Schemas for every Kafka message (Go, Python, Node validate against them)
-  uploads/         Node (NestJS) — src/{health,upload,ticket,image,storage}
-  segmentation/    Python (FastAPI shell + consumer) — was api/measure; qc/, pose/, measurement/
-  commerce/        Python (FastAPI shell + consumers) — payments/, payouts/, reconcile/, notify/{fcm,brevo}
+  uploads/         Node (NestJS), src/{health,upload,ticket,image,storage}
+  segmentation/    Python (FastAPI shell + consumer), was api/measure; qc/, pose/, measurement/
+  commerce/        Python (FastAPI shell + consumers), payments/, payouts/, reconcile/, notify/{fcm,brevo}
 deploy/{docker,helm,terraform}
 web/
 mobile/flutter/
@@ -598,17 +598,17 @@ docs/
 | ID | Decision | Supersedes | Status |
 | --- | --- | --- | --- |
 | **S-1** | Units: web · `api/common` (Go, CRUD) · `api/uploads` (Node, gateway) · `api/segmentation` (Python, was `measure`) · `api/commerce` (Python) | architecture.md §2–§3, deployment.md §1 | ☑ 2026-10-20 |
-| **S-2** | **Aiven Kafka** between services; no synchronous internal calls | architecture.md §2 "internal call", §8 s2s IAM | ☑ 2026-10-20 |
-| **S-3** | **Postgres (Aiven) is the system of record**, `api/common` its only client. Real-time via FCM push + polling; offline via a local cache in the Flutter app. Keeps X-5's Redis, Doppler and Cloud Storage parts | X-5 datastore (Firestore); restores A-4 | ☑ 2026-10-20 |
+| **S-2** | **Kafka** between services; no synchronous internal calls | architecture.md §2 "internal call", §8 s2s IAM | ☑ 2026-10-20 |
+| **S-3** | **Postgres (managed) is the system of record**, `api/common` its only client. Real-time via FCM push + polling; offline via a local cache in the Flutter app. Keeps X-5's Redis, your secrets manager and Cloud Storage parts | X-5 datastore (Firestore); restores A-4 | ☑ 2026-10-20 |
 | **S-4** | **Asynchronous capture**: create the session on `common`, upload with a ticket, `202` + polled status; `failed_qc {code, pose}`; per-pose retake ticket; file checks stay synchronous at the gateway | flows/vault.md §1, capture-qc.md response, api.md measure contract | ☑ 2026-10-20 |
 | **S-5** | **Claim-check**: bytes only in Cloud Storage `tmp/` (24 h lifecycle), pointers on Kafka, `common` moves on save | pipeline draft's staging table | ☑ 2026-10-20 |
 | **S-6** | **Money decisions in `api/commerce`**: provider-event matching, fee and payout arithmetic, transfers and refunds, reconciliation. `common` persists | architecture.md §8 J4 + webhook handling in common | ☑ 2026-10-20 |
 | **S-7** | **Notification delivery in `api/commerce`** (FCM, Brevo); `common` writes the rows | architecture.md §8 "common → FCM" | ☑ 2026-10-20 |
-| **S-8** | Config and ledger propagate by **transactional outbox**; ~~compacted topics~~ no compacted topics (X-11) | — | ☑ 2026-10-20, amended |
+| **S-8** | Config and ledger propagate by **transactional outbox**; ~~compacted topics~~ no compacted topics (X-11) | —   | ☑ 2026-10-20, amended |
 | **S-9** | ~~Worker pools for `segmentation` and `commerce`; `common` min 1~~ every service scales to zero with wake-ups (X-11); sweeps as Cloud Scheduler POSTs to common | deployment.md §4 | ☑ 2026-10-20, amended |
 | **S-10** | Counter reconciliation retires (transactional counters). Feed ranking stays SQL in `common` until it becomes a model, then moves to Python | architecture.md §8 J5 | ☑ 2026-10-20 |
 | **S-11** | Tenancy defence in depth: Postgres RLS; per-prefix Storage IAM; per-service Kafka ACLs | engineering.md §6 Firestore rules | ☑ 2026-10-20 |
-| **S-12** | Paystack webhooks land on `common` (verify + store raw + outbox); interpretation in `commerce` | — | ☑ 2026-10-20 |
+| **S-12** | Paystack webhooks land on `common` (verify + store raw + outbox); interpretation in `commerce` | —   | ☑ 2026-10-20 |
 | **S-13** | Event types `apparule.<domain>.<event>` on the shared lanes `cuelabs.uploads/requests/results` (X-11) | pipeline draft's `apparule.uploaded/ready/processed` | ☑ 2026-10-20, amended |
 | **S-14** | Ports: common 8080, segmentation 8081 (keeps `measure`'s), uploads 8082, commerce 8083 | pipeline draft (uploads 8081, segmentation 8082) | ☑ 2026-10-20 |
 | **S-15** | **Upload tickets**: `common` authorizes every upload first and issues a single-use, 5-minute ticket signed with its private key (Ed25519); the gateway verifies it with the public key and accepts nothing without one. The gateway is stateless (no database, no Redis); all limits and quotas are enforced in `common` | the pipeline draft's gateway, which stored images before any authorization | ☑ 2026-10-20 |
@@ -641,7 +641,7 @@ real.
 ## 15. Open questions
 
 1. **Kafka that powers off when idle.** *Answered 2026-10-13 (X-11): the
-   shared Kafka powers off when idle and Expendit's reaper keeps it alive;
+   shared Kafka powers off when idle and a sibling product's reaper keeps it alive;
    see the amendment at the top.* Original question: the shared Kafka powers off when idle,
    and this design has always-on consumers. Does Apparule wait for it?
 2. **Self-host `/measure`.** Should `segmentation` keep a synchronous
@@ -653,8 +653,8 @@ real.
    stays in `common` for now. Move to a job if generation gets slow.
 5. **GPU for SMPL (Phase E).** Cloud Run GPU worker pool or a GKE node
    pool; decide with the licensing outcome (A-3).
-6. **Shared Postgres.** Can Expendit and Apparule share one Aiven Postgres
-   service (two logical databases) within Aiven's plan limits?
+6. **Shared Postgres.** Can a sibling product and Apparule share one managed Postgres
+   service (two logical databases) within the provider's plan limits?
 7. **Consent of a shop's customers.** Consent is recorded per account and
    per document version (`CONSENT_RECORD`, data-model.md §2). When a tailor
    shop captures one of *its* customers (`CUSTOMER.kind = client`), the
@@ -674,20 +674,20 @@ the code and in the docs rewritten from this one.
 
 | # | Topic | What was built | Why |
 | --- | --- | --- | --- |
-| I-1 | **Shared base layout** | Every service has the fleet's base: entry, typed fail-fast `config`, `health`, `kafka` (events, envelope, producer, consumer, wake), `storage` (`gcs` \| `s3`), `contract` (schema validation), `telemetry`. `uploads` starts from Expendit's gateway; `segmentation` and `commerce` share the Python plumbing. | One mental model across Go, Node and Python, and across products. |
+| I-1 | **Shared base layout** | Every service has the fleet's base: entry, typed fail-fast `config`, `health`, `kafka` (events, envelope, producer, consumer, wake), `storage` (`gcs` \| `s3`), `contract` (schema validation), `telemetry`. `uploads` starts from a sibling product's gateway; `segmentation` and `commerce` share the Python plumbing. | One mental model across Go, Node and Python, and across products. |
 | I-2 | **Contract** | `api/common/contract/`: the envelope, shared definitions, a schema and example per event, and `upload-ticket.md`. The Go binary embeds them; the other images build from the repo root and copy them in; every service's tests validate the examples. Money is integer minor units with a currency. | One copy, no drift across three languages. |
 | I-3 | **Upload ticket format** | `v1.<base64url claims>.<base64url Ed25519 signature>`; claims `kid, jti, account_id, target {kind: capture \| post_media \| attachment, id}, poses, max_files, max_bytes, iat, exp`. Multipart fields: `image_front`/`image_side` for captures, `images` otherwise. | The draft named the algorithm, not the wire format. |
 | I-4 | **Capture contract** | `POST /me/sessions` takes JSON: `{method: manual, measurements}` stores at once; `{input_height_cm}` answers `201` with the session (`awaiting_upload`) and an `upload` object (ticket, URL, fields, limits). `GET /sessions/{id}` adds `status` `awaiting_upload \| processing \| failed_qc \| failed`, `qc {code, pose, message, guidance}` and `poses {front, side: accepted \| failed \| uploaded}`. The vault list shows only `pending_save` and `complete`. | §7.3's one contract change, made concrete. |
 | I-5 | **Attempts** | Each upload (first or retake) increments `attempt`; `capture.ready` carries it and `capture.measured` echoes it, so a late result for an older attempt is ignored. A retake replaces only its pose's image; the accepted pose's image is reused. | Retakes and re-sends must not race. |
 | I-6 | **Timeouts on the shared bus** | Overdue `processing` sessions are re-sent once after 60 s (`resent_at`) and failed with `pipeline_busy` after 180 s, not 60 s. `awaiting_upload` sessions are deleted 10 minutes after their last live ticket. | X-11's re-send rule, and a cold `segmentation` (scale to zero, MediaPipe load) needs more than 60 s. |
 | I-7 | **mediapipe_2d_v2** | Lengths from the front view's landmarks; girths as an ellipse from the front view's segmentation width and the side view's depth at the same body row; each view scaled by 93% of the stated height; capture-qc.md §4's confidence across both views; every name in the customer's A-10 template. Rows and factors live in one `Calibration` block, uncalibrated until the two-view benchmark (capture-qc.md §3). | A-10b needs every template measure; the segmenter from #204 makes depth measurable. |
-| I-8 | **Media** | Post media and attachments are create-then-upload batches: `POST /media/tickets`, `POST /requests/{id}/attachments/tickets`, polled by `GET /media/batches/{id}`. Published post images move to `media/`; every image, attachment and export is served by a short-lived signed URL. Posting needs a designer profile but not KYC (flows/designer.md §1 governs over §6.1's "KYC-complete designer"). | Signed URLs only, by owner ruling; product docs win over a design slip. |
+| I-8 | **Media** | Post media and attachments are create-then-upload batches: `POST /media/tickets`, `POST /requests/{id}/attachments/tickets`, polled by `GET /media/batches/{id}`. Published post images move to `media/`; every image, attachment and export is served by a short-lived signed URL. Posting needs a designer profile but not KYC (flows/designer.md §1 governs over §6.1's "KYC-complete designer"). | Signed URLs only, by design; product docs win over a design slip. |
 | I-9 | **Bank verification** | `POST /designer/payout-account` (and `/resolve`) answers `202` with `kyc_state: pending` and sends `payouts.recipient_requested`; `commerce` resolves the name, compares it with the designer's and creates the transfer recipient; the outcome sets `verified` or a reason. | Paystack calls belong to `commerce` (S-6); B8's resolving state becomes a poll. |
 | I-10 | **Pay** | `POST /requests/{id}/pay` returns the order with a `checkout` (reference, amount, email, Paystack public key); the order turns `paid` only when `commerce` settles the charge from the webhook. The webhook is stored by a hash of its raw body (Paystack sends no event id). | Payments settle by webhook, never by a client's word (§6.3). |
 | I-11 | **Ledger integrity** | `ledger_entry` is append-only (update and delete rules), and a deferred constraint trigger rejects a commit whose lines for one outcome don't sum to zero. Outcome ids are uuid5 of their source, so a redelivered decision is stored once. | engineering.md §4's money invariant as a database rule. |
 | I-12 | **RLS mechanics** | `FORCE ROW LEVEL SECURITY` on the vault, orders, threads, payments, notifications, consent and system tables. Transactions set `app.account_id`, or `app.bypass_rls` for consumers, sweeps, webhooks and staff; a notification for another account lifts RLS for that one insert. Public social tables have none. The app connects as a non-superuser that owns its database. | The integration test proves isolation under a non-superuser. |
 | I-13 | **Notifications** | The row is written with the event that causes it; `notifications.created` carries the device tokens (new `device_token` table, `POST /me/devices`), the email for money events, and the rendered text. `capture_result` rows drive a silent push and stay out of the activity list. | `commerce` has no store to look these up in. |
 | I-14 | **Scale to zero** | Every service runs at min 0; publishers wake their consumers with `GET /health` (debounced 10 s); the `captures` sweep wakes `common` and `segmentation` while work is pending, and the other sweeps wake `commerce`. | S-9 as amended. |
-| I-15 | **Local object storage** | Compose runs SeaweedFS (S3 on :8333): MinIO's community images are no longer published. Cloud serves media by signed URL only. | Fleet parity with Expendit. |
-| I-16 | **Gateway runtime** | NestJS 11, as Expendit's: Nest 12 is ESM-only and Jest's decorator path doesn't support it cleanly yet. | Dependabot holds the major. |
+| I-15 | **Local object storage** | Compose runs SeaweedFS (S3 on :8333): MinIO's community images are no longer published. Cloud serves media by signed URL only. | Fleet parity with a sibling product. |
+| I-16 | **Gateway runtime** | NestJS 11, as a sibling product's: Nest 12 is ESM-only and Jest's decorator path doesn't support it cleanly yet. | Dependabot holds the major. |
 | I-17 | **Account deletion** | The retention sweep deletes a `deletion_pending` account with nothing in flight; one with order history keeps an anonymized row (the other party's orders reference it) while its vault and posts are deleted.  | flows/auth.md §4, within foreign keys. |

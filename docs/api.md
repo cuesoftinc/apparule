@@ -100,7 +100,7 @@ account-scoped with row-level security behind it; cross-account access is
 
 ## 4. Events (ECO-ANALYTICS) **[Planned]**
 
-Landing-page events post directly from the web client to Upstat's event API
+Landing-page events post directly from the web client to the monitoring service's event API
 (D2); product counters (sessions created, requests) are emitted server-side by
 `api/common` once D2 exists. Never measurement values.
 

@@ -16,7 +16,7 @@ home. Everything here is achievable without new backend capabilities.
 | Docs hub `/docs` with deploy guides + SMPL explainer | APP-003 (explainer), APP-004 (seed) | Content sources: repo docs, README |
 | API reference `/docs/api` rendering the api/common OpenAPI spec | APP-004 | Search can be client-side (flexsearch) at this scale |
 | Privacy disclosure page | APP-005, D3 | Links to Apparule clause on privacy.cuesoft.io |
-| Analytics events: Demo Starts, GitHub Clicks | ECO-ANALYTICS | **Blocked by D2** (Upstat event API) — ship with a no-op/queued client wrapper so events flow the day D2 lands |
+| Analytics events: Demo Starts, GitHub Clicks | ECO-ANALYTICS | **Blocked by D2** (the monitoring service event API) — ship with a no-op/queued client wrapper so events flow the day D2 lands |
 
 **Exit criteria:** PRD §3 sitemap fully served; APP-001/005 acceptance met;
 Lighthouse mobile score ≥ 90 (PRD's mobile-first bias).
@@ -27,7 +27,7 @@ Lighthouse mobile score ≥ 90 (PRD's mobile-first bias).
 
 | Item | Requirement | Notes |
 | --- | --- | --- |
-| Replace auth stubs with Firebase Google-only verification (X-1 hardened); email endpoint deleted with no successor | PLAT-003 | flows/auth.md is the contract; removes the `TODO(security-prd)` debt |
+| Replace auth stubs with Google-only sign-in in `api/common` (X-1 hardened); email endpoint deleted with no successor | PLAT-003 | flows/auth.md is the contract; removes the `TODO(security-prd)` debt |
 | `account.cuesoft.io` integration once contract exists | ECO-AUTH, D1 | Until then the hardened local auth carries the flow |
 | Consent gate (ToS + retention + accuracy disclaimer) | PRD §7 | `CONSENT_RECORD` model |
 | Instance request flow + minimal dashboard page | APP-002 | Queue + manual ops provisioning via existing helm chart (prd.md §8.2) |
@@ -72,8 +72,8 @@ sessions can select `smpl_v1`; landing demo reflects the real pipeline.
 
 | ID | Dependency | Owner | Blocks |
 | --- | --- | --- | --- |
-| D1 | `account.cuesoft.io` facade | Cuesoft ecosystem | Nothing (X-1: Firebase interim ratified; facade is cosmetic later) |
-| D2 | Upstat generic event-ingestion API | upstat repo (its PRD names it the ecosystem tracker) | ECO-ANALYTICS in Phase 0 |
+| D1 | `account.cuesoft.io` facade | Cuesoft ecosystem | Nothing (X-1: API-driven Google sign-in ratified as the interim; facade is cosmetic later) |
+| D2 | Monitoring service generic event-ingestion API | The monitoring service (its PRD names it the ecosystem tracker) | ECO-ANALYTICS in Phase 0 |
 | D3 | Apparule clause on privacy.cuesoft.io | Cuesoft legal/content | APP-005 copy |
 | R1 | SMPL commercial licensing | Product decision | Phase 3 in cloud |
 
@@ -89,7 +89,7 @@ early (Phase 0 explainer, Phase 3 media upgrade).
 
 ## Revision — social commerce expansion (2026-07-16)
 
-The 2026-07-16 directive (instagram-feel social commerce: posts, likes,
+The 2026-07-16 scope expansion (instagram-feel social commerce: posts, likes,
 requests with measurement snapshots, designer payments) re-shapes the phases.
 Phases 0–1 stand (home page per pages.md Part A; real auth). The build order
 after them becomes:
@@ -98,14 +98,13 @@ after them becomes:
   = the social profile's data spine (pages.md B4/C6-C7).
 - **Phase 3 — Social graph & feed**: designer profiles, posts, follows,
   likes/saves/comments, explore (SOC-001…003, 007).
-- **Phase 4 — Commerce**: requests + snapshots + order lifecycle + threads +
-  payments/escrow/payouts (SOC-004…006) — payment provider + KYC decisions
+- **Phase 4, Commerce**: requests + snapshots + order lifecycle + threads +
+  payments/escrow/payouts (SOC-004…006), payment provider + KYC decisions
   gate this phase.
 - **Phase 5 — SMPL pipeline** (was Phase 3): unchanged content; now also
   feeds richer snapshots into requests.
 
-Trust & safety (SOC-009: report/block/moderation) ships **with** Phase 3 —
-UGC without moderation doesn't go public.
+Trust & safety (SOC-009: report/block/moderation) ships **with** Phase 3, UGC without moderation doesn't go public.
 
 Exit criteria for the revised phases: **P2 (Vault)** capture→save→history on
 both surfaces with QC codes + retention job live; **P3 (Social)** post→follow
