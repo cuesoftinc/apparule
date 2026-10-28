@@ -174,6 +174,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- `NEXT_PUBLIC_TEST_MODE` is switched on with `true` instead of `1`.
 - Docs describe provisioning without naming internal repositories.
 - Release workflow deploys the API services on merge to main, not tags.
 - Post images are served through signed URLs only.
