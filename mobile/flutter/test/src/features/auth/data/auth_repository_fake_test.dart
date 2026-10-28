@@ -64,8 +64,7 @@ void main() {
     });
   });
 
-  group('AuthRepositoryFake (persisted lifecycle, boot-flow directive '
-      '2026-07-22)', () {
+  group('AuthRepositoryFake (persisted lifecycle, boot flow)', () {
     test('sign-in writes the session marker through the persistence '
         'seam', () async {
       final persistence = InMemoryPersistenceService();

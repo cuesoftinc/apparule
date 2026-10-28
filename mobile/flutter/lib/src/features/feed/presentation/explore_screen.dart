@@ -405,7 +405,7 @@ class _ExploreResultsView extends ConsumerWidget {
       return CustomScrollView(physics: physics, slivers: <Widget>[grid]);
     }
 
-    // Search-results state (pages.md B2 [Directive 2026-07-18]):
+    // Search-results state (pages.md B2 [Specified 2026-07-18]):
     // Designers (UserRow + MI-7 Follow) above the Outfits grid, with
     // per-section empty copy.
     final sectionHeader = typography.body16SemiBold.copyWith(

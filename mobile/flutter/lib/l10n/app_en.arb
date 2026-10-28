@@ -301,7 +301,7 @@
   "captureHeightContinue": "Continue",
   "captureCountdownA11y": "Hold still — capturing in 3",
   "@captureCountdownA11y": {
-    "description": "Screen-reader announcement when the auto-capture 3-2-1 arms (QA-convergence ruling: no shutter — the countdown starts itself once the viewfinder is live)."
+    "description": "Screen-reader announcement when the auto-capture 3-2-1 arms (no shutter: the countdown starts itself once the viewfinder is live)."
   },
   "captureCapturedA11y": "Photo captured",
   "@captureCapturedA11y": {

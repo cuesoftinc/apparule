@@ -602,7 +602,7 @@ test.describe("nav/footer parity canon", () => {
   });
 });
 
-// Cursor affordance [Directive 2026-07-19]: enabled interactive controls
+// Cursor affordance [Specified 2026-07-19]: enabled interactive controls
 // show the pointer (Tailwind v4 defaults buttons to cursor:default).
 test.describe("cursor affordance", () => {
   test("buttons and nav links show cursor: pointer", async ({ page }) => {

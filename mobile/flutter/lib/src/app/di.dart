@@ -43,7 +43,7 @@ AppFlavor appFlavor(Ref ref) => throw UnimplementedError(
 /// [authRepository] lets a test supply a differently seeded auth fake
 /// (in-memory, pre-signed-in, throwing). The default fake binds the
 /// persistence seam, so both entrypoints run the REAL session lifecycle
-/// over mock identity (boot-flow directive 2026-07-22): first-ever
+/// over mock identity: first-ever
 /// launch boots to C1, a sign-in persists across relaunches, sign-out
 /// purges it — web TEST_MODE parity.
 ///

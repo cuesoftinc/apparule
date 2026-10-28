@@ -16,7 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-/// C11 — the comments sheet at full height (pages.md [Directive
+/// C11 — the comments sheet at full height (pages.md [Specified
 /// 2026-07-18]): CommentRow list with like hearts and reply-indent,
 /// composer pinned above the keyboard, optimistic post (MI-18).
 /// Rendered as a transparent route over C4 (routes.dart), so the post

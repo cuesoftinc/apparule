@@ -89,7 +89,7 @@ describe("UploadMeasurementsView (B4 upload, 549:2)", () => {
         onTemplateChange={async () => {}}
       />,
     );
-    // Nullable ruling: no fabricated default.
+    // Nullable: no fabricated default.
     expect(screen.getByLabelText("Height in inches")).toHaveValue("");
   });
 

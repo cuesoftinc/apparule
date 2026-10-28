@@ -55,7 +55,7 @@ void main() {
     });
 
     testWidgets('sub titles center on the BAR, not the leftover flow space '
-        '(centered-title ruling)', (tester) async {
+        '(centered title)', (tester) async {
       // Back present, no trailing — the old in-flow layout grew the title
       // into the hidden-trailing space and skewed it right.
       await tester.pumpApp(
