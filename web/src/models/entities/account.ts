@@ -28,7 +28,7 @@ export interface NotificationPrefs {
 
 export interface Account {
   id: string;
-  firebase_uid: string;
+  google_sub: string;
   email: string;
   /** unique (case-insensitive), 3-30 chars [a-z0-9._]; rename max 1x/30d */
   username: string;

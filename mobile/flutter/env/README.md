@@ -9,6 +9,7 @@ on the sandbox account, so the Doppler config NAME stays `stg` while the
 environment it feeds is production. The JSON files are never committed —
 only this README is tracked.
 
-The first consumer is the auth wave's `GOOGLE_SERVER_CLIENT_ID`
-(prod flavor, `firebaseAuthRepositoryOverride()`); the API base URL
-joins with the API wave.
+The first consumer is `API_URL` (`apiAuthRepositoryOverride()`): the origin
+that serves `/api/v1`, with no path and no trailing slash. It must be the
+same host as the API's `GOOGLE_REDIRECT_URI`, so the sign-in state cookie set
+when the browser tab opens reaches the Google callback.

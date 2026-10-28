@@ -10,16 +10,14 @@ import 'package:apparule/src/features/measurements/data/camera_service_live.dart
 /// from the Doppler `apparule/stg` config (the config NAME stays `stg`).
 ///
 /// Still on the fake override set: the real auth swap is one diff here
-/// once `flutterfire configure` lands `firebase_options.dart` (blocked on
-/// `firebase login --reauth`) —
+/// once the flavor's `API_URL` is set in its env file:
 ///
 /// ```dart
 /// bootstrap(
 ///   flavor: AppFlavor.prod,
-///   firebaseOptions: DefaultFirebaseOptions.currentPlatform,
 ///   overrides: <Override>[
 ///     ...fakeRepositoryOverrides(),
-///     firebaseAuthRepositoryOverride(),
+///     apiAuthRepositoryOverride(),
 ///   ],
 /// )
 /// ```

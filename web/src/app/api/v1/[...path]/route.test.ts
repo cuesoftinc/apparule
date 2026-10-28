@@ -50,10 +50,44 @@ describe("/api/v1 proxy (system-design.md §7.1)", () => {
     const sent = calls[0].init.headers as Headers;
     expect(sent.get("authorization")).toBe("Bearer t");
     expect(sent.get("idempotency-key")).toBe("k");
-    expect(sent.get("cookie")).toBeNull(); // only contract headers pass
+    expect(sent.get("cookie")).toBe("session=secret");
     expect(response.status).toBe(201);
     expect(response.headers.get("retry-after")).toBe("7");
-    expect(response.headers.get("set-cookie")).toBeNull();
+    expect(response.headers.get("set-cookie")).toBe("x=1");
+  });
+
+  it("keeps the session cookie away from the uploads gateway", async () => {
+    await POST(
+      new Request("http://web.local/api/v1/uploads", {
+        method: "POST",
+        headers: { "Upload-Ticket": "v1.a.b", Cookie: "session=secret" },
+        body: "file",
+      }),
+      params(["uploads"]),
+    );
+    expect((calls[0].init.headers as Headers).get("cookie")).toBeNull();
+  });
+
+  it("passes the Google redirect and its state cookie through untouched", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        const headers = new Headers({ location: "https://accounts.example/o" });
+        headers.append("set-cookie", "state=a; HttpOnly");
+        headers.append("set-cookie", "other=b");
+        return new Response(null, { status: 302, headers });
+      }),
+    );
+    const response = await GET(
+      new Request("http://web.local/api/v1/auth/sso/google?cv=abc"),
+      params(["auth", "sso", "google"]),
+    );
+    expect(response.status).toBe(302);
+    expect(response.headers.get("location")).toBe("https://accounts.example/o");
+    expect(response.headers.getSetCookie()).toEqual([
+      "state=a; HttpOnly",
+      "other=b",
+    ]);
   });
 
   it("sends uploads to the gateway with the ticket", async () => {

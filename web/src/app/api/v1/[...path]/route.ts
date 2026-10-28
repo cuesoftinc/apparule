@@ -5,8 +5,9 @@
  * everything else to api/common. The URLs are read per request
  * (API_URL, UPLOADS_URL), so one build runs in compose and cloud.
  *
- * Server-side code, not a view: no auth logic here. The bearer token and
- * the upload ticket pass through untouched and the services check them.
+ * Server-side code, not a view: no auth logic here. The bearer token, the
+ * upload ticket, the session cookie and the SSO redirects pass through
+ * untouched and the services check them.
  */
 
 import { serverEnv } from "@/config/env";
@@ -16,6 +17,11 @@ export const dynamic = "force-dynamic";
 /** Request headers the backend contract uses (engineering.md §CORS). */
 const FORWARD_REQUEST = [
   "authorization",
+  "cookie",
+  "origin",
+  "sec-fetch-site",
+  "user-agent",
+  "x-forwarded-for",
   "content-type",
   "idempotency-key",
   "upload-ticket",
@@ -27,6 +33,7 @@ const FORWARD_RESPONSE = [
   "retry-after",
   "x-request-id",
   "content-disposition",
+  "location",
 ];
 
 const proxy = async (
@@ -44,6 +51,9 @@ const proxy = async (
     const value = request.headers.get(name);
     if (value) headers.set(name, value);
   }
+
+  // The uploads gateway authenticates by ticket and never sees the session cookie.
+  if (path[0] === "uploads") headers.delete("cookie");
 
   const hasBody = request.method !== "GET" && request.method !== "HEAD";
   let upstream: Response;
@@ -74,6 +84,9 @@ const proxy = async (
   for (const name of FORWARD_RESPONSE) {
     const value = upstream.headers.get(name);
     if (value) responseHeaders.set(name, value);
+  }
+  for (const cookie of upstream.headers.getSetCookie()) {
+    responseHeaders.append("set-cookie", cookie);
   }
   return new Response(upstream.body, {
     status: upstream.status,

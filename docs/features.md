@@ -22,10 +22,10 @@
 
 | ID | Unit | Delivers | Refs | Deps |
 | --- | --- | --- | --- | --- |
-| F1-1 | Firebase project config | Google-only provider enforcement, sandbox-e306a wiring, Doppler stg secrets | flows/auth §1, X-1/X-5 | — |
-| F1-2 | api/common: token verification middleware | Firebase ID-token verify + provider check + ACCOUNT upsert (Postgres) | flows/auth §2/§4, engineering §2 | F1-1 |
-| F1-3 | Web sign-in | single Google CTA screen, redirect fallback, session handling | flows/auth §2–4 | F1-1 |
-| F1-4 | Flutter sign-in rewire | google_sign_in + firebase_auth; retire password screens | flows/auth §5 | F1-1 |
+| F1-1 | Google OAuth client config | Google-only sign-in, redirect URI wiring, Doppler stg secrets | flows/auth §1, X-1/X-5 | — |
+| F1-2 | api/common: token verification middleware | session JWT verify + Google code-flow callback and exchange + ACCOUNT upsert (Postgres) | flows/auth §2/§4, engineering §2 | F1-1 |
+| F1-3 | Web sign-in | single Google CTA screen, redirect flow and callback page, session handling | flows/auth §2–4 | F1-1 |
+| F1-4 | Flutter sign-in rewire | API Google SSO handoff via browser tab (flutter_web_auth_2); retire password screens | flows/auth §5 | F1-1 |
 | F1-5 | Consent gate | consent sheet + GET/POST /consent + CONSENT_RECORD | prd §6, api.md | F1-2 |
 | F1-6 | Instance requests | POST/GET /instance-requests + dashboard status page | architecture.md §4.2, prd APP-002, A-5 | F1-2 |
 | F1-7 | Stub removal | delete legacy /api/auth/*, TODO(security-prd) retired | flows/auth §6 checklist | F1-2..4 |

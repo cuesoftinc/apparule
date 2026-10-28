@@ -34,10 +34,10 @@
   (feature-scoped hooks/orchestration, own all state; views never fetch);
   views = `web/src/app/**` routes + composed components, render-only.
 - **TEST_MODE**: `NEXT_PUBLIC_TEST_MODE=1` → GoogleAuthButton navigates
-  straight to the dashboard (no Firebase), and the API client targets the
+  straight to the dashboard (no sign-in redirect), and the API client targets the
   in-app mock server (§5). Auth sits behind an `AuthProvider` interface in
-  `web/src/auth/` (`TestModeAuthProvider` now; `FirebaseAuthProvider` added at
-  backend-integration time — X-1 Google-only either way,
+  `web/src/auth/` (`TestModeAuthProvider` in test mode, `SsoAuthProvider` (Google
+  redirect flow, session JWT) otherwise; X-1 Google-only either way,
   [flows/auth.md](flows/auth.md)).
 - **Mock server**: Next route handlers under `web/src/app/api/mock/*`
   implementing the documented API surface the web needs (paths, snake_case
@@ -517,18 +517,17 @@ on it:
 
 1. **Auth**: the `AuthProvider` resolves to `TestModeAuthProvider` —
    GoogleAuthButton navigates straight to `/dashboard` as the seeded test
-   user (§6), no Firebase SDK loaded, no popup. Session stickiness within
+   user (§6), no Google redirect, no popup. Session stickiness within
    the tab is a sessionStorage entry keyed `apparule.test-session` holding
    the JSON user payload (fleet P16 convention: `<product>.test-session`,
    sessionStorage, JSON user). The interface is identical
-   to the future `FirebaseAuthProvider` (X-1 Google-only, bearer-token
-   shape preserved), so backend integration swaps the provider, not the
-   views.
+   to `SsoAuthProvider` (X-1 Google-only, bearer-token shape preserved), so
+   the provider swaps without touching the views.
 2. **API client**: the models layer's base URL targets the in-app mock
    server — `/api/mock/v1/*` mirrors the `/api/v1/*` surface path-for-path,
    so repositories are identical in both modes except for the base URL.
 
-Unset (or `0`) → real `FirebaseAuthProvider` + `NEXT_PUBLIC_BASE_URL`
+Unset (or `0`) → real `SsoAuthProvider` through the same-origin `/api` proxy
 (api/common). TEST_MODE is how Playwright runs in CI and how the app is
 developed before the backend lands.
 
@@ -644,7 +643,7 @@ tree (design.md §6).
 - [ ] W0–W3 each closed by a Figma QA loop before merge; deviations landed
       in docs + the org SKILL.md
 - [ ] TEST_MODE boots to `/dashboard` with the §6 seed rendering the
-      Figma-coherent narrative; no Firebase loaded
+      Figma-coherent narrative; no Google redirect
 - [ ] Every mocked endpoint speaks the engineering.md §1 envelope with
       catalog codes; contract types shared with models
 - [ ] Views contain no fetch calls (MVC boundary enforced by review +

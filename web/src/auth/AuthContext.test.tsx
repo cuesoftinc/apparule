@@ -24,7 +24,7 @@ function Probe() {
 
 describe("AuthContext session restore (flows/auth.md §2)", () => {
   it("a rejecting restore reads as signed_out, not a permanent loading gate", async () => {
-    restore.mockRejectedValue(new Error("firebase exploded"));
+    restore.mockRejectedValue(new Error("restore exploded"));
     render(
       <AuthProvider>
         <Probe />

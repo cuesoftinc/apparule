@@ -222,7 +222,7 @@ func (s *Sweeper) Retention(ctx context.Context) error {
 			WHERE d.id = p.designer_id AND a.id = d.account_id AND `+settled); err != nil {
 			return err
 		}
-		tag, err = tx.Exec(ctx, `UPDATE account a SET email = 'deleted+' || a.id || '@invalid', firebase_uid = 'deleted:' || a.id,
+		tag, err = tx.Exec(ctx, `UPDATE account a SET email = 'deleted+' || a.id || '@invalid', google_sub = 'deleted:' || a.id,
 				username = 'deleted_' || substr(replace(a.id::text, '-', ''), 1, 12), display_name = 'Deleted user',
 				avatar_url = NULL, profile_location = NULL, deletion_state = 'active', suspended_at = coalesce(suspended_at, now())
 			WHERE `+settled+` AND `+hasOrders)

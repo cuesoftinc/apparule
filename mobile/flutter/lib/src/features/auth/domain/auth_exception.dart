@@ -1,15 +1,15 @@
 /// The auth error surface the UI handles (flows/auth.md §4) — SDK-specific
-/// exceptions (`GoogleSignInException`, `FirebaseAuthException`) never
+/// exceptions (`PlatformException`, `DioException`) never
 /// cross the repository boundary.
 enum AuthErrorCode {
   /// Sheet/popup dismissed (or interrupted) — silent return, screen
   /// unchanged (flows/auth.md §4).
   canceled,
 
-  /// Firebase `network-request-failed` — offline notice + retry.
+  /// Connection failure or timeout: offline notice + retry.
   network,
 
-  /// Firebase `user-disabled` — "This account has been disabled".
+  /// Disabled account: "This account has been disabled".
   userDisabled,
 
   /// Anything else — generic retry copy; details carried for logging.

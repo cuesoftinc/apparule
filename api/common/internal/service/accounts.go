@@ -19,29 +19,28 @@ import (
 
 var usernameRe = regexp.MustCompile(`^[a-z0-9._]{3,30}$`)
 
-// SignIn resolves a verified Firebase identity to its account, creating the
-// account, personal workspace and self customer on first sign-in (flows/
-// auth.md §3). Concurrent first sign-ins converge on one row.
-func (s *Services) SignIn(ctx context.Context, id *auth.Identity) (*Principal, error) {
+// SignInGoogle resolves a verified Google identity to its account id: by
+// subject, else by the verified email (rebinding the subject), else a new
+// account with its personal workspace and self customer (flows/auth.md §3).
+// Concurrent first sign-ins converge on one row.
+func (s *Services) SignInGoogle(ctx context.Context, id *auth.Identity) (string, error) {
 	var accountID string
 	err := s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
 		var err error
-		accountID, err = repository.FindAccountByUID(ctx, tx, id.UID)
-		return err
+		accountID, err = repository.FindAccountBySub(ctx, tx, id.Sub)
+		if !errors.Is(err, repository.ErrNotFound) {
+			return err
+		}
+		accountID, err = repository.FindAccountByEmail(ctx, tx, id.Email)
+		if err != nil {
+			return err
+		}
+		return repository.BindGoogleSub(ctx, tx, accountID, id.Sub)
 	})
 	if errors.Is(err, repository.ErrNotFound) {
-		accountID, err = s.createAccount(ctx, id)
+		return s.createAccount(ctx, id)
 	}
-	if err != nil {
-		return nil, err
-	}
-	var p *Principal
-	err = s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
-		var err error
-		p, err = repository.LoadPrincipal(ctx, tx, accountID)
-		return err
-	})
-	return p, err
+	return accountID, err
 }
 
 func (s *Services) createAccount(ctx context.Context, id *auth.Identity) (string, error) {
@@ -61,16 +60,16 @@ func (s *Services) createAccount(ctx context.Context, id *auth.Identity) (string
 				return err
 			}
 			accountID, err = repository.CreateAccount(ctx, tx, repository.NewAccount{
-				FirebaseUID: id.UID, Email: id.Email, Username: username, DisplayName: display, AvatarURL: avatar,
+				GoogleSub: id.Sub, Email: id.Email, Username: username, DisplayName: display, AvatarURL: avatar,
 			})
 			return err
 		})
 		if errors.Is(err, repository.ErrConflict) {
-			// Lost a race: either the same uid signed in concurrently, or the
+			// Lost a race: either the same subject signed in concurrently, or the
 			// username was taken between check and insert.
 			var existing string
 			if s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
-				existing, err = repository.FindAccountByUID(ctx, tx, id.UID)
+				existing, err = repository.FindAccountBySub(ctx, tx, id.Sub)
 				return err
 			}) == nil {
 				return existing, nil

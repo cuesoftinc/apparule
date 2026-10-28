@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Google sign-in through the API with a PKCE handoff on web and mobile.
+- `APP_RETURN_URLS` allowlist for the mobile app's sign-in return link.
 - `POST /internal/jobs/<name>` on api/common, guarded by scheduler OIDC token.
 - Rate limiter keys carry the `REDIS_KEY_PREFIX` product prefix.
 - Staging estate documented: Cloud Run, Cloud Scheduler, Aiven, Doppler `stg`.
@@ -445,6 +447,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Removed
 
+- Firebase Auth on web and mobile; the API signs its own sessions.
 - `POST /measure` and the synchronous common → measure call; the JWT
   session stub and `JWT_SECRET`; the web's `StubAuthProvider` and
   `NEXT_PUBLIC_BASE_URL` (#244).

@@ -28,7 +28,7 @@ erDiagram
 
     ACCOUNT {
         uuid id PK
-        string firebase_uid "identity key (X-1); the future facade fronts the same uid"
+        string google_sub "identity key (X-1): the Google subject; the future facade fronts the same id"
         string email
         string username "unique (case-insensitive), 3-30 chars [a-z0-9._]; claimable on demand, required to enable a designer profile; rename max 1x/30d"
         json profile_location "optional, self-attested {city, state, country} — X-10 tier 1; powers near-me designer ranking + delivery pre-fill; sensitive PII (see section 4)"

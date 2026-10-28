@@ -479,3 +479,11 @@ gateway answers `503` with `Retry-After` while the bus is away.
   (already the web idiom; C15 mobile uses the device picker) — no live
   camera enters the composer. api.md is unchanged beyond M-10: the
   endpoint takes two images regardless of source. ☑
+- **M-13 Mobile sign-in rides the API's Google SSO handoff (RATIFIED
+  2026-10-28, user directive: one sign-in method across
+  every client)**: the app opens the API's Google sign-in in a browser tab, the
+  API hands back to `apparule://app`, and the app exchanges the handoff
+  (PKCE verifier) for a session token sent as Bearer. Firebase Auth is
+  retired on mobile (`firebase_auth` and `google_sign_in` removed);
+  `firebase_core` stays for push. Supersedes X-1's Firebase wording for
+  mobile only. ☑

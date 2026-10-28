@@ -6,14 +6,14 @@ info:
     Contract for /api/v1 as built (docs/api.md is the narrative source; this
     file is the Scalar-rendered reference). /api/v1/uploads is served by
     api/uploads and takes an upload ticket instead of a user token; everything
-    else is api/common. Auth: Firebase ID-token bearer, Google-only
-    (X-1 hardened) — backends reject sign_in_provider != google.com. Errors use
+    else is api/common. Auth: a session JWT issued by api/common after Google
+    sign-in (X-1 hardened), sent as a bearer token or the session cookie. Errors use
     the ecosystem envelope (engineering.md §1); codes are snake_case and stable.
 servers:
   - url: https://api.apparule.cuesoft.io
     description: sandbox (the only environment, X-6)
   - url: http://localhost:8080
-security: [{ firebase: [] }]
+security: [{ session: [] }]
 tags:
   - { name: auth, description: Account resolution + consent (flows/auth.md) }
   - { name: vault, description: Measurement vault and asynchronous capture (flows/vault.md, system-design.md §6.1) }
@@ -27,6 +27,38 @@ tags:
   - { name: webhooks }
 
 paths:
+  /api/v1/auth/sso/google:
+    get:
+      tags: [auth]
+      summary: Start Google sign-in; redirects to Google with PKCE and sets the state cookie
+      security: []
+      parameters:
+        - { name: cv, in: query, required: true, description: base64url SHA-256 of the browser's verifier, schema: { type: string } }
+      responses: { "307": { description: Redirect to Google }, "429": { description: Start rate limit } }
+  /api/v1/auth/sso/google/callback:
+    get:
+      tags: [auth]
+      summary: Google redirect target; verifies state, upserts the account and redirects to the web callback with a one-time handoff
+      security: []
+      parameters:
+        - { name: state, in: query, schema: { type: string } }
+        - { name: code, in: query, schema: { type: string } }
+      responses: { "302": { description: Redirect to /auth/callback?handoff= or /signin?error= } }
+  /api/v1/auth/sso/exchange:
+    post:
+      tags: [auth]
+      summary: Trade a one-time handoff and the verifier for the session; also sets the session cookie
+      security: []
+      requestBody: { content: { application/json: { schema: { type: object, properties: { handoff: { type: string }, verifier: { type: string } } } } } }
+      responses:
+        "200": { description: Session, content: { application/json: { schema: { type: object, properties: { access_token: { type: string }, expires_in: { type: integer } } } } } }
+        "401": { description: handoff_invalid or handoff_verifier_required }
+  /api/v1/auth/logout:
+    post:
+      tags: [auth]
+      summary: End the session and clear the cookie
+      security: []
+      responses: { "204": { description: Signed out } }
   /api/v1/me:
     get:
       tags: [auth]
@@ -204,7 +236,7 @@ paths:
 
 components:
   securitySchemes:
-    firebase: { type: http, scheme: bearer, bearerFormat: "Firebase ID token (google.com provider only)" }
+    session: { type: http, scheme: bearer, bearerFormat: "Session JWT issued by api/common after Google sign-in" }
   parameters:
     Id: { name: id, in: path, required: true, schema: { type: string } }
     Cursor: { name: cursor, in: query, schema: { type: string } }

@@ -25,15 +25,49 @@ type Principal struct {
 	KYCVerified     bool
 }
 
-// FindAccountByUID returns the account id for a Firebase uid.
-func FindAccountByUID(ctx context.Context, tx pgx.Tx, uid string) (string, error) {
+// FindAccountBySub returns the account id for a Google subject.
+func FindAccountBySub(ctx context.Context, tx pgx.Tx, sub string) (string, error) {
 	var id string
-	err := tx.QueryRow(ctx, `SELECT id FROM account WHERE firebase_uid = $1`, uid).Scan(&id)
+	err := tx.QueryRow(ctx, `SELECT id FROM account WHERE google_sub = $1`, sub).Scan(&id)
 	return id, translate(err)
 }
 
+// FindAccountByEmail returns the account id for an email (case-insensitive).
+func FindAccountByEmail(ctx context.Context, tx pgx.Tx, email string) (string, error) {
+	var id string
+	err := tx.QueryRow(ctx, `SELECT id FROM account WHERE lower(email) = lower($1) ORDER BY created_at LIMIT 1`, email).Scan(&id)
+	return id, translate(err)
+}
+
+// BindGoogleSub links an existing account to the Google subject that proved its email.
+func BindGoogleSub(ctx context.Context, tx pgx.Tx, accountID, sub string) error {
+	_, err := tx.Exec(ctx, `UPDATE account SET google_sub = $2 WHERE id = $1`, accountID, sub)
+	return translate(err)
+}
+
+// SessionState is what a session token is checked against on every request.
+type SessionState struct {
+	Epoch     int64
+	Suspended bool
+}
+
+// GetSessionState reads the account's session epoch and suspension.
+func GetSessionState(ctx context.Context, tx pgx.Tx, accountID string) (SessionState, error) {
+	var s SessionState
+	var suspended *time.Time
+	err := tx.QueryRow(ctx, `SELECT session_epoch, suspended_at FROM account WHERE id = $1`, accountID).Scan(&s.Epoch, &suspended)
+	s.Suspended = suspended != nil
+	return s, translate(err)
+}
+
+// BumpSessionEpoch invalidates every session token issued for the account.
+func BumpSessionEpoch(ctx context.Context, tx pgx.Tx, accountID string) error {
+	_, err := tx.Exec(ctx, `UPDATE account SET session_epoch = session_epoch + 1 WHERE id = $1`, accountID)
+	return translate(err)
+}
+
 type NewAccount struct {
-	FirebaseUID string
+	GoogleSub   string
 	Email       string
 	Username    string
 	DisplayName string
@@ -42,11 +76,11 @@ type NewAccount struct {
 
 // CreateAccount inserts the account with its personal workspace and self
 // customer (data-model.md §6.1). A racing first sign-in loses on the
-// firebase_uid constraint and returns ErrConflict (flows/auth.md §6).
+// google_sub constraint and returns ErrConflict (flows/auth.md §6).
 func CreateAccount(ctx context.Context, tx pgx.Tx, a NewAccount) (string, error) {
 	var id string
-	err := tx.QueryRow(ctx, `INSERT INTO account (firebase_uid, email, username, display_name, avatar_url)
-		VALUES ($1, $2, $3, $4, $5) RETURNING id`, a.FirebaseUID, a.Email, a.Username, a.DisplayName, a.AvatarURL).Scan(&id)
+	err := tx.QueryRow(ctx, `INSERT INTO account (google_sub, email, username, display_name, avatar_url)
+		VALUES ($1, $2, $3, $4, $5) RETURNING id`, a.GoogleSub, a.Email, a.Username, a.DisplayName, a.AvatarURL).Scan(&id)
 	if err != nil {
 		return "", translate(err)
 	}
@@ -97,14 +131,14 @@ func GetAccount(ctx context.Context, tx pgx.Tx, accountID string) (*model.Accoun
 	var location, prefs []byte
 	var designerID *string
 	var kyc *string
-	err := tx.QueryRow(ctx, `SELECT a.id, a.firebase_uid, a.email, a.username, a.display_name, a.avatar_url,
+	err := tx.QueryRow(ctx, `SELECT a.id, a.google_sub, a.email, a.username, a.display_name, a.avatar_url,
 			a.profile_location, a.deletion_state, a.is_staff, c.measurement_template, a.notification_prefs, a.created_at,
 			d.id, d.kyc_state
 		FROM account a
 		JOIN customer c ON c.account_id = a.id AND c.kind = 'self'
 		LEFT JOIN designer_profile d ON d.account_id = a.id
 		WHERE a.id = $1`, accountID).
-		Scan(&a.ID, &a.FirebaseUID, &a.Email, &a.Username, &a.DisplayName, &a.AvatarURL, &location, &a.DeletionState,
+		Scan(&a.ID, &a.GoogleSub, &a.Email, &a.Username, &a.DisplayName, &a.AvatarURL, &location, &a.DeletionState,
 			&a.IsStaff, &a.MeasurementTemplate, &prefs, &a.CreatedAt, &designerID, &kyc)
 	if err != nil {
 		return nil, translate(err)

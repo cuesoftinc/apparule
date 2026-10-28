@@ -14,7 +14,7 @@ surfaces:
 
 capabilities:
   grpc: absent
-  firebaseAuth: active
+  googleSso: active
   kafka: active
 
 deployment:

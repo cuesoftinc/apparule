@@ -9,21 +9,30 @@ part of 'api_client.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// The single configured Dio client (mobile-implementation.md §6) — the
-/// data-layer shape is real from day one, but nothing calls it until the
-/// API wave (§1 phase 4) introduces the `*Remote` repositories.
+/// auth repository and the `*Remote` repositories share it.
+///
+/// `API_URL` is the origin serving `/api/v1`, injected through
+/// `--dart-define-from-file=env/<flavor>.json` (§2). Every request carries
+/// `Authorization: Bearer <token>` while a session token is at rest.
 
 @ProviderFor(apiClient)
 final apiClientProvider = ApiClientProvider._();
 
 /// The single configured Dio client (mobile-implementation.md §6) — the
-/// data-layer shape is real from day one, but nothing calls it until the
-/// API wave (§1 phase 4) introduces the `*Remote` repositories.
+/// auth repository and the `*Remote` repositories share it.
+///
+/// `API_URL` is the origin serving `/api/v1`, injected through
+/// `--dart-define-from-file=env/<flavor>.json` (§2). Every request carries
+/// `Authorization: Bearer <token>` while a session token is at rest.
 
 final class ApiClientProvider extends $FunctionalProvider<Dio, Dio, Dio>
     with $Provider<Dio> {
   /// The single configured Dio client (mobile-implementation.md §6) — the
-  /// data-layer shape is real from day one, but nothing calls it until the
-  /// API wave (§1 phase 4) introduces the `*Remote` repositories.
+  /// auth repository and the `*Remote` repositories share it.
+  ///
+  /// `API_URL` is the origin serving `/api/v1`, injected through
+  /// `--dart-define-from-file=env/<flavor>.json` (§2). Every request carries
+  /// `Authorization: Bearer <token>` while a session token is at rest.
   ApiClientProvider._()
     : super(
         from: null,
@@ -57,4 +66,4 @@ final class ApiClientProvider extends $FunctionalProvider<Dio, Dio, Dio>
   }
 }
 
-String _$apiClientHash() => r'be1340657a5daca3c25d15ce6b14867a1c2fb0c0';
+String _$apiClientHash() => r'c377a6c2c777c22ad25c8851eb01c1f7b18215e3';

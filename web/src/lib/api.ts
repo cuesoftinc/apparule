@@ -3,8 +3,8 @@
 //
 // TEST_MODE (NEXT_PUBLIC_TEST_MODE=1) targets the in-app mock server at
 // /api/mock; otherwise the same-origin /api proxy (src/app/api/v1), which
-// forwards to api/common and api/uploads, with the Firebase ID token as the
-// bearer (system-design.md §8).
+// forwards to api/common and api/uploads, with the API's session token as the
+// bearer, or its session cookie after a reload (system-design.md §8).
 import { env } from "@/config/env";
 
 /** Ecosystem error envelope: `{"error": {"code", "message", "details?"}}` (api.md §4). */
@@ -40,7 +40,7 @@ export function apiBasePath(): string {
 }
 
 /**
- * The bearer token source, set by the FirebaseAuthProvider (auth/). Kept as
+ * The bearer token source, set by the SsoAuthProvider (auth/). Kept as
  * an injected function so this transport stays free of auth imports.
  */
 let tokenSource: (() => Promise<string | null>) | null = null;
