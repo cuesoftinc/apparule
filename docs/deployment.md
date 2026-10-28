@@ -69,7 +69,7 @@ carry a Cloud Run ID token).
 | Workflow | Trigger | Does |
 | --- | --- | --- |
 | `build-and-test.yml` | PRs **and** push to `main` | per service: Go vet + tests (with a Postgres service for the RLS suite), uploads typecheck/lint/test/build, ruff + pytest for segmentation and commerce, web and mobile gates, **no deploy, no image push** (X-6) |
-| `release.yml` | **push to `main` touching `api/**`** | builds and pushes `apparule-api-{common,uploads,segmentation,commerce}` (tags: sha, `latest`), then in the `Sandbox` environment authenticates by WIF and points the Cloud Run services at the new **digests**; fails unless every new revision is Ready and `common` answers `/ready` |
+| `release.yml` | **push to `main` touching `api/**`** | builds and pushes `cuesoft/apparule-api-{common,uploads,segmentation,commerce}` (tags: sha, `latest`), then in the `Sandbox` environment authenticates by WIF and points the Cloud Run services at the new **digests**; fails unless every new revision is Ready and `common` answers `/ready` |
 
 **Gating (X-6, revised 2026-10-27):** `stg` (sandbox) is the only
 environment. A merge to `main` that touches `api/**` deploys the API services
@@ -79,7 +79,7 @@ tags: images carry the commit sha and `latest`. The web keeps App Hosting rollou
 
 Two hard-won rules, non-negotiable:
 
-1. **Deploy by digest, never by tag**, Cloud Run pulls the container registry images
+1. **Deploy by digest, never by tag**, Cloud Run pulls Docker Hub images
    through the `mirror.gcr.io` cache, which has served stale manifests for
    tags.
 2. **WIF only** (`google-github-actions/auth`), no JSON keys.

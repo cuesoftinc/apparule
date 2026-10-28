@@ -195,7 +195,7 @@ gateway answers `503` with `Retry-After` while the bus is away.
   OpenAPI, embedded in each docs space. ☑
 - **X-3 Cloud deployment target (RATIFIED, directive)**: all backend
   services run on **Google Cloud Run** (per-service containers, the same
-  service images); frontends deploy to **Firebase App
+  `cuesoft/<repo>-<service>` images); frontends deploy to **Firebase App
   Hosting**. Helm + terraform in `deploy/` remain the **self-host** path;
   cloud and self-host share images, not manifests. ☑
 - **X-4 AI platform (RATIFIED, directive 2026-07-16)**: AI features use

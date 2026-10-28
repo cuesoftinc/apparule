@@ -28,10 +28,10 @@ remote set ships.
 | Unit | Runs on | Image / source | Notes |
 | --- | --- | --- | --- |
 | `web` | Firebase App Hosting | `web/` from `main` | Proxies `/api/v1/*` to `apparule-api-common` (no load balancer, no browser CORS); uploads is reached at its `run.app` URL |
-| `apparule-api-common` | Cloud Run service | `apparule-api-common` | Go. The only Postgres client; receives Paystack webhooks. Serves the `/internal/jobs/<name>` sweeps. Kafka consumers + outbox run while an instance is up |
-| `apparule-api-uploads` | Cloud Run service | `apparule-api-uploads` | Node upload gateway (`POST /api/v1/uploads`) |
-| `apparule-api-segmentation` | Cloud Run service | `apparule-api-segmentation` | Python, MediaPipe. Kafka only; reached only by wake-ups |
-| `apparule-api-commerce` | Cloud Run service | `apparule-api-commerce` | Python. Paystack, FCM, Brevo. Kafka only |
+| `apparule-api-common` | Cloud Run service | `cuesoft/apparule-api-common` | Go. The only Postgres client; receives Paystack webhooks. Serves the `/internal/jobs/<name>` sweeps. Kafka consumers + outbox run while an instance is up |
+| `apparule-api-uploads` | Cloud Run service | `cuesoft/apparule-api-uploads` | Node upload gateway (`POST /api/v1/uploads`) |
+| `apparule-api-segmentation` | Cloud Run service | `cuesoft/apparule-api-segmentation` | Python, MediaPipe. Kafka only; reached only by wake-ups |
+| `apparule-api-commerce` | Cloud Run service | `cuesoft/apparule-api-commerce` | Python. Paystack, FCM, Brevo. Kafka only |
 | `apparule-{captures,orders,reconcile,retention}` | Cloud Scheduler jobs | n/a | `POST /internal/jobs/<name>` on `apparule-api-common` with an OIDC token; created paused until the handlers are deployed |
 | Postgres, Valkey | a managed Postgres instance and a managed Valkey instance | n/a | database `apparule`; keys `apparule:*` |
 | Kafka | a shared managed Kafka service | n/a | shared with the sibling products (X-11); SASL user `apparule` with topic ACLs |
@@ -222,7 +222,7 @@ the money flow has run end to end on the sandbox.
 ## 7. Cloud Run resources (infrastructure-as-code stack)
 
 Add these to the infrastructure-as-code stack (your GCP project, `us-central1`). The first image can be any tag from
-the container registry, because every release replaces it by digest.
+Docker Hub, because every release replaces it by digest.
 
 | Name | Kind | Account | Port | Instances | CPU / memory | CPU allocation | Ingress / auth |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -257,7 +257,7 @@ On `cuesoftinc/apparule`:
    (`projects/<number>/locations/global/workloadIdentityPools/<pool>/providers/<provider>`),
    `GCP_DEPLOY_SERVICE_ACCOUNT` (the `apparule-deploy` email).
 2. **Repository secrets**: `DOCKER_USERNAME`, `DOCKER_PASSWORD` (push to
-   `apparule-api-*`), synced from your secrets manager, which references
+   `cuesoft/apparule-api-*`), synced from your secrets manager, which references
    `admin/ci`.
 3. The WIF provider trusts this repository, and `apparule-deploy` grants it
    `roles/iam.workloadIdentityUser`.
@@ -288,7 +288,7 @@ On `cuesoftinc/apparule`:
 
 | Task | How |
 | --- | --- |
-| Roll back | Redeploy the previous image digest (it is in the earlier release run) with `gcloud run services update <name> --image docker.io/apparule-api-<svc>@sha256:…` |
+| Roll back | Redeploy the previous image digest (it is in the earlier release run) with `gcloud run services update <name> --image docker.io/cuesoft/apparule-api-<svc>@sha256:…` |
 | Rotate the ticket key | Generate a new pair with a new kid; **add** its public key to `UPLOAD_TICKET_PUBLIC_KEYS` (comma-separated) and deploy uploads; switch `UPLOAD_TICKET_PRIVATE_KEY` and deploy common; after 5 minutes, drop the old public key |
 | Run migrations alone | `./jobs migrate` by hand (common also runs them on start); the HTTP sweeps exclude it |
 | A capture stuck in "processing" | The `captures` sweep re-sends it after 60 s and fails it with `pipeline_busy` after 180 s; check segmentation's logs and the `wake` lines for `wake failed` |
