@@ -9,22 +9,22 @@ part of 'auth_repository.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// Overridden per entrypoint (di.dart) — no default implementation exists;
-/// dev runs the fake, prod swaps in the API implementation once `API_URL` is set
-/// (mobile-implementation.md §6/§9).
+/// dev runs the fake, prod swaps in the API implementation once `API_URL`
+/// is set (mobile-implementation.md §6/§9).
 
 @ProviderFor(authRepository)
 final authRepositoryProvider = AuthRepositoryProvider._();
 
 /// Overridden per entrypoint (di.dart) — no default implementation exists;
-/// dev runs the fake, prod swaps in the API implementation once `API_URL` is set
-/// (mobile-implementation.md §6/§9).
+/// dev runs the fake, prod swaps in the API implementation once `API_URL`
+/// is set (mobile-implementation.md §6/§9).
 
 final class AuthRepositoryProvider
     extends $FunctionalProvider<AuthRepository, AuthRepository, AuthRepository>
     with $Provider<AuthRepository> {
   /// Overridden per entrypoint (di.dart) — no default implementation exists;
-  /// dev runs the fake, prod swaps in the API implementation once `API_URL` is set
-  /// (mobile-implementation.md §6/§9).
+  /// dev runs the fake, prod swaps in the API implementation once `API_URL`
+  /// is set (mobile-implementation.md §6/§9).
   AuthRepositoryProvider._()
     : super(
         from: null,

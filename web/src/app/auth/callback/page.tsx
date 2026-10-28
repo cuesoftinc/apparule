@@ -28,8 +28,7 @@ const ACCOUNT_ERROR = "Sign-in completed, but Apparule could not be reached.";
 const RESTART_ERROR = "Google sign-in could not restart. Please try again.";
 
 type Recovery =
-  | { kind: "exchange"; selected: SsoExchangeChannel }
-  | { kind: "restart" };
+  { kind: "exchange"; selected: SsoExchangeChannel } | { kind: "restart" };
 
 export default function AuthCallbackPage() {
   const router = useRouter();
