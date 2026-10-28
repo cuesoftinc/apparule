@@ -1,4 +1,4 @@
-import type { LoggerService } from '@nestjs/common';
+import type { LoggerService } from "@nestjs/common";
 
 /**
  * JSON lines to stdout (Cloud Run). The never-log list applies: no file
@@ -6,33 +6,36 @@ import type { LoggerService } from '@nestjs/common';
  */
 export class JsonLogger implements LoggerService {
   private write(severity: string, message: unknown, context: unknown[]): void {
-    const entry: Record<string, unknown> = { time: new Date().toISOString(), severity };
+    const entry: Record<string, unknown> = {
+      time: new Date().toISOString(),
+      severity,
+    };
     if (message instanceof Error) {
       entry.message = message.message;
       entry.stack = message.stack;
-    } else if (typeof message === 'object' && message !== null) {
+    } else if (typeof message === "object" && message !== null) {
       Object.assign(entry, message);
     } else {
       entry.message = String(message);
     }
     const last = context[context.length - 1];
-    if (typeof last === 'string') entry.logger = last;
+    if (typeof last === "string") entry.logger = last;
     process.stdout.write(`${JSON.stringify(entry)}\n`);
   }
 
   log(message: unknown, ...context: unknown[]): void {
-    this.write('INFO', message, context);
+    this.write("INFO", message, context);
   }
   error(message: unknown, ...context: unknown[]): void {
-    this.write('ERROR', message, context);
+    this.write("ERROR", message, context);
   }
   warn(message: unknown, ...context: unknown[]): void {
-    this.write('WARNING', message, context);
+    this.write("WARNING", message, context);
   }
   debug(message: unknown, ...context: unknown[]): void {
-    this.write('DEBUG', message, context);
+    this.write("DEBUG", message, context);
   }
   verbose(message: unknown, ...context: unknown[]): void {
-    this.write('DEBUG', message, context);
+    this.write("DEBUG", message, context);
   }
 }

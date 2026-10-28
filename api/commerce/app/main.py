@@ -56,8 +56,10 @@ async def lifespan(app: FastAPI):
             return
         await producer.send(topics.PAYMENTS_OUTCOME, key, outcome, request_id)
         waker.soon(topics.PAYMENTS_OUTCOME)
-        log.info("outcome sent", extra={"step": step, "kind": outcome["kind"], "outcome_id": outcome["outcome_id"],
-                                        "reason": outcome.get("reason"), "ms": round((time.monotonic() - started) * 1000)})
+        log.info(
+            "outcome sent",
+            extra={"step": step, "kind": outcome["kind"], "outcome_id": outcome["outcome_id"], "reason": outcome.get("reason"), "ms": round((time.monotonic() - started) * 1000)},
+        )
 
     async def on_notification(msg: dict, request_id: str | None) -> None:
         await notifier.deliver(msg)
@@ -89,8 +91,12 @@ async def lifespan(app: FastAPI):
                 await send(outcome, "reconcile", "ledger.reconcile_requested", start, request_id)
             log.info("reconciled", extra={"step": "reconcile", "movements": len(msg["movements"]), "mismatches": len(mismatches)})
 
-        handlers |= {topics.PROVIDER_EVENT: on_provider_event, topics.ORDERS_TRANSITION: on_transition,
-                     topics.RECIPIENT_REQUESTED: on_recipient, topics.RECONCILE_REQUESTED: on_reconcile}
+        handlers |= {
+            topics.PROVIDER_EVENT: on_provider_event,
+            topics.ORDERS_TRANSITION: on_transition,
+            topics.RECIPIENT_REQUESTED: on_recipient,
+            topics.RECONCILE_REQUESTED: on_reconcile,
+        }
 
     async def on_failure(event: str, msg: dict, request_id: str | None) -> None:
         outcome = failed_outcome(event, msg)

@@ -44,6 +44,9 @@ jobs:
           go-version-file: api/common/go.mod
           cache-dependency-path: api/common/go.sum
 
+      - name: Format check
+        run: test -z "$(gofmt -l .)"
+
       - name: Vet
         run: go vet ./...
 
@@ -113,6 +116,9 @@ jobs:
       - name: Lint
         run: ruff check .
 
+      - name: Format check
+        run: ruff format --check .
+
       - name: Tests (validate against api/common/contract)
         run: pytest
 
@@ -138,6 +144,9 @@ jobs:
 
       - name: Lint
         run: ruff check .
+
+      - name: Format check
+        run: ruff format --check .
 
       - name: Tests (validate against api/common/contract)
         run: pytest

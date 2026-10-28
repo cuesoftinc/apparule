@@ -43,15 +43,13 @@ class Movements:
         payout = amount - fee
 
         def failed(reason: str) -> dict:
-            return {"outcome_id": outcome_id("payout_failed", source), "kind": "payout_failed", "request_id": request_id,
-                    "transition_id": source, "reason": reason}
+            return {"outcome_id": outcome_id("payout_failed", source), "kind": "payout_failed", "request_id": request_id, "transition_id": source, "reason": reason}
 
         recipient = msg.get("payout_recipient")
         if not recipient:
             return failed("no_recipient")
         try:
-            transfer = await self._paystack.transfer(payout, recipient["recipient_code"], payout_reference(request_id),
-                                                     "Apparule payout")
+            transfer = await self._paystack.transfer(payout, recipient["recipient_code"], payout_reference(request_id), "Apparule payout")
         except PaystackError as exc:
             # A duplicate reference means this payout already went out.
             if "duplicate" not in str(exc).lower():
@@ -59,12 +57,17 @@ class Movements:
             transfer = {"transfer_code": payout_reference(request_id)}
         except PaystackUnavailable:
             return failed("provider_error")
-        return {"outcome_id": outcome_id("payout_released", source), "kind": "payout_released", "request_id": request_id,
-                "transition_id": source, "reference": payout_reference(request_id),
-                "provider_ref": str(transfer.get("transfer_code", "")),
-                "amount": money(payout, currency), "fee": money(fee, currency),
-                "ledger": [{"account": "escrow", "amount": -amount}, {"account": "designer_payable", "amount": payout},
-                           {"account": "platform_fee", "amount": fee}]}
+        return {
+            "outcome_id": outcome_id("payout_released", source),
+            "kind": "payout_released",
+            "request_id": request_id,
+            "transition_id": source,
+            "reference": payout_reference(request_id),
+            "provider_ref": str(transfer.get("transfer_code", "")),
+            "amount": money(payout, currency),
+            "fee": money(fee, currency),
+            "ledger": [{"account": "escrow", "amount": -amount}, {"account": "designer_payable", "amount": payout}, {"account": "platform_fee", "amount": fee}],
+        }
 
     async def _refund(self, msg: dict) -> dict | None:
         request_id, source = msg["request_id"], msg["transition_id"]
@@ -78,13 +81,17 @@ class Movements:
             refund = await self._paystack.refund(transaction, amount)
         except PaystackError as exc:
             if "fully reversed" not in str(exc).lower() and "already" not in str(exc).lower():
-                return {"outcome_id": outcome_id("refund_failed", source), "kind": "refund_failed", "request_id": request_id,
-                        "transition_id": source, "reason": "provider_refused"}
+                return {"outcome_id": outcome_id("refund_failed", source), "kind": "refund_failed", "request_id": request_id, "transition_id": source, "reason": "provider_refused"}
             refund = {}
         except PaystackUnavailable:
-            return {"outcome_id": outcome_id("refund_failed", source), "kind": "refund_failed", "request_id": request_id,
-                    "transition_id": source, "reason": "provider_error"}
-        return {"outcome_id": outcome_id("refund_issued", source), "kind": "refund_issued", "request_id": request_id,
-                "transition_id": source, "reference": payment["reference"], "provider_ref": str(refund.get("id", "")),
-                "amount": money(amount, currency),
-                "ledger": [{"account": "escrow", "amount": -amount}, {"account": "refund", "amount": amount}]}
+            return {"outcome_id": outcome_id("refund_failed", source), "kind": "refund_failed", "request_id": request_id, "transition_id": source, "reason": "provider_error"}
+        return {
+            "outcome_id": outcome_id("refund_issued", source),
+            "kind": "refund_issued",
+            "request_id": request_id,
+            "transition_id": source,
+            "reference": payment["reference"],
+            "provider_ref": str(refund.get("id", "")),
+            "amount": money(amount, currency),
+            "ledger": [{"account": "escrow", "amount": -amount}, {"account": "refund", "amount": amount}],
+        }

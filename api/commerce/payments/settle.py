@@ -19,15 +19,19 @@ def decide(msg: dict, fee_bps: int) -> dict | None:
         return _charge(msg, data, base, fee_bps)
     if event in ("transfer.failed", "transfer.reversed"):
         request_id = _request_from_reference(data.get("reference", ""))
-        out = {**base, "outcome_id": outcome_id("payout_failed", source), "kind": "payout_failed",
-               "reference": str(data.get("reference", "")), "provider_ref": str(data.get("transfer_code", "")),
-               "reason": "provider_error"}
+        out = {
+            **base,
+            "outcome_id": outcome_id("payout_failed", source),
+            "kind": "payout_failed",
+            "reference": str(data.get("reference", "")),
+            "provider_ref": str(data.get("transfer_code", "")),
+            "reason": "provider_error",
+        }
         if request_id:
             out["request_id"] = request_id
         return out
     if event == "refund.failed":
-        return {**base, "outcome_id": outcome_id("refund_failed", source), "kind": "refund_failed", "reason": "provider_error",
-                "provider_ref": str(data.get("id", ""))}
+        return {**base, "outcome_id": outcome_id("refund_failed", source), "kind": "refund_failed", "reason": "provider_error", "provider_ref": str(data.get("id", ""))}
     # charge.dispute.*, transfer.success, refund.processed: informational;
     # the provider event is stored, and reconciliation covers the money.
     return None
@@ -39,8 +43,7 @@ def _charge(msg: dict, data: dict, base: dict, fee_bps: int) -> dict:
     reference = str(data.get("reference", ""))
 
     def reject(reason: str) -> dict:
-        out = {**base, "outcome_id": outcome_id("charge_rejected", source), "kind": "charge_rejected", "reference": reference,
-               "reason": reason}
+        out = {**base, "outcome_id": outcome_id("charge_rejected", source), "kind": "charge_rejected", "reference": reference, "reason": reason}
         if order:
             out["request_id"] = order["request_id"]
         return out
@@ -60,10 +63,17 @@ def _charge(msg: dict, data: dict, base: dict, fee_bps: int) -> dict:
         return reject("amount_mismatch")
     currency = expected["currency"]
     fee = platform_fee(amount, fee_bps)
-    return {**base, "outcome_id": outcome_id("charge_settled", source), "kind": "charge_settled",
-            "request_id": order["request_id"], "reference": reference, "provider_ref": str(data.get("id", "")),
-            "amount": money(amount, currency), "fee": money(fee, currency),
-            "ledger": [{"account": "escrow", "amount": amount}, {"account": "customer_funds", "amount": -amount}]}
+    return {
+        **base,
+        "outcome_id": outcome_id("charge_settled", source),
+        "kind": "charge_settled",
+        "request_id": order["request_id"],
+        "reference": reference,
+        "provider_ref": str(data.get("id", "")),
+        "amount": money(amount, currency),
+        "fee": money(fee, currency),
+        "ledger": [{"account": "escrow", "amount": amount}, {"account": "customer_funds", "amount": -amount}],
+    }
 
 
 def _request_from_reference(reference: str) -> str | None:

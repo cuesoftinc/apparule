@@ -31,8 +31,7 @@ log = logging.getLogger("segmentation")
 async def lifespan(app: FastAPI):
     settings = get_settings()
     configure_logging(settings.log_level)
-    log.info("starting", extra={"thresholds_version": QC.version, "pose_model": settings.pose_model_path,
-                                "segmentation_model": settings.segmentation_model_path})
+    log.info("starting", extra={"thresholds_version": QC.version, "pose_model": settings.pose_model_path, "segmentation_model": settings.segmentation_model_path})
 
     contract = Contract(settings.contract_dir)
     store = from_settings(settings)
@@ -47,21 +46,27 @@ async def lifespan(app: FastAPI):
 
     async def on_capture_ready(msg: dict, request_id: str | None) -> None:
         start = time.monotonic()
-        log.info("capture received", extra={"step": "capture.ready", "session_id": msg["session_id"],
-                                            "attempt": msg["attempt"], "template": msg["template"]})
+        log.info("capture received", extra={"step": "capture.ready", "session_id": msg["session_id"], "attempt": msg["attempt"], "template": msg["template"]})
         result = await pipeline.run(msg)
         await producer.send(topics.CAPTURE_MEASURED, msg["session_id"], result, request_of(msg, request_id))
         waker.soon(topics.CAPTURE_MEASURED)
-        log.info("capture measured; result sent", extra={
-            "step": "capture.measured", "session_id": msg["session_id"], "status": result["status"],
-            "qc_code": result.get("qc", {}).get("code"), "qc_pose": result.get("qc", {}).get("pose"),
-            "measures": len(result.get("measurements", [])), "ms": round((time.monotonic() - start) * 1000)})
+        log.info(
+            "capture measured; result sent",
+            extra={
+                "step": "capture.measured",
+                "session_id": msg["session_id"],
+                "status": result["status"],
+                "qc_code": result.get("qc", {}).get("code"),
+                "qc_pose": result.get("qc", {}).get("pose"),
+                "measures": len(result.get("measurements", [])),
+                "ms": round((time.monotonic() - start) * 1000),
+            },
+        )
 
     async def on_failure(event: str, msg: dict, request_id: str | None) -> None:
         await producer.send(topics.CAPTURE_MEASURED, msg["session_id"], pipeline.failed(msg), request_of(msg, request_id))
         waker.soon(topics.CAPTURE_MEASURED)
-        log.info("capture failed; result sent", extra={"step": "capture.measured", "session_id": msg["session_id"],
-                                                       "status": "failed", "error_code": "pipeline_error"})
+        log.info("capture failed; result sent", extra={"step": "capture.measured", "session_id": msg["session_id"], "status": "failed", "error_code": "pipeline_error"})
 
     consumer = Consumer("capture", {topics.CAPTURE_READY: on_capture_ready}, settings, contract, store, on_failure)
 

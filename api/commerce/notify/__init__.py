@@ -20,8 +20,7 @@ log = logging.getLogger(__name__)
 
 SOCIAL = {"like", "follow", "comment"}
 SILENT = {"capture_result"}
-TITLES = {"quote": "New quote", "status_change": "Order update", "payout": "Payout released", "like": "New like",
-          "follow": "New follower", "comment": "New comment"}
+TITLES = {"quote": "New quote", "status_change": "Order update", "payout": "Payout released", "like": "New like", "follow": "New follower", "comment": "New comment"}
 NOUNS = {"like": "likes", "follow": "followers", "comment": "comments"}
 
 
