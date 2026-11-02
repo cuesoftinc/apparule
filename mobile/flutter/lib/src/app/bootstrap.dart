@@ -11,14 +11,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 /// Shared bootstrap (mobile-implementation.md §3): binds the flavor and the
 /// entrypoint's override set into one ProviderScope and runs the app.
 ///
-/// [firebaseOptions] is the §2/§9 Firebase seam: an entrypoint passes its
-/// flavor's `DefaultFirebaseOptions.currentPlatform` (from the
+/// [firebaseOptions] is the §2 Firebase seam for push: an entrypoint passes
+/// its flavor's `DefaultFirebaseOptions.currentPlatform` (from the
 /// `flutterfire configure`-generated options file — `firebase_options
-/// .dart` for prod, `firebase_options_dev.dart` for dev) and pairs it
-/// with `firebaseAuthRepositoryOverride()`. No entrypoint passes it yet —
-/// generating the options files is blocked on `firebase login --reauth`
-/// (see the auth-cutover PR). Error zones/crash reporting join when that
-/// lands.
+/// .dart` for prod, `firebase_options_dev.dart` for dev). Auth does not
+/// use it (§9). No entrypoint passes it yet; generating the options
+/// files is blocked on `firebase login --reauth`. Error zones/crash
+/// reporting join when that lands.
 Future<void> bootstrap({
   required AppFlavor flavor,
   List<Override> overrides = const <Override>[],

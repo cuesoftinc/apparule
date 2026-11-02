@@ -1,5 +1,5 @@
 // GoogleAuthButton behavior: TEST_MODE routes to /dashboard on success;
-// without Firebase the stub notice renders (web-standard TEST_MODE rule).
+// otherwise the button hands the browser to the Google flow.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -45,25 +45,25 @@ describe("GoogleAuthButton", () => {
     await waitFor(() => expect(push).toHaveBeenCalledWith("/dashboard"));
   });
 
-  it("shows the Firebase stub notice when not in TEST_MODE", async () => {
+  it("shows the notice when Google sign-in is unavailable", async () => {
     signInWithGoogle.mockResolvedValue({
       ok: false,
-      code: "firebase_not_configured",
-      message: "Connect Firebase at integration",
+      code: "sso_unavailable",
+      message: "Google sign-in is unavailable in this browser.",
     });
     render(<GoogleAuthButton />);
     await userEvent.click(screen.getByRole("button"));
     expect(
-      await screen.findByText("Connect Firebase at integration"),
+      await screen.findByText("Google sign-in is unavailable in this browser."),
     ).toBeInTheDocument();
     expect(push).not.toHaveBeenCalled();
   });
 
-  it("stays silent when the popup is dismissed (flows/auth.md §4)", async () => {
+  it("stays silent while the browser redirects to Google", async () => {
     signInWithGoogle.mockResolvedValue({
       ok: false,
-      code: "popup_dismissed",
-      message: "dismissed",
+      code: "redirecting",
+      message: "Continuing to Google…",
     });
     render(<GoogleAuthButton />);
     await userEvent.click(screen.getByRole("button"));

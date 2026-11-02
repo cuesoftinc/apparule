@@ -1,68 +1,87 @@
-# Flow: Authentication (Google-only, Firebase-backed)
+# Flow: Authentication (Google-only, API-issued session)
 
 > Implements decision X-1 as hardened 2026-07-16: **Google sign-in is the
 > only authentication method** — no username/password signup or login,
-> product-wide. Firebase Auth on `sandbox-e306a` underneath; in-app screens.
-> Replaces the current stub endpoints (`POST /api/auth/google` and `/email`)
-> — the email stub is deleted with no successor.
+> product-wide. `api/common` runs the Google OAuth code flow and signs its own
+> session JWT; the web app only redirects and exchanges a one-time code.
 
 ## 1. Hard rule & enforcement
 
-- **Google provider only.** Enforced at three layers:
-  1. Firebase console: Email/Password provider **disabled** on the project;
-  2. Backend: token verification rejects any token whose
-     `firebase.sign_in_provider ≠ google.com` → `403 provider_not_allowed`;
-  3. UI: exactly one auth CTA — "Continue with Google".
+- **Google only.** Enforced at two layers:
+  1. Backend: the only sign-in route is the Google OAuth flow; there is no
+     password or email endpoint, and a Google account without a verified email
+     is rejected;
+  2. UI: exactly one auth CTA: "Continue with Google".
 - Consequences embraced: no password storage, no reset flow, no credential
   enumeration surface, and `email_verified` is always true (Google-asserted),
   so no separate verification gate exists.
 
 ## 2. Session model
 
-- Flutter (`google_sign_in` + `firebase_auth`) / web (Firebase JS SDK popup,
-  redirect fallback for in-app browsers) hold the session; SDK auto-refreshes
-  ID tokens (~1h).
-- API calls send `Authorization: Bearer <Firebase ID token>`; api/common
-  verifies (Admin SDK/JWKS, audience `sandbox-e306a`, provider check §1),
-  then upserts the `ACCOUNT` row by `firebase_uid` (idempotent).
-- `401 token_expired` → silent refresh → retry once → sign-out on repeat.
+- `GET /api/v1/auth/sso/google?cv=<challenge>` starts the flow. `cv` is the
+  base64url SHA-256 of a verifier the browser keeps in `sessionStorage`.
+  The API stores a server-side state record (10 minute TTL), sets the
+  `OAUTH_STATE_COOKIE` and redirects to Google with PKCE (S256).
+- `GET /api/v1/auth/sso/google/callback?state=&code=` verifies the state and
+  cookie, exchanges the code with Google, upserts the `ACCOUNT` row by Google
+  subject (`google_sub`, idempotent; a legacy row is rebound by verified
+  email), issues a one-time handoff code and redirects to
+  `<WEB_URL>/auth/callback?handoff=<code>`. Failures redirect to
+  `/signin?error=<code>`.
+- `POST /api/v1/auth/sso/exchange` takes the handoff and the verifier, checks
+  them against the stored hash and returns `{ access_token, expires_in }`. The API also sets the
+  `SESSION_COOKIE_NAME` cookie (HttpOnly, SameSite) sealed with
+  `SESSION_SECRET`. A handoff is single use; a replay is `401 handoff_invalid`.
+- API calls send `Authorization: Bearer <JWT>` (HS256, `JWT_SECRET`, lifetime
+  `JWT_ACCESS_TTL`) or the session cookie. Cookie requests must come from
+  `WEB_URL` (Origin and Fetch Metadata check).
+- `POST /api/v1/auth/logout` clears the cookie and ends the session; the web
+  client then purges local caches. Unsaved capture drafts warn.
 - **Session restore [Decided 2026-07-22, platform-neutral]**: restore
-  resolves **before either surface routes** — mobile runs the silent
-  restore behind the C0 boot gate (mobile-implementation.md §9); web
-  resolves the provider's restored session before dashboard routes
-  render. A failed restore reads as **signed out** (never an error
-  interstitial); a signed-in user never sees the auth screen.
-- Sign-out: SDK signOut + purge local caches; unsaved capture drafts warn.
+  resolves **before either surface routes**: web calls `GET /api/v1/me` with
+  the session cookie before dashboard routes render. A failed restore reads
+  as **signed out** (never an error interstitial); a signed-in user never
+  sees the auth screen.
+- The web app reaches the API through its same-origin `/api/v1` proxy, so the
+  state and session cookies are first-party. `GOOGLE_REDIRECT_URI` is the web
+  origin's `/api/v1/auth/sso/google/callback` and `WEB_URL` is the web origin.
+- The sign-in start is rate limited per source and overall (Redis, with an
+  in-memory fallback).
 
 ## 3. Sequence (first sign-in)
 
 ```mermaid
 sequenceDiagram
     actor U as User
-    participant A as App (Flutter/web)
-    participant G as Google / Firebase
+    participant W as Web
     participant C as api/common
+    participant G as Google
 
-    U->>A: Continue with Google
-    A->>G: signIn (native sheet / popup)
-    G-->>A: Firebase user + ID token (email_verified: true)
-    A->>C: GET /api/v1/me (Bearer)
-    C->>C: verify token + provider, upsert ACCOUNT
-    C-->>A: account {consent: none}
-    A-->>U: straight into the app (consent gate on first protected action)
+    U->>W: Continue with Google
+    W->>C: GET /api/v1/auth/sso/google?cv=challenge
+    C-->>W: 302 to Google (state cookie, PKCE)
+    W->>G: consent
+    G-->>C: callback?state&code
+    C->>C: verify state, exchange code, upsert ACCOUNT
+    C-->>W: 302 /auth/callback?handoff=code
+    W->>C: POST /api/v1/auth/sso/exchange {handoff, verifier}
+    C-->>W: {access_token} + session cookie
+    W->>C: GET /api/v1/me
+    C-->>W: account {consent: none}
+    W-->>U: straight into the app (consent gate on first protected action)
 ```
 
 ## 4. Errors & edge cases
 
 | Case | Behaviour |
 | --- | --- |
-| Popup/sheet dismissed | silent return, screen unchanged |
-| `network-request-failed` *(Firebase SDK constant, not our catalog)* | offline toast + retry |
-| `user-disabled` *(Firebase SDK constant)* | "This account has been disabled" + support link |
-| Token with wrong provider (crafted email/password token from another tool) | `403 provider_not_allowed`; log server-side |
-| Google account without Play Services (Android edge) | `google_sign_in` fallback to web flow |
-| In-app browsers blocking popups (IG/Twitter webviews — likely for a social app!) | `signInWithRedirect` fallback; tested explicitly |
-| Account deletion | blocked while money is in flight: any non-terminal order (either role) or unsettled payout → `409 account_has_active_orders`; otherwise account enters `deletion_pending` (no new social/commerce actions) and hard-deletes ACCOUNT + vault per retention rules, then the Firebase user, once the last order is terminal and payouts settle; Google access revoked via SDK |
+| Consent screen dismissed | redirect to `/signin?error=access_denied`; the sign-in page shows a short notice |
+| Expired or reused state | `/signin?error=` with a retry notice; state records are single use |
+| Handoff replayed or expired | `401 handoff_invalid`; the callback page offers "Back to sign in" |
+| Exchange hits a server error or the network drops | retried with backoff on the same handoff before an error is shown |
+| Google account without a verified email | rejected at the callback |
+| In-app browsers blocking popups (IG/Twitter webviews) | no popup is used: the flow is full-page redirects |
+| Account deletion | blocked while money is in flight: any non-terminal order (either role) or unsettled payout → `409 account_has_active_orders`; otherwise account enters `deletion_pending` (no new social/commerce actions) and hard-deletes ACCOUNT + vault per retention rules, once the last order is terminal and payouts settle |
 
 ## 5. Screen inventory impact **[flags removals]**
 
@@ -76,8 +95,8 @@ return later for designer KYC, which Paystack owns anyway (A-2).
 
 Events: `auth_signin_completed`, `auth_signin_failed`, `consent_recorded{document}` (emitted by the consent endpoints, F1-5) — counters only, per the master registry.
 
-- [ ] Email/Password provider disabled in Firebase console (verified)
-- [ ] Backend rejects non-Google-provider tokens (test with crafted token)
-- [ ] Redirect fallback works inside IG/webview browsers on both platforms
+- [ ] Handoff replay is rejected with `handoff_invalid` (test with a reused code)
+- [ ] Cookie requests from another origin are rejected
+- [ ] Sign-in works inside IG/webview browsers (full-page redirects only)
 - [ ] Stub endpoints deleted; retired screens removed from the router
 - [ ] Exactly one ACCOUNT row under concurrent first-login race

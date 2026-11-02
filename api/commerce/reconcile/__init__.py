@@ -52,8 +52,16 @@ async def compare(paystack: Paystack, msg: dict) -> list[dict]:
         kind, amount, currency, created = provider[key]
         if not _inside(created, window):
             continue
-        out.append({"outcome_id": outcome_id("mismatch", f"{label}:{key}"), "kind": "mismatch", "reference": key,
-                    "provider_ref": key, "amount": money(amount, currency), "reason": "missing_in_ledger"})
+        out.append(
+            {
+                "outcome_id": outcome_id("mismatch", f"{label}:{key}"),
+                "kind": "mismatch",
+                "reference": key,
+                "provider_ref": key,
+                "amount": money(amount, currency),
+                "reason": "missing_in_ledger",
+            }
+        )
     return out
 
 
@@ -76,5 +84,11 @@ def _inside(at: datetime | None, window: tuple[datetime, datetime]) -> bool:
 
 
 def _mismatch(window: str, m: dict, reason: str) -> dict:
-    return {"outcome_id": outcome_id("mismatch", f"{window}:{m['reference']}"), "kind": "mismatch", "request_id": m["request_id"],
-            "reference": m["reference"], "amount": m["amount"], "reason": reason}
+    return {
+        "outcome_id": outcome_id("mismatch", f"{window}:{m['reference']}"),
+        "kind": "mismatch",
+        "request_id": m["request_id"],
+        "reference": m["reference"],
+        "amount": m["amount"],
+        "reason": reason,
+    }

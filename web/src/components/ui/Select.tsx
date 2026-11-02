@@ -68,7 +68,7 @@ export function Select({
           <RadixSelect.Content
             position="popper"
             sideOffset={4}
-            // Collision-clamp canon (org SKILL.md, 2026-07-19): dropdowns
+            // Collision-clamp canon (2026-07-19): dropdowns
             // stay fully inside the viewport — 8px pad off every edge.
             collisionPadding={8}
             // z-40 (sheet layer): a Select opened from inside a Sheet must

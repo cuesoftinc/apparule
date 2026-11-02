@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 /**
- * Public marketing surface only (SEO plumbing, fleet canon): the home page
+ * Public marketing surface only (SEO plumbing): the home page
  * and the public Scalar API reference. Auth (/signin) and app
  * (/dashboard/*) routes stay out by design; /p/* permalinks are runtime
  * content, not build-time marketing routes.

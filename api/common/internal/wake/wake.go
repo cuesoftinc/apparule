@@ -1,8 +1,8 @@
 // Package wake starts a scaled-to-zero service so its Kafka consumers run
 // (shared-messaging.md, "Scale to zero"). Cloud Run starts an instance only for an HTTP
 // request, so after publishing for a service we send it one: GET /health.
-// The instance then consumes in the background (CPU always allocated) until
-// it has been idle long enough for Cloud Run to stop it.
+// The instance then consumes in the background until it has been idle long
+// enough for Cloud Run to stop it.
 //
 // Waking is best-effort: a missed wake leaves the message in Kafka, and the
 // sweep job wakes the services again while work is pending.

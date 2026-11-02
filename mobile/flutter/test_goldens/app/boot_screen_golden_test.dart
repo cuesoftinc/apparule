@@ -4,7 +4,7 @@ import 'package:apparule/src/app/boot_screen.dart';
 import '../helpers/golden_themes.dart';
 import '../helpers/screen_frame.dart';
 
-/// The in-app boot frame (boot-flow directive 2026-07-22): gradient
+/// The in-app boot frame gradient
 /// wordmark centered on the token background — splash→C1 brand
 /// continuity; the spinner only exists past ~300ms of pending restore
 /// (the second scenario pumps past the threshold).

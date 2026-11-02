@@ -16,24 +16,22 @@ flowchart LR
     end
 
     WEB[web — Next.js<br/>App Hosting · /api/v1 proxy]
-    LB{{api.apparule.cuesoft.io}}
 
-    COMMON[api/common — Go<br/>CRUD · auth · tickets · outbox · sweeps]
-    UP[api/uploads — Node<br/>ticketed upload gateway]
-    SEG[api/segmentation — Python<br/>pose QC · measurements]
-    COM[api/commerce — Python<br/>money decisions · push · email]
+    COMMON[api/common, Go<br/>CRUD · auth · tickets · outbox · sweeps]
+    UP[api/uploads, Node<br/>ticketed upload gateway]
+    SEG[api/segmentation, Python<br/>pose QC · measurements]
+    COM[api/commerce, Python<br/>money decisions · push · email]
 
-    PG[(Aiven Postgres<br/>RLS)]
+    PG[(managed Postgres<br/>RLS)]
     GCS[(Cloud Storage<br/>tmp · captures · media · compute)]
-    R[(Aiven Redis)]
-    K[[CueLABS shared Kafka<br/>cuelabs.uploads · requests · results]]
+    R[(managed Redis)]
+    K[[shared Kafka<br/>cuelabs.uploads · requests · results]]
 
-    APP --> LB
+    APP --> COMMON
     BR --> WEB
-    WEB -->|/api/v1| LB
-    PS -->|webhooks| LB
-    LB -->|/api/v1/*| COMMON
-    LB -->|/api/v1/uploads| UP
+    WEB -->|/api/v1 proxy| COMMON
+    PS -->|webhooks| COMMON
+    APP -->|uploads + ticket| UP
 
     UP -->|cleaned images| GCS
     UP -->|capture.uploaded · media.uploaded| K
@@ -56,8 +54,8 @@ Four services, named by function and split by role (CueLABS language rule):
 | `api/segmentation` | Python | **Processing** — per-pose QC and template measurements | nothing | 8081 |
 | `api/uploads` | Node (NestJS) | **Thin gateway** — verifies tickets, checks and cleans images, hands off by pointer | nothing | 8082 |
 | `api/commerce` | Python | **Processing** — every money decision; push and email delivery | nothing | 8083 |
-| `web` | Next.js | Landing, docs hub, dashboard; proxies `/api/v1` | — | 3000 |
-| `mobile/flutter` | Dart | The app (guided two-pose capture, feed, orders) | local cache | — |
+| `web` | Next.js | Landing, docs hub, dashboard; proxies `/api/v1` | —   | 3000 |
+| `mobile/flutter` | Dart | The app (guided two-pose capture, feed, orders) | local cache | —   |
 
 Services talk only through the shared bus (S-2); HTTP between them exists
 solely as a data-free `GET /health` wake-up for scale to zero.
@@ -66,7 +64,8 @@ solely as a data-free `GET /health` wake-up for scale to zero.
 
 ### 2.1 api/common (Go) **[Built]**
 
-- **Auth** (X-1): Firebase ID tokens, Google only; first sign-in creates the
+- **Auth** (X-1): Google OAuth sign-in run by common, which signs its own
+  session JWT; first sign-in creates the
   account, its personal workspace and self customer (data-model.md §6.1).
 - **The product API** the web mock defines (system-design.md §7.3): `/me`,
   consent, the vault, posts, feed and explore (frozen rank snapshots),
@@ -109,7 +108,7 @@ Paystack key (self-host).
 ### 2.5 web (Next.js) **[Built]**
 
 The canonical web tree (web-implementation.md). TEST_MODE runs entirely on
-the in-app mock server; otherwise Firebase sign-in and the `/api/v1` proxy,
+the in-app mock server; otherwise Google sign-in through the API and the `/api/v1` proxy,
 which forwards uploads to `api/uploads` and everything else to `api/common`.
 Repositories speak the asynchronous flows (create-then-upload, polling,
 Paystack checkout) behind unchanged signatures.
@@ -117,8 +116,9 @@ Paystack checkout) behind unchanged signatures.
 ### 2.6 mobile/flutter **[Built on fakes; remote repositories planned]**
 
 Feature-first Flutter app (mobile-implementation.md) running on `*Fake`
-repositories; the `*Remote` set and real Firebase auth land once
-`flutterfire configure` produces the options files.
+repositories; the `*Remote` set and the real sign-in (the API's Google
+SSO handoff, as the web does) land with the API wave, and push waits on
+`flutterfire configure`.
 
 ## 3. Core sequences
 
@@ -177,7 +177,7 @@ sequenceDiagram
 Postgres is the system of record (S-3), read and written only by
 `api/common`, with row-level security on private data (S-11). Object storage
 holds images: `tmp/` (24 h), `captures/` (30 days after save), `media/`
-(published post images, public), `attachments/` and `exports/` (signed
+(published post images), `attachments/` and `exports/` (all served by signed
 URLs), `compute/` (claim-check payloads, 1 day). Redis holds rate-limit
 windows. See [data-model.md](data-model.md).
 
@@ -211,18 +211,18 @@ flowchart LR
 ## 6. Deployment **[Built]**
 
 - **Cloud** (X-3, X-6): Cloud Run services at min 0 (scale to zero with
-  wake-ups), sweeps as Cloud Run jobs, Aiven Postgres and Redis, the shared
-  Aiven Kafka, Cloud Storage; web on Firebase App Hosting. Tag-gated
+  wake-ups), sweeps as Cloud Scheduler POSTs to common, the managed Postgres and Valkey, the shared
+  Kafka, Cloud Storage; web on Firebase App Hosting. Tag-gated
   releases. See [deployment.md](deployment.md).
 - **Self-host**: `docker-compose.yml` (Postgres, Kafka KRaft, Redis,
-  SeaweedFS, the Firebase auth emulator, the four services, the sweep loop,
+  SeaweedFS, the four services, the sweep loop,
   web) and the standard-form Helm chart with CronJobs and an API ingress.
 
 ## 7. Cross-repo dependencies
 
 | Dependency | Needed by | Status |
 | --- | --- | --- |
-| D1 `account.cuesoft.io` facade | future identity facade only | **Not blocking** (X-1): Firebase Auth on `sandbox-e306a` is the ratified interim and the facade fronts the same tokens. |
-| D2 Upstat event-ingestion API | ECO-ANALYTICS | Upstat has no generic event endpoint today — tracked in upstat's roadmap. |
+| D1 `account.cuesoft.io` facade | future identity facade only | **Not blocking** (X-1): in-app Google sign-in with an API-issued session is the ratified interim; the facade can front the same sign-in later. |
+| D2 Monitoring service event-ingestion API | ECO-ANALYTICS | The monitoring service has no generic event endpoint today, tracked in the monitoring service's roadmap. |
 | D3 `privacy.cuesoft.io` Apparule clause | APP-005 | Content dependency; page links out. |
-| CueLABS shared Kafka (X-11) | every hand-off | Shared with Expendit and Upstat; Expendit keeps it awake. |
+| shared Kafka (X-11) | every hand-off | Shared with the sibling products; a sibling product keeps it awake. |

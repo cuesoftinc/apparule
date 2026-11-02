@@ -11,10 +11,10 @@ environment:
   flutter: 3.44.7 # mirrored from .fvmrc — the single source of truth (mobile-implementation.md §2)
 
 # The ratified dependency set (standards-research ledger, verified pub.dev
-# 2026-07-21). The auth cutover wired firebase_core/firebase_auth/
-# google_sign_in (§9); the per-flavor `flutterfire configure` output
-# (firebase_options.dart for prod, firebase_options_dev.dart) is pending
-# `firebase login --reauth`.
+# 2026-07-21). Sign-in rides the API's Google SSO handoff in a browser
+# tab (flutter_web_auth_2, §9); firebase_core stays for push, with the
+# per-flavor `flutterfire configure` output (firebase_options.dart for
+# prod, firebase_options_dev.dart) pending `firebase login --reauth`.
 dependencies:
   cached_network_image: ^3.4.1
   # Pin-ledger addition (C6 capture wave): the first-party camera plugin
@@ -23,8 +23,8 @@ dependencies:
   # preview + shutter behind the abstract `CameraService` seam; dev/CI
   # ride `CameraServiceFake` (bundled sample frame, no hardware).
   camera: ^0.12.1
+  crypto: ^3.0.7
   dio: ^5.11.1
-  firebase_auth: ^6.7.1
   firebase_core: ^4.15.0
   flutter:
     sdk: flutter
@@ -33,9 +33,11 @@ dependencies:
   flutter_riverpod: ^3.3.2
   flutter_secure_storage: ^11.2.0
   flutter_svg: ^2.2.0
+  # Auth cutover: the API's Google sign-in opens in a system browser tab
+  # (ASWebAuthenticationSession / Custom Tabs) and returns on apparule://.
+  flutter_web_auth_2: ^5.1.0
   freezed_annotation: ^3.1.0
   go_router: ^18.0.1
-  google_sign_in: ^7.2.0
   # Pin-ledger addition (C15 composer wave) — FLAGGED: not yet in the
   # ratified standards-research ledger. The first-party media picker
   # (Android Photo Picker / iOS PHPicker) behind the abstract

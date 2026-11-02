@@ -89,7 +89,7 @@
     outline-offset: 2px;
   }
 
-  /* Cursor affordance [Directive 2026-07-19] — Tailwind v4 defaults buttons
+  /* Cursor affordance [Specified 2026-07-19] — Tailwind v4 defaults buttons
      to cursor:default; enabled interactive controls show the pointer.
      Links keep the native pointer; disabled controls keep default. */
   button:not(:disabled),

@@ -31,7 +31,7 @@ def test_low_resolution():
 
 def _person_mask(h: int, w: int) -> np.ndarray:
     mask = np.zeros((h, w), dtype=bool)
-    mask[h // 4: 3 * h // 4, w // 3: 2 * w // 3] = True
+    mask[h // 4 : 3 * h // 4, w // 3 : 2 * w // 3] = True
     return mask
 
 
@@ -132,8 +132,7 @@ def test_profile_is_judged_by_shoulder_span_not_shoulder_hip_ratio():
     """The user's real profile had a shoulder/hip width ratio of 1.48 (the
     old rule wanted < 0.9) but a shoulder span of ~0.1 of torso length."""
     # The real photo's spans: shoulders 0.037, hips 0.028 of the frame.
-    side = person("side", **{"11": (0.527, 0.25), "12": (0.490, 0.25), "23": (0.507, 0.52), "24": (0.479, 0.52),
-                             "15": (0.500, 0.53)})
+    side = person("side", **{"11": (0.527, 0.25), "12": (0.490, 0.25), "23": (0.507, 0.52), "24": (0.479, 0.52), "15": (0.500, 0.53)})
     assert pose_qc.shoulder_hip_ratio(side) > QC.frontal_ratio_min
     assert pose_qc.shoulder_span_ratio(side) < QC.profile_span_max
     assert pose_qc.check(side, "side", QC) is None

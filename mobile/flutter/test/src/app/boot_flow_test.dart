@@ -13,7 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../helpers/boot_app.dart';
 import '../../helpers/in_memory_persistence.dart';
 
-/// The cold-start contract (boot-flow directive 2026-07-22): splash →
+/// The cold-start contract: splash →
 /// session-restore gate → C1 when no session / straight into the tab
 /// shell when one persisted; the fake persists its session through the
 /// same seam the real flow uses, so sign-in survives relaunch and

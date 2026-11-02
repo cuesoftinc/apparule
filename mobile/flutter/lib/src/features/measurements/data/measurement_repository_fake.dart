@@ -207,7 +207,7 @@ class MeasurementRepositoryFake
     // deterministic reference cm at 168, scaled by the entered height;
     // exactly one row per template scores <0.7 so the low-confidence UI
     // stays exercised). The px metrics above still drive QC; per-field
-    // value estimation lands with the backend recalibration directive.
+    // value estimation lands with the backend recalibration.
     final heightScale = userHeightCm / 168;
 
     final id = 'sess-local-${++_localSequence}';

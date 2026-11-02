@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SignInGate } from "@/auth/SignInGate";
+import { getOAuthRedirectErrorMessage } from "@/auth/oauth-errors";
 import { GoogleAuthButton } from "@/components/ui/GoogleAuthButton";
 
 // Single auth screen per flows/auth.md §5 — Google CTA + legal links only
@@ -11,7 +12,18 @@ export const metadata: Metadata = {
   description: "Sign in to Apparule with Google",
 };
 
-export default function SignInPage() {
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const query = await searchParams;
+  const params = new URLSearchParams();
+  for (const key of ["error", "error_description", "message"]) {
+    const value = query[key];
+    if (typeof value === "string") params.set(key, value);
+  }
+  const failure = getOAuthRedirectErrorMessage(params);
   return (
     <main
       id="main"
@@ -28,6 +40,12 @@ export default function SignInPage() {
               Precision measurement meets social fashion
             </p>
           </header>
+
+          {failure ? (
+            <p role="alert" className="text-center text-caption text-text-2">
+              {failure}
+            </p>
+          ) : null}
 
           <GoogleAuthButton />
 

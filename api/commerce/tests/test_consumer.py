@@ -46,10 +46,13 @@ async def test_the_handler_gets_the_request_id(contract, store):
     assert calls.handled == [message["request_id"]]
 
 
-@pytest.mark.parametrize("value", [
-    {"type": "expendit.import.ready", "version": "1.0"},
-    None,
-])
+@pytest.mark.parametrize(
+    "value",
+    [
+        {"type": "expendit.import.ready", "version": "1.0"},
+        None,
+    ],
+)
 async def test_other_products_messages_are_skipped(contract, store, value):
     calls = Calls()
     await dispatcher(contract, store, calls).handle(topics.TOPIC_REQUESTS, value)

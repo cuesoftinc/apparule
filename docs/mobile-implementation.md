@@ -2,21 +2,21 @@
 
 > How `mobile/flutter` gets built: the **CueLABS™ Mobile (Flutter)
 > Implementation Standard** (ratified 2026-07-21, org-wide
-> `oss-engineering-standards` SKILL.md §"Mobile (Flutter) implementation
-> standard" — apparule is the first and only mobile product) carried by
-> reference, plus the apparule-specific contract — phase plan, architecture
+> the CueLABS engineering standard §"Mobile (Flutter) implementation
+> standard", apparule is the first and only mobile product) carried by
+> reference, plus the apparule-specific contract, phase plan, architecture
 > tree, routing/data conventions, the C6 capture contract, and the legacy
 > disposition ledger. This doc is the full detail the SKILL section points
-> to; the SKILL section is the org canon and is never duplicated here beyond
+> to; the SKILL section is never duplicated here beyond
 > what apparule needs to build against it. Markers as in
-> [design.md](design.md): **[Directive]** = user-stated direction,
+> [design.md](design.md): **[Specified]** = stated direction,
 > **[Proposed]** = ratifiable decision, **[Decided <date>]** = ratified.
 > Companion contracts: [web-implementation.md](web-implementation.md) (the
 > sibling client, same mock-first method), [flows/auth.md](flows/auth.md)
 > (Google-only sign-in), [capture-qc.md](capture-qc.md) (QC thresholds +
 > fail codes), [pages.md](pages.md) Part C (the C-series screen inventory),
 > [design.md](design.md) §2 (tokens), [decisions.md](decisions.md) (M-series
-> rulings this doc executes).
+> decisions this doc executes).
 
 ## 1. Scope & phases
 
@@ -36,8 +36,8 @@ Four phases, each closing before the next opens (mirrors the audit ledger's
    closing the X-6/CV-7 gap) → the feature-first skeleton (§3), typed router
    (§5), Riverpod DI (§4), and the token theme (§7) with an en-only l10n
    re-key. Nothing user-visible changes yet.
-2. **Design/components** — one `core/ui` module per Figma C-series component
-   set (§7), golden-tested, before any screen consumes them — the same
+2. **Design/components**, one `core/ui` module per Figma C-series component
+   set (§7), golden-tested, before any screen consumes them, the same
    build-order discipline as `web/`'s W1 stage.
 3. **Screens over seeded fakes** — every C-series screen (§5 route map)
    wired to its ViewModel and repository, backed entirely by `*Fake`
@@ -47,7 +47,7 @@ Four phases, each closing before the next opens (mirrors the audit ledger's
    fakes already satisfy; `main.dart` (prod, M-7) swaps the provider
    overrides. No screen or ViewModel changes at this step by construction.
 
-Backend integration timing follows the fleet rule: mobile's API wiring and
+Backend integration timing follows the standing rule: mobile's API wiring and
 the backend services it calls remain separately gated — this doc covers
 phases 1–3 in full and phase 4's client-side contract; the backend itself is
 unauthorized independent of this doc (roadmap.md).
@@ -66,12 +66,11 @@ unauthorized independent of this doc (roadmap.md).
   goes read-only 2026-12-02, so no new CocoaPods dependency is added; the
   existing iOS shell (salvaged per §11) migrates its dependency graph to
   SwiftPM as part of the restructure, not deferred to a later cleanup.
-- **Flavors — exactly two (M-7)**: `dev` and `prod`. The CueLABS
-  environment model has ONE real environment: the sandbox account is
-  production for these projects (user directive 2026-07-22; X-6). `dev`
+- **Flavors — exactly two (M-7)**: `dev` and `prod`. There is
+  ONE real environment, so the sandbox is production (X-6). `dev`
   carries `applicationIdSuffix ".dev"` and rides the fake repositories;
   `prod` carries the bare `io.cuesoft.apparule` id and runs on
-  `sandbox-e306a`. Two `main_<flavor>` entrypoints (`main.dart` =
+  `<project-id>`. Two `main_<flavor>` entrypoints (`main.dart` =
   `prod`, the default; `main_dev.dart` = fakes). On iOS the pair is the
   `dev`/`prod` shared schemes over `Debug/Release/Profile-<flavor>`
   build configurations (Flutter's flavor convention), each layering a
@@ -80,18 +79,17 @@ unauthorized independent of this doc (roadmap.md).
   (`io.cuesoft.apparule.dev` / bare). Flavored builds are also what
   scopes the dev-only `assets/seed/` bundle entries: a flavorless
   `xcodebuild` produces an app whose fakes run EMPTY. A third flavor
-  appears only if a separate production environment is ever ratified —
-  the bare id already sits on `prod`, so identity would migrate
+  appears only if a separate production environment is ever ratified, the bare id already sits on `prod`, so identity would migrate
   cleanly.
-- **Env from Doppler**: secrets reach the app via
-  `--dart-define-from-file=env/<flavor>.json`, generated from the
-  `apparule` Doppler project (X-5) and gitignored — `dev` reads the
-  `dev` config; `prod` reads the **`stg` config** (the Doppler config
-  name stays `stg`; the account it configures is CueLABS production).
+- **Env from your secrets manager**: secrets reach the app via
+  `--dart-define-from-file=env/<flavor>.json`, generated from
+  your secrets manager (X-5) and gitignored; `dev` reads the `dev` config and
+  `prod` reads the production config.
   No `envied` or build-time obfuscation stands in for real secret
   handling.
-- **Firebase per flavor**: `flutterfire configure` run once per flavor
-  against `sandbox-e306a`, producing two registrations →
+- **Firebase per flavor (push only; auth rides the API, §9)**:
+  `flutterfire configure` run once per flavor
+  against `<project-id>`, producing two registrations →
   `firebase_options_dev.dart` + `firebase_options.dart` (prod)
   (phase-4: generated by `flutterfire configure`, pending; once
   committed, no secrets live in these files beyond the public API key
@@ -121,8 +119,7 @@ truth for their domain and never reference each other; services are
 stateless single-source wrappers; data flows one direction (UI action →
 ViewModel → repository → service → back up as new state); domain models are
 immutable; a `domain/` use-case layer appears inside a feature only when
-genuinely earned (multiple ViewModels sharing non-trivial orchestration) —
-most features skip it.
+genuinely earned (multiple ViewModels sharing non-trivial orchestration), most features skip it.
 
 Organization is **feature-first**, not layer-first — no separate top-level
 `application/` layer exists anywhere in the tree:
@@ -133,13 +130,13 @@ mobile/flutter/
   analysis_options.yaml
   l10n.yaml
   pubspec.yaml
-  env/                        # gitignored — Doppler-generated per flavor
+  env/                        # gitignored, generated from your secrets manager per flavor
   assets/
     images/ icons/ fonts/
-    seed/                     # §6 — dev-flavor-scoped narrative JSON
-  android/ ios/                # INSIDE the flutter project root (outer mobile/android, mobile/ios are reserved native-app placeholders — §11)
+    seed/                     # §6, dev-flavor-scoped narrative JSON
+  android/ ios/                # INSIDE the flutter project root (outer mobile/android, mobile/ios are reserved native-app placeholders, §11)
   lib/
-    main.dart                  # prod entrypoint (sandbox = CueLABS production, M-7)
+    main.dart                  # prod entrypoint (sandbox is production, M-7)
     main_dev.dart               # fakes wired by default
     firebase_options_dev.dart   # phase-4: flutterfire configure, pending
     firebase_options.dart       # prod (phase-4: flutterfire configure, pending)
@@ -156,10 +153,10 @@ mobile/flutter/
         routes.dart               # go_router_builder typed route classes
       core/
         theme/
-          tokens/                # GENERATED from Figma variables — never hand-edited
+          tokens/                # GENERATED from Figma variables, never hand-edited
           app_theme.dart
           theme_extensions.dart  # one ThemeExtension per token group
-        ui/                      # design system — one module per Figma C-series set (§7)
+        ui/                      # design system, one module per Figma C-series set (§7)
         data/
           api_client.dart         # single configured Dio + interceptors
           persistence_service.dart # flutter_secure_storage wrapper
@@ -178,7 +175,7 @@ mobile/flutter/
 ```
 
 The six top-level features (`auth`, `feed`, `measurements`, `orders`,
-`profile`, `earnings`) are the ratified set (SKILL canon); the C-series →
+`profile`, `earnings`) are the ratified set (ratified set); the C-series →
 feature mapping above is this doc's scoping decision, made the same way
 `web/`'s route map resolved pages.md's shorthand (web-implementation.md
 §4): notifications (C10) sit in `profile` (its entry point is the profile
@@ -199,9 +196,9 @@ use-cases (only when earned); `data/` holds the repository interface, its
 
 ## 4. State & dependency injection
 
-**Riverpod 3 with codegen** — `@riverpod` annotates ViewModels;
+**Riverpod 3 with codegen**, `@riverpod` annotates ViewModels;
 `riverpod_generator` emits providers; `riverpod_lint` (3.x, a native
-analyzer plugin — `custom_lint` is retired upstream) enforces the
+analyzer plugin, `custom_lint` is retired upstream) enforces the
 conventions, surfaced by `flutter analyze` in CI. Widgets are
 `ConsumerWidget`/`ConsumerStatefulWidget`; form/action submissions use
 Riverpod mutations rather than hand-rolled loading-state fields.
@@ -248,27 +245,27 @@ the standard cookbook) are on by default — a post permalink
 (`apparule.cuesoft.io/p/{post_id}`, web-implementation.md §4) opens the C4
 post-detail screen in-app when the app is installed.
 
-| Route | Screen | pages.md |
-| --- | --- | --- |
-| `/signin` | Single Google-CTA auth screen | C1 (flows/auth.md §5) |
-| `/onboarding/first-action` | Post-signup interstitial | C1b |
-| `/` (Home tab) | Home feed | C2 |
-| `/explore` (Explore tab) | Search + grid | C3 |
-| `/post/{id}` | Post detail | C4 |
-| `/post/{id}/comments` | Comments sheet (full) | C11 |
-| `/request/{postId}` | Request stepper | C5 |
-| `/capture` (via the ➕ chooser, M-11) | Measurement capture | C6 |
-| `/vault` | Measurement vault | C7 |
-| `/orders` (Orders tab) · `/orders/{id}` | Orders list + detail | C8 |
-| `/profile` (Profile tab) · `/profile/{username}` | Own / other profile | C9 |
-| `/profile/edit` | Edit profile (display name · bio — designer-scoped, hidden for non-designers (pages.md C9) · X-10 location) | C9 |
-| `/notifications` | Notifications sheet | C10 |
-| `/profile/{username}/followers` · `/following` | Followers/following | C12 |
-| `/settings` · `/settings/{notifications,privacy,account}` | Settings root + the B7-mobile sub-screens (canvas 207:*) — account & data carries the export-first delete ladder | pages.md B7 |
-| `/designer/onboarding` | Designer onboarding & KYC | C13 |
-| `/designer/onboarding/payout` | Payout banking form (Paystack states) — a sibling under the prefix, not a child (the capture-guide precedent: re-verification entries must not stack a stale intro) | C13 |
-| `/earnings` | Earnings & payouts | C14 |
-| `/create/post` | Post composer (designer) — media grid over the `MediaPickerService` seam (image_picker live / bundled-sample fake), caption, snapshot-attach toggle | C15 |
+| Route                                                     | Screen                                                                                                                                                              | pages.md              |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| `/signin`                                                 | Single Google-CTA auth screen                                                                                                                                       | C1 (flows/auth.md §5) |
+| `/onboarding/first-action`                                | Post-signup interstitial                                                                                                                                            | C1b                   |
+| `/` (Home tab)                                            | Home feed                                                                                                                                                           | C2                    |
+| `/explore` (Explore tab)                                  | Search + grid                                                                                                                                                       | C3                    |
+| `/post/{id}`                                              | Post detail                                                                                                                                                         | C4                    |
+| `/post/{id}/comments`                                     | Comments sheet (full)                                                                                                                                               | C11                   |
+| `/request/{postId}`                                       | Request stepper                                                                                                                                                     | C5                    |
+| `/capture` (via the ➕ chooser, M-11)                     | Measurement capture                                                                                                                                                 | C6                    |
+| `/vault`                                                  | Measurement vault                                                                                                                                                   | C7                    |
+| `/orders` (Orders tab) · `/orders/{id}`                   | Orders list + detail                                                                                                                                                | C8                    |
+| `/profile` (Profile tab) · `/profile/{username}`          | Own / other profile                                                                                                                                                 | C9                    |
+| `/profile/edit`                                           | Edit profile (display name · bio — designer-scoped, hidden for non-designers (pages.md C9) · X-10 location)                                                         | C9                    |
+| `/notifications`                                          | Notifications sheet                                                                                                                                                 | C10                   |
+| `/profile/{username}/followers` · `/following`            | Followers/following                                                                                                                                                 | C12                   |
+| `/settings` · `/settings/{notifications,privacy,account}` | Settings root + the B7-mobile sub-screens (canvas 207:*) — account & data carries the export-first delete ladder                                                    | pages.md B7           |
+| `/designer/onboarding`                                    | Designer onboarding & KYC                                                                                                                                           | C13                   |
+| `/designer/onboarding/payout`                             | Payout banking form (Paystack states) — a sibling under the prefix, not a child (the capture-guide precedent: re-verification entries must not stack a stale intro) | C13                   |
+| `/earnings`                                               | Earnings & payouts                                                                                                                                                  | C14                   |
+| `/create/post`                                            | Post composer (designer) — media grid over the `MediaPickerService` seam (image_picker live / bundled-sample fake), caption, snapshot-attach toggle                 | C15                   |
 
 The ➕ tab is an entry **gesture**, not a shell branch: it opens the
 M-11 chooser sheet over the current tab ("Take measurements" →
@@ -288,9 +285,9 @@ today; `main.dart` (prod) is where `*Remote` is introduced when API
 wiring lands (§1 phase 4). No `if (kDebugMode)` branching inside
 feature code.
 
-The fakes run the **real session lifecycle** (user directive
+The fakes run the **real session lifecycle** (decided
 2026-07-22): `AuthRepositoryFake` persists a labeled session marker
-through the same secure-storage seam the Firebase implementation uses
+through the same secure-storage seam the API-session implementation uses
 for tokens at rest, so a first-ever launch boots signed out to C1, the
 instant fake "Continue with Google" survives relaunches, and sign-out
 purges it back to C1 — exactly web TEST_MODE's session behavior, over
@@ -305,20 +302,20 @@ coherent world, not two disconnected demos; the C6 capture seam's
 non-domain seeds and the shared photography pool ship alongside them.
 The `assets/seed/dev/` bundle, in full:
 
-| Seed file | Domain | Ties to (web parity) |
-| --- | --- | --- |
-| `assets/seed/dev/me.json` | Signed-in test user: non-designer, vault populated across all three freshness states, follows several designers; account fields (email · bio · notification/privacy prefs · consent ledger) for C9/B7 | web §6 "signed-in test user" |
-| `assets/seed/dev/designers.json` | The Nigerian designer-persona cast, incl. `eniola.stitches` (Abuja, proximity-ranking exemplar) | web §6 designer cast |
-| `assets/seed/dev/accounts.json` | The community cast + the full follow edge list — C12 lists and every profile count derive from these edges (follower counts mirror the graph) | web §6 `seedFollows` verbatim |
-| `assets/seed/dev/earnings.json` | The designer-monetization story: `amara.designs` carries the ratified C14 canvas ledger (₦82,500 available / ₦45,000 escrow, Paystack refs) | web canvas A6/B9 demo story |
-| `assets/seed/dev/posts.json` | Published posts over the same CC-sourced photography pool, captions, style tags, NGN price bands | web §6 posts / design.md §8.3 asset pool |
-| `assets/seed/dev/vault_sessions.json` | Scan + manual measurement sessions (the source for `me.json`'s vault and for measurement snapshots frozen into orders) | web §6 vault seed / capture-qc.md |
-| `assets/seed/dev/orders.json` | All ten order-lifecycle states, at least one per role view, incl. an escrow-held payment and a dispute-frozen order | web §6 "all ten states" |
-| `assets/seed/dev/notifications.json` | Every notification kind, part unread | web §6 notifications |
-| `assets/seed/dev/capture_samples.json` | The fake camera's QC scenario catalog — one scenario per fail code plus the happy path and a multi-fault exemplar, carrying the simulated pipeline metrics the real threshold evaluation runs against | capture-qc.md fail-code table |
-| `assets/seed/dev/sample_frontal.png` | The bundled front-pose frame every fake-camera scenario previews/captures | C6 capture (M-10 front pose) |
-| `assets/seed/dev/sample_side.png` | The bundled side-pose frame (right profile) | C6 capture (M-10 side pose) |
-| `assets/seed/dev/demo/` | The CC-licensed outfit photography pool (12 images + `ATTRIBUTIONS.md`), byte-identical to the web mock's `web/public/demo` — seed posts carry the web's `/demo/…` URL form verbatim, resolved to bundle assets by `seed_media` | web §6 media pool / design.md §8.3 sourcing |
+| Seed file                              | Domain                                                                                                                                                                                                                          | Ties to (web parity)                        |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| `assets/seed/dev/me.json`              | Signed-in test user: non-designer, vault populated across all three freshness states, follows several designers; account fields (email · bio · notification/privacy prefs · consent ledger) for C9/B7                           | web §6 "signed-in test user"                |
+| `assets/seed/dev/designers.json`       | The Nigerian designer-persona cast, incl. `eniola.stitches` (Abuja, proximity-ranking exemplar)                                                                                                                                 | web §6 designer cast                        |
+| `assets/seed/dev/accounts.json`        | The community cast + the full follow edge list — C12 lists and every profile count derive from these edges (follower counts mirror the graph)                                                                                   | web §6 `seedFollows` verbatim               |
+| `assets/seed/dev/earnings.json`        | The designer-monetization story: `amara.designs` carries the ratified C14 canvas ledger (₦82,500 available / ₦45,000 escrow, Paystack refs)                                                                                     | web canvas A6/B9 demo story                 |
+| `assets/seed/dev/posts.json`           | Published posts over the same CC-sourced photography pool, captions, style tags, NGN price bands                                                                                                                                | web §6 posts / design.md §8.3 asset pool    |
+| `assets/seed/dev/vault_sessions.json`  | Scan + manual measurement sessions (the source for `me.json`'s vault and for measurement snapshots frozen into orders)                                                                                                          | web §6 vault seed / capture-qc.md           |
+| `assets/seed/dev/orders.json`          | All ten order-lifecycle states, at least one per role view, incl. an escrow-held payment and a dispute-frozen order                                                                                                             | web §6 "all ten states"                     |
+| `assets/seed/dev/notifications.json`   | Every notification kind, part unread                                                                                                                                                                                            | web §6 notifications                        |
+| `assets/seed/dev/capture_samples.json` | The fake camera's QC scenario catalog — one scenario per fail code plus the happy path and a multi-fault exemplar, carrying the simulated pipeline metrics the real threshold evaluation runs against                           | capture-qc.md fail-code table               |
+| `assets/seed/dev/sample_frontal.png`   | The bundled front-pose frame every fake-camera scenario previews/captures                                                                                                                                                       | C6 capture (M-10 front pose)                |
+| `assets/seed/dev/sample_side.png`      | The bundled side-pose frame (right profile)                                                                                                                                                                                     | C6 capture (M-10 side pose)                 |
+| `assets/seed/dev/demo/`                | The CC-licensed outfit photography pool (12 images + `ATTRIBUTIONS.md`), byte-identical to the web mock's `web/public/demo` — seed posts carry the web's `/demo/…` URL form verbatim, resolved to bundle assets by `seed_media` | web §6 media pool / design.md §8.3 sourcing |
 
 The web seed's moderation queue has no mobile counterpart: filing a
 report (`PostRepository.reportPost`, held in-memory by the fake) is the
@@ -387,8 +384,7 @@ mobile CI lane today):
    iOS-simulator build (`mobile-ios`, dev flavor: proves the Xcode flavor
    wiring, the SwiftPM graph at the iOS 15 floor, and that the flavored
    seed assets bundle); no `apk` build job exists yet, and `main`-merge
-   itself never deploys (X-6, matching the web fleet's build+test-only
-   gate).
+   itself never deploys (X-6, matching the web build+test-only gate).
 
 ## 9. Auth
 
@@ -398,23 +394,32 @@ production backend; the legacy screen surface implementing the forbidden
 methods was quarantined at the cutover and removed 2026-07-22
 (CHANGELOG.md).
 
-**Auth posture [Decided 2026-07-22, user]**: the TEST_MODE-parity fakes
-are the **ratified state until phase 4** — both flavors ride
-`AuthRepositoryFake` over the real session lifecycle (§6). The Firebase
-wiring below stays documented but **gated**: no Firebase auth wiring
-lands before the explicit phase-4 go (§1).
+**Auth posture [Decided 2026-07-22, user; sign-in method 2026-10-28]**:
+the TEST_MODE-parity fakes are the **ratified state until phase 4**, and both
+flavors ride `AuthRepositoryFake` over the real session lifecycle (§6).
+The API wiring below stays documented but **gated**: no entrypoint wires
+`apiAuthRepositoryOverride()` before the explicit phase-4 go (§1).
 
-- `firebase_core` + `firebase_auth` + `google_sign_in` (7.x): the sign-in
-  call sequence is `GoogleSignIn.instance.initialize(serverClientId)` →
-  `.authenticate()` → `GoogleAuthProvider.credential(idToken)` →
-  `signInWithCredential`; silent session restore uses
-  `attemptLightweightAuthentication()` on app start, replacing the legacy's
-  splash-screen logic that could route a returning user back to
+- **Same flow as the web (M-13)**: `AuthRepositoryApi` opens
+  `GET {API_URL}/api/v1/auth/sso/google?return_to=apparule://app&cv=<S256
+challenge>` in a browser tab (`flutter_web_auth_2`, callback scheme
+  `apparule`); the API runs Google's code flow and returns to
+  `apparule://app/auth/callback?handoff=<code>`. The app posts
+  `{handoff, verifier}` to `/api/v1/auth/sso/exchange`, stores the returned
+  access token in secure storage and sends it as `Authorization: Bearer`
+  (`apiClient` interceptor). A dismissed tab or `error=access_denied` is
+  `canceled`; connectivity failures are `network`; the rest is `unknown`.
+- Silent restore reads the stored token back through `GET /api/v1/me` on
+  app start (a 401 clears the token and boots signed out), replacing the
+  legacy's splash-screen logic that could route a returning user back to
   `EmailVerificationPage` forever (audit ledger critical finding #4).
-- `flutterfire configure` is run once per flavor against `sandbox-e306a`
-  (§2) — two app registrations, two options files
-  (`firebase_options_dev.dart` + `firebase_options.dart`), matching the
-  flavor `applicationIdSuffix`/scheme.
+  Sign-out posts `/api/v1/auth/logout` and clears the token even when the
+  call fails.
+- `API_URL` must share its host with the API's `GOOGLE_REDIRECT_URI`
+  (deploy-runbook.md §2): the sign-in state cookie is set on the start
+  request and must reach the Google callback. Android registers the
+  `apparule` scheme through the plugin's `CallbackActivity`; iOS needs no
+  extra setup. Firebase stays for push only (`firebase_core`, §2).
 - **Boot gate**: cold start runs the silent restore behind the branded
   in-app boot frame (`BootScreen` — gradient wordmark on the token `bg`,
   continuing the native splash; a quiet spinner only past ~300ms). The
@@ -425,20 +430,19 @@ lands before the explicit phase-4 go (§1).
 - Session tokens live in `flutter_secure_storage` — never
   `SharedPreferences` (the legacy app's session model: plaintext PII as the
   session itself, audit ledger critical finding #3 / CV-2).
-- Wrapped in an abstract `AuthRepository` with `AuthRepositoryFirebase` and
+- Wrapped in an abstract `AuthRepository` with `AuthRepositoryApi` and
   `AuthRepositoryFake` (§6) — the fake satisfies the same interface so
   every screen downstream of sign-in works identically over seeded data
-  before Firebase wiring lands.
-- Screen inventory: `login_page` becomes the single auth screen (C1 —
-  Google CTA + legal links, same copy as web's `/signin`); `sign_up_form`,
+  before the API wiring lands.
+- Screen inventory: `login_page` becomes the single auth screen (C1, Google CTA + legal links, same copy as web's `/signin`); `sign_up_form`,
   `sign_up_screen`, `forgot_password`, `reset_password`, `verify_email`,
   `sms_verification`, `verify_account` are retired **by name**, per
-  flows/auth.md §5 — the identical screen-removal list already ratified
+  flows/auth.md §5, the identical screen-removal list already ratified
   for the web auth surface, applied here to their Flutter equivalents.
 
 ## 10. Measurement capture contract (C6)
 
-Canon: **two photos — front + side (right profile) — plus height** (M-10,
+Canon: **two photos, front + side (right profile), plus height** (M-10,
 decisions.md; api.md `POST /measure`; capture-qc.md; flows/vault.md §1).
 The pose progress renders as a centered over-media bar title ("Pose 1 of
 2" / "Pose 2 of 2", M-9).
@@ -453,25 +457,24 @@ The pose progress renders as a centered over-media bar title ("Pose 1 of
   upload (`image_front` + `image_side` + height, one request) →
   processing state → results.
 - **Height input**: collected once per session (`user_height_cm`, api.md
-  `POST /measure` form field — the field displays inches by default per
+  `POST /measure` form field, the field displays inches by default per
   A-9, entry converts to canonical cm), feeding the
   `scale = (user_height_cm × 0.93) / body_height_px` correction from the
   front image (capture-qc.md §3,
-  `method: mediapipe_2d_v2`); girths estimate from the two views — the
-  **[Directive: measurement pipeline recalibration needed]** marker lives
+  `method: mediapipe_2d_v2`); girths estimate from the two views, the
+  **[Specified: measurement pipeline recalibration needed]** marker lives
   in capture-qc.md §3 and lands with the backend phase.
 - **QC fail codes**: **per pose, first-failure-only** (capture-qc.md
   §1/§2). The front pose surfaces `undecodable_image`, `low_resolution`,
   `poor_lighting`, `blurry`, `no_body`, `multiple_bodies`, `partial_body`,
   `not_frontal`, `camera_tilt`, `arms_position`, `too_far`; the side pose
   adds `not_side_profile` and swaps `arms_position` to the arms-relaxed
-  rule with its side-pose copy. A failing pose re-enters its own camera —
-  an accepted pose is never discarded, and a retry never advances the pose
+  rule with its side-pose copy. A failing pose re-enters its own camera, an accepted pose is never discarded, and a retry never advances the pose
   counter. One actionable retake instruction, never a stacked list.
 - **Results**: measurement cards stagger in with per-measurement
   `confidence` (capture-qc.md §4; values under 0.7 render a "low
-  confidence — consider retaking" chip); values display in inches by
-  default (A-9 — the MI-13 toggle flips to cm; storage stays canonical
+  confidence, consider retaking" chip); values display in inches by
+  default (A-9, the MI-13 toggle flips to cm; storage stays canonical
   cm); "Save to vault" is primary,
   "Retake" is quiet; a manual-entry fallback exists for QC that never
   clears. Saved results route into the `measurements` feature's vault
@@ -491,21 +494,21 @@ calls anywhere in `lib/`) produced the salvage ledger the restructure (§1
 phases 1–3) executed. What of that ledger still shapes the current tree
 is below; the quarantine-and-removal history lives in CHANGELOG.md.
 
-**KEEP** — `countdown.dart` (clean `AnimatedWidget`, reused as the C6 3-2-1
-countdown — now `src/core/ui/countdown.dart`); the logo asset; the l10n
+**KEEP**, `countdown.dart` (clean `AnimatedWidget`, reused as the C6 3-2-1
+countdown, now `src/core/ui/countdown.dart`); the logo asset; the l10n
 pipeline (`l10n.yaml` + `.arb` workflow, re-keyed en-only); the iOS shell
-(patched, not replaced — freshest piece of the legacy tree: modern
+(patched, not replaced, freshest piece of the legacy tree: modern
 `AppDelegate`/`SceneDelegate`, bundle `io.cuesoft.apparule`).
 
-**REWRITE** — `main.dart` (the boot idea is kept; the static
+**REWRITE**, `main.dart` (the boot idea is kept; the static
 `ValueNotifier`/locale plumbing and `didChangePlatformBrightness` override
 are dropped for Riverpod + the theme system, §4/§7); `splash_screen.dart`
-(routes on Firebase auth state, not a hardcoded destination — fixes
+(routes on session state, not a hardcoded destination, fixes
 critical finding #4); `home_screen.dart` → becomes C1's Google CTA screen;
 `guide_screen.dart` → becomes C6's canvas-first 5-step guide (front + side
 poses, M-8/M-10; copy re-keyed to the canvas strings); the localization
 core (re-keyed en-only, the `sq`/Albanian locale dropped);
-`persistence.dart` (narrowed to a theme-preference flag only — the
+`persistence.dart` (narrowed to a theme-preference flag only, the
 PII-as-session pattern is deleted, not migrated, CV-2);
 `app_text_field.dart` (retokened against design.md §2); the `android/`
 project (regenerated: AGP 8+/Kotlin DSL, package renamed off
@@ -514,21 +517,20 @@ ARCore/Sceneform dependencies dropped, real release signing replaces the
 DEBUG-key config); `README.md`/`.metadata`/`.gitignore`.
 
 The outer `mobile/android/` and `mobile/ios/` directories are **reserved
-placeholders for possible future native (non-Flutter) apps** (user
-directive 2026-07-22, `.gitkeep`-held) — the Flutter app's platform dirs
+placeholders for possible future native (non-Flutter) apps** (decided
+2026-07-22, `.gitkeep`-held) — the Flutter app's platform dirs
 live inside `mobile/flutter/`.
 
 **Toolchain findings folded into the restructure phase (§1)**: Dart
 constraint `>=3.1.2` (Sept 2023) raised to the ratified floor; `.metadata`
 (pinned at a 3.13-era `flutter create`) regenerated; `provider ^6.0.5`
 removed (superseded by Riverpod 3, §4); `sms_autofill` dropped with the
-auth screens it served (its Android permission model was permissionless —
-no manifest change needed there; the `CAMERA` permission and
+auth screens it served (its Android permission model was permissionless, no manifest change needed there; the `CAMERA` permission and
 `NSCameraUsageDescription` that C6 requires are declared in
 `AndroidManifest.xml` and `ios/Runner/Info.plist`); `flutter_svg`,
 `shared_preferences` (narrowed use, see REWRITE), and
 `flutter_launcher_icons` carry forward current-ish; `intl` stays
-`^0.20.2` — the SDK's `flutter_localizations` pins intl 0.20.2 exactly,
+`^0.20.2`, the SDK's `flutter_localizations` pins intl 0.20.2 exactly,
 so `^0.20.2` is the widest range the SDK admits and the ledger's
 `^0.20.3` cannot resolve.
 

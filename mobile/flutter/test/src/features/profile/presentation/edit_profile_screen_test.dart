@@ -11,7 +11,7 @@ import '../../../../helpers/notched.dart';
 
 /// C9 edit profile (canvas 532:2): hydrates from the account, persists
 /// display fields + the optional location, pops back to the profile
-/// tab. Bio is designer-scoped ["follow web" ruling 2026-07-22].
+/// tab. Bio is designer-scoped, as on web.
 void main() {
   final pinned = DateTime.utc(2026, 7, 22, 12);
 

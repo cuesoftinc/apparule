@@ -1,11 +1,11 @@
-import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { Inject, Injectable } from '@nestjs/common';
-import Ajv2020, { type ValidateFunction } from 'ajv/dist/2020';
-import addFormats from 'ajv-formats';
-import { CONFIG, type Config } from '../config/config';
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { Inject, Injectable } from "@nestjs/common";
+import Ajv2020, { type ValidateFunction } from "ajv/dist/2020";
+import addFormats from "ajv-formats";
+import { CONFIG, type Config } from "../config/config";
 
-const BASE = 'https://apparule.cuesoft.io/contract/';
+const BASE = "https://apparule.cuesoft.io/contract/";
 
 export class ContractError extends Error {}
 
@@ -15,20 +15,24 @@ export class ContractService {
   private readonly ajv = new Ajv2020({ allErrors: false, strict: false });
   private readonly cache = new Map<string, ValidateFunction>();
 
-  constructor(@Inject(CONFIG) config: Pick<Config, 'contractDir'>) {
+  constructor(@Inject(CONFIG) config: Pick<Config, "contractDir">) {
     addFormats(this.ajv);
-    for (const file of readdirSync(config.contractDir).filter((f) => f.endsWith('.schema.json'))) {
-      this.ajv.addSchema(JSON.parse(readFileSync(join(config.contractDir, file), 'utf8')));
+    for (const file of readdirSync(config.contractDir).filter((f) =>
+      f.endsWith(".schema.json"),
+    )) {
+      this.ajv.addSchema(
+        JSON.parse(readFileSync(join(config.contractDir, file), "utf8")),
+      );
     }
   }
 
   validateEnvelope(message: unknown): void {
-    this.check('envelope', message);
+    this.check("envelope", message);
   }
 
   /** `topic` is the full topic name, e.g. apparule.capture.uploaded. */
   validateData(topic: string, data: unknown): void {
-    this.check(topic.replace(/^apparule\./, ''), data);
+    this.check(topic.replace(/^apparule\./, ""), data);
   }
 
   private check(name: string, value: unknown): void {
@@ -40,7 +44,9 @@ export class ContractService {
     }
     if (!validate(value)) {
       const [error] = validate.errors ?? [];
-      throw new ContractError(`${name}: ${error?.instancePath || '(root)'} ${error?.message ?? 'invalid'}`);
+      throw new ContractError(
+        `${name}: ${error?.instancePath || "(root)"} ${error?.message ?? "invalid"}`,
+      );
     }
   }
 }

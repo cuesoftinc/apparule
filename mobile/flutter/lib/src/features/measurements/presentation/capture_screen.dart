@@ -54,7 +54,7 @@ class CaptureScreen extends ConsumerWidget {
         // MI-20: error buzz on capture failed.
         AppHaptics.error();
       }
-      // Auto-capture a11y (QA-convergence ruling: no shutter exists) —
+      // Auto-capture a11y (no shutter exists) —
       // announce the 3-2-1 arming and the capture firing; the ring's
       // live region carries the per-tick counts in between.
       final wasCounting = previous?.countdown != null;
@@ -279,7 +279,7 @@ class _OnMediaTextAction extends StatelessWidget {
 /// Viewfinder step — the Capture Kit overlay (per-pose silhouette,
 /// MI-12) FULL BLEED over the camera seam's preview (canvas
 /// 173:574/266:8419 front, 540:9224 side). No shutter exists
-/// (QA-convergence ruling, canvas+docs): the ViewModel arms the 3-2-1
+/// (canvas+docs): the ViewModel arms the 3-2-1
 /// once the camera is live and capture fires on completion — twice,
 /// front then side; the controls layer keeps only the manual-entry
 /// escape, and the over-media AppBar's back chevron cancels out of the

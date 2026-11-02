@@ -50,7 +50,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
   }
 
-  /// One pose's auto-capture (QA-convergence ruling: no shutter): the
+  /// One pose's auto-capture (no shutter): the
   /// searching beat arms the 3-2-1 → capture fires on completion.
   Future<void> shootPose(WidgetTester tester) async {
     await tester.pump(kCaptureAlignDelay);
@@ -234,7 +234,7 @@ void main() {
     });
   });
 
-  group('auto-capture (QA-convergence ruling — canvas+docs, no shutter)', () {
+  group('auto-capture (no shutter)', () {
     testWidgets('the viewfinder renders no shutter control and arms the '
         '3-2-1 by itself after the searching beat', (tester) async {
       await bootToCapture(tester);

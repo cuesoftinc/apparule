@@ -32,7 +32,7 @@ export function Popover({
           side={side}
           align={align}
           sideOffset={4}
-          // Collision-clamp canon (org SKILL.md, 2026-07-19): floating
+          // Collision-clamp canon (2026-07-19): floating
           // layers stay fully inside the viewport at every breakpoint and
           // anchor position — 8px breathing room off every edge.
           collisionPadding={8}

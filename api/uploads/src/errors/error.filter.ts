@@ -1,5 +1,11 @@
-import { type ArgumentsHost, Catch, type ExceptionFilter, HttpException, Logger } from '@nestjs/common';
-import type { Response } from 'express';
+import {
+  type ArgumentsHost,
+  Catch,
+  type ExceptionFilter,
+  HttpException,
+  Logger,
+} from "@nestjs/common";
+import type { Response } from "express";
 
 /** Every error leaves in the ecosystem envelope, never as a stack trace. */
 @Catch()
@@ -11,18 +17,33 @@ export class ErrorFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       const body = exception.getResponse();
       const status = exception.getStatus();
-      if (typeof body === 'object' && body !== null && 'error' in body) {
-        const retryAfter = (body as { error: { details?: { retry_after?: number } } }).error.details?.retry_after;
-        if (retryAfter) response.setHeader('Retry-After', String(retryAfter));
+      if (typeof body === "object" && body !== null && "error" in body) {
+        const retryAfter = (
+          body as { error: { details?: { retry_after?: number } } }
+        ).error.details?.retry_after;
+        if (retryAfter) response.setHeader("Retry-After", String(retryAfter));
         response.status(status).json(body);
         return;
       }
       response.status(status).json({
-        error: { code: status === 404 ? 'not_found' : 'bad_request', message: exception.message, details: {} },
+        error: {
+          code: status === 404 ? "not_found" : "bad_request",
+          message: exception.message,
+          details: {},
+        },
       });
       return;
     }
-    this.logger.error({ message: 'unhandled error', error: (exception as Error)?.message });
-    response.status(500).json({ error: { code: 'internal', message: 'Something went wrong', details: {} } });
+    this.logger.error({
+      message: "unhandled error",
+      error: (exception as Error)?.message,
+    });
+    response.status(500).json({
+      error: {
+        code: "internal",
+        message: "Something went wrong",
+        details: {},
+      },
+    });
   }
 }

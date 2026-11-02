@@ -12,7 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 /// C9 — edit profile (canvas 532:2): display name, bio (designer
-/// accounts ONLY — user ruling 2026-07-22, "follow web": web has no
+/// accounts ONLY, following web: web has no
 /// account-level bio edit, the bio is the C9 designer meta line), and
 /// the optional X-10 tier-1 profile location ("used to recommend nearby
 /// designers", pages.md B7) — the same label + field + helper form
@@ -96,7 +96,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final l10n = context.l10n;
     final state = ref.watch(editProfileViewModelProvider);
     // Bio is a designer-surface field (C9 designer meta line) — regular
-    // accounts carry no bio edit, matching web ["follow web" ruling].
+    // accounts carry no bio edit, matching web.
     final isDesigner =
         ref.watch(designerStatusProvider).value?.enabled ?? false;
 

@@ -1,4 +1,4 @@
-// Mobile-responsiveness sweep [Directive P1 2026-07-19]: home AND every
+// Mobile-responsiveness sweep [Specified P1 2026-07-19]: home AND every
 // dashboard route render fully inside the mobile boundary at 390 (768
 // sanity) — the document itself never side-scrolls, and known-wide elements
 // (tables, code snippets, rails) sit in horizontal-scroll containers that

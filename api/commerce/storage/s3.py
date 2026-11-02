@@ -31,6 +31,4 @@ class S3Store:
         return await asyncio.to_thread(_read)
 
     async def put(self, key: str, data: bytes, content_type: str) -> None:
-        await asyncio.to_thread(
-            self._client.put_object, self.bucket, key, io.BytesIO(data), len(data), content_type=content_type
-        )
+        await asyncio.to_thread(self._client.put_object, self.bucket, key, io.BytesIO(data), len(data), content_type=content_type)

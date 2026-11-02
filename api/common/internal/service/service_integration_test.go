@@ -19,6 +19,7 @@ import (
 	"time"
 
 	embeddedpostgres "github.com/fergusstrange/embedded-postgres"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -68,7 +69,6 @@ func (m *memStore) Copy(_ context.Context, src, dst string) error {
 func (m *memStore) SignedURL(_ context.Context, k string, _ time.Duration) (string, error) {
 	return "https://signed.test/" + k, nil
 }
-func (m *memStore) PublicURL(k string) string { return "https://public.test/" + k }
 
 const paystackSecret = "sk_test_secret"
 
@@ -149,7 +149,11 @@ func setup(t *testing.T) *env {
 }
 
 func (e *env) signIn(t *testing.T, uid, email string) *service.Principal {
-	p, err := e.s.SignIn(context.Background(), &auth.Identity{UID: uid, Email: email, Name: strings.Split(email, "@")[0]})
+	id, err := e.s.SignInGoogle(context.Background(), &auth.Identity{Sub: uid, Email: email, Name: strings.Split(email, "@")[0]})
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, err := e.s.ResolveSession(context.Background(), &auth.Claims{RegisteredClaims: jwt.RegisteredClaims{Subject: id}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -552,7 +556,7 @@ func TestCommissionMoneyFlow(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if post.Media[0].AltText != "Outfit by Ada Designs" || !strings.HasPrefix(post.Media[0].URL, "https://public.test/apparule/test/media/") {
+	if post.Media[0].AltText != "Outfit by Ada Designs" || !strings.HasPrefix(post.Media[0].URL, "https://signed.test/apparule/test/media/") {
 		t.Fatalf("post media: %+v", post.Media)
 	}
 

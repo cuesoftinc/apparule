@@ -54,7 +54,7 @@ func (s *Services) rankedPage(ctx context.Context, p *Principal, fingerprint, cu
 		if offset > end {
 			offset = end
 		}
-		posts, err := repository.PostsByIDs(ctx, tx, p.AccountID, ids[offset:end], s.mediaURL)
+		posts, err := repository.PostsByIDs(ctx, tx, p.AccountID, ids[offset:end], s.mediaURL(ctx))
 		if err != nil {
 			return err
 		}
@@ -105,7 +105,7 @@ func (s *Services) Post(ctx context.Context, p *Principal, id string) (*model.Po
 	var out *model.Post
 	err := s.as(ctx, p, func(tx pgx.Tx) error {
 		var err error
-		out, err = repository.GetPost(ctx, tx, p.AccountID, id, s.mediaURL)
+		out, err = repository.GetPost(ctx, tx, p.AccountID, id, s.mediaURL(ctx))
 		return err
 	})
 	return out, err
@@ -205,7 +205,7 @@ func (s *Services) CreatePost(ctx context.Context, p *Principal, in PostInput) (
 		if err != nil {
 			return err
 		}
-		// Published images move to the public media/ prefix (§5.1).
+		// Published images move to the media/ prefix (§5.1).
 		for i, id := range ids {
 			dst := fmt.Sprintf("%s/media/%s/%d.jpg", s.Store.Prefix(), postID, i)
 			moves = append(moves, [2]string{items[i].Key, dst})
@@ -272,7 +272,7 @@ func (s *Services) SetLike(ctx context.Context, p *Principal, postID string, on 
 			return err
 		}
 		return notify(ctx, tx, note{To: author.AccountID, Kind: "like", PayloadRef: postID, RefKind: "post",
-			Text: p.Username + " liked your post", Actor: s.actor(ctx, tx, p), ThumbURL: s.thumb(author.ThumbKey)})
+			Text: p.Username + " liked your post", Actor: s.actor(ctx, tx, p), ThumbKey: author.ThumbKey})
 	})
 }
 
@@ -342,7 +342,7 @@ func (s *Services) AddComment(ctx context.Context, p *Principal, postID, body st
 			return nil
 		}
 		return notify(ctx, tx, note{To: author.AccountID, Kind: "comment", PayloadRef: postID, RefKind: "post",
-			Text: p.Username + " commented on your post", Actor: s.actor(ctx, tx, p), ThumbURL: s.thumb(author.ThumbKey)})
+			Text: p.Username + " commented on your post", Actor: s.actor(ctx, tx, p), ThumbKey: author.ThumbKey})
 	})
 	return out, err
 }
@@ -400,7 +400,7 @@ func (s *Services) ProfilePosts(ctx context.Context, p *Principal, username stri
 		if err != nil {
 			return err
 		}
-		list, err = repository.PostsByDesigner(ctx, tx, p.AccountID, d.ID, pg.Offset, pg.Limit+1, s.mediaURL)
+		list, err = repository.PostsByDesigner(ctx, tx, p.AccountID, d.ID, pg.Offset, pg.Limit+1, s.mediaURL(ctx))
 		return err
 	})
 	return page(list, pg), err
@@ -410,7 +410,7 @@ func (s *Services) SavedPosts(ctx context.Context, p *Principal, pg Paging) (any
 	var list []model.Post
 	err := s.as(ctx, p, func(tx pgx.Tx) error {
 		var err error
-		list, err = repository.SavedPosts(ctx, tx, p.AccountID, pg.Offset, pg.Limit+1, s.mediaURL)
+		list, err = repository.SavedPosts(ctx, tx, p.AccountID, pg.Offset, pg.Limit+1, s.mediaURL(ctx))
 		return err
 	})
 	return page(list, pg), err
@@ -515,14 +515,6 @@ func (s *Services) actor(ctx context.Context, tx pgx.Tx, p *Principal) *model.Ac
 		return &model.Actor{Username: p.Username}
 	}
 	return &model.Actor{Username: a.Username, AvatarURL: a.AvatarURL}
-}
-
-func (s *Services) thumb(key *string) *string {
-	if key == nil {
-		return nil
-	}
-	u := s.mediaURL(*key)
-	return &u
 }
 
 // ── Media batches (create-then-upload for post media and attachments) ──

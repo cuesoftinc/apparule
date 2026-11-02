@@ -28,11 +28,11 @@ func (s *Services) FileReport(ctx context.Context, p *Principal, kind, subjectID
 		if err != nil {
 			return err
 		}
-		preview.ThumbURL = s.thumb(thumbKey)
+		preview.ThumbKey = thumbKey
 		out, err = repository.InsertReport(ctx, tx, p.AccountID, kind, subjectID, reason, detail, preview)
 		return err
 	})
-	return out, err
+	return s.reportOut(ctx, out), err
 }
 
 func requireStaff(p *Principal) error {
@@ -53,6 +53,9 @@ func (s *Services) ModerationQueue(ctx context.Context, p *Principal, pg Paging)
 		list, err = repository.ModerationQueue(ctx, tx, pg.Offset, pg.Limit+1)
 		return err
 	})
+	for i := range list {
+		s.reportOut(ctx, &list[i])
+	}
 	return page(list, pg), err
 }
 
@@ -92,7 +95,7 @@ func (s *Services) ActOnReport(ctx context.Context, p *Principal, id, action str
 		out, err = repository.GetReport(ctx, tx, id)
 		return err
 	})
-	return out, err
+	return s.reportOut(ctx, out), err
 }
 
 // ExploreFilter parses explore's query (api.md §5).

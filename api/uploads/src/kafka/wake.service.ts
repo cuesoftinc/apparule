@@ -1,5 +1,5 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { CONFIG, type Config } from '../config/config';
+import { Inject, Injectable, Logger } from "@nestjs/common";
+import { CONFIG, type Config } from "../config/config";
 
 /** An instance that answered moments ago is still up. */
 const DEBOUNCE_MS = 10_000;
@@ -19,7 +19,7 @@ export class WakeService {
   private last = 0;
 
   constructor(@Inject(CONFIG) config: Config) {
-    this.base = config.wakeCommonUrl.replace(/\/+$/, '');
+    this.base = config.wakeCommonUrl.replace(/\/+$/, "");
   }
 
   async common(reason: string): Promise<void> {
@@ -28,12 +28,25 @@ export class WakeService {
     this.last = Date.now();
     const target = new URL(this.base).host;
     try {
-      const res = await fetch(`${this.base}/health`, { signal: AbortSignal.timeout(10_000) });
+      const res = await fetch(`${this.base}/health`, {
+        signal: AbortSignal.timeout(10_000),
+      });
       if (!res.ok) throw new Error(`status ${res.status}`);
-      this.logger.log({ message: 'woke service', step: 'wake', target, reason });
+      this.logger.log({
+        message: "woke service",
+        step: "wake",
+        target,
+        reason,
+      });
     } catch (error) {
       this.last = 0; // a failed wake must not hold back the next one
-      this.logger.warn({ message: 'wake failed', step: 'wake', target, reason, error: (error as Error).message });
+      this.logger.warn({
+        message: "wake failed",
+        step: "wake",
+        target,
+        reason,
+        error: (error as Error).message,
+      });
     }
   }
 }

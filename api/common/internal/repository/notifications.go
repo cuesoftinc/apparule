@@ -20,20 +20,20 @@ type NewNotification struct {
 	PayloadRef string
 	Text       string
 	Actor      *model.Actor
-	ThumbURL   *string
+	ThumbKey   *string
 }
 
 func InsertNotification(ctx context.Context, tx pgx.Tx, n NewNotification) (string, time.Time, error) {
 	var id string
 	var at time.Time
-	err := tx.QueryRow(ctx, `INSERT INTO notification (account_id, kind, payload_ref, text, actor, thumb_url)
+	err := tx.QueryRow(ctx, `INSERT INTO notification (account_id, kind, payload_ref, text, actor, thumb_key)
 		VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created_at`,
-		n.AccountID, n.Kind, n.PayloadRef, n.Text, jsonOrNil(n.Actor), n.ThumbURL).Scan(&id, &at)
+		n.AccountID, n.Kind, n.PayloadRef, n.Text, jsonOrNil(n.Actor), n.ThumbKey).Scan(&id, &at)
 	return id, at, err
 }
 
 func ListNotifications(ctx context.Context, tx pgx.Tx, accountID string, offset, limit int) ([]model.Notification, error) {
-	rows, err := tx.Query(ctx, `SELECT id, account_id, kind, payload_ref, text, actor, thumb_url, read_at, created_at
+	rows, err := tx.Query(ctx, `SELECT id, account_id, kind, payload_ref, text, actor, thumb_key, read_at, created_at
 		FROM notification WHERE account_id = $1 AND kind = ANY($2)
 		ORDER BY created_at DESC, id OFFSET $3 LIMIT $4`, accountID, VisibleKinds, offset, limit)
 	if err != nil {
@@ -42,7 +42,7 @@ func ListNotifications(ctx context.Context, tx pgx.Tx, accountID string, offset,
 	return collect(rows, func(r pgx.Row) (*model.Notification, error) {
 		var n model.Notification
 		var actor []byte
-		if err := r.Scan(&n.ID, &n.AccountID, &n.Kind, &n.PayloadRef, &n.Text, &actor, &n.ThumbURL, &n.ReadAt, &n.CreatedAt); err != nil {
+		if err := r.Scan(&n.ID, &n.AccountID, &n.Kind, &n.PayloadRef, &n.Text, &actor, &n.ThumbKey, &n.ReadAt, &n.CreatedAt); err != nil {
 			return nil, err
 		}
 		if len(actor) > 0 {

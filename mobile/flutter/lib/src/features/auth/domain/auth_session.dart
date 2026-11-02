@@ -3,7 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'auth_session.freezed.dart';
 
 /// The signed-in identity (mobile-implementation.md §9) — mapped from the
-/// Firebase user (Google-asserted profile fields) or the seeded fake
+/// API account (`/api/v1/me`, Google-asserted profile fields) or the seeded fake
 /// persona. Its presence/absence on the session provider is what the
 /// router's auth redirect keys off.
 @freezed

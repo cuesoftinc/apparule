@@ -1,8 +1,7 @@
 #!/bin/sh
-# Creates the CueLABS shared bus lanes (decisions.md X-11; the delivery
-# standard's shared-messaging.md) on the compose broker. In cloud every
-# product shares one Kafka service with these same three topics, and Apparule
-# never creates its own. Idempotent.
+# Creates the three shared bus lanes (decisions.md X-11) on the compose
+# broker. In cloud the same three topics live on a shared Kafka service, and
+# Apparule never creates its own. Idempotent.
 set -eu
 BOOTSTRAP="$1"
 TOPICS=/opt/kafka/bin/kafka-topics.sh

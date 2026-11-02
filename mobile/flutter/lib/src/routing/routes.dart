@@ -45,8 +45,8 @@ part 'routes.g.dart';
 
 /// The persistent tab shell — Home · Explore · ➕ · Orders · Profile
 /// (pages.md Part C). Four branches behind the five slots: ➕ is an
-/// entry gesture, not a branch (canvas-first ruling 2026-07-22 — the
-/// `/create` placeholder had no pages.md spec and no canvas frame; the
+/// entry gesture, not a branch (the `/create`
+/// placeholder had no pages.md spec and no canvas frame; the
 /// designer composer arrives designed-first with its own frames).
 @TypedStatefulShellRoute<AppShellRoute>(
   branches: <TypedStatefulShellBranch<StatefulShellBranchData>>[
@@ -257,7 +257,7 @@ class PostDetailRoute extends GoRouteData with $PostDetailRoute {
 }
 
 /// C11 — the full-height comments sheet over the dimmed post (pages.md
-/// [Directive 2026-07-18]): a transparent page, so C4 stays visible
+/// [Specified 2026-07-18]): a transparent page, so C4 stays visible
 /// beneath the scrim.
 class PostCommentsRoute extends GoRouteData with $PostCommentsRoute {
   const PostCommentsRoute({required this.id});
@@ -364,7 +364,7 @@ class PublicProfileRoute extends GoRouteData with $PublicProfileRoute {
       PublicProfileScreen(username: username);
 }
 
-/// C12 — followers tab ([Directive 2026-07-18]: = B6 lists).
+/// C12 — followers tab ([Specified 2026-07-18]: = B6 lists).
 class FollowersRoute extends GoRouteData with $FollowersRoute {
   const FollowersRoute({required this.username});
 

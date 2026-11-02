@@ -1,7 +1,11 @@
 import asyncio
 import copy
 
+import google.auth.exceptions
+import httpx
+
 from notify import Notifier
+from notify.fcm import FCM
 from tests.conftest import example
 
 
@@ -68,3 +72,16 @@ async def test_no_tokens_no_push():
     msg["recipient"]["push_tokens"] = []
     await Notifier(fcm, None).deliver(msg)
     assert fcm.sent == []
+
+
+class RefusingCredentials:
+    valid = False
+
+    def refresh(self, request):
+        raise google.auth.exceptions.RefreshError("no access")
+
+
+async def test_push_auth_failure_is_logged_not_raised():
+    async with httpx.AsyncClient() as client:
+        fcm = FCM("apparule", client=client, credentials=RefusingCredentials())
+        assert await fcm.send(["device-1"], title="New quote", body="", data={}) == 0

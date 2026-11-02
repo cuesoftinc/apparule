@@ -75,7 +75,7 @@ func Recover(next http.Handler) http.Handler {
 	})
 }
 
-// CORS echoes the Origin only when allowlisted; no credentials (bearer auth).
+// CORS echoes the Origin only when allowlisted; credentials allowed for the session cookie.
 func CORS(origins []string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -84,6 +84,7 @@ func CORS(origins []string) func(http.Handler) http.Handler {
 			if origin != "" && slices.Contains(origins, origin) {
 				h := w.Header()
 				h.Set("Access-Control-Allow-Origin", origin)
+				h.Set("Access-Control-Allow-Credentials", "true")
 				h.Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 				h.Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Idempotency-Key")
 				h.Set("Access-Control-Expose-Headers", "Retry-After, X-Request-Id")

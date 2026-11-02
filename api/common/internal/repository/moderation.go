@@ -14,6 +14,13 @@ const reportCols = `r.id, r.reporter_id, ra.username, r.subject_kind, r.subject_
 
 const reportFrom = ` FROM report r JOIN account ra ON ra.id = r.reporter_id LEFT JOIN account ma ON ma.id = r.actioned_by`
 
+// storedPreview is report.subject_preview: the image as a key, never a URL.
+type storedPreview struct {
+	Text           string  `json:"text"`
+	ThumbKey       *string `json:"thumb_key,omitempty"`
+	AuthorUsername *string `json:"author_username"`
+}
+
 func scanReport(r pgx.Row) (*model.Report, error) {
 	var rep model.Report
 	var preview []byte
@@ -23,7 +30,9 @@ func scanReport(r pgx.Row) (*model.Report, error) {
 	if err != nil {
 		return nil, translate(err)
 	}
-	_ = json.Unmarshal(preview, &rep.SubjectPreview)
+	var stored storedPreview
+	_ = json.Unmarshal(preview, &stored)
+	rep.SubjectPreview = model.ReportPreview{Text: stored.Text, ThumbKey: stored.ThumbKey, AuthorUsername: stored.AuthorUsername}
 	if byID != nil {
 		rep.ActionedBy = &model.Ref{ID: *byID, Username: *byName}
 	}
@@ -33,7 +42,8 @@ func scanReport(r pgx.Row) (*model.Report, error) {
 func InsertReport(ctx context.Context, tx pgx.Tx, reporterID, kind, subjectID, reason string, detail *string, preview model.ReportPreview) (*model.Report, error) {
 	var id string
 	if err := tx.QueryRow(ctx, `INSERT INTO report (reporter_id, subject_kind, subject_id, subject_preview, reason, detail)
-		VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`, reporterID, kind, subjectID, mustJSON(preview), reason, detail).Scan(&id); err != nil {
+		VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`, reporterID, kind, subjectID,
+		mustJSON(storedPreview{Text: preview.Text, ThumbKey: preview.ThumbKey, AuthorUsername: preview.AuthorUsername}), reason, detail).Scan(&id); err != nil {
 		return nil, err
 	}
 	return scanReport(tx.QueryRow(ctx, `SELECT `+reportCols+reportFrom+` WHERE r.id = $1`, id))

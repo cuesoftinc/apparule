@@ -1,4 +1,4 @@
-// NavRail state sweep [Directive 2026-07-19]: the dashboard chrome is a
+// NavRail state sweep [Specified 2026-07-19]: the dashboard chrome is a
 // viewport-driven rail — collapsed 72px below 1264, expanded 244px at
 // ≥1264 — with NO user toggle and NO persisted expanded state. Two duties:
 //

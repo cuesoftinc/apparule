@@ -34,10 +34,13 @@ def test_charge_that_matches_the_quote_settles(contract):
     assert settle.decide(_event(), FEE)["outcome_id"] == out["outcome_id"]
 
 
-@pytest.mark.parametrize("change,reason", [
-    ({"amount": 4_400_000}, "amount_mismatch"),
-    ({"currency": "USD"}, "currency_mismatch"),
-])
+@pytest.mark.parametrize(
+    "change,reason",
+    [
+        ({"amount": 4_400_000}, "amount_mismatch"),
+        ({"currency": "USD"}, "currency_mismatch"),
+    ],
+)
 def test_charge_that_disagrees_is_rejected(contract, change, reason):
     out = settle.decide(_event(**change), FEE)
     contract.validate_data(topics.PAYMENTS_OUTCOME, out)
@@ -120,20 +123,22 @@ async def test_other_transitions_move_no_money():
     assert await Movements(FakePaystack({}).client(), FEE).on_transition(msg) is None
 
 
-@pytest.mark.parametrize("resolved,holder,ok_", [
-    ("OKAFOR ADAEZE CHIOMA", "Adaeze Okafor", True),
-    ("ADAEZE OKAFOR", "Adaeze", True),
-    ("JOHN DOE", "Adaeze Okafor", False),
-    ("ADAEZE NWOSU", "Adaeze Okafor", False),
-])
+@pytest.mark.parametrize(
+    "resolved,holder,ok_",
+    [
+        ("OKAFOR ADAEZE CHIOMA", "Adaeze Okafor", True),
+        ("ADAEZE OKAFOR", "Adaeze", True),
+        ("JOHN DOE", "Adaeze Okafor", False),
+        ("ADAEZE NWOSU", "Adaeze Okafor", False),
+    ],
+)
 def test_names_match(resolved, holder, ok_):
     assert payouts.names_match(resolved, holder) is ok_
 
 
 async def test_recipient_is_verified(contract):
     msg = example("payouts.recipient_requested")["data"]
-    fake = FakePaystack({("GET", "/bank/resolve"): ok({"account_name": "OKAFOR ADAEZE"}),
-                         ("POST", "/transferrecipient"): ok({"recipient_code": "RCP_x"})})
+    fake = FakePaystack({("GET", "/bank/resolve"): ok({"account_name": "OKAFOR ADAEZE"}), ("POST", "/transferrecipient"): ok({"recipient_code": "RCP_x"})})
     out = await payouts.verify(fake.client(), msg)
     contract.validate_data(topics.PAYMENTS_OUTCOME, out)
     assert out["kind"] == "recipient_verified"
@@ -153,17 +158,18 @@ async def test_recipient_fails_on_a_name_mismatch_or_bad_account(contract):
 async def test_reconcile_flags_every_disagreement(contract):
     msg = example("ledger.reconcile_requested")["data"]
     msg["movements"] = [
-        {"request_id": msg["movements"][0]["request_id"], "kind": "charge", "reference": "4099260516",
-         "amount": {"amount": 4_500_000, "currency": "NGN"}},
-        {"request_id": msg["movements"][0]["request_id"], "kind": "payout", "reference": "TRF_gone",
-         "amount": {"amount": 4_050_000, "currency": "NGN"}},
+        {"request_id": msg["movements"][0]["request_id"], "kind": "charge", "reference": "4099260516", "amount": {"amount": 4_500_000, "currency": "NGN"}},
+        {"request_id": msg["movements"][0]["request_id"], "kind": "payout", "reference": "TRF_gone", "amount": {"amount": 4_050_000, "currency": "NGN"}},
     ]
-    fake = FakePaystack({
-        ("GET", "/transaction"): ok([{"id": 4099260516, "reference": "apr_x", "amount": 4_400_000, "currency": "NGN"},
-                                     {"id": 5550001, "reference": "apr_y", "amount": 1000, "currency": "NGN"}]),
-        ("GET", "/transfer"): ok([]),
-        ("GET", "/refund"): ok([]),
-    })
+    fake = FakePaystack(
+        {
+            ("GET", "/transaction"): ok(
+                [{"id": 4099260516, "reference": "apr_x", "amount": 4_400_000, "currency": "NGN"}, {"id": 5550001, "reference": "apr_y", "amount": 1000, "currency": "NGN"}]
+            ),
+            ("GET", "/transfer"): ok([]),
+            ("GET", "/refund"): ok([]),
+        }
+    )
     out = await reconcile.compare(fake.client(), msg)
     for o in out:
         contract.validate_data(topics.PAYMENTS_OUTCOME, o)
@@ -185,16 +191,20 @@ async def test_reconcile_matches_items_that_cross_the_window_edge(contract):
             movement("333", "2026-10-19T09:30:00Z"),  # Paystack never had it
         ],
     }
-    fake = FakePaystack({
-        ("GET", "/transaction"): ok([
-            {"id": 111, "reference": "apr_a_1", "amount": 1000, "currency": "NGN", "createdAt": "2026-10-19T09:59:30.000Z"},
-            {"id": 222, "reference": "apr_b_1", "amount": 1000, "currency": "NGN", "createdAt": "2026-10-19T08:58:00.000Z"},
-            # After the window: the next run reports it if the ledger still lacks it.
-            {"id": 444, "reference": "apr_c_1", "amount": 1000, "currency": "NGN", "createdAt": "2026-10-19T10:10:00.000Z"},
-        ]),
-        ("GET", "/transfer"): ok([]),
-        ("GET", "/refund"): ok([]),
-    })
+    fake = FakePaystack(
+        {
+            ("GET", "/transaction"): ok(
+                [
+                    {"id": 111, "reference": "apr_a_1", "amount": 1000, "currency": "NGN", "createdAt": "2026-10-19T09:59:30.000Z"},
+                    {"id": 222, "reference": "apr_b_1", "amount": 1000, "currency": "NGN", "createdAt": "2026-10-19T08:58:00.000Z"},
+                    # After the window: the next run reports it if the ledger still lacks it.
+                    {"id": 444, "reference": "apr_c_1", "amount": 1000, "currency": "NGN", "createdAt": "2026-10-19T10:10:00.000Z"},
+                ]
+            ),
+            ("GET", "/transfer"): ok([]),
+            ("GET", "/refund"): ok([]),
+        }
+    )
     out = await reconcile.compare(fake.client(), msg)
     for o in out:
         contract.validate_data(topics.PAYMENTS_OUTCOME, o)

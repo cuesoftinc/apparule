@@ -1,4 +1,4 @@
-// P15 skip-link lock (fleet a11y canon): the skip link is the FIRST
+// Skip-link lock: the skip link is the FIRST
 // focusable element on every route — one Tab from a fresh load lands on
 // it — and activating it moves focus to the page's single
 // <main id="main" tabIndex={-1}>. Runs in TEST_MODE against the mock
@@ -34,7 +34,7 @@ test("dashboard: first Tab is the skip link; Enter focuses <main>", async ({
   // Fresh document load: "first Tab" is a fresh-load guarantee (after a
   // client-side nav Chromium keeps its sequential-focus starting point at
   // the removed element's position). The reload also exercises session
-  // restore via the P16 sessionStorage key (`apparule.test-session`).
+  // restore via the sessionStorage key (`apparule.test-session`).
   await page.goto("/dashboard");
   await expect(page.locator("main#main")).toBeVisible();
   await expectSkipLinkWorks(page);

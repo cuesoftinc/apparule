@@ -63,12 +63,18 @@ def person(pose: str = "front", **moves: tuple[float, float]) -> Detection:
     half_hip = 0.07 if side else 0.08
     points = {
         0: (0.50, 0.12),  # nose
-        11: (0.50 + half_shoulder, 0.25), 12: (0.50 - half_shoulder, 0.25),
-        13: (0.50 + half_shoulder + 0.03, 0.40), 14: (0.50 - half_shoulder - 0.03, 0.40),
-        15: (0.50 + (0.10 if side else 0.20), 0.53), 16: (0.50 - (0.10 if side else 0.20), 0.53),
-        23: (0.50 + half_hip, 0.52), 24: (0.50 - half_hip, 0.52),
-        25: (0.50 + half_hip, 0.72), 26: (0.50 - half_hip, 0.72),
-        27: (0.50 + half_hip, 0.92), 28: (0.50 - half_hip, 0.92),
+        11: (0.50 + half_shoulder, 0.25),
+        12: (0.50 - half_shoulder, 0.25),
+        13: (0.50 + half_shoulder + 0.03, 0.40),
+        14: (0.50 - half_shoulder - 0.03, 0.40),
+        15: (0.50 + (0.10 if side else 0.20), 0.53),
+        16: (0.50 - (0.10 if side else 0.20), 0.53),
+        23: (0.50 + half_hip, 0.52),
+        24: (0.50 - half_hip, 0.52),
+        25: (0.50 + half_hip, 0.72),
+        26: (0.50 - half_hip, 0.72),
+        27: (0.50 + half_hip, 0.92),
+        28: (0.50 - half_hip, 0.92),
     }
     points.update({int(i): xy for i, xy in moves.items()})
     landmarks = [Landmark(0.5, 0.5, 0.0, 0.0) for _ in range(33)]
@@ -82,17 +88,17 @@ def person(pose: str = "front", **moves: tuple[float, float]) -> Detection:
 
     mask = np.zeros((H, W), dtype=bool)
     torso = 0.08 if side else 0.12
-    mask[int(0.08 * H):int(0.17 * H), int(0.46 * W):int(0.54 * W)] = True      # head
-    mask[int(0.17 * H):int(0.22 * H), int(0.47 * W):int(0.53 * W)] = True      # neck
-    mask[int(0.22 * H):int(0.60 * H), int((0.5 - torso) * W):int((0.5 + torso) * W)] = True  # torso
+    mask[int(0.08 * H) : int(0.17 * H), int(0.46 * W) : int(0.54 * W)] = True  # head
+    mask[int(0.17 * H) : int(0.22 * H), int(0.47 * W) : int(0.53 * W)] = True  # neck
+    mask[int(0.22 * H) : int(0.60 * H), int((0.5 - torso) * W) : int((0.5 + torso) * W)] = True  # torso
     leg = 0.035 if not side else 0.05
-    for cx in ((0.5,) if side else (0.42, 0.58)):
-        mask[int(0.60 * H):int(0.94 * H), int((cx - leg) * W):int((cx + leg) * W)] = True  # legs
+    for cx in (0.5,) if side else (0.42, 0.58):
+        mask[int(0.60 * H) : int(0.94 * H), int((cx - leg) * W) : int((cx + leg) * W)] = True  # legs
     if not side:
         for sign in (1, -1):  # arms, clear of the torso
             x0 = 0.5 + sign * 0.17
             lo, hi = sorted((x0 - 0.025, x0 + 0.025))
-            mask[int(0.25 * H):int(0.55 * H), int(lo * W):int(hi * W)] = True
+            mask[int(0.25 * H) : int(0.55 * H), int(lo * W) : int(hi * W)] = True
     return Detection(W, H, 1, landmarks, mask)
 
 

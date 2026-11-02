@@ -2,11 +2,12 @@
  * /api/v1/* proxy: the browser talks only to the web origin, and this
  * route handler forwards to the backend the way the load balancer does in
  * cloud (system-design.md §7.1): /api/v1/uploads to api/uploads,
- * everything else to api/common. Origins are read per request
- * (API_ORIGIN, UPLOADS_ORIGIN), so one build runs in compose and cloud.
+ * everything else to api/common. The URLs are read per request
+ * (API_URL, UPLOADS_URL), so one build runs in compose and cloud.
  *
- * Server-side code, not a view: no auth logic here. The bearer token and
- * the upload ticket pass through untouched and the services check them.
+ * Server-side code, not a view: no auth logic here. The bearer token, the
+ * upload ticket, the session cookie and the SSO redirects pass through
+ * untouched and the services check them.
  */
 
 import { serverEnv } from "@/config/env";
@@ -16,6 +17,11 @@ export const dynamic = "force-dynamic";
 /** Request headers the backend contract uses (engineering.md §CORS). */
 const FORWARD_REQUEST = [
   "authorization",
+  "cookie",
+  "origin",
+  "sec-fetch-site",
+  "user-agent",
+  "x-forwarded-for",
   "content-type",
   "idempotency-key",
   "upload-ticket",
@@ -27,23 +33,40 @@ const FORWARD_RESPONSE = [
   "retry-after",
   "x-request-id",
   "content-disposition",
+  "location",
 ];
+
+const backendUnavailable = () =>
+  Response.json(
+    {
+      error: {
+        code: "backend_unavailable",
+        message: "The Apparule API is not reachable",
+        details: {},
+      },
+    },
+    { status: 502 },
+  );
 
 const proxy = async (
   request: Request,
   { params }: { params: Promise<{ path: string[] }> },
 ) => {
   const { path } = await params;
-  const { apiOrigin, uploadsOrigin } = serverEnv();
-  const origin = path[0] === "uploads" ? uploadsOrigin : apiOrigin;
+  const { apiUrl, uploadsUrl } = serverEnv();
+  const base = path[0] === "uploads" ? uploadsUrl : apiUrl;
+  if (!base) return backendUnavailable();
   const incoming = new URL(request.url);
-  const target = `${origin}/api/v1/${path.map(encodeURIComponent).join("/")}${incoming.search}`;
+  const target = `${base}/api/v1/${path.map(encodeURIComponent).join("/")}${incoming.search}`;
 
   const headers = new Headers();
   for (const name of FORWARD_REQUEST) {
     const value = request.headers.get(name);
     if (value) headers.set(name, value);
   }
+
+  // The uploads gateway authenticates by ticket and never sees the session cookie.
+  if (path[0] === "uploads") headers.delete("cookie");
 
   const hasBody = request.method !== "GET" && request.method !== "HEAD";
   let upstream: Response;
@@ -58,22 +81,16 @@ const proxy = async (
       redirect: "manual",
     } as RequestInit);
   } catch {
-    return Response.json(
-      {
-        error: {
-          code: "backend_unavailable",
-          message: "The Apparule API is not reachable",
-          details: {},
-        },
-      },
-      { status: 502 },
-    );
+    return backendUnavailable();
   }
 
   const responseHeaders = new Headers();
   for (const name of FORWARD_RESPONSE) {
     const value = upstream.headers.get(name);
     if (value) responseHeaders.set(name, value);
+  }
+  for (const cookie of upstream.headers.getSetCookie()) {
+    responseHeaders.append("set-cookie", cookie);
   }
   return new Response(upstream.body, {
     status: upstream.status,

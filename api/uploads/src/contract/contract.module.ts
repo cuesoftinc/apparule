@@ -1,5 +1,5 @@
-import { Global, Module } from '@nestjs/common';
-import { ContractService } from './contract.service';
+import { Global, Module } from "@nestjs/common";
+import { ContractService } from "./contract.service";
 
 @Global()
 @Module({

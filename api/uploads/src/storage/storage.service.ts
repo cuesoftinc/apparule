@@ -1,7 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Storage } from '@google-cloud/storage';
-import { Client as MinioClient } from 'minio';
-import { CONFIG, type Config } from '../config/config';
+import { Inject, Injectable } from "@nestjs/common";
+import { Storage } from "@google-cloud/storage";
+import { Client as MinioClient } from "minio";
+import { CONFIG, type Config } from "../config/config";
 
 export interface StoredObject {
   bucket: string;
@@ -17,7 +17,11 @@ export interface StoredObject {
  */
 @Injectable()
 export class StorageService {
-  private readonly put: (key: string, data: Buffer, contentType: string) => Promise<void>;
+  private readonly put: (
+    key: string,
+    data: Buffer,
+    contentType: string,
+  ) => Promise<void>;
   private readonly ping: () => Promise<void>;
   readonly bucket: string;
   readonly prefix: string;
@@ -26,8 +30,8 @@ export class StorageService {
     const { storage } = config;
     this.bucket = storage.bucket;
     this.prefix = storage.prefix;
-    if (storage.driver === 's3') {
-      const [host, port] = storage.endpoint.split(':');
+    if (storage.driver === "s3") {
+      const [host, port] = storage.endpoint.split(":");
       const client = new MinioClient({
         endPoint: host,
         port: port ? Number(port) : undefined,
@@ -36,14 +40,18 @@ export class StorageService {
         secretKey: storage.secretKey,
       });
       this.put = async (key, data, contentType) => {
-        await client.putObject(storage.bucket, key, data, data.length, { 'Content-Type': contentType });
+        await client.putObject(storage.bucket, key, data, data.length, {
+          "Content-Type": contentType,
+        });
       };
       this.ping = async () => {
-        if (!(await client.bucketExists(storage.bucket))) throw new Error('bucket missing');
+        if (!(await client.bucketExists(storage.bucket)))
+          throw new Error("bucket missing");
       };
     } else {
       const bucket = new Storage().bucket(storage.bucket);
-      this.put = (key, data, contentType) => bucket.file(key).save(data, { contentType, resumable: false });
+      this.put = (key, data, contentType) =>
+        bucket.file(key).save(data, { contentType, resumable: false });
       // Write-only IAM can't read bucket metadata; readiness doesn't probe GCS.
       this.ping = async () => undefined;
     }
@@ -51,13 +59,29 @@ export class StorageService {
 
   /** tmp/<kind>/<target id>/<ticket id>/<pose or index>.jpg. No client file
    * name in the key: names can carry personal data. */
-  tmpKey(kind: string, targetId: string, ticketId: string, name: string): string {
+  tmpKey(
+    kind: string,
+    targetId: string,
+    ticketId: string,
+    name: string,
+  ): string {
     return `${this.prefix}/tmp/${kind}/${targetId}/${ticketId}/${name}.jpg`;
   }
 
-  async store(key: string, data: Buffer, contentType: string, sha256: string): Promise<StoredObject> {
+  async store(
+    key: string,
+    data: Buffer,
+    contentType: string,
+    sha256: string,
+  ): Promise<StoredObject> {
     await this.put(key, data, contentType);
-    return { bucket: this.bucket, key, size: data.length, content_type: contentType, sha256 };
+    return {
+      bucket: this.bucket,
+      key,
+      size: data.length,
+      content_type: contentType,
+      sha256,
+    };
   }
 
   async ready(): Promise<void> {

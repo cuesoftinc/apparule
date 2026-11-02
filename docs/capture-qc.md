@@ -3,10 +3,10 @@
 > The numeric thresholds behind flows/vault.md's QC gate and the confidence
 > value stored per measurement (data-model.md `MEASUREMENT.confidence`).
 > Grounded in the current MediaPipe pipeline (33 pose landmarks, each with a
-> `visibility` score 0–1). Thresholds are **[Decided defaults]** — tuneable
+> `visibility` score 0–1). Thresholds are **[Decided defaults]**, tuneable
 > constants in one config block, revisited against the accuracy benchmark
 > (roadmap Phase 5 harness), never scattered magic numbers.
-> A capture is **two photos** — front + side (right profile) — plus height
+> A capture is **two photos**, front + side (right profile), plus height
 > (M-10, decisions.md); QC runs and reports **per pose**.
 
 ## 1. Image checks
@@ -53,8 +53,8 @@ ankle), and on a tie the one with the nearer shoulder (smaller z). The
 earlier rules applied the front's both-sides visibility test and a
 shoulder ÷ hip width ratio < 0.9; a correct profile photo fails both (far
 ankle visibility 0.17; ratio 1.48, because shoulder and hip widths shrink
-together in profile). Either profile is accepted — left or right side to
-the camera — since measuring doesn't depend on which; the app's guide and
+together in profile). Either profile is accepted, left or right side to
+the camera, since measuring doesn't depend on which; the app's guide and
 copy still ask for the right side.
 
 | Check | Rule | Fail code |
@@ -69,10 +69,10 @@ copy still ask for the right side.
 
 Each code carries guidance copy (flows/vault.md table extends with the new
 codes; `arms_position` copy is per pose). Multiple failures report the
-**first by the table order above** — one actionable instruction beats a
-list — and reporting is **per pose**: the error names the failing pose,
+**first by the table order above**, one actionable instruction beats a
+list, and reporting is **per pose**: the error names the failing pose,
 and an accepted pose is never discarded by the other pose's failure
-(flows/vault.md §1 — the client re-enters the failing pose's camera only).
+(flows/vault.md §1, the client re-enters the failing pose's camera only).
 
 ## 3. Height-scale plausibility
 
@@ -92,8 +92,8 @@ elliptical-circumference approximation; the front image alone keeps owning
 the height scale (the nose→ankle axis is most stable in the frontal view).
 The v2 constants (the 0.93 stature correction, the plausibility band, and
 the ellipse-eccentricity defaults for two-view girths) must be
-re-benchmarked for the two-view method — **[Directive: measurement
-pipeline recalibration needed — backend phase]**.
+re-benchmarked for the two-view method — **[Specified: measurement
+pipeline recalibration needed, backend phase]**.
 
 ## 4. Per-measurement confidence (2-D method)
 
@@ -104,12 +104,11 @@ confidence(m) = clamp01( mean_vis(m) × frontality_factor × sharpness_factor )
   sharpness_factor   = 1.0 if Laplacian var ≥ 120; 0.9 if ≥ 60
 ```
 
-Stored per `MEASUREMENT` row; UI renders <0.7 with a "low confidence —
-consider retaking" chip. Two-view girths (M-10) span both images:
+Stored per `MEASUREMENT` row; UI renders <0.7 with a "low confidence, consider retaking" chip. Two-view girths (M-10) span both images:
 `mean_vis(m)` covers the landmarks of both contributing views, and the
 orientation factor applies per view (frontality on the front image, profile
 orientation on the side) — exact factors settle with the recalibration
-directive (§3). Manual entries have `confidence = null` (human
+(§3). Manual entries have `confidence = null` (human
 truth isn't scored). SMPL-era confidences (Phase 5) replace this formula
 per-method — the field is method-agnostic by design.
 

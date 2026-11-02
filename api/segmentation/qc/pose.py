@@ -19,10 +19,8 @@ ANKLES = (g.LEFT_ANKLE, g.RIGHT_ANKLE)
 FRONT_KEY = (g.NOSE,) + SHOULDERS + HIPS + ANKLES
 
 # One side of the body: shoulder, hip, ankle, wrist, knee, elbow.
-LEFT = {"shoulder": g.LEFT_SHOULDER, "hip": g.LEFT_HIP, "ankle": g.LEFT_ANKLE, "wrist": g.LEFT_WRIST,
-        "knee": g.LEFT_KNEE, "elbow": g.LEFT_ELBOW}
-RIGHT = {"shoulder": g.RIGHT_SHOULDER, "hip": g.RIGHT_HIP, "ankle": g.RIGHT_ANKLE, "wrist": g.RIGHT_WRIST,
-         "knee": g.RIGHT_KNEE, "elbow": g.RIGHT_ELBOW}
+LEFT = {"shoulder": g.LEFT_SHOULDER, "hip": g.LEFT_HIP, "ankle": g.LEFT_ANKLE, "wrist": g.LEFT_WRIST, "knee": g.LEFT_KNEE, "elbow": g.LEFT_ELBOW}
+RIGHT = {"shoulder": g.RIGHT_SHOULDER, "hip": g.RIGHT_HIP, "ankle": g.RIGHT_ANKLE, "wrist": g.RIGHT_WRIST, "knee": g.RIGHT_KNEE, "elbow": g.RIGHT_ELBOW}
 
 
 def near_side(d: Detection) -> dict[str, int]:
@@ -96,8 +94,7 @@ def check(d: Detection, pose: str, qc: QCThresholds) -> str | None:
     span = shoulder_span_ratio(d)
     if pose == "front":
         ratio = shoulder_hip_ratio(d)
-        if not (qc.frontal_ratio_min <= ratio <= qc.frontal_ratio_max and shoulder_z_delta(d) <= qc.shoulder_z_delta
-                and span >= qc.profile_span_max):
+        if not (qc.frontal_ratio_min <= ratio <= qc.frontal_ratio_max and shoulder_z_delta(d) <= qc.shoulder_z_delta and span >= qc.profile_span_max):
             return "not_frontal"
         ankle_x, ankle_y = g.midpoint(lm[g.LEFT_ANKLE], lm[g.RIGHT_ANKLE])
     else:

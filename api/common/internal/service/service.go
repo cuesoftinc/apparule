@@ -10,12 +10,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 
 	"github.com/cuesoftinc/apparule/api/common/internal/config"
+	"github.com/cuesoftinc/apparule/api/common/internal/model"
 	"github.com/cuesoftinc/apparule/api/common/internal/ratelimit"
 	"github.com/cuesoftinc/apparule/api/common/internal/repository"
 	"github.com/cuesoftinc/apparule/api/common/internal/storage"
@@ -65,8 +67,45 @@ type Services struct {
 	Now     func() time.Time
 }
 
-// mediaURL serves published post images from the public media/ prefix.
-func (s *Services) mediaURL(key string) string { return s.Store.PublicURL(key) }
+// mediaTTL is how long a signed image URL stays valid.
+const mediaTTL = time.Hour
+
+// mediaURL signs post images: every object is private (system-design.md I-8).
+func (s *Services) mediaURL(ctx context.Context) func(string) string {
+	return func(key string) string {
+		u, err := s.Store.SignedURL(ctx, key, mediaTTL)
+		if err != nil {
+			slog.WarnContext(ctx, "media url not signed", "key", key, "error", err)
+			return ""
+		}
+		return u
+	}
+}
+
+// thumb signs an optional image key.
+func (s *Services) thumb(ctx context.Context, key *string) *string {
+	if key == nil || *key == "" {
+		return nil
+	}
+	u := s.mediaURL(ctx)(*key)
+	return &u
+}
+
+// orderOut signs the order's frozen post image for the response.
+func (s *Services) orderOut(ctx context.Context, o *repository.OrderRow) *model.Order {
+	if o.PostThumbKey != "" {
+		o.Post.ThumbURL = s.mediaURL(ctx)(o.PostThumbKey)
+	}
+	return &o.Order
+}
+
+// reportOut signs the report preview's image for the response.
+func (s *Services) reportOut(ctx context.Context, r *model.Report) *model.Report {
+	if r != nil {
+		r.SubjectPreview.ThumbURL = s.thumb(ctx, r.SubjectPreview.ThumbKey)
+	}
+	return r
+}
 
 // as runs fn as the caller (row-level security on).
 func (s *Services) as(ctx context.Context, p *Principal, fn func(pgx.Tx) error) error {

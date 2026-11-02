@@ -46,22 +46,21 @@ Rules:
   strike recorded); an order past `due_at + 14 days` without `shipped`
   surfaces a one-click "request refund" dispute path to the customer with
   reminders to the designer at due_at and due_at+7.
-- Cancellation after `paid` is a refund path, not a `cancelled` transition —
-  money movements only ever resolve through `delivered` (payout) or
+- Cancellation after `paid` is a refund path, not a `cancelled` transition, money movements only ever resolve through `delivered` (payout) or
   `refunded`.
 
 ## 2. Permissions matrix
 
 | Action | Customer | Designer | System |
 | --- | --- | --- | --- |
-| submit request | ✓ (with owned snapshot) | — | — |
-| quote / decline | — | ✓ | quote expiry |
-| pay | ✓ | — | — |
-| start / ship | — | ✓ | — |
-| confirm delivery | ✓ | — | auto-confirm T+14 |
-| open dispute | ✓ | ✓ | — |
-| resolve dispute | — | — | support/admin only |
-| view snapshot values | ✓ (own) | ✓ (this order only) | — |
+| submit request | ✓ (with owned snapshot) | —   | —   |
+| quote / decline | —   | ✓ | quote expiry |
+| pay | ✓ | —   | —   |
+| start / ship | —   | ✓ | —   |
+| confirm delivery | ✓ | —   | auto-confirm T+14 |
+| open dispute | ✓ | ✓ | —   |
+| resolve dispute | —   | —   | support/admin only |
+| view snapshot values | ✓ (own) | ✓ (this order only) | —   |
 
 The snapshot-visibility rule is the privacy core: a designer sees a
 customer's measurements **only inside an order that customer initiated**,
@@ -87,11 +86,11 @@ requests — not at payout time, when it's too late.
 | Transition | Customer | Designer |
 | --- | --- | --- |
 | requested | receipt confirmation | **push + badge: new request** |
-| quoted | **push: quote received** (+T-2d expiry reminder) | — |
+| quoted | **push: quote received** (+T-2d expiry reminder) | —   |
 | paid | payment receipt | **push: order funded — start work** |
-| in_progress | status update | — |
-| shipped | **push: shipped** (+tracking) | — |
-| auto-confirm reminders (T+7, T+12 after shipped) | reminder ×2 | — |
+| in_progress | status update | —   |
+| shipped | **push: shipped** (+tracking) | —   |
+| auto-confirm reminders (T+7, T+12 after shipped) | reminder ×2 | —   |
 | delivered | confirmation + review prompt **[Later]** | **push: payout released** |
 | declined / cancelled / disputed / refunded | push | push |
 

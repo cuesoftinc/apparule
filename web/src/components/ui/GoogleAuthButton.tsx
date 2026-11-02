@@ -4,10 +4,10 @@
 // Google 'G' mark + "Continue with Google" · state: default / pressed /
 // loading / disabled · theme via tokens.
 //
-// Behavior (web-standard TEST_MODE rule): with NEXT_PUBLIC_TEST_MODE=1 the
+// Behavior (web-standard TEST_MODE rule): with NEXT_PUBLIC_TEST_MODE=true the
 // sign-in resolves against the mock server and routes straight to
-// /dashboard; without it, the stub provider reports
-// "Connect Firebase at integration" (no Firebase dependency yet).
+// /dashboard; without it, the button hands the browser to the API's Google
+// flow and /auth/callback finishes sign-in on return.
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
@@ -42,9 +42,8 @@ export function GoogleAuthButton({
       return; // keep the loading state through the navigation
     }
     setLoading(false);
-    if (result.code === "popup_dismissed") {
-      // silent return, screen unchanged (flows/auth.md §4)
-      return;
+    if (result.code === "redirecting") {
+      return; // keep the loading state through the navigation
     }
     setNotice(result.message);
   }

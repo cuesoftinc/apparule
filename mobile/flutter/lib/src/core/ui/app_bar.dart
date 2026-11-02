@@ -94,7 +94,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
     final Widget content;
     if (kind == AppTopBarKind.root) {
       // Figma master: the root brand bar keeps the left-aligned gradient
-      // wordmark in flow — exempt from the centering ruling.
+      // wordmark in flow — exempt from title centering.
       content = Row(
         children: <Widget>[
           Expanded(
@@ -123,7 +123,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       );
     } else {
-      // Centered-title ruling (user, 2026-07-22): the title is a
+      // Centered title: the title is a
       // full-width layer centered on the BAR, with the leading/trailing
       // slots overlaid at the edges — never centered in leftover flow
       // space (that grew into hidden-slot space and skewed right). Long
@@ -188,7 +188,7 @@ enum _BarSlot { leading, title, trailing }
 
 /// The sub/over-media bar layout: slots hug the edges, the title layer
 /// spans the full bar and centers on it, inset on BOTH sides by the max
-/// slot width (centered-title ruling, 2026-07-22).
+/// slot width (centered title).
 class _CenteredBarLayout extends MultiChildLayoutDelegate {
   _CenteredBarLayout({required this.hasLeading, required this.hasTrailing});
 

@@ -2,7 +2,7 @@
 
 // Auth controller — owns auth state; views render from it (MVC rule).
 // Provider selection: TEST_MODE → TestModeAuthProvider; otherwise the
-// FirebaseAuthProvider (X-1 Google-only; the Auth emulator locally).
+// SsoAuthProvider (X-1 Google-only, through the API's own SSO flow).
 import {
   createContext,
   useCallback,
@@ -16,7 +16,7 @@ import { env } from "@/config/env";
 import type { Account } from "@/models";
 import type { AuthProviderAdapter, SignInResult } from "./types";
 import { TestModeAuthProvider } from "./test-mode-provider";
-import { FirebaseAuthProvider } from "./firebase-provider";
+import { SsoAuthProvider } from "./sso-provider";
 
 export type AuthStatus = "loading" | "signed_out" | "signed_in";
 
@@ -25,6 +25,8 @@ interface AuthContextValue {
   account: Account | null;
   providerName: AuthProviderAdapter["name"];
   signInWithGoogle: () => Promise<SignInResult>;
+  /** Finish a redirect sign-in with the token from the handoff exchange. */
+  completeSignIn: (token: string) => Promise<SignInResult>;
   signOut: () => Promise<void>;
   /** Re-resolve /me — e.g. after designer onboarding flips account state. */
   refreshAccount: () => Promise<void>;
@@ -33,7 +35,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 function createProvider(): AuthProviderAdapter {
-  return env.testMode ? new TestModeAuthProvider() : new FirebaseAuthProvider();
+  return env.testMode ? new TestModeAuthProvider() : new SsoAuthProvider();
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -77,6 +79,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return result;
   }, [provider]);
 
+  const completeSignIn = useCallback(
+    async (token: string): Promise<SignInResult> => {
+      if (!provider.completeSignIn) {
+        return {
+          ok: false,
+          code: "sso_unavailable",
+          message: "Sign-in cannot be completed here.",
+        };
+      }
+      const result = await provider.completeSignIn(token);
+      if (result.ok) {
+        setAccount(result.session.account);
+        setStatus("signed_in");
+      }
+      return result;
+    },
+    [provider],
+  );
+
   const signOut = useCallback(async () => {
     await provider.signOut();
     setAccount(null);
@@ -94,10 +115,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       account,
       providerName: provider.name,
       signInWithGoogle,
+      completeSignIn,
       signOut,
       refreshAccount,
     }),
-    [status, account, provider.name, signInWithGoogle, signOut, refreshAccount],
+    [
+      status,
+      account,
+      provider.name,
+      signInWithGoogle,
+      completeSignIn,
+      signOut,
+      refreshAccount,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

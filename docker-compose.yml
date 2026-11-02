@@ -1,6 +1,6 @@
 # Local and self-host stack (docs/system-design.md §10.2): the same images as
-# cloud, with Postgres, Kafka (KRaft), Redis, SeaweedFS (S3) and the Firebase
-# auth emulator standing in for the managed services.
+# cloud, with Postgres, Kafka (KRaft), Redis and SeaweedFS (S3) standing in
+# for the managed services.
 # Usage: cp .env.example .env  &&  make up
 services:
   postgres:
@@ -35,7 +35,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       # The three shared lanes are created explicitly by kafka-init, as on
-      # the shared Aiven service (X-11).
+      # the managed Kafka service (X-11).
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
     ports:
       - "9094:9094"
@@ -85,17 +85,6 @@ services:
       retries: 30
     restart: unless-stopped
 
-  # Firebase auth emulator (X-1): Google sign-in without a real project.
-  firebase-auth:
-    image: node:24-alpine
-    working_dir: /firebase
-    command: ["npx", "-y", "firebase-tools@14", "emulators:start", "--only", "auth", "--project", "${FIREBASE_PROJECT_ID:-demo-apparule}"]
-    volumes:
-      - ./deploy/docker/firebase/firebase.json:/firebase/firebase.json:ro
-    ports:
-      - "9099:9099"
-    restart: unless-stopped
-
   common:
     build: ./api/common
     image: cuesoft/apparule-api-common:latest
@@ -105,8 +94,15 @@ services:
       PORT: "8080"
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       DATABASE_URL: postgres://apparule_app:${APP_DB_PASSWORD:-apparule_app}@postgres:5432/apparule?sslmode=disable
-      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-demo-apparule}
-      FIREBASE_AUTH_EMULATOR_HOST: ${FIREBASE_AUTH_EMULATOR_HOST-firebase-auth:9099}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?set GOOGLE_CLIENT_ID in .env}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?set GOOGLE_CLIENT_SECRET in .env}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:3000/api/v1/auth/sso/google/callback}
+      WEB_URL: ${WEB_URL:-http://localhost:3000}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET in .env}
+      JWT_ACCESS_TTL: ${JWT_ACCESS_TTL:-24h}
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-apparule_session}
+      OAUTH_STATE_COOKIE: ${OAUTH_STATE_COOKIE:-apparule_oauth_state}
       UPLOAD_TICKET_PRIVATE_KEY: ${UPLOAD_TICKET_PRIVATE_KEY:?set UPLOAD_TICKET_PRIVATE_KEY in .env}
       # Returned with every ticket: the browser reaches the gateway through
       # the web's /api/v1 proxy, the app directly.
@@ -124,8 +120,6 @@ services:
       STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-minioadmin}
       STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:-minioadmin}
       STORAGE_USE_SSL: ${STORAGE_USE_SSL:-false}
-      # Public post media as the browser reaches it.
-      STORAGE_PUBLIC_BASE_URL: ${STORAGE_PUBLIC_BASE_URL:-http://localhost:8333/apparule-local}
       PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-}
       PAYSTACK_PUBLIC_KEY: ${PAYSTACK_PUBLIC_KEY:-}
       # Scale-to-zero wakes (shared-messaging.md). Everything always runs
@@ -221,7 +215,7 @@ services:
       STORAGE_USE_SSL: ${STORAGE_USE_SSL:-false}
       # Empty = notify-only (self-host without payments, §10.2).
       PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-}
-      FCM_PROJECT_ID: ${FCM_PROJECT_ID:-}
+      GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT:-}
       BREVO_API_KEY: ${BREVO_API_KEY:-}
       BREVO_FROM_EMAIL: ${BREVO_FROM_EMAIL:-}
       WAKE_COMMON_URL: http://common:8080
@@ -259,26 +253,17 @@ services:
       # /docs/api); pruned by web/Dockerfile.dockerignore.
       context: .
       dockerfile: web/Dockerfile
-      args:
-        # Inlined at build: the browser signs in against the Auth emulator
-        # on the host's port 9099.
-        NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-demo-apparule}
-        NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY:-}
-        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:-}
-        NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: ${NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST-localhost:9099}
     ports:
       - "3000:3000"
     environment:
       # The /api/v1 proxy forwards here (system-design.md §7.1).
-      API_ORIGIN: http://common:8080
-      UPLOADS_ORIGIN: http://uploads:8082
+      API_URL: http://common:8080
+      UPLOADS_URL: http://uploads:8082
     depends_on:
       common:
         condition: service_healthy
       uploads:
         condition: service_healthy
-      firebase-auth:
-        condition: service_started
     restart: unless-stopped
 
 volumes:

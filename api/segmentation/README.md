@@ -31,7 +31,7 @@ It keeps no state: no database, no Redis.
 
 The rows and factors are in `app/config.py :: Calibration`. They are
 uncalibrated defaults until the two-view benchmark against tape measurements
-(capture-qc.md §3, the recalibration directive); the QC thresholds are in
+(capture-qc.md §3, the recalibration); the QC thresholds are in
 `QCThresholds`, versioned as `thresholds_version`.
 
 ## Layout

@@ -1,6 +1,6 @@
 // Package sweep holds the scheduled jobs (system-design.md §6.7). Cloud
-// Scheduler runs them as Cloud Run jobs from this image (cmd/jobs); all are
-// lookup-then-write and safe to run twice.
+// Scheduler calls POST /internal/jobs/{name} on common; cmd/jobs runs the
+// same map by hand. All are lookup-then-write and safe to run twice.
 package sweep
 
 import (
@@ -33,7 +33,7 @@ type Sweeper struct {
 	Limits   config.Limits
 }
 
-// Jobs maps the cmd/jobs names to their functions.
+// Jobs maps the job names to their functions.
 func (s *Sweeper) Jobs() map[string]func(context.Context) error {
 	return map[string]func(context.Context) error{
 		"captures":  s.Captures,
@@ -222,7 +222,7 @@ func (s *Sweeper) Retention(ctx context.Context) error {
 			WHERE d.id = p.designer_id AND a.id = d.account_id AND `+settled); err != nil {
 			return err
 		}
-		tag, err = tx.Exec(ctx, `UPDATE account a SET email = 'deleted+' || a.id || '@invalid', firebase_uid = 'deleted:' || a.id,
+		tag, err = tx.Exec(ctx, `UPDATE account a SET email = 'deleted+' || a.id || '@invalid', google_sub = 'deleted:' || a.id,
 				username = 'deleted_' || substr(replace(a.id::text, '-', ''), 1, 12), display_name = 'Deleted user',
 				avatar_url = NULL, profile_location = NULL, deletion_state = 'active', suspended_at = coalesce(suspended_at, now())
 			WHERE `+settled+` AND `+hasOrders)

@@ -7,7 +7,7 @@ describe("MarketingNav (§8.2b marketing)", () => {
   it("renders logo, canon links and the Sign in CTA", () => {
     render(<MarketingNav />);
     expect(screen.getByText("Apparule")).toBeInTheDocument();
-    // Parity canon (SKILL.md 2026-07-19): Features · For designers · Docs ·
+    // Parity canon (2026-07-19): Features · For designers · Docs ·
     // GitHub (star badge) + the single Sign in CTA — no nav Try Cloud.
     expect(screen.getByRole("link", { name: "Features" })).toHaveAttribute(
       "href",

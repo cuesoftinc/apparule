@@ -1,4 +1,4 @@
-// Floating-layer collision canon (org SKILL.md, 2026-07-19): every
+// Floating-layer collision canon (2026-07-19): every
 // popover/dropdown/menu/date-picker stays fully inside the viewport at
 // every breakpoint and anchor position — found live as a period-picker
 // popover clipping off the right screen edge on expendit. The registry

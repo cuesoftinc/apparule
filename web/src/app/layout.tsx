@@ -14,7 +14,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   // Absolute base for og/twitter images, canonicals and other metadata
-  // URLs (SEO plumbing, fleet canon).
+  // URLs (SEO plumbing).
   metadataBase: new URL("https://apparule.cuesoft.io"),
   title: "Apparule",
   description:
@@ -41,7 +41,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className="min-h-full flex flex-col bg-bg text-text">
-        {/* P15 fleet canon: first focusable on every route; targets the
+        {/* first focusable on every route; targets the
             route's single <main id="main">. */}
         <SkipLink />
         <ThemeProvider>

@@ -5,7 +5,7 @@ plugins {
 }
 
 // Release signing — keystore reaches the build via environment variables
-// (CI/Doppler-provisioned; mobile-implementation.md §11 replaces the legacy
+// (CI-provisioned; mobile-implementation.md §11 replaces the legacy
 // DEBUG-key release config with this stub). No keystore or password is ever
 // committed. When the variables are absent (local dev), release builds fall
 // back to the debug keystore so `flutter run --release` still works.
@@ -39,10 +39,8 @@ android {
         versionName = flutter.versionName
     }
 
-    // dev / prod flavors (org environment ruling, user directive
-    // 2026-07-22): CueLABS production runs on the sandbox account, so the
-    // pair is `dev` (fakes/TEST_MODE, suffixed id) and `prod` (bare
-    // canonical applicationId, Firebase sandbox-e306a). Both install side
+    // dev / prod flavors: the pair is `dev` (fakes/TEST_MODE, suffixed id)
+    // and `prod` (bare canonical applicationId). Both install side
     // by side; each pairs with its entrypoint (main.dart = prod,
     // main_dev.dart = dev). iOS mirrors the pair via dev/prod schemes
     // over per-flavor build configurations (ios/Flutter/*.xcconfig).

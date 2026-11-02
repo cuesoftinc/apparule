@@ -13,6 +13,7 @@ BANK_NAMES = {"058": "GTBank", "044": "Access Bank", "057": "Zenith Bank", "011"
 def names_match(resolved: str, holder: str) -> bool:
     """At least two shared name tokens, or all of a one-word name: banks
     order names differently and add middle names."""
+
     def tokens(s: str) -> set[str]:
         return {t for t in re.split(r"[^a-z]+", s.lower()) if len(t) > 1}
 
@@ -43,7 +44,14 @@ async def verify(paystack: Paystack, msg: dict) -> dict:
         return failed("account_invalid")
     except PaystackUnavailable:
         return failed("provider_error")
-    return {**base, "outcome_id": outcome_id("recipient_verified", attempt), "kind": "recipient_verified",
-            "recipient": {"recipient_code": recipient["recipient_code"], "account_name": name,
-                          "bank_name": BANK_NAMES.get(msg["bank_code"], msg["bank_code"]),
-                          "last4": msg["account_number"][-4:]}}
+    return {
+        **base,
+        "outcome_id": outcome_id("recipient_verified", attempt),
+        "kind": "recipient_verified",
+        "recipient": {
+            "recipient_code": recipient["recipient_code"],
+            "account_name": name,
+            "bank_name": BANK_NAMES.get(msg["bank_code"], msg["bank_code"]),
+            "last4": msg["account_number"][-4:],
+        },
+    }

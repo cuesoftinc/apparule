@@ -15,8 +15,8 @@ class AppShell extends StatelessWidget {
   });
 
   /// Branch order ↔ tab mapping: ➕ is an entry GESTURE with no branch
-  /// behind it (the `/create` placeholder was dropped — canvas-first
-  /// ruling 2026-07-22: no pages.md spec, no canvas frame), so the four
+  /// behind it (the `/create` placeholder was dropped: no pages.md
+  /// spec, no canvas frame), so the four
   /// shell branches skip [AppTab.create] while the bar keeps its five
   /// canvas slots.
   static const List<AppTab> _branchTabs = <AppTab>[

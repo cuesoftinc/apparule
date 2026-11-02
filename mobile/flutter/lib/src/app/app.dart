@@ -11,7 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// from the same set, §7) switched by the persisted tri-state preference
 /// (B7 Appearance), and the en-only l10n pipeline.
 ///
-/// Boot gate (boot-flow directive 2026-07-22): the silent session
+/// Boot gate: the silent session
 /// restore is an ASYNC gate above the router — until the first session
 /// value lands, the app renders the branded [BootScreen] instead of
 /// mounting the router, so a signed-in relaunch never flashes C1 and a

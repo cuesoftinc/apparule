@@ -60,10 +60,7 @@ class PoseAnalyzer:
         people = len(result.pose_landmarks)
         if not people:
             return Detection(width, height, 0, [], None)
-        landmarks = [
-            Landmark(p.x, p.y, p.z, p.visibility if p.visibility is not None else 0.0)
-            for p in result.pose_landmarks[0]
-        ]
+        landmarks = [Landmark(p.x, p.y, p.z, p.visibility if p.visibility is not None else 0.0) for p in result.pose_landmarks[0]]
         return Detection(width, height, people, landmarks, self._segmenter.person_mask(mp_image))
 
     def close(self) -> None:

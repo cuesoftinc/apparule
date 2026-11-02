@@ -24,7 +24,7 @@ const double kMinHeightCm = 100;
 const double kMaxHeightCm = 230;
 
 /// The searching beat between the viewfinder going live and the 3-2-1
-/// arming (QA-convergence ruling: the canvas capture frames carry no
+/// arming (the canvas capture frames carry no
 /// shutter — capture is automatic). Over the fake camera this simulates
 /// the subject aligning with the silhouette; a live pose-detection
 /// alignment signal replaces the timer when the real camera lands (§1

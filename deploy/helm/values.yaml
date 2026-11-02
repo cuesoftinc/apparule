@@ -2,7 +2,7 @@
 # images run in cloud; this chart is the self-host and cluster path.
 #
 # The chart does NOT deploy Postgres, Kafka, Redis or object storage. Point
-# them at managed services (Aiven, GCS) or at in-cluster charts, through a
+# them at managed services (a hosted Postgres/Kafka/Redis, GCS) or at in-cluster charts, through a
 # Kubernetes Secret per service (envFrom). Secrets never go in plain values:
 #   common:       DATABASE_URL (a NON-superuser role: superusers bypass RLS),
 #                 UPLOAD_TICKET_PRIVATE_KEY, KAFKA_*, REDIS_PASSWORD,
@@ -30,11 +30,10 @@ services:
       STORAGE_PREFIX: apparule/selfhost
       STORAGE_ENDPOINT: seaweedfs:8333
       STORAGE_USE_SSL: "false"
-      STORAGE_PUBLIC_BASE_URL: https://media.apparule.example.com/apparule
       PORT: "8080"
       CORS_ORIGINS: https://apparule.example.com
       UPLOADS_URL: https://api.apparule.example.com/api/v1/uploads
-      FIREBASE_PROJECT_ID: ""
+      GOOGLE_CLOUD_PROJECT: ""
       REDIS_HOST: redis
       REDIS_PORT: "6379"
     envFrom:
@@ -102,8 +101,8 @@ services:
     healthPath: /
     env:
       PORT: "3000"
-      API_ORIGIN: http://common:8080
-      UPLOADS_ORIGIN: http://uploads:8082
+      API_URL: http://common:8080
+      UPLOADS_URL: http://uploads:8082
 
 # Sweeps (§6.7), run as CronJobs from the common image.
 jobs:

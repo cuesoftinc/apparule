@@ -23,8 +23,7 @@ class PaystackUnavailable(Exception):
 
 
 class Paystack:
-    def __init__(self, secret_key: str, base_url: str = "https://api.paystack.co", client: httpx.AsyncClient | None = None,
-                 retries: int = 3, backoff: float = 1.0):
+    def __init__(self, secret_key: str, base_url: str = "https://api.paystack.co", client: httpx.AsyncClient | None = None, retries: int = 3, backoff: float = 1.0):
         self._client = client or httpx.AsyncClient(timeout=20.0)
         self._base = base_url.rstrip("/")
         self._headers = {"Authorization": f"Bearer {secret_key}", "Content-Type": "application/json"}
@@ -51,12 +50,10 @@ class Paystack:
         return await self._call("GET", "/bank/resolve", params={"account_number": account_number, "bank_code": bank_code})
 
     async def create_recipient(self, name: str, account_number: str, bank_code: str) -> dict:
-        return await self._call("POST", "/transferrecipient", json={
-            "type": "nuban", "name": name, "account_number": account_number, "bank_code": bank_code, "currency": "NGN"})
+        return await self._call("POST", "/transferrecipient", json={"type": "nuban", "name": name, "account_number": account_number, "bank_code": bank_code, "currency": "NGN"})
 
     async def transfer(self, amount: int, recipient_code: str, reference: str, reason: str) -> dict:
-        return await self._call("POST", "/transfer", json={
-            "source": "balance", "amount": amount, "recipient": recipient_code, "reference": reference, "reason": reason})
+        return await self._call("POST", "/transfer", json={"source": "balance", "amount": amount, "recipient": recipient_code, "reference": reference, "reason": reason})
 
     async def refund(self, transaction: str, amount: int) -> dict:
         return await self._call("POST", "/refund", json={"transaction": transaction, "amount": amount})
