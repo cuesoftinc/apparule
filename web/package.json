@@ -33,10 +33,10 @@
     "@radix-ui/react-select": "^2.4.1",
     "@radix-ui/react-switch": "^1.4.1",
     "@radix-ui/react-tooltip": "^1.4.1",
-    "@scalar/api-reference-react": "^0.9.82",
+    "@scalar/api-reference-react": "^0.9.87",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
-    "lucide-react": "^1.61.0",
+    "lucide-react": "^1.66.0",
     "next": "16.4.3",
     "react": "19.3.1",
     "react-dom": "19.3.1"
