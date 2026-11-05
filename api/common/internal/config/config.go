@@ -45,6 +45,13 @@ type Config struct {
 	// Cloud Scheduler OIDC for POST /internal/jobs/{name}: unset fails closed.
 	SchedulerAudience     string
 	SchedulerInvokerEmail string
+	// SettleInvokerEmails are the other service accounts (uploads) that may
+	// call POST /internal/settle, on top of the scheduler's.
+	SettleInvokerEmails []string
+
+	// OnCloudRun is true where CPU is allocated only while a request runs
+	// (S-14): nothing publishes or consumes in the background there.
+	OnCloudRun bool
 }
 
 // Auth is Google SSO plus the API's own session: Google proves the identity,
@@ -77,11 +84,10 @@ type Kafka struct {
 	SSLCA    string
 }
 
-// Wake holds the base URLs of the services to wake after publishing for
+// Wake holds the base URLs of the services to settle after publishing for
 // them (scale to zero, shared-messaging.md). Empty where every service
 // always runs (compose, Helm).
 type Wake struct {
-	Common       string // used by the jobs: they wake common while work is pending
 	Segmentation string
 	Commerce     string
 }
@@ -155,6 +161,8 @@ func Load() (*Config, error) {
 
 		SchedulerAudience:     strings.TrimRight(strings.TrimSpace(os.Getenv("SCHEDULER_AUDIENCE")), "/"),
 		SchedulerInvokerEmail: strings.TrimSpace(os.Getenv("SCHEDULER_INVOKER_EMAIL")),
+		SettleInvokerEmails:   split(os.Getenv("SETTLE_INVOKERS")),
+		OnCloudRun:            os.Getenv("K_SERVICE") != "",
 		Kafka: Kafka{
 			Brokers:  split(need("KAFKA_BROKERS")),
 			Username: os.Getenv("KAFKA_USERNAME"),
@@ -181,7 +189,6 @@ func Load() (*Config, error) {
 			UseSSL:    os.Getenv("STORAGE_USE_SSL") != "false",
 		},
 		Wake: Wake{
-			Common:       strings.TrimSpace(os.Getenv("WAKE_COMMON_URL")),
 			Segmentation: strings.TrimSpace(os.Getenv("WAKE_SEGMENTATION_URL")),
 			Commerce:     strings.TrimSpace(os.Getenv("WAKE_COMMERCE_URL")),
 		},

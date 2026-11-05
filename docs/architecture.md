@@ -58,7 +58,8 @@ Four services, named by function and split by role (CueLABS language rule):
 | `mobile/flutter` | Dart | The app (guided two-pose capture, feed, orders) | local cache | —   |
 
 Services talk only through the shared bus (S-2); HTTP between them exists
-solely as a data-free `GET /health` wake-up for scale to zero.
+solely as the data-free `POST /internal/settle` that makes a scaled-to-zero
+consumer handle what is waiting (S-14).
 
 ## 2. Responsibilities
 
@@ -211,7 +212,7 @@ flowchart LR
 ## 6. Deployment **[Built]**
 
 - **Cloud** (X-3, X-6): Cloud Run services at min 0 (scale to zero with
-  wake-ups), sweeps as Cloud Scheduler POSTs to common, the managed Postgres and Valkey, the shared
+  settle calls), sweeps as Cloud Scheduler POSTs to common, the managed Postgres and Valkey, the shared
   Kafka, Cloud Storage; web on Firebase App Hosting. Tag-gated
   releases. See [deployment.md](deployment.md).
 - **Self-host**: `docker-compose.yml` (Postgres, Kafka KRaft, Redis,

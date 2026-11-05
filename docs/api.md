@@ -14,6 +14,8 @@
 | `<uploads run.app URL>/api/v1/uploads` | `api/uploads` | an upload ticket (`Upload-Ticket` header), never a user token |
 | `<common run.app URL>/webhooks/payments` | `api/common` | Paystack signature only (`X-Paystack-Signature`, HMAC-SHA512) |
 | `<common run.app URL>/internal/jobs/<name>` | `api/common` | a Cloud Scheduler OIDC token: audience `SCHEDULER_AUDIENCE`, email `SCHEDULER_INVOKER_EMAIL` (401, 403, or 503 when unset) |
+| `<common run.app URL>/internal/settle` | `api/common` | a Google ID token for `SCHEDULER_AUDIENCE` from `SCHEDULER_INVOKER_EMAIL` or `SETTLE_INVOKERS`; answers `{"caught_up","ms"}` (401, 403, or 503 when unset) |
+| `<segmentation or commerce run.app URL>/internal/settle` | `api/segmentation`, `api/commerce` | a Google ID token for `INTERNAL_AUDIENCE` from `INTERNAL_INVOKERS`; answers `{"caught_up","ms"}` (401, 403, or 503 when unset) |
 | `apparule.cuesoft.io/api/v1/*` | the web's server-side proxy → the same | as above |
 
 `common` verifies the session JWT on every request (HS256, `JWT_SECRET`);

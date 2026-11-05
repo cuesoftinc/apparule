@@ -31,7 +31,7 @@ src/ticket/            ticket verification
 src/upload/            the route, multipart parsing, checks and cleaning
 src/filetype/          magic-byte detection
 src/storage/           Cloud Storage (ADC) or MinIO
-src/kafka/             producer (claim-check), event names, wake-up of common
+src/kafka/             producer (claim-check), event names, settle call to common
 src/contract/          JSON Schema validation (api/common/contract)
 src/health/            /health and /ready
 ```

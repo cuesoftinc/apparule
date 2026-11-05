@@ -39,6 +39,7 @@ const config: Config = {
   ticketPublicKeys: new Map([["k1", signer.publicKey]]),
   contractDir: CONTRACT_DIR,
   wakeCommonUrl: "",
+  onCloudRun: false,
 };
 
 /** A small JPEG carrying EXIF (camera make and a GPS-bearing IFD). */

@@ -14,7 +14,6 @@ import (
 	"github.com/cuesoftinc/apparule/api/common/internal/storage"
 	"github.com/cuesoftinc/apparule/api/common/internal/sweep"
 	"github.com/cuesoftinc/apparule/api/common/internal/ticket"
-	"github.com/cuesoftinc/apparule/api/common/internal/wake"
 	"github.com/cuesoftinc/apparule/api/common/migrations"
 )
 
@@ -49,9 +48,10 @@ func New(ctx context.Context, cfg *config.Config) (*App, error) {
 }
 
 // Jobs is the job map for cmd/jobs (withMigrate) and POST /internal/jobs/{name}.
-func (a *App) Jobs(withMigrate bool) map[string]func(context.Context) error {
-	sweeper := &sweep.Sweeper{DB: a.DB, Store: a.Store, Services: a.Services, Now: time.Now, Wake: wake.New(),
-		WakeURLs: a.Config.Wake, Limits: a.Config.Limits}
+// settle is what the captures job runs after its sweep to publish the outbox
+// and drain the consumers; nil where a running server does that itself.
+func (a *App) Jobs(withMigrate bool, settle func(context.Context)) map[string]func(context.Context) error {
+	sweeper := &sweep.Sweeper{DB: a.DB, Store: a.Store, Services: a.Services, Now: time.Now, Settle: settle, Limits: a.Config.Limits}
 	jobs := sweeper.Jobs()
 	if withMigrate {
 		jobs["migrate"] = func(ctx context.Context) error { return migrations.Apply(ctx, a.DB.Pool) }

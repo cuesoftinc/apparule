@@ -28,10 +28,12 @@ export interface Config {
   /** JSON Schemas copied from api/common/contract. */
   contractDir: string;
   /**
-   * api/common's base URL, woken after each upload event (scale to zero,
+   * api/common's base URL, settled after each upload event (scale to zero,
    * shared-messaging.md). Empty where common always runs.
    */
   wakeCommonUrl: string;
+  /** True on Cloud Run: calls to common carry this service's ID token. */
+  onCloudRun: boolean;
 }
 
 export const CONFIG = Symbol("CONFIG");
@@ -108,5 +110,6 @@ export const loadConfig = (env: NodeJS.ProcessEnv = process.env): Config => {
     ticketPublicKeys: parsePublicKeys(keys),
     contractDir: env.CONTRACT_DIR ?? "contract",
     wakeCommonUrl: (env.WAKE_COMMON_URL ?? "").trim(),
+    onCloudRun: (env.K_SERVICE ?? "") !== "",
   };
 };
