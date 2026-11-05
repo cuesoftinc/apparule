@@ -42,7 +42,7 @@ func run(args []string) error {
 	}
 	defer a.Close()
 
-	jobs := a.Jobs(true)
+	jobs := a.Jobs(true, nil)
 
 	names := make([]string, 0, len(jobs))
 	for name := range jobs {

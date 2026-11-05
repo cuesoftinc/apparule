@@ -18,7 +18,6 @@ import (
 	"github.com/cuesoftinc/apparule/api/common/internal/repository"
 	"github.com/cuesoftinc/apparule/api/common/internal/service"
 	"github.com/cuesoftinc/apparule/api/common/internal/storage"
-	"github.com/cuesoftinc/apparule/api/common/internal/wake"
 )
 
 type Sweeper struct {
@@ -26,11 +25,11 @@ type Sweeper struct {
 	Store    storage.Store
 	Services *service.Services
 	Now      func() time.Time
-	// Wake and WakeURLs restart scaled-to-zero services while work is
-	// pending (shared-messaging.md). Nil/empty: nothing to wake.
-	Wake     *wake.Waker
-	WakeURLs config.Wake
-	Limits   config.Limits
+	// Settle publishes the outbox and drains the consumers inside the
+	// captures job, so work stuck on request-based CPU (S-14) finishes. Nil:
+	// a running server's publisher and consumers do that.
+	Settle func(context.Context)
+	Limits config.Limits
 }
 
 // Jobs maps the job names to their functions.
@@ -48,7 +47,8 @@ func (s *Sweeper) Jobs() map[string]func(context.Context) error {
 //   - processing past ProcessingResend -> capture.ready queued again, once;
 //   - processing past ProcessingFail -> failed with pipeline_busy;
 //
-// then wakes common (to publish) and segmentation while work is pending.
+// then settles: common publishes its outbox, drains its consumers and
+// settles segmentation and commerce.
 func (s *Sweeper) Captures(ctx context.Context) error {
 	var expired, resent, failed int64
 	err := s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
@@ -82,7 +82,7 @@ func (s *Sweeper) Captures(ctx context.Context) error {
 		return err
 	}
 	slog.Info("captures swept", "step", "sweep", "expired", expired, "resent", resent, "failed", failed)
-	s.wakePending(ctx)
+	s.settle(ctx)
 	return nil
 }
 
@@ -129,7 +129,6 @@ func (s *Sweeper) Orders(ctx context.Context) error {
 		return err
 	}
 	slog.Info("orders swept", "step", "sweep", "counts", counts)
-	s.wakePending(ctx)
 	return nil
 }
 
@@ -270,7 +269,7 @@ const reconcileMargin = 15 * time.Minute
 // Paystack by reference (§6.4).
 func (s *Sweeper) Reconcile(ctx context.Context) error {
 	from, to, lookupFrom, lookupTo := reconcileWindow(s.Now())
-	err := s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
+	return s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
 		movements, err := repository.Movements(ctx, tx, lookupFrom, lookupTo)
 		if err != nil {
 			return err
@@ -284,11 +283,6 @@ func (s *Sweeper) Reconcile(ctx context.Context) error {
 			"movements": movements,
 		})
 	})
-	if err != nil {
-		return err
-	}
-	s.wakePending(ctx)
-	return nil
 }
 
 // reconcileWindow is the hour to reconcile and the wider lookup around it,
@@ -299,35 +293,11 @@ func reconcileWindow(now time.Time) (from, to, lookupFrom, lookupTo time.Time) {
 	return from, to, from.Add(-reconcileMargin), to.Add(reconcileMargin)
 }
 
-// wakePending wakes common while its outbox holds rows (its publisher sends
-// them), and the consumers that have work queued or in flight.
-func (s *Sweeper) wakePending(ctx context.Context) {
-	if s.Wake == nil {
-		return
-	}
-	var pending map[string]int
-	var processing int
-	if err := s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
-		var err error
-		if pending, err = repository.PendingOutbox(ctx, tx); err != nil {
-			return err
-		}
-		return tx.QueryRow(ctx, `SELECT count(*) FROM measurement_session WHERE status = 'processing'`).Scan(&processing)
-	}); err != nil {
-		slog.Warn("pending-work lookup failed", "error", err)
-		return
-	}
-	if len(pending) > 0 {
-		_ = s.Wake.Now(ctx, s.WakeURLs.Common, "outbox")
-	}
-	if processing > 0 || pending[kafka.EventCaptureReady] > 0 {
-		_ = s.Wake.Now(ctx, s.WakeURLs.Segmentation, "captures")
-	}
-	for event := range pending {
-		if kafka.TopicFor[event] == kafka.TopicRequests && event != kafka.EventCaptureReady {
-			_ = s.Wake.Now(ctx, s.WakeURLs.Commerce, event)
-			break
-		}
+// settle runs the settle the server gave the sweeper, if any. Rows the
+// other jobs queue are published by the next captures run, within a minute.
+func (s *Sweeper) settle(ctx context.Context) {
+	if s.Settle != nil {
+		s.Settle(ctx)
 	}
 }
 

@@ -30,7 +30,7 @@ remote set ships.
 | `web`                                            | Firebase App Hosting                                      | `web/` from `main`                  | Proxies `/api/v1/*` to `apparule-api-common` (no load balancer, no browser CORS); uploads is reached at its `run.app` URL                                 |
 | `apparule-api-common`                            | Cloud Run service                                         | `cuesoft/apparule-api-common`       | Go. The only Postgres client; receives Paystack webhooks. Serves the `/internal/jobs/<name>` sweeps. Kafka consumers + outbox run while an instance is up |
 | `apparule-api-uploads`                           | Cloud Run service                                         | `cuesoft/apparule-api-uploads`      | Node upload gateway (`POST /api/v1/uploads`)                                                                                                              |
-| `apparule-api-segmentation`                      | Cloud Run service                                         | `cuesoft/apparule-api-segmentation` | Python, MediaPipe. Kafka only; reached only by wake-ups                                                                                                   |
+| `apparule-api-segmentation`                      | Cloud Run service                                         | `cuesoft/apparule-api-segmentation` | Python, MediaPipe. Kafka only; reached only by settle calls                                                                                                 |
 | `apparule-api-commerce`                          | Cloud Run service                                         | `cuesoft/apparule-api-commerce`     | Python. Paystack, FCM, Brevo. Kafka only                                                                                                                  |
 | `apparule-{captures,orders,reconcile,retention}` | Cloud Scheduler jobs                                      | n/a                                 | `POST /internal/jobs/<name>` on `apparule-api-common` with an OIDC token; created paused until the handlers are deployed                                  |
 | Postgres, Valkey                                 | a managed Postgres instance and a managed Valkey instance | n/a                                 | database `apparule`; keys `apparule:*`                                                                                                                    |
@@ -45,23 +45,28 @@ the workflow only swaps their image digests.**
 
 No service runs while nobody uses the app (S-9 as amended). Kafka needs a
 running consumer, and Cloud Run starts one only for an HTTP request, so each
-service that publishes wakes the one that consumes with a `GET /health`:
+service that publishes settles the one that consumes with
+`POST /internal/settle`, which that service answers only after it has handled
+what is waiting for it:
 
 ```
 app/browser → common (creates the capture session) → uploads (photos)
-uploads ──capture.uploaded──▶ Kafka, then wakes common
-common ──capture.ready on cuelabs.requests──▶ Kafka, then wakes segmentation
-segmentation ──capture.measured on cuelabs.results──▶ Kafka, then wakes common
+uploads ──capture.uploaded──▶ Kafka, then settles common
+common ──capture.ready on cuelabs.requests──▶ Kafka, then settles segmentation
+segmentation ──capture.measured on cuelabs.results──▶ Kafka, drained by common's settle
 (commerce works the same way for orders, webhooks, payouts and notifications)
 ```
 
 CPU is allocated only while a request is in flight (no always-on instance,
-worker pool or Cloud Run job), so a woken instance consumes while requests
-are open and Cloud Run retires it when idle (up to about 15 minutes). The `captures` sweep is the safety net:
-every minute it re-sends an overdue capture once and wakes common and
-segmentation while work is pending. The first capture after a quiet period
-takes longer (cold start, MediaPipe load, consumer-group join); later ones
-take a few seconds.
+worker pool or Cloud Run job), so nothing runs after a response: `common`
+publishes its outbox before it answers, and each consumer drains inside a
+settle (deployment.md §4). `common`'s settle also drains its own consumers
+after settling downstream, so a result is applied in the same call. Cloud Run
+retires an idle instance after about 15 minutes. The `captures` sweep is the
+safety net: every minute it re-sends an overdue capture once, then runs a
+settle (drain, publish, settle segmentation and commerce). The first capture
+after a quiet period takes longer (cold start, MediaPipe load, consumer-group
+join); later ones take a few seconds.
 
 ## 2. Google sign-in and push
 
@@ -145,7 +150,7 @@ limits and the upload quota; if it is unreachable the limits fail open.
 
 | Service account         | Used by              | Roles                                                                                                                                                                                         |
 | ----------------------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `apparule-common`       | common               | `roles/storage.objectAdmin` on the bucket, condition (A); `roles/iam.serviceAccountTokenCreator` **on itself** (signed URLs); `roles/run.invoker` on segmentation and commerce (to wake them) |
+| `apparule-common`       | common               | `roles/storage.objectAdmin` on the bucket, condition (A); `roles/iam.serviceAccountTokenCreator` **on itself** (signed URLs); `roles/run.invoker` on segmentation and commerce (to settle them) |
 | `apparule-uploads`      | uploads              | `roles/storage.objectCreator`, condition (B)                                                                                                                                                  |
 | `apparule-segmentation` | segmentation         | `roles/storage.objectViewer`, condition (C); `roles/storage.objectCreator`, condition (D)                                                                                                     |
 | `apparule-commerce`     | commerce             | `roles/storage.objectAdmin`, condition (D); `roles/firebasecloudmessaging.admin` on the project                                                                                               |
@@ -190,6 +195,9 @@ cd api/common && go run ./cmd/ticketkey 2026-10
 | `UPLOADS_URL` (the uploads `run.app` URL plus `/api/v1/uploads`)                                  | ✓                      |         |              |               |
 | `SCHEDULER_AUDIENCE` (the common `run.app` URL)                                                   | ✓                      |         |              |               |
 | `SCHEDULER_INVOKER_EMAIL` (`scheduler-invoker@<project-id>.iam.gserviceaccount.com`)              | ✓                      |         |              |               |
+| `SETTLE_INVOKERS` (`apparule-uploads@<project-id>.iam.gserviceaccount.com`)                 | ✓                      |         |              |               |
+| `INTERNAL_AUDIENCE` (the service's own `run.app` URL)                                             |                        |         | ✓            | ✓             |
+| `INTERNAL_INVOKERS` (`apparule-common@<project-id>.iam.gserviceaccount.com`)                      |                        |         | ✓            | ✓             |
 | `KAFKA_BROKERS`, `KAFKA_SSL_CA`                                                                   | ✓                      | ✓       | ✓            | ✓             |
 | `KAFKA_USERNAME`, `KAFKA_PASSWORD` 🔒                                                             | ✓ `apparule`           | ✓       | ✓            | ✓             |
 | `REDIS_HOST/PORT/USERNAME`, `REDIS_PASSWORD` 🔒, `REDIS_TLS=true`, `REDIS_DB`, `REDIS_KEY_PREFIX` | ✓                      |         |              |               |
@@ -198,11 +206,14 @@ cd api/common && go run ./cmd/ticketkey 2026-10
 | `PAYSTACK_PUBLIC_KEY`                                                                             | ✓ (checkout)           |         |              |               |
 | `BREVO_API_KEY` 🔒, `BREVO_FROM_EMAIL`, `BREVO_FROM_NAME`                                         |                        |         |              | ✓             |
 | `CORS_ORIGINS` (the website origin)                                                               | ✓                      | ✓       |              |               |
-| `WAKE_COMMON_URL` (the common URL)                                                                |                        | ✓       | ✓            | ✓             |
+| `WAKE_COMMON_URL` (the common URL)                                                                |                        | ✓       |              |               |
 | `WAKE_SEGMENTATION_URL`, `WAKE_COMMERCE_URL`                                                      | ✓                      |         |              |               |
 
 The `WAKE_*` values are the services' own `https://…run.app` URLs, without a
-path. Create the services first, then fill these in and redeploy.
+path: common settles segmentation and commerce, uploads settles common.
+`INTERNAL_AUDIENCE` is the same URL as the service itself, and the invoker
+accounts are the callers' service accounts (§5). Create the services first,
+then fill these in and redeploy.
 
 Never set in cloud: `STORAGE_ENDPOINT` and the `STORAGE_*_KEY`s (those are
 for self-host).
@@ -237,16 +248,17 @@ Cloud Scheduler POSTs `/internal/jobs/<name>` on `apparule-api-common` for
 (`13 * * * *`) and `retention` (`17 3 * * *`), with an OIDC token from
 `scheduler-invoker` whose audience is the common URL; the jobs are created
 paused and resumed once this release is deployed. There is no load balancer:
-the web proxies `/api/v1/*` to common.
+the web proxies `/api/v1/*` to common. The `captures` job (60 s attempt
+deadline) runs the sweep and then a settle of up to 40 s.
 
 In gcloud terms: `--min-instances 0` everywhere, with CPU allocated only
 during requests. The processing services'
-ingress is **all** rather than internal because common wakes
+ingress is **all** rather than internal because common settles
 them over their `run.app` URLs; requiring authentication keeps them
-private (the wake-ups carry an ID token).
+private (the settle calls carry an ID token, which they also check themselves).
 
-**Idle.** While nobody uses the app nothing runs. Each wake keeps an
-instance for up to ~15 minutes. The managed Postgres, Valkey and Kafka services stay up; the `captures` sweep wakes common for a short run every minute.
+**Idle.** While nobody uses the app nothing runs. Each settle keeps an
+instance for up to ~15 minutes. The managed Postgres, Valkey and Kafka services stay up; the `captures` job calls common for a short run every minute.
 
 ## 8. GitHub (release workflow)
 
@@ -276,7 +288,7 @@ On `cuesoftinc/apparule`:
 6. Smoke test on the site: sign in with Google, accept the terms, choose a
    measurement set, upload a front and a side photo, wait for results, save
    them. Follow the trail in the logs by `jsonPayload.step` and the session
-   id: `capture.uploaded` → `wake` → `outbox` → `capture.ready` →
+   id: `capture.uploaded` → `settle` → `outbox` → `capture.ready` →
    `capture.measured`. Then, with a designer account, add a payout account
    (Paystack test bank), post, request it from another account, quote, pay
    with a Paystack test card, ship, confirm: `charge_settled` and
@@ -291,7 +303,7 @@ On `cuesoftinc/apparule`:
 | Roll back                       | Redeploy the previous image digest (it is in the earlier release run) with `gcloud run services update <name> --image docker.io/cuesoft/apparule-api-<svc>@sha256:…`                                                                                      |
 | Rotate the ticket key           | Generate a new pair with a new kid; **add** its public key to `UPLOAD_TICKET_PUBLIC_KEYS` (comma-separated) and deploy uploads; switch `UPLOAD_TICKET_PRIVATE_KEY` and deploy common; after 5 minutes, drop the old public key                            |
 | Run migrations alone            | `./jobs migrate` by hand (common also runs them on start); the HTTP sweeps exclude it                                                                                                                                                                     |
-| A capture stuck in "processing" | The `captures` sweep re-sends it after 60 s and fails it with `pipeline_busy` after 180 s; check segmentation's logs and the `wake` lines for `wake failed`                                                                                               |
+| A capture stuck in "processing" | The `captures` sweep re-sends it after 60 s and fails it with `pipeline_busy` after 180 s; check segmentation's logs and the `settle` lines for `settle failed`                                                                                               |
 | Kafka powered off (idle)        | a sibling product's reaper powers it back on; uploads answer 503 meanwhile and overdue captures are re-sent from Postgres. Nothing is lost from Postgres                                                                                                  |
 | A money outcome needs a human   | `payments.outcome` rows of kind `mismatch`, `charge_rejected`, `payout_failed` or `refund_failed` are logged at error level (`money needs attention`) and kept in `payment_outcome` with `resolved_at` empty; resolve in Paystack, then set `resolved_at` |
 | Resolve a dispute               | A staff account calls `POST /api/v1/moderation/requests/{id}/resolve` with `delivered` or `refunded`                                                                                                                                                      |

@@ -2,8 +2,9 @@
 
 No public ingress. HTTP serves only /health and /ready; the work arrives over
 Kafka as capture.ready and leaves as capture.measured. In cloud the service
-scales to zero: common wakes it after publishing for it, and it wakes common
-after sending a result (shared-messaging.md, "Scale to zero").
+scales to zero on request-based CPU (S-14): common settles it after publishing
+for it and at the end of every captures pass, and it handles what is waiting
+inside POST /internal/settle (shared-messaging.md, "Scale to zero").
 """
 
 import logging
@@ -12,13 +13,13 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+import settle
 from app.config import QC, get_settings
 from contract import Contract
 from health import router as health_router
 from kafka import topics
 from kafka.consumer import Consumer
 from kafka.producer import Producer
-from kafka.wake import Waker
 from pipeline import CapturePipeline
 from pose.detector import PoseAnalyzer
 from storage import from_settings
@@ -36,7 +37,6 @@ async def lifespan(app: FastAPI):
     contract = Contract(settings.contract_dir)
     store = from_settings(settings)
     producer = Producer(settings, contract, store)
-    waker = Waker(settings.wake_common_url)
     analyzer = PoseAnalyzer(settings.pose_model_path, settings.segmentation_model_path)
     pipeline = CapturePipeline(store, analyzer)
 
@@ -49,7 +49,6 @@ async def lifespan(app: FastAPI):
         log.info("capture received", extra={"step": "capture.ready", "session_id": msg["session_id"], "attempt": msg["attempt"], "template": msg["template"]})
         result = await pipeline.run(msg)
         await producer.send(topics.CAPTURE_MEASURED, msg["session_id"], result, request_of(msg, request_id))
-        waker.soon(topics.CAPTURE_MEASURED)
         log.info(
             "capture measured; result sent",
             extra={
@@ -65,11 +64,14 @@ async def lifespan(app: FastAPI):
 
     async def on_failure(event: str, msg: dict, request_id: str | None) -> None:
         await producer.send(topics.CAPTURE_MEASURED, msg["session_id"], pipeline.failed(msg), request_of(msg, request_id))
-        waker.soon(topics.CAPTURE_MEASURED)
         log.info("capture failed; result sent", extra={"step": "capture.measured", "session_id": msg["session_id"], "status": "failed", "error_code": "pipeline_error"})
 
-    consumer = Consumer("capture", {topics.CAPTURE_READY: on_capture_ready}, settings, contract, store, on_failure)
+    consumer = Consumer("capture", {topics.CAPTURE_READY: on_capture_ready}, settings, contract, store, on_failure, background=not settings.on_cloud_run)
 
+    async def run_settle(budget: float) -> dict:
+        return {"caught_up": await consumer.drain(budget)}
+
+    app.include_router(settle.router(run_settle, settings.internal_audience, settings.internal_invoker_list))
     await producer.start()
     await consumer.start()
     app.state.consumers = [consumer]
@@ -78,7 +80,6 @@ async def lifespan(app: FastAPI):
     finally:
         await consumer.stop()
         await producer.stop()
-        await waker.aclose()
         analyzer.close()
 
 

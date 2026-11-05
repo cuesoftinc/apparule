@@ -28,7 +28,7 @@ internal/sweep         the scheduled jobs (§6.7)
 internal/storage       Cloud Storage (ADC) or MinIO; copy and signed URLs
 internal/ticket        Ed25519 upload tickets (S-15)
 internal/ratelimit     Valkey windows under `REDIS_KEY_PREFIX` (engineering.md §3)
-internal/wake          wake-up calls for scaled-to-zero services
+internal/wake          settle calls to scaled-to-zero services
 ```
 
 ## How the pieces meet
@@ -53,7 +53,15 @@ internal/wake          wake-up calls for scaled-to-zero services
   `{"job","ms"}`. The caller is Cloud Scheduler: its OIDC token must carry
   the audience `SCHEDULER_AUDIENCE` and the verified email
   `SCHEDULER_INVOKER_EMAIL`. Missing token is 401, wrong email 403, either
-  variable unset 503, unknown job 404.
+  variable unset 503, unknown job 404. The `captures` job ends with a settle.
+- **Settle** (S-14): `POST /internal/settle` drains common's consumers,
+  publishes the outbox, settles segmentation and commerce, and drains again
+  for the results, for up to four rounds in 40 s. It answers
+  `{"caught_up","ms"}`. The caller's Google ID token must carry the audience
+  `SCHEDULER_AUDIENCE` and the verified email `SCHEDULER_INVOKER_EMAIL` or one
+  of `SETTLE_INVOKERS`. On Cloud Run (`K_SERVICE` set) nothing publishes
+  or consumes between requests: a write's outbox rows are published before
+  its response, and the consumers run inside a settle.
 - **Tenancy** (S-11): handlers run as the caller (`app.account_id`), so RLS
   hides other accounts' vaults, orders and notifications; consumers, sweeps
   and staff run as system.

@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -45,10 +46,22 @@ type Jobs struct {
 
 // Guard passes only the scheduler's invoker: unset configuration fails closed.
 func (j *Jobs) Guard(next http.Handler) http.Handler {
+	return guardInvokers(j.Verifier, j.Audience, []string{j.Invoker}, next)
+}
+
+// guardInvokers passes only a verified Google ID token for audience whose
+// email is one of invokers; with no audience or no invoker it fails closed.
+func guardInvokers(verifier Verifier, audience string, invokers []string, next http.Handler) http.Handler {
+	var allowed []string
+	for _, email := range invokers {
+		if email != "" {
+			allowed = append(allowed, email)
+		}
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if j.Audience == "" || j.Invoker == "" {
-			slog.ErrorContext(r.Context(), "scheduler auth not configured")
-			writeError(w, http.StatusServiceUnavailable, "unavailable", "Scheduler auth is not configured", nil)
+		if audience == "" || len(allowed) == 0 {
+			slog.ErrorContext(r.Context(), "internal auth not configured")
+			writeError(w, http.StatusServiceUnavailable, "unavailable", "Internal auth is not configured", nil)
 			return
 		}
 		scheme, token, _ := strings.Cut(strings.TrimSpace(r.Header.Get("Authorization")), " ")
@@ -57,14 +70,14 @@ func (j *Jobs) Guard(next http.Handler) http.Handler {
 			writeError(w, http.StatusUnauthorized, "unauthorized", "Missing bearer token", nil)
 			return
 		}
-		claims, err := j.Verifier.Verify(r.Context(), token, j.Audience)
+		claims, err := verifier.Verify(r.Context(), token, audience)
 		if err != nil {
-			slog.WarnContext(r.Context(), "scheduler token rejected", "error", err)
+			slog.WarnContext(r.Context(), "internal token rejected", "error", err)
 			writeError(w, http.StatusUnauthorized, "unauthorized", "Invalid token", nil)
 			return
 		}
-		if !claims.EmailVerified || claims.Email != j.Invoker {
-			slog.WarnContext(r.Context(), "scheduler token rejected: caller is not the invoker")
+		if !claims.EmailVerified || !slices.Contains(allowed, claims.Email) {
+			slog.WarnContext(r.Context(), "internal token rejected: caller is not an invoker")
 			writeError(w, http.StatusForbidden, "forbidden", "Caller is not allowed", nil)
 			return
 		}

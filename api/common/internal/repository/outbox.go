@@ -3,10 +3,32 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"sync/atomic"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 )
+
+type queuedKey struct{}
+
+// Queued counts the outbox rows one request queued; the server publishes
+// them before it answers (S-14).
+type Queued struct{ n atomic.Int64 }
+
+func (q *Queued) Any() bool { return q.n.Load() > 0 }
+
+// WithQueued returns a context whose Enqueue calls count on the Queued.
+func WithQueued(ctx context.Context) (context.Context, *Queued) {
+	q := &Queued{}
+	return context.WithValue(ctx, queuedKey{}, q), q
+}
+
+// NoteQueued counts one queued row against ctx's Queued, if it has one.
+func NoteQueued(ctx context.Context) {
+	if q, ok := ctx.Value(queuedKey{}).(*Queued); ok {
+		q.n.Add(1)
+	}
+}
 
 // Enqueue writes an event in the caller's transaction (§6.6): it is sent
 // if and only if the business write commits. The row gets a new request_id.
@@ -17,6 +39,7 @@ func Enqueue(ctx context.Context, tx pgx.Tx, event, key string, data any) error 
 // EnqueueRequest is Enqueue with the request_id a re-send must keep; empty
 // means a new one.
 func EnqueueRequest(ctx context.Context, tx pgx.Tx, event, key, requestID string, data any) error {
+	NoteQueued(ctx)
 	_, err := tx.Exec(ctx, `INSERT INTO outbox (event, message_key, payload, request_id)
 		VALUES ($1, $2, $3, coalesce(nullif($4, ''), gen_random_uuid()::text))`, event, key, mustJSON(data), requestID)
 	return err
@@ -52,25 +75,6 @@ func MarkPublished(ctx context.Context, tx pgx.Tx, ids []int64) error {
 func PruneOutbox(ctx context.Context, tx pgx.Tx, olderThan time.Duration) (int64, error) {
 	tag, err := tx.Exec(ctx, `DELETE FROM outbox WHERE published_at < now() - make_interval(secs => $1)`, olderThan.Seconds())
 	return tag.RowsAffected(), err
-}
-
-// PendingOutbox counts unsent rows per event, for the sweep's wake-ups.
-func PendingOutbox(ctx context.Context, tx pgx.Tx) (map[string]int, error) {
-	rows, err := tx.Query(ctx, `SELECT event, count(*) FROM outbox WHERE published_at IS NULL GROUP BY event`)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	out := map[string]int{}
-	for rows.Next() {
-		var event string
-		var n int
-		if err := rows.Scan(&event, &n); err != nil {
-			return nil, err
-		}
-		out[event] = n
-	}
-	return out, rows.Err()
 }
 
 // ClaimResult reports whether this is the first result for requestID

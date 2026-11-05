@@ -8,6 +8,7 @@ google-cloud-storage==3.17.1
 google-auth==2.62.0
 minio==7.2.20
 httpx==0.28.1
+requests==2.34.2
 mediapipe==1.1.1
 opencv-python-headless==5.0.0.93
 numpy==2.5.4

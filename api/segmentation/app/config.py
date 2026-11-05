@@ -35,9 +35,14 @@ class Settings(BaseSettings):
     kafka_ssl_ca: str = ""
     kafka_group: str = "apparule-segmentation"
 
-    # api/common's base URL, woken after each result sent for it (scale to
-    # zero, shared-messaging.md). Empty where common always runs.
-    wake_common_url: str = ""
+    # K_SERVICE is set on Cloud Run, where CPU is allocated only while a
+    # request runs (S-14): consumers then drain inside POST /internal/settle.
+    k_service: str = ""
+    # POST /internal/settle: a Google ID token for this audience (this
+    # service's URL) from one of these comma-separated service accounts
+    # (api/common's). Unset refuses every call.
+    internal_audience: str = ""
+    internal_invokers: str = ""
 
     # Object storage. gcs in cloud (ADC); s3 for MinIO in compose/self-host.
     storage_driver: Literal["gcs", "s3"] = "gcs"
@@ -54,6 +59,14 @@ class Settings(BaseSettings):
     @property
     def kafka_broker_list(self) -> list[str]:
         return [b.strip() for b in self.kafka_brokers.split(",") if b.strip()]
+
+    @property
+    def on_cloud_run(self) -> bool:
+        return bool(self.k_service)
+
+    @property
+    def internal_invoker_list(self) -> list[str]:
+        return [i.strip() for i in self.internal_invokers.split(",") if i.strip()]
 
 
 @dataclass(frozen=True)
