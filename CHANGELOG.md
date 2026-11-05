@@ -489,6 +489,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Deploys fetch the image through the Docker Hub mirror before each attempt.
 - Outbox, wakes and consumer work finish inside requests, not after responses.
 - Release deploys retry while Cloud Run cannot pull a fresh image.
 - Mobile manual-entry advisory reverts to the soft double-check phrasing,
