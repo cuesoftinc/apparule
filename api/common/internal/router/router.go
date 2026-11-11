@@ -75,6 +75,7 @@ func New(h *handler.Handlers, sso *handler.AuthHandler, auth func(http.Handler) 
 		"POST /api/v1/requests/{id}/decline":             h.Decline,
 		"POST /api/v1/requests/{id}/status":              h.SetStatus,
 		"POST /api/v1/requests/{id}/pay":                 h.Pay,
+		"POST /api/v1/requests/{id}/verify-payment":      h.VerifyPayment,
 		"POST /api/v1/requests/{id}/confirm-delivery":    h.ConfirmDelivery,
 		"POST /api/v1/requests/{id}/dispute":             h.Dispute,
 		"GET /api/v1/requests/{id}/messages":             h.Messages,

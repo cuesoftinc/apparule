@@ -32,6 +32,8 @@ type Sweeper struct {
 	Limits config.Limits
 }
 
+const pendingPaymentBatchSize = 5
+
 // Jobs maps the job names to their functions.
 func (s *Sweeper) Jobs() map[string]func(context.Context) error {
 	return map[string]func(context.Context) error{
@@ -39,7 +41,68 @@ func (s *Sweeper) Jobs() map[string]func(context.Context) error {
 		"orders":    s.Orders,
 		"retention": s.Retention,
 		"reconcile": s.Reconcile,
+		"payments":  s.Payments,
 	}
+}
+
+// Payments verifies a bounded batch of current pending Apparule references.
+// A session advisory lock prevents overlapping scheduler instances; database
+// settlement remains idempotent independently of this operational lock.
+func (s *Sweeper) Payments(ctx context.Context) error {
+	if s.Services.Config.Paystack.SecretKey == "" {
+		slog.InfoContext(ctx, "payment verification sweep skipped", "step", "sweep", "reason", "Paystack is not configured")
+		return nil
+	}
+	conn, err := s.DB.Pool.Acquire(ctx)
+	if err != nil {
+		return err
+	}
+	locked := false
+	defer func() {
+		if conn != nil {
+			if locked {
+				_, _ = conn.Exec(context.Background(), `SELECT pg_advisory_unlock(4672026)`)
+			}
+			conn.Release()
+		}
+	}()
+	var acquired bool
+	if err := conn.QueryRow(ctx, `SELECT pg_try_advisory_lock(4672026)`).Scan(&acquired); err != nil {
+		return err
+	}
+	if !acquired {
+		slog.InfoContext(ctx, "payment verification sweep already running", "step", "sweep")
+		return nil
+	}
+	locked = true
+	var refs []string
+	err = s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
+		var err error
+		refs, err = repository.PendingPaymentReferences(ctx, tx, pendingPaymentBatchSize)
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	verified, failed := 0, 0
+	for _, ref := range refs {
+		verifyErr := s.Services.VerifyPendingPayment(ctx, ref)
+		if verifyErr != nil {
+			failed++
+			slog.WarnContext(ctx, "payment reference verification failed", "step", "sweep", "reference", ref, "error", verifyErr)
+			continue
+		}
+		verified++
+	}
+	slog.InfoContext(ctx, "payments swept", "step", "sweep", "eligible", len(refs), "verified", verified, "failed", failed)
+	if _, err := conn.Exec(ctx, `SELECT pg_advisory_unlock(4672026)`); err != nil {
+		return err
+	}
+	locked = false
+	conn.Release()
+	conn = nil
+	s.settle(ctx)
+	return nil
 }
 
 // Captures runs every minute (§6.1 "Timeouts", X-11 re-send):

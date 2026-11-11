@@ -34,6 +34,50 @@ def test_charge_that_matches_the_quote_settles(contract):
     assert settle.decide(_event(), FEE)["outcome_id"] == out["outcome_id"]
 
 
+def test_verification_and_late_webhook_share_the_transaction_outcome_id():
+    verified = _event()
+    webhook = _event()
+    verified["provider_event_id"] = "verification-event"
+    webhook["provider_event_id"] = "late-webhook-event"
+    assert settle.decide(verified, FEE)["outcome_id"] == settle.decide(webhook, FEE)["outcome_id"]
+
+
+@pytest.mark.parametrize(
+    "transaction_id",
+    [None, 0, -1, "not-an-id", True, 9_223_372_036_854_775_808],
+    ids=["missing", "zero", "negative", "invalid", "boolean", "overflow"],
+)
+def test_successful_charge_without_a_positive_integer_id_is_rejected(transaction_id):
+    msg = _event()
+    if transaction_id is None:
+        del msg["payload"]["id"]
+    else:
+        msg["payload"]["id"] = transaction_id
+
+    rejected = settle.decide(msg, FEE)
+    replayed = settle.decide(copy.deepcopy(msg), FEE)
+    assert rejected["kind"] == "charge_rejected"
+    assert rejected["reason"] == "invalid_transaction_id"
+    assert rejected["outcome_id"] == outcome_id("charge_rejected", msg["provider_event_id"])
+    assert replayed["outcome_id"] == rejected["outcome_id"]
+
+
+def test_malformed_charge_retry_does_not_block_a_valid_webhook():
+    malformed = _event()
+    malformed["provider_event_id"] = "malformed-provider-event"
+    malformed["payload"].pop("id")
+    rejected = settle.decide(malformed, FEE)
+    assert rejected["kind"] == "charge_rejected"
+    assert rejected["reason"] == "invalid_transaction_id"
+
+    retry = _event()
+    retry["provider_event_id"] = "valid-retry-provider-event"
+    settled = settle.decide(retry, FEE)
+    assert settled["kind"] == "charge_settled"
+    assert settled["provider_ref"] == str(retry["payload"]["id"])
+    assert settled["outcome_id"] == outcome_id("charge_settled", str(retry["payload"]["id"]))
+
+
 @pytest.mark.parametrize(
     "change,reason",
     [
@@ -45,6 +89,27 @@ def test_charge_that_disagrees_is_rejected(contract, change, reason):
     out = settle.decide(_event(**change), FEE)
     contract.validate_data(topics.PAYMENTS_OUTCOME, out)
     assert out["kind"] == "charge_rejected" and out["reason"] == reason
+
+
+@pytest.mark.parametrize(
+    "status",
+    ["failed", "abandoned", "pending", "ongoing", "processing", "reversed", "unknown", None],
+)
+def test_non_success_transaction_status_never_settles(status):
+    msg = _event(status=status)
+    out = settle.decide(msg, FEE)
+    assert out["kind"] == "charge_rejected" and out["reason"] == "provider_error"
+    assert out["outcome_id"] != ""
+
+
+def test_non_integer_amount_never_settles():
+    out = settle.decide(_event(amount=4_500_000.5), FEE)
+    assert out["kind"] == "charge_rejected" and out["reason"] == "amount_mismatch"
+
+
+def test_reference_mismatch_is_rejected():
+    out = settle.decide(_event(reference="apr_someone_elses_order"), FEE)
+    assert out["kind"] == "charge_rejected" and out["reason"] == "unknown_reference"
 
 
 def test_charge_for_an_order_no_longer_quoted_or_unknown(contract):
@@ -209,6 +274,49 @@ async def test_reconcile_matches_items_that_cross_the_window_edge(contract):
     for o in out:
         contract.validate_data(topics.PAYMENTS_OUTCOME, o)
     assert [(o["reference"], o["reason"]) for o in out] == [("333", "missing_in_provider")]
+
+
+@pytest.mark.parametrize(
+    "movement_changes,provider_transaction,expected_reason",
+    [
+        ({}, {"id": 77, "reference": "apr_verified_1", "amount": 1000, "currency": "NGN"}, None),
+        ({}, {"id": 77, "reference": "apr_someone_else", "amount": 1000, "currency": "NGN"}, "reference_mismatch"),
+        ({"provider_ref": "78"}, {"id": 77, "reference": "apr_verified_1", "amount": 1000, "currency": "NGN"}, "provider_reference_mismatch"),
+        ({}, {"id": 77, "reference": "apr_verified_1", "amount": 999, "currency": "NGN"}, "amount_mismatch"),
+        ({}, {"id": 77, "reference": "apr_verified_1", "amount": 1000, "currency": "USD"}, "amount_mismatch"),
+    ],
+    ids=["matching", "checkout-reference-mismatch", "transaction-id-mismatch", "amount-mismatch", "currency-mismatch"],
+)
+async def test_reconciliation_checks_actual_payment_movement_references(
+    movement_changes, provider_transaction, expected_reason
+):
+    movement = copy.deepcopy(example("ledger.reconcile_requested")["data"]["movements"][0])
+    movement.update(
+        reference="apr_verified_1",
+        provider_ref="77",
+        amount={"amount": 1000, "currency": "NGN"},
+        at="2026-10-19T09:30:00Z",
+    )
+    movement.update(movement_changes)
+    msg = {
+        "window": {"from": "2026-10-19T09:00:00Z", "to": "2026-10-19T10:00:00Z"},
+        "lookup": {"from": "2026-10-19T08:45:00Z", "to": "2026-10-19T10:15:00Z"},
+        "movements": [movement],
+    }
+    fake = FakePaystack({
+        ("GET", "/transaction"): ok(
+            [
+                {
+                    **provider_transaction,
+                    "status": "success",
+                    "createdAt": "2026-10-19T09:30:00Z",
+                }
+            ]
+        ),
+        ("GET", "/transfer"): ok([]), ("GET", "/refund"): ok([]),
+    })
+    outcomes = await reconcile.compare(fake.client(), msg)
+    assert [outcome["reason"] for outcome in outcomes] == ([] if expected_reason is None else [expected_reason])
 
 
 def test_outcome_ids_differ_by_kind_and_source():

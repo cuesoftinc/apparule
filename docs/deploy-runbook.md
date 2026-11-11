@@ -32,7 +32,7 @@ remote set ships.
 | `apparule-api-uploads`                           | Cloud Run service                                         | `cuesoft/apparule-api-uploads`      | Node upload gateway (`POST /api/v1/uploads`)                                                                                                              |
 | `apparule-api-segmentation`                      | Cloud Run service                                         | `cuesoft/apparule-api-segmentation` | Python, MediaPipe. Kafka only; reached only by settle calls                                                                                                 |
 | `apparule-api-commerce`                          | Cloud Run service                                         | `cuesoft/apparule-api-commerce`     | Python. Paystack, FCM, Brevo. Kafka only                                                                                                                  |
-| `apparule-{captures,orders,reconcile,retention}` | Cloud Scheduler jobs                                      | n/a                                 | `POST /internal/jobs/<name>` on `apparule-api-common` with an OIDC token; created paused until the handlers are deployed                                  |
+| `apparule-{captures,orders,payments,reconcile,retention}` | Cloud Scheduler jobs                               | n/a                                 | `POST /internal/jobs/<name>` on `apparule-api-common` with an OIDC token; created paused until the handlers are deployed                                  |
 | Postgres, Valkey                                 | a managed Postgres instance and a managed Valkey instance | n/a                                 | database `apparule`; keys `apparule:*`                                                                                                                    |
 | Kafka                                            | a shared managed Kafka service                            | n/a                                 | shared with the sibling products (X-11); SASL user `apparule` with topic ACLs                                                                             |
 | Object storage                                   | your storage bucket                                       | n/a                                 | prefix `apparule/stg/`; media by signed URL only                                                                                                          |
@@ -245,11 +245,20 @@ Docker Hub, because every release replaces it by digest.
 Every service has the URL `https://<service>-<project-number>.us-central1.run.app`.
 Cloud Scheduler POSTs `/internal/jobs/<name>` on `apparule-api-common` for
 `captures` (`* * * * *`), `orders` (`7 * * * *`), `reconcile`
-(`13 * * * *`) and `retention` (`17 3 * * *`), with an OIDC token from
+(`13 * * * *`), `payments` (`*/5 * * * *`) and `retention` (`17 3 * * *`), with an OIDC token from
 `scheduler-invoker` whose audience is the common URL; the jobs are created
 paused and resumed once this release is deployed. There is no load balancer:
 the web proxies `/api/v1/*` to common. The `captures` job (60 s attempt
 deadline) runs the sweep and then a settle of up to 40 s.
+
+Payment settlement does not depend on Paystack delivering `charge.success` to
+Apparule. After checkout succeeds, the authenticated customer return flow asks
+common to verify the exact reference with Paystack; a bounded `payments` job
+also checks current pending `apr_` references every five minutes. Both publish
+verified successful charges through commerce's existing payment decision and
+common's transactional settlement path. Keep the payments scheduler enabled
+alongside the signed webhook; the webhook remains a useful fast path and the
+verification job provides recovery when it is missed.
 
 In gcloud terms: `--min-instances 0` everywhere, with CPU allocated only
 during requests. The processing services'

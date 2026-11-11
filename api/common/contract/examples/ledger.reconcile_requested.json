@@ -18,6 +18,7 @@
         "request_id": "7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c0d",
         "kind": "charge",
         "reference": "apr_7a8b9c0d1e2f4a3b8c4d5e6f7a8b9c0d",
+        "provider_ref": "4099260516",
         "amount": {
           "amount": 4500000,
           "currency": "NGN"

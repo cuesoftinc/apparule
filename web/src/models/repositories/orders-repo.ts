@@ -16,8 +16,8 @@ import { pollUntil } from "./upload";
 type PayStarted = CommissionRequest & { checkout?: Checkout };
 
 /**
- * Real backend (§6.3): open Paystack's checkout, then wait for the webhook
- * to settle the charge — the order turns paid server-side only.
+ * Real backend (§6.3): open Paystack checkout, ask the backend to verify the
+ * returned reference, then wait for the shared payment settlement path.
  */
 async function payOnBackend(
   id: string,
@@ -31,6 +31,16 @@ async function payOnBackend(
   const result = await openCheckout(started.checkout);
   if (result === "cancelled") {
     throw new ApiError("payment_cancelled", "Payment was cancelled", 409);
+  }
+  // A temporary verifier outage must not be reported as a failed charge;
+  // the signed webhook and scheduled verifier remain independent recovery paths.
+  try {
+    await apiFetch<{ status: string }>(`/v1/requests/${id}/verify-payment`, {
+      method: "POST",
+      json: { reference: started.checkout.reference },
+    });
+  } catch {
+    // Poll the authoritative order state below; if still quoted, show pending.
   }
   const order = await pollUntil(
     () => apiFetch<CommissionRequest>(`/v1/requests/${id}`),
@@ -108,7 +118,7 @@ export const ordersRepo = {
 
   /**
    * POST /api/v1/requests/{id}/pay — escrow hold (MI-15). TEST_MODE: the
-   * mock holds at once. Real backend: Paystack checkout, then the webhook.
+   * mock holds at once. Real backend: checkout, backend verification, then settlement.
    */
   pay: (id: string, idempotencyKey: string) =>
     env.testMode

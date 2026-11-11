@@ -634,6 +634,33 @@ func TestCommissionMoneyFlow(t *testing.T) {
 		t.Fatalf("a second checkout needs a new reference: %v %+v", err, retried.Checkout)
 	}
 
+	// A signed success webhook without a transaction ID is retained and
+	// rejected. Redelivery of its exact body is deduplicated; a later valid
+	// event for the charge remains eligible for settlement.
+	malformedBody := []byte(fmt.Sprintf(`{"event":"charge.success","data":{"reference":%q,"amount":4500000,"currency":"NGN","status":"success"}}`, paid.Checkout.Reference))
+	malformedMAC := hmac.New(sha512.New, []byte(paystackSecret))
+	_, _ = malformedMAC.Write(malformedBody)
+	malformedSignature := hex.EncodeToString(malformedMAC.Sum(nil))
+	for range 2 {
+		if err := e.s.ReceiveWebhook(ctx, malformedBody, malformedSignature); err != nil {
+			t.Fatal(err)
+		}
+	}
+	malformedEvents := e.outbox(t, kafka.EventPaymentsProviderEvent)
+	if len(malformedEvents) != 1 {
+		t.Fatalf("malformed webhook should be preserved once for investigation, got %d events", len(malformedEvents))
+	}
+	malformedEventID := malformedEvents[0]["provider_event_id"].(string)
+	malformedOutcomeID := uuid.NewSHA1(uuid.MustParse("6f1c3a2e-9b4d-4e8f-a1c7-3d5b2e9f0a41"), []byte("charge_rejected:"+malformedEventID)).String()
+	e.deliver(t, kafka.EventPaymentsOutcome, map[string]any{
+		"outcome_id": malformedOutcomeID, "kind": "charge_rejected", "request_id": order.ID,
+		"provider_event_id": malformedEventID, "reference": paid.Checkout.Reference, "reason": "invalid_transaction_id",
+	}, e.s.OnPaymentOutcome)
+	stillPending, err := e.s.Order(ctx, customer, order.ID)
+	if err != nil || stillPending.Status != "quoted" || stillPending.Payment == nil || stillPending.Payment.State != "pending" {
+		t.Fatalf("malformed successful webhook changed the pending payment: err=%v order=%+v", err, stillPending)
+	}
+
 	// Paystack's webhook: verified, stored, handed to commerce once. The
 	// first checkout's reference still finds the order.
 	body := []byte(fmt.Sprintf(`{"event":"charge.success","data":{"id":4099260516,"reference":%q,"amount":4500000,"currency":"NGN","status":"success"}}`,
