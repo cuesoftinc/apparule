@@ -211,7 +211,10 @@ jobs:
           NEXT_PUBLIC_TEST_MODE: "true"
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        # The Azure apt mirror can stop resolving on hosted runners; fall back to the main archive, then to no system packages.
+        run: |
+          getent hosts azure.archive.ubuntu.com >/dev/null || echo 'http://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
+          npx playwright install --with-deps chromium || npx playwright install chromium
 
       - name: E2E (Playwright, TEST_MODE)
         run: npm run test:e2e
