@@ -22,22 +22,22 @@ dependencies:
   # CocoaPods dependency, mobile-implementation.md §2) drives the C6
   # preview + shutter behind the abstract `CameraService` seam; dev/CI
   # ride `CameraServiceFake` (bundled sample frame, no hardware).
-  camera: ^0.12.1
-  crypto: ^3.0.7
+  camera: ^0.12.2
+  crypto: ^3.0.8
   dio: ^5.11.1
-  firebase_core: ^4.15.0
+  firebase_core: ^5.1.0
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  flutter_riverpod: ^3.3.2
+  flutter_riverpod: ^3.5.0
   flutter_secure_storage: ^11.2.0
   flutter_svg: ^2.2.0
   # Auth cutover: the API's Google sign-in opens in a system browser tab
   # (ASWebAuthenticationSession / Custom Tabs) and returns on apparule://.
   flutter_web_auth_2: ^5.1.0
   freezed_annotation: ^3.1.0
-  go_router: ^18.0.1
+  go_router: ^18.1.4
   # Pin-ledger addition (C15 composer wave) — FLAGGED: not yet in the
   # ratified standards-research ledger. The first-party media picker
   # (Android Photo Picker / iOS PHPicker) behind the abstract
@@ -53,8 +53,8 @@ dependencies:
   # package, glyphs referenced as `LucideIcons.*`.
   lucide_icons_flutter: ^4.0.1
   riverpod_annotation: ^4.0.3
-  share_plus: ^13.3.0
-  shared_preferences: ^2.5.5
+  share_plus: ^13.3.1
+  shared_preferences: ^2.5.6
   # Pin-ledger addition (auth cutover): C1's legal links open the
   # canonical Cuesoft policies in the system browser (flows/auth.md §5).
   url_launcher: ^6.3.3
@@ -78,16 +78,16 @@ dev_dependencies:
   # patrol_finders drives it; no native-automation runner is wired.
   integration_test:
     sdk: flutter
-  json_serializable: ^6.14.1
+  json_serializable: ^6.15.2
   mocktail: ^1.0.5
-  patrol: ^4.10.0
+  patrol: ^4.11.0
   # The finder layer is a DIRECT dev dependency because integration_test/
   # imports it itself (PatrolTester/$ over the SDK harness above). The full
   # patrol harness stays alongside it, unused at runtime until a
   # native-automation lane earns patrol_cli. Both constraints move with
   # Dependabot, so no version is restated here: the pin is the constraint
   # and the resolved version is pubspec.lock.
-  patrol_finders: ^3.6.0
+  patrol_finders: ^3.7.0
   riverpod_generator: ^4.0.4
   very_good_analysis: ^10.3.0
 
