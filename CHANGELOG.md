@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 
 - `gitbook-docs.yaml` for GitBook's site-wide Git Sync, and `web/.gitignore` ignores the `AGENTS.md` that `next dev` writes (#478).
+- Dependabot groups the Flutter (pub) updates into one weekly PR, like the other ecosystems (#478).
 - Google sign-in through the API with a PKCE handoff on web and mobile.
 - `APP_RETURN_URLS` allowlist for the mobile app's sign-in return link.
 - `POST /internal/jobs/<name>` on api/common, guarded by scheduler OIDC token.
