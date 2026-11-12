@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useSettings } from "@/controllers/use-settings";
 import { AppBar } from "@/components/ui/AppBar";
 import { Banner } from "@/components/ui/Banner";
+import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 
 const DOC_LABEL: Record<string, string> = {
@@ -14,7 +15,7 @@ const DOC_LABEL: Record<string, string> = {
 };
 
 export function PrivacySettingsView() {
-  const { consent, loading } = useSettings();
+  const { consent, loading, error, reload } = useSettings();
   const router = useRouter();
 
   return (
@@ -42,6 +43,15 @@ export function PrivacySettingsView() {
         {loading ? (
           <div aria-busy="true">
             <Skeleton kind="line" />
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-start gap-2 py-3">
+            <p role="alert" className="text-body text-text-2">
+              Consent history couldn&apos;t load.
+            </p>
+            <Button kind="quiet" size="sm" onClick={() => void reload()}>
+              Retry
+            </Button>
           </div>
         ) : consent.length === 0 ? (
           <p className="text-body text-text-2">No consent records yet.</p>

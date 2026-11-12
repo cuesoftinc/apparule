@@ -21,6 +21,7 @@ beforeEach(() => {
   requestDeletion.mockReset().mockResolvedValue({});
   useSettingsMock.mockReturnValue({
     account: { deletion_state: "active" },
+    loading: false,
     exporting: false,
     deleting: false,
     exportData: vi.fn().mockResolvedValue("blob:mock"),
@@ -35,6 +36,30 @@ function renderView() {
     </ToastProvider>,
   );
 }
+
+describe("AccountDataView loading", () => {
+  it("shows a loading skeleton and hides export/delete while settings load", () => {
+    useSettingsMock.mockReturnValue({
+      account: null,
+      loading: true,
+      exporting: false,
+      deleting: false,
+      exportData: vi.fn(),
+      requestDeletion,
+    });
+    renderView();
+    expect(document.querySelector('[aria-busy="true"]')).not.toBeNull();
+    expect(screen.queryByTestId("export-data")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("delete-all")).not.toBeInTheDocument();
+  });
+
+  it("renders export/delete once settings finish loading", () => {
+    renderView();
+    expect(document.querySelector('[aria-busy="true"]')).toBeNull();
+    expect(screen.getByTestId("export-data")).toBeInTheDocument();
+    expect(screen.getByTestId("delete-all")).toBeInTheDocument();
+  });
+});
 
 describe("AccountDataView danger ladder", () => {
   it("row rung renders quiet-danger; filled destructive only in the armed sheet", async () => {
