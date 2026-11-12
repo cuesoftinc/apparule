@@ -118,6 +118,7 @@ jobs:
   schedules:
     captures: "* * * * *"
     orders: "7 * * * *"
+    payments: "*/5 * * * *"
     reconcile: "13 * * * *"
     retention: "17 3 * * *"
 

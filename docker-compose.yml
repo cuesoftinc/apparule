@@ -231,6 +231,7 @@ services:
         i=0
         while true; do
           ./jobs captures
+          [ $$((i % 5)) -eq 0 ] && ./jobs payments
           [ $$((i % 60)) -eq 0 ] && ./jobs orders && ./jobs reconcile
           [ $$((i % 1440)) -eq 0 ] && ./jobs retention
           i=$$((i + 1)); sleep 60

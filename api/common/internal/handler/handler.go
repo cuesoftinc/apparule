@@ -408,6 +408,17 @@ func (h *Handlers) Pay(w http.ResponseWriter, r *http.Request) {
 	respond(w, r, http.StatusOK, o, err)
 }
 
+func (h *Handlers) VerifyPayment(w http.ResponseWriter, r *http.Request) {
+	var in struct {
+		Reference string `json:"reference"`
+	}
+	if !decode(w, r, &in) {
+		return
+	}
+	status, err := h.S.VerifyPayment(r.Context(), principal(r), r.PathValue("id"), in.Reference)
+	respond(w, r, http.StatusOK, map[string]string{"status": status}, err)
+}
+
 func (h *Handlers) ConfirmDelivery(w http.ResponseWriter, r *http.Request) {
 	o, err := h.S.ConfirmDelivery(r.Context(), principal(r), r.PathValue("id"))
 	respond(w, r, http.StatusOK, o, err)

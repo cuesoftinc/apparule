@@ -65,6 +65,10 @@ type Services struct {
 	Limiter *ratelimit.Limiter
 	Config  *config.Config
 	Now     func() time.Time
+	// PaystackHTTPClient and PaystackBaseURL allow deterministic provider
+	// tests; production uses the bounded default client and official API URL.
+	PaystackHTTPClient *http.Client
+	PaystackBaseURL    string
 }
 
 // mediaTTL is how long a signed image URL stays valid.

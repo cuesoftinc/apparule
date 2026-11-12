@@ -18,6 +18,7 @@ func StartPayment(ctx context.Context, tx pgx.Tx, requestID, reference, currency
 		ON CONFLICT (request_id) DO UPDATE SET
 			reference = CASE WHEN payment.state = 'pending' THEN EXCLUDED.reference ELSE payment.reference END,
 			amount_cents = CASE WHEN payment.state = 'pending' THEN EXCLUDED.amount_cents ELSE payment.amount_cents END,
+			last_verification_at = CASE WHEN payment.state = 'pending' THEN NULL ELSE payment.last_verification_at END,
 			updated_at = now()
 		RETURNING reference`, requestID, reference, currency, amount).Scan(&ref)
 	if err != nil || ref != reference {
@@ -42,6 +43,38 @@ func PaymentAttemptAmount(ctx context.Context, tx pgx.Tx, reference string) (int
 	var currency string
 	err := tx.QueryRow(ctx, `SELECT amount_cents, currency FROM payment_attempt WHERE reference = $1`, reference).Scan(&amount, &currency)
 	return amount, currency, translate(err)
+}
+
+// PendingPaymentReferences returns a bounded batch of current, eligible Apparule
+// checkout references. Old attempts and non-Apparule provider transactions are excluded.
+func PendingPaymentReferences(ctx context.Context, tx pgx.Tx, limit int) ([]string, error) {
+	rows, err := tx.Query(ctx, `SELECT p.reference FROM payment p
+		JOIN payment_attempt a ON a.reference = p.reference JOIN request r ON r.id = p.request_id
+		WHERE p.state = 'pending' AND r.status = 'quoted' AND left(p.reference, 4) = 'apr_'
+		AND coalesce(p.last_verification_at, a.created_at) < now() - interval '1 minute'
+		ORDER BY coalesce(p.last_verification_at, a.created_at), p.reference LIMIT $1`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var refs []string
+	for rows.Next() {
+		var ref string
+		if err := rows.Scan(&ref); err != nil {
+			return nil, err
+		}
+		refs = append(refs, ref)
+	}
+	return refs, rows.Err()
+}
+
+// ClaimPaymentVerification atomically throttles a reference across return
+// requests, sweep workers and application instances.
+func ClaimPaymentVerification(ctx context.Context, tx pgx.Tx, reference string) (bool, error) {
+	tag, err := tx.Exec(ctx, `UPDATE payment SET last_verification_at = now()
+		WHERE reference = $1 AND state = 'pending'
+		AND (last_verification_at IS NULL OR last_verification_at < now() - interval '1 minute')`, reference)
+	return tag.RowsAffected() == 1, err
 }
 
 // SettlePayment moves a pending payment to held under the reference that
@@ -141,10 +174,11 @@ func LedgerBalance(ctx context.Context, tx pgx.Tx, account string) (int64, error
 
 // Movement is one provider-facing movement for reconciliation (§6.4).
 type Movement struct {
-	RequestID string `json:"request_id"`
-	Kind      string `json:"kind"`
-	Reference string `json:"reference"`
-	Amount    struct {
+	RequestID   string `json:"request_id"`
+	Kind        string `json:"kind"`
+	Reference   string `json:"reference"`
+	ProviderRef string `json:"provider_ref,omitempty"`
+	Amount      struct {
 		Amount   int64  `json:"amount"`
 		Currency string `json:"currency"`
 	} `json:"amount"`
@@ -155,7 +189,8 @@ type Movement struct {
 func Movements(ctx context.Context, tx pgx.Tx, from, to time.Time) ([]Movement, error) {
 	rows, err := tx.Query(ctx, `SELECT o.request_id::text,
 			CASE o.kind WHEN 'charge_settled' THEN 'charge' WHEN 'payout_released' THEN 'payout' ELSE 'refund' END,
-			coalesce(o.payload->>'provider_ref', o.payload->>'reference', ''),
+			coalesce(o.payload->>'reference', o.payload->>'provider_ref', ''),
+			coalesce(o.payload->>'provider_ref', ''),
 			(o.payload->'amount'->>'amount')::bigint, o.payload->'amount'->>'currency', o.created_at
 		FROM payment_outcome o
 		WHERE o.kind IN ('charge_settled', 'payout_released', 'refund_issued') AND o.created_at >= $1 AND o.created_at < $2
@@ -165,7 +200,7 @@ func Movements(ctx context.Context, tx pgx.Tx, from, to time.Time) ([]Movement, 
 	}
 	return collect(rows, func(r pgx.Row) (*Movement, error) {
 		var m Movement
-		err := r.Scan(&m.RequestID, &m.Kind, &m.Reference, &m.Amount.Amount, &m.Amount.Currency, &m.At)
+		err := r.Scan(&m.RequestID, &m.Kind, &m.Reference, &m.ProviderRef, &m.Amount.Amount, &m.Amount.Currency, &m.At)
 		m.At = m.At.UTC()
 		return &m, err
 	})

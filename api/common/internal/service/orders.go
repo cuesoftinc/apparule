@@ -732,13 +732,16 @@ func (s *Services) OnPaymentOutcome(ctx context.Context, raw json.RawMessage) er
 			}
 		}
 		fresh, err := repository.RecordOutcome(ctx, tx, m.OutcomeID, m.Kind, m.RequestID, m.DesignerID, m.Reason, raw)
-		if err != nil || !fresh {
+		if err != nil {
 			return err
 		}
 		if m.ProviderEventID != nil {
 			if err := repository.MarkProviderEvent(ctx, tx, *m.ProviderEventID, m.Kind); err != nil {
 				return err
 			}
+		}
+		if !fresh {
+			return nil
 		}
 		switch m.Kind {
 		case "recipient_verified", "recipient_failed":

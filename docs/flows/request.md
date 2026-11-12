@@ -51,8 +51,12 @@ sequenceDiagram
         API->>P: initialize transaction (platform account)
         P-->>A: checkout (inline/redirect)
         C->>P: complete payment
-        P->>API: webhook charge.success (signature verified)
-        API->>API: PAYMENT held · REQUEST→paid · notify both
+        A->>API: POST /requests/{id}/verify-payment (reference)
+        API->>P: GET /transaction/verify/{reference}
+        P-->>API: transaction status, amount, currency and reference
+        API->>API: publish verified charge through shared payment decision
+        P->>API: optional signed charge.success webhook
+        API->>API: PAYMENT held once · REQUEST→paid · notify both
     else reject / ignore 7d
         A->>API: decline quote → cancelled (or expiry job cancels)
     end
@@ -63,8 +67,8 @@ Edge cases:
 | Case | Behaviour |
 | --- | --- |
 | Payment window races quote expiry | expiry job skips orders with a pending payment intent (grace 1h) |
-| Webhook lost | reconciliation poll on order open + hourly sweep verifies pending intents against Paystack |
-| Double webhook | idempotent by provider reference — second is a no-op |
+| Webhook lost | checkout return verification or the bounded `payments` sweep verifies pending intents against Paystack; settlement does not depend on a webhook |
+| Late or duplicate webhook | verified and webhook events use the Paystack transaction id for the same outcome; database outcome uniqueness and the pending payment transition prevent duplicate settlement |
 | Charge succeeds, webhook signature invalid | log + alert ops; order stays `quoted`; reconciliation sweep resolves; NEVER trust unverified webhooks |
 | Partial/failed payment | Paystack handles retry UX; order remains `quoted` |
 | Customer pays after designer deactivated mid-window | charge refunded automatically, order → `cancelled`, apology copy |
