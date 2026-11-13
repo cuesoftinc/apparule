@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:apparule/src/features/measurements/domain/capture_photo.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_exception.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_session.dart';
@@ -59,6 +61,12 @@ abstract class MeasurementRepository {
   /// document. The `*Remote` twin requests the served export; the fake
   /// renders the same shape locally.
   Future<String> exportSessionCsv(String sessionId);
+
+  /// Per-session PDF export (features.md F2-9; api.md §2.2
+  /// `POST /sessions/{id}/exports` with `{format: 'pdf'}`).
+  /// The `*Remote` twin requests the served export; the fake
+  /// renders the sample PDF locally.
+  Future<Uint8List> exportSessionPdf(String sessionId);
 }
 
 /// Overridden per entrypoint (di.dart) — no default implementation exists

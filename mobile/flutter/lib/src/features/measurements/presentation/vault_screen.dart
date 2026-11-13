@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:apparule/src/core/async/run_action.dart';
 import 'package:apparule/src/core/l10n/l10n.dart';
@@ -325,16 +326,78 @@ class _VaultHeader extends ConsumerWidget {
   /// A-11: the Share action's payload — latest value per metric.
   final List<Measurement> latestValues;
 
-  /// SharePlus with the clipboard fallback (the MI-9 share idiom).
-  Future<void> _shareMeasurements(BuildContext context) async {
+  /// Share options sheet offering Text, PDF, and CSV.
+  Future<void> _shareMeasurements(BuildContext context, WidgetRef ref) async {
+    final l10n = context.l10n;
+    final format = await Sheet.show<_ShareFormat>(
+      context,
+      title: l10n.vaultShareSheetTitle,
+      child: const _ShareOptionsSheet(),
+    );
+    if (format == null || !context.mounted) return;
+
     final messenger = ScaffoldMessenger.of(context);
-    final copied = context.l10n.vaultShareCopied;
-    final text = measurementsShareText(latestValues);
-    try {
-      await SharePlus.instance.share(ShareParams(text: text));
-    } on Object {
-      await Clipboard.setData(ClipboardData(text: text));
-      messenger.showSnackBar(SnackBar(content: Text(copied)));
+    final copied = l10n.vaultShareCopied;
+    final repository = ref.read(measurementRepositoryProvider);
+    final dateStr = newest.createdAt.toIso8601String().split('T').first;
+
+    switch (format) {
+      case _ShareFormat.text:
+        final text = measurementsShareText(latestValues);
+        try {
+          await SharePlus.instance.share(ShareParams(text: text));
+        } on Object {
+          await Clipboard.setData(ClipboardData(text: text));
+          if (context.mounted) {
+            messenger.showSnackBar(SnackBar(content: Text(copied)));
+          }
+        }
+      case _ShareFormat.pdf:
+        final fileName = 'apparule-session-$dateStr.pdf';
+        try {
+          final bytes = await repository.exportSessionPdf(newest.id);
+          final file = XFile.fromData(
+            bytes,
+            mimeType: 'application/pdf',
+            name: fileName,
+          );
+          await SharePlus.instance.share(
+            ShareParams(
+              files: <XFile>[file],
+              fileNameOverrides: <String>[fileName],
+            ),
+          );
+        } on Object {
+          final text = measurementsShareText(latestValues);
+          await Clipboard.setData(ClipboardData(text: text));
+          if (context.mounted) {
+            messenger.showSnackBar(SnackBar(content: Text(copied)));
+          }
+        }
+      case _ShareFormat.csv:
+        final fileName = 'apparule-session-$dateStr.csv';
+        try {
+          final csv = await repository.exportSessionCsv(newest.id);
+          final file = XFile.fromData(
+            utf8.encode(csv),
+            mimeType: 'text/csv',
+            name: fileName,
+          );
+          await SharePlus.instance.share(
+            ShareParams(
+              files: <XFile>[file],
+              fileNameOverrides: <String>[fileName],
+            ),
+          );
+        } on Object {
+          final csv = await repository.exportSessionCsv(newest.id);
+          await Clipboard.setData(ClipboardData(text: csv));
+          if (context.mounted) {
+            messenger.showSnackBar(
+              SnackBar(content: Text(l10n.vaultExportedToast)),
+            );
+          }
+        }
     }
   }
 
@@ -396,7 +459,8 @@ class _VaultHeader extends ConsumerWidget {
                     label: l10n.vaultShare,
                     kind: ButtonKind.quiet,
                     size: ButtonSize.sm,
-                    onPressed: () => unawaited(_shareMeasurements(context)),
+                    onPressed: () =>
+                        unawaited(_shareMeasurements(context, ref)),
                   ),
                 ],
               ),
@@ -482,16 +546,17 @@ class _HistorySheet extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Per-session export (D50, features.md F2-9): the CSV
-                // lands on the clipboard until a share seam is ratified
-                // into the pin ledger.
+                // Per-session export (D50, features.md F2-9; PLAT-004):
+                // opens the export sheet offering PDF and CSV, handing
+                // the file to the system share sheet.
                 Semantics(
                   label: l10n.vaultExportSession,
                   button: true,
                   child: InkResponse(
                     radius: 20,
                     borderRadius: BorderRadius.circular(radii.pill),
-                    onTap: () => unawaited(_export(context, ref, session.id)),
+                    onTap: () =>
+                        unawaited(_showExportSheet(context, ref, session)),
                     child: SizedBox(
                       width: 40,
                       height: 40,
@@ -548,22 +613,172 @@ class _HistorySheet extends ConsumerWidget {
     }
   }
 
+  Future<void> _showExportSheet(
+    BuildContext context,
+    WidgetRef ref,
+    MeasurementSession session,
+  ) async {
+    final l10n = context.l10n;
+    final format = await Sheet.show<_ExportFormat>(
+      context,
+      title: l10n.vaultExportSheetTitle,
+      child: const _ExportOptionsSheet(),
+    );
+    if (format == null || !context.mounted) return;
+    await _export(context, ref, session, format);
+  }
+
   Future<void> _export(
     BuildContext context,
     WidgetRef ref,
-    String sessionId,
+    MeasurementSession session,
+    _ExportFormat format,
   ) async {
     final l10n = context.l10n;
     final repository = ref.read(measurementRepositoryProvider);
-    final ok = await runAction(context, () async {
-      final csv = await repository.exportSessionCsv(sessionId);
-      await Clipboard.setData(ClipboardData(text: csv));
+    await runAction(context, () async {
+      final dateStr = session.createdAt.toIso8601String().split('T').first;
+      final XFile file;
+      final String fileName;
+      switch (format) {
+        case _ExportFormat.pdf:
+          final bytes = await repository.exportSessionPdf(session.id);
+          fileName = 'apparule-session-$dateStr.pdf';
+          file = XFile.fromData(
+            bytes,
+            mimeType: 'application/pdf',
+            name: fileName,
+          );
+        case _ExportFormat.csv:
+          final csv = await repository.exportSessionCsv(session.id);
+          fileName = 'apparule-session-$dateStr.csv';
+          file = XFile.fromData(
+            utf8.encode(csv),
+            mimeType: 'text/csv',
+            name: fileName,
+          );
+      }
+      try {
+        await SharePlus.instance.share(
+          ShareParams(
+            files: <XFile>[file],
+            fileNameOverrides: <String>[fileName],
+          ),
+        );
+      } on Object {
+        if (format == _ExportFormat.csv) {
+          final csv = await repository.exportSessionCsv(session.id);
+          await Clipboard.setData(ClipboardData(text: csv));
+          if (context.mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(l10n.vaultExportedToast)));
+          }
+        }
+      }
     });
-    if (ok && context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.vaultExportedToast)));
-    }
+  }
+}
+
+enum _ShareFormat { text, pdf, csv }
+
+class _ShareOptionsSheet extends StatelessWidget {
+  const _ShareOptionsSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        _ExportOptionRow(
+          label: l10n.vaultShareText,
+          icon: LucideIcons.messageSquare,
+          onTap: () => Navigator.of(context).pop(_ShareFormat.text),
+        ),
+        _ExportOptionRow(
+          label: l10n.vaultExportPdf,
+          icon: LucideIcons.fileText,
+          onTap: () => Navigator.of(context).pop(_ShareFormat.pdf),
+        ),
+        _ExportOptionRow(
+          label: l10n.vaultExportCsv,
+          icon: LucideIcons.fileSpreadsheet,
+          onTap: () => Navigator.of(context).pop(_ShareFormat.csv),
+        ),
+      ],
+    );
+  }
+}
+
+enum _ExportFormat { pdf, csv }
+
+class _ExportOptionsSheet extends StatelessWidget {
+  const _ExportOptionsSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        _ExportOptionRow(
+          label: l10n.vaultExportPdf,
+          icon: LucideIcons.fileText,
+          onTap: () => Navigator.of(context).pop(_ExportFormat.pdf),
+        ),
+        _ExportOptionRow(
+          label: l10n.vaultExportCsv,
+          icon: LucideIcons.fileSpreadsheet,
+          onTap: () => Navigator.of(context).pop(_ExportFormat.csv),
+        ),
+      ],
+    );
+  }
+}
+
+class _ExportOptionRow extends StatelessWidget {
+  const _ExportOptionRow({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.extension<AppColors>()!;
+    final typography = theme.extension<AppTypography>()!;
+
+    return Semantics(
+      button: true,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 14),
+          child: Row(
+            children: <Widget>[
+              Icon(icon, size: 20, color: colors.text),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: typography.body14.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colors.text,
+                  ),
+                ),
+              ),
+              Icon(LucideIcons.chevronRight, size: 16, color: colors.text2),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

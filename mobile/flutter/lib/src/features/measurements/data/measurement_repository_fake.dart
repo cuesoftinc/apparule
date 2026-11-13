@@ -1,13 +1,16 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:apparule/src/core/data/fail_next_seam.dart';
 import 'package:apparule/src/core/utils/capture_pose.dart';
+import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/features/measurements/data/capture_qc.dart';
 import 'package:apparule/src/features/measurements/data/capture_sample_catalog.dart';
 import 'package:apparule/src/features/measurements/data/measurement_repository.dart';
 import 'package:apparule/src/features/measurements/domain/capture_photo.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_exception.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_session.dart';
+import 'package:apparule/src/features/measurements/domain/measurement_share.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_template.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -291,19 +294,135 @@ class MeasurementRepositoryFake
       (session) => session.id == sessionId,
       orElse: () => throw StateError('No session $sessionId to export'),
     );
-    // The F2-9 export shape: one row per measurement, confidence blank
-    // for manual rows (capture-qc.md §4 — human truth isn't scored).
-    final buffer = StringBuffer(
-      'name,value_cm,confidence,method,measured_at\n',
-    );
+    // Tailor-ready CSV: humanized measurement name, inches, and centimetres.
+    final buffer = StringBuffer('Measurement,Inches,Centimetres\n');
     for (final measurement in session.measurements) {
-      final confidence = measurement.confidence?.toStringAsFixed(2) ?? '';
-      buffer.writeln(
-        '${measurement.name},${measurement.valueCm.toStringAsFixed(1)},'
-        '$confidence,${session.method},'
-        '${session.createdAt.toIso8601String()}',
-      );
+      final label = humanizeMeasureName(measurement.name);
+      final inches = (measurement.valueCm / cmPerInch).toStringAsFixed(1);
+      final cm = measurement.valueCm.toStringAsFixed(1);
+      buffer.writeln('$label,$inches in,$cm cm');
     }
     return buffer.toString();
   }
+
+  @override
+  Future<Uint8List> exportSessionPdf(String sessionId) async {
+    maybeFailNext();
+    final vault = await _ensureVault();
+    final session = vault.firstWhere(
+      (session) => session.id == sessionId,
+      orElse: () => throw StateError('No session $sessionId to export'),
+    );
+    const weekdays = <String>['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const months = <String>[
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    final utc = session.createdAt.toUtc();
+    final weekday = weekdays[utc.weekday - 1];
+    final month = months[utc.month - 1];
+    final dateStr = '$weekday $month ${utc.day} ${utc.year}';
+    final lines = <String>[
+      'Apparule - Body Measurements',
+      'Date: $dateStr',
+      '',
+    ];
+    for (final measurement in session.measurements) {
+      final label = humanizeMeasureName(measurement.name);
+      final inches = (measurement.valueCm / cmPerInch).toStringAsFixed(1);
+      final cm = measurement.valueCm.toStringAsFixed(1);
+      lines.add('$label: $inches in ($cm cm)');
+    }
+    lines.addAll(<String>['', kApparuleLink]);
+    return minimalPdf(lines);
+  }
+}
+
+/// A real (minimal) PDF for the F2-9 pdf export (api.md §2.2 / web mock parity):
+/// Helvetica text lines, uncompressed streams, byte-accurate xref — enough that
+/// any viewer opens it.
+Uint8List minimalPdf(List<String> lines) {
+  String escape(String s) =>
+      s.replaceAll(r'\', r'\\').replaceAll('(', r'\(').replaceAll(')', r'\)');
+
+  String winAnsi(String s) {
+    final normalized = s
+        .replaceAll('—', '-')
+        .replaceAll('–', '-')
+        .replaceAll('·', '-');
+    final buffer = StringBuffer();
+    for (final char in normalized.runes) {
+      if (char < 256) {
+        buffer.writeCharCode(char);
+      }
+    }
+    return buffer.toString();
+  }
+
+  const perPage = 36;
+  final chunks = <List<String>>[];
+  final totalLines = lines.isEmpty ? 1 : lines.length;
+  for (var i = 0; i < totalLines; i += perPage) {
+    final end = (i + perPage < lines.length) ? i + perPage : lines.length;
+    chunks.add(lines.isEmpty ? <String>[] : lines.sublist(i, end));
+  }
+
+  final kids = <String>[
+    for (var i = 0; i < chunks.length; i++) '${4 + 2 * i} 0 R',
+  ];
+
+  final objects = <String>[
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [${kids.join(' ')}] /Count ${chunks.length} >>',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+  ];
+
+  for (var i = 0; i < chunks.length; i++) {
+    final chunk = chunks[i];
+    final text = <String>[];
+    for (var j = 0; j < chunk.length; j++) {
+      final lineText = escape(winAnsi(chunk[j]));
+      text.add('1 0 0 1 72 ${720 - j * 18} Tm ($lineText) Tj');
+    }
+    final stream = 'BT\n/F1 12 Tf\n${text.join('\n')}\nET';
+    final streamBytes = utf8.encode(stream);
+    objects
+      ..add(
+        '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] '
+        '/Resources << /Font << /F1 3 0 R >> >> /Contents ${5 + 2 * i} 0 R >>',
+      )
+      ..add('<< /Length ${streamBytes.length} >>\nstream\n$stream\nendstream');
+  }
+
+  final buffer = BytesBuilder()..add(utf8.encode('%PDF-1.4\n'));
+  final offsets = <int>[];
+  for (var i = 0; i < objects.length; i++) {
+    offsets.add(buffer.length);
+    buffer.add(utf8.encode('${i + 1} 0 obj\n${objects[i]}\nendobj\n'));
+  }
+
+  final xref = buffer.length;
+  final xrefHeader = 'xref\n0 ${objects.length + 1}\n0000000000 65535 f \n';
+  buffer.add(utf8.encode(xrefHeader));
+  for (final off in offsets) {
+    buffer.add(utf8.encode('${off.toString().padLeft(10, '0')} 00000 n \n'));
+  }
+  buffer.add(
+    utf8.encode(
+      'trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\n'
+      'startxref\n$xref\n%%EOF',
+    ),
+  );
+
+  return buffer.toBytes();
 }

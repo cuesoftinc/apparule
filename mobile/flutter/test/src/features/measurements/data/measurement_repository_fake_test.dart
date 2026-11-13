@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:apparule/src/core/ui/qc_hint_chip.dart';
 import 'package:apparule/src/core/utils/capture_pose.dart';
 import 'package:apparule/src/features/measurements/data/capture_sample_catalog.dart';
@@ -360,22 +362,23 @@ void main() {
   });
 
   group('per-session export (F2-9)', () {
-    test('renders the session CSV — one row per measurement, confidence '
-        'blank on manual rows', () async {
+    test('renders tailor-ready session CSV with inches and cm', () async {
       final repo = repository();
 
       final csv = await repo.exportSessionCsv('sess-manual-tape');
 
       final lines = csv.trim().split('\n');
-      expect(lines.first, 'name,value_cm,confidence,method,measured_at');
+      expect(lines.first, 'Measurement,Inches,Centimetres');
       expect(lines, hasLength(9));
-      expect(lines[1], startsWith('shoulder,'));
-      expect(lines[1], contains(',,manual,'));
+      expect(lines[1], startsWith('Shoulder,'));
+      expect(lines[1], contains('42.2 cm'));
     });
 
-    test('scan sessions carry their confidences', () async {
+    test('scan sessions render clean humanized rows in CSV', () async {
       final csv = await repository().exportSessionCsv('sess-recent-scan');
-      expect(csv, contains('shoulder,42.5,0.93,mediapipe_2d_v2,'));
+      expect(csv, contains('Shoulder,16.7 in,42.5 cm'));
+      expect(csv, isNot(contains('confidence')));
+      expect(csv, isNot(contains('mediapipe')));
     });
 
     test('unknown session ids throw', () async {
@@ -383,7 +386,42 @@ void main() {
         () => repository().exportSessionCsv('sess-nope'),
         throwsStateError,
       );
+      expect(
+        () => repository().exportSessionPdf('sess-nope'),
+        throwsStateError,
+      );
     });
+
+    test(
+      'renders a valid minimal PDF with clean tailor measurements',
+      () async {
+        final repo = repository();
+        final pdfBytes = await repo.exportSessionPdf('sess-recent-scan');
+
+        expect(pdfBytes, isNotEmpty);
+        // Valid PDF signature and trailer
+        final header = utf8.decode(pdfBytes.sublist(0, 8));
+        expect(header, startsWith('%PDF-1.4'));
+        final content = latin1.decode(pdfBytes);
+        expect(content, contains('%%EOF'));
+        expect(content, contains('Apparule'));
+        expect(content, contains('Shoulder: 16.7 in (42.5 cm)'));
+        expect(content, isNot(contains('confidence')));
+        expect(content, isNot(contains('mediapipe')));
+      },
+    );
+
+    test(
+      'manual session PDF renders clean measurements without pipeline data',
+      () async {
+        final repo = repository();
+        final pdfBytes = await repo.exportSessionPdf('sess-manual-tape');
+
+        final content = latin1.decode(pdfBytes);
+        expect(content, contains('Shoulder: 16.6 in (42.2 cm)'));
+        expect(content, isNot(contains('confidence')));
+      },
+    );
   });
 
   group('prod degradation (no dev seeds in the bundle)', () {
