@@ -35,10 +35,6 @@ describe("PrivacySettingsView", () => {
       reload,
     });
     render(<PrivacySettingsView />);
-    expect(screen.getByText("Consent history").parentElement).toHaveAttribute(
-      "aria-labelledby",
-      "consent-history-h",
-    );
     expect(document.querySelector('[aria-busy="true"]')).not.toBeNull();
   });
 

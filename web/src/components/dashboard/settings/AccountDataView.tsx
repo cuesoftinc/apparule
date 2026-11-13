@@ -67,6 +67,15 @@ export function AccountDataView() {
           <Skeleton kind="line" className="h-20" />
           <Skeleton kind="line" className="h-20" />
         </div>
+      ) : settings.error || !settings.account ? (
+        <div className="py-10 text-center">
+          <p role="alert" className="text-body text-text-2">
+            Account &amp; data couldn&apos;t load.
+          </p>
+          <Button kind="quiet" onClick={() => void settings.reload()}>
+            Retry
+          </Button>
+        </div>
       ) : (
         <>
           {settings.account?.deletion_state === "deletion_pending" ? (

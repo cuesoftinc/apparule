@@ -49,7 +49,7 @@ export function PrivacySettingsView() {
             <p role="alert" className="text-body text-text-2">
               Consent history couldn&apos;t load.
             </p>
-            <Button kind="quiet" size="sm" onClick={() => void reload()}>
+            <Button kind="quiet" onClick={() => void reload()}>
               Retry
             </Button>
           </div>

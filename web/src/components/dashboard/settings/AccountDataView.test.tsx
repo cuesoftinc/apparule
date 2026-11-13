@@ -6,6 +6,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 const requestDeletion = vi.fn();
+const reload = vi.fn();
 const useSettingsMock = vi.fn();
 vi.mock("@/controllers/use-settings", () => ({
   useSettings: (...a: unknown[]) => useSettingsMock(...a),
@@ -19,13 +20,16 @@ import { ToastProvider } from "../toast-context";
 
 beforeEach(() => {
   requestDeletion.mockReset().mockResolvedValue({});
+  reload.mockReset();
   useSettingsMock.mockReturnValue({
     account: { deletion_state: "active" },
     loading: false,
+    error: null,
     exporting: false,
     deleting: false,
     exportData: vi.fn().mockResolvedValue("blob:mock"),
     requestDeletion,
+    reload,
   });
 });
 
@@ -58,6 +62,27 @@ describe("AccountDataView loading", () => {
     expect(document.querySelector('[aria-busy="true"]')).toBeNull();
     expect(screen.getByTestId("export-data")).toBeInTheDocument();
     expect(screen.getByTestId("delete-all")).toBeInTheDocument();
+  });
+
+  it("shows an error with retry when settings fail to load, and hides export/delete", async () => {
+    useSettingsMock.mockReturnValue({
+      account: null,
+      loading: false,
+      error: "Failed to load settings",
+      exporting: false,
+      deleting: false,
+      exportData: vi.fn(),
+      requestDeletion,
+      reload,
+    });
+    renderView();
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Account & data couldn't load.",
+    );
+    expect(screen.queryByTestId("export-data")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("delete-all")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(reload).toHaveBeenCalledOnce();
   });
 });
 
