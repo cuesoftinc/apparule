@@ -66,9 +66,15 @@ func (m *memStore) Delete(_ context.Context, k string) error {
 	delete(m.objects, k)
 	return nil
 }
-func (m *memStore) List(context.Context, string) ([]storage.Object, error) {
+func (m *memStore) List(_ context.Context, prefix string) ([]storage.Object, error) {
 	m.probe("list")
-	return nil, nil
+	var out []storage.Object // Created is the zero time: every object reads as old
+	for k := range m.objects {
+		if strings.HasPrefix(k, prefix) {
+			out = append(out, storage.Object{Key: k})
+		}
+	}
+	return out, nil
 }
 func (m *memStore) Copy(_ context.Context, src, dst string) error {
 	m.probe("copy")
@@ -662,6 +668,32 @@ func TestCommissionMoneyFlow(t *testing.T) {
 	threadJSON, _ := json.Marshal(thread)
 	if err != nil || !strings.Contains(string(threadJSON), "https://signed.test/apparule/test/attachments/") {
 		t.Fatalf("thread: %v %s", err, threadJSON)
+	}
+
+	// A message whose second transaction fails (the upload row vanished while
+	// the image was copying) leaves no copy behind.
+	att2, err := e.s.StartAttachment(ctx, customer, order.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	att2Key := "apparule/test/tmp/attachment/b/2/0.jpg"
+	e.store.objects[att2Key] = []byte("img")
+	e.deliver(t, kafka.EventMediaUploaded, map[string]any{"ticket_id": claimsOf(t, att2.Upload.Ticket).JTI, "account_id": customer.AccountID,
+		"target": map[string]string{"kind": "attachment", "id": att2.ID}, "images": []any{image(att2Key)}}, e.s.OnMediaUploaded)
+	att2Batch, _ := e.s.MediaBatch(ctx, customer, att2.ID)
+	att2URL := "/api/v1/media/" + att2Batch.Items[0].ID
+	before := len(e.store.objects)
+	e.onFirstCopy(func() {
+		e.system(t, func(ctx context.Context, tx pgx.Tx) error {
+			_, err := tx.Exec(ctx, `DELETE FROM media WHERE id::text = $1`, att2Batch.Items[0].ID)
+			return err
+		})
+	})
+	if _, err := e.s.AddMessage(ctx, customer, order.ID, "Another", &att2URL); err == nil {
+		t.Fatal("a message naming a vanished upload must fail")
+	}
+	if len(e.store.objects) != before {
+		t.Fatalf("a failed message left %d object(s) behind", len(e.store.objects)-before)
 	}
 
 	if _, err := e.s.Quote(ctx, designer, order.ID, 4_500_000, "2026-11-30"); err != nil {

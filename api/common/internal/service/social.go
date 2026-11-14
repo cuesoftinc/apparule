@@ -252,7 +252,13 @@ func (s *Services) CreatePost(ctx context.Context, p *Principal, in PostInput) (
 		return nil
 	})
 	if err != nil {
-		dropCopies()
+		// An ambiguous commit error may still have saved the post: only
+		// copies no row points at go.
+		keys := make([]string, len(moves))
+		for i, m := range moves {
+			keys[i] = m[1]
+		}
+		s.dropUnreferenced(ctx, keys...)
 		return nil, err
 	}
 	for _, m := range moves {

@@ -93,6 +93,31 @@ func (s *Services) signPosts(ctx context.Context, posts []model.Post) {
 	}
 }
 
+// dropUnreferenced deletes copies a failed transaction left behind, except the
+// ones a row now points at (a commit whose answer was lost, or a concurrent
+// request that saved the same object). Objects it cannot check are kept for
+// the retention sweep.
+func (s *Services) dropUnreferenced(ctx context.Context, keys ...string) {
+	if len(keys) == 0 {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
+	defer cancel()
+	var held map[string]bool
+	if err := s.DB.AsSystem(ctx, func(tx pgx.Tx) (err error) {
+		held, err = repository.ReferencedKeys(ctx, tx, keys)
+		return err
+	}); err != nil {
+		slog.WarnContext(ctx, "copies kept: could not check what references them", "error", err)
+		return
+	}
+	for _, k := range keys {
+		if !held[k] {
+			_ = s.Store.Delete(ctx, k)
+		}
+	}
+}
+
 // thumb signs an optional image key.
 func (s *Services) thumb(ctx context.Context, key *string) *string {
 	if key == nil || *key == "" {

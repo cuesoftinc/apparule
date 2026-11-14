@@ -566,6 +566,7 @@ func (s *Services) AddMessage(ctx context.Context, p *Principal, id, body string
 		}
 		copied = true
 		if err := s.as(ctx, p, post); err != nil {
+			s.dropUnreferenced(ctx, dst)
 			return nil, err
 		}
 		_ = s.Store.Delete(ctx, tmpKey)

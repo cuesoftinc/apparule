@@ -354,6 +354,11 @@ func (s *Services) SaveSession(ctx context.Context, p *Principal, id string) (*m
 		return err
 	})
 	if err != nil {
+		keys := make([]string, 0, len(dsts))
+		for _, dst := range dsts {
+			keys = append(keys, dst)
+		}
+		s.dropUnreferenced(ctx, keys...)
 		return &out, err
 	}
 	for _, k := range tmpKeys {
