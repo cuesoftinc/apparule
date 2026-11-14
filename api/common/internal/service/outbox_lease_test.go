@@ -116,7 +116,7 @@ func TestOutboxLeaseSkipsLeasedAndRetakesLapsed(t *testing.T) {
 	lease := func(d time.Duration) []repository.OutboxRow {
 		var rows []repository.OutboxRow
 		e.system(t, func(ctx context.Context, tx pgx.Tx) (err error) {
-			rows, err = repository.LeaseOutbox(ctx, tx, 10, d)
+			rows, err = repository.LeaseOutbox(ctx, tx, 10, d, "a")
 			return err
 		})
 		return rows
@@ -135,5 +135,44 @@ func TestOutboxLeaseSkipsLeasedAndRetakesLapsed(t *testing.T) {
 	})
 	if retaken := lease(time.Hour); len(retaken) != 2 {
 		t.Fatalf("lapsed lease not retaken: %+v", retaken)
+	}
+}
+
+// A pass whose lease lapsed cannot free or mark rows another pass leased since.
+func TestOutboxOwnerTokenGuardsReleaseAndMark(t *testing.T) {
+	e := setup(t)
+	e.enqueue(t, "a")
+	lease := func(owner string) []repository.OutboxRow {
+		var rows []repository.OutboxRow
+		e.system(t, func(ctx context.Context, tx pgx.Tx) (err error) {
+			rows, err = repository.LeaseOutbox(ctx, tx, 10, time.Hour, owner)
+			return err
+		})
+		return rows
+	}
+	first := lease("old")
+	if len(first) != 1 {
+		t.Fatalf("lease: %+v", first)
+	}
+	// The old pass stalls; its lease lapses and a new pass takes the row.
+	e.system(t, func(ctx context.Context, tx pgx.Tx) error {
+		_, err := tx.Exec(ctx, `UPDATE outbox SET lease_until = now() - interval '1 second'`)
+		return err
+	})
+	if got := lease("new"); len(got) != 1 {
+		t.Fatalf("new pass lease: %+v", got)
+	}
+	ids := []int64{first[0].ID}
+	e.system(t, func(ctx context.Context, tx pgx.Tx) error { return repository.ReleaseOutbox(ctx, tx, ids, "old") })
+	if again := lease("third"); len(again) != 0 {
+		t.Fatalf("a late release freed another pass's lease: %+v", again)
+	}
+	e.system(t, func(ctx context.Context, tx pgx.Tx) error { return repository.MarkPublished(ctx, tx, ids, "old") })
+	if got := e.unsent(t); got != 1 {
+		t.Fatalf("a late mark published another pass's row: %d unsent", got)
+	}
+	e.system(t, func(ctx context.Context, tx pgx.Tx) error { return repository.MarkPublished(ctx, tx, ids, "new") })
+	if got := e.unsent(t); got != 0 {
+		t.Fatalf("the owner's mark did not publish: %d unsent", got)
 	}
 }

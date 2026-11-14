@@ -387,11 +387,13 @@ rows from `common`.
 ### 6.6 The outbox
 
 A `common` write and its outbox row commit in one transaction. The
-publisher (every instance) leases a batch (`lease_until`, `SKIP LOCKED`),
-holds no connection while it writes each payload to
-`apparule/<env>/compute/` and sends the pointer on its lane, then stamps
-`published_at` and wakes the service it published for; a lease that lapses
-retries the batch, so a send can repeat and consumers dedupe by `request_id`. Nothing is
+publisher (every instance) leases a batch for one minute (`lease_until`,
+`lease_owner`, `SKIP LOCKED`), holds no connection while it writes each payload to
+`apparule/<env>/compute/` and sends the pointer on its lane within a 40 s budget, then stamps
+`published_at` (retried) and wakes the service it published for; release and stamp
+check the owner, a failed send releases at once, and a lease that lapses
+retries the batch, so a send can repeat and consumers dedupe by `request_id`
+(the commerce notifier by `notification_id`). Nothing is
 compacted (X-11): reference data travels inside the request.
 
 ### 6.7 Scheduled sweeps

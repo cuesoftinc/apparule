@@ -12,6 +12,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	kgo "github.com/segmentio/kafka-go"
 
@@ -23,9 +24,10 @@ const (
 	batchSize = 100
 	// publishLease outlives sendBudget, so a batch still being sent is never
 	// leased to another pass.
-	publishLease   = 2 * time.Minute
+	publishLease   = time.Minute
 	sendBudget     = publishLease - 20*time.Second
 	releaseTimeout = 5 * time.Second
+	markAttempts   = 3
 )
 
 // Sender is the part of kafka.Producer the publisher uses.
@@ -72,19 +74,22 @@ func (p *Publisher) Run(ctx context.Context) {
 func (p *Publisher) PublishBatch(ctx context.Context) (int, error) {
 	// Lease, send and mark each hold the connection for one statement; the
 	// storage and Kafka calls in between hold none.
+	// The owner token keeps a pass whose lease lapsed from freeing or marking
+	// rows another pass has leased since.
+	owner := uuid.NewString()
 	var rows []repository.OutboxRow
 	if err := p.DB.AsSystem(ctx, func(tx pgx.Tx) (err error) {
-		rows, err = repository.LeaseOutbox(ctx, tx, batchSize, publishLease)
+		rows, err = repository.LeaseOutbox(ctx, tx, batchSize, publishLease, owner)
 		return err
 	}); err != nil || len(rows) == 0 {
 		return 0, err
 	}
 	ids, err := p.send(ctx, rows)
 	if err != nil {
-		p.release(ctx, rows)
+		p.release(ctx, rows, owner)
 		return 0, err
 	}
-	if err := p.DB.AsSystem(ctx, func(tx pgx.Tx) error { return repository.MarkPublished(ctx, tx, ids) }); err != nil {
+	if err := p.mark(ctx, ids, owner); err != nil {
 		return 0, err
 	}
 	perEvent := map[string]int{}
@@ -98,6 +103,25 @@ func (p *Publisher) PublishBatch(ctx context.Context) (int, error) {
 		}
 	}
 	return len(rows), nil
+}
+
+// mark records the sent rows, retrying at once: a mark that fails would leave
+// sent rows leased until the lease lapses and then send them again. The mark
+// does not stop when ctx does, or a sent batch would go out twice.
+func (p *Publisher) mark(ctx context.Context, ids []int64, owner string) (err error) {
+	for attempt := 0; attempt < markAttempts; attempt++ {
+		if attempt > 0 {
+			time.Sleep(time.Duration(attempt) * 250 * time.Millisecond)
+		}
+		mctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), releaseTimeout)
+		err = p.DB.AsSystem(mctx, func(tx pgx.Tx) error { return repository.MarkPublished(mctx, tx, ids, owner) })
+		cancel()
+		if err == nil {
+			return nil
+		}
+		slog.Warn("outbox mark failed; retrying", "attempt", attempt+1, "error", err)
+	}
+	return err
 }
 
 // send builds and writes the leased rows within the lease and returns the ids
@@ -133,14 +157,14 @@ func (p *Publisher) send(ctx context.Context, rows []repository.OutboxRow) ([]in
 
 // release frees the lease of a batch that was not sent so the next pass
 // retries it at once and in order; a failed release leaves the lease to lapse.
-func (p *Publisher) release(ctx context.Context, rows []repository.OutboxRow) {
+func (p *Publisher) release(ctx context.Context, rows []repository.OutboxRow, owner string) {
 	ids := make([]int64, len(rows))
 	for i, row := range rows {
 		ids[i] = row.ID
 	}
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), releaseTimeout)
 	defer cancel()
-	if err := p.DB.AsSystem(ctx, func(tx pgx.Tx) error { return repository.ReleaseOutbox(ctx, tx, ids) }); err != nil {
+	if err := p.DB.AsSystem(ctx, func(tx pgx.Tx) error { return repository.ReleaseOutbox(ctx, tx, ids, owner) }); err != nil {
 		slog.Warn("outbox lease not released; it lapses on its own", "error", err)
 	}
 }
