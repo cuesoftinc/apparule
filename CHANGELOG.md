@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- `gitbook-docs.yaml` for GitBook's site-wide Git Sync, and `web/.gitignore` ignores the `AGENTS.md` that `next dev` writes (#478).
-- Dependabot groups the Flutter (pub) updates into one weekly PR, like the other ecosystems (#478).
 - Google sign-in through the API with a PKCE handoff on web and mobile.
 - `APP_RETURN_URLS` allowlist for the mobile app's sign-in return link.
 - `POST /internal/jobs/<name>` on api/common, guarded by scheduler OIDC token.
@@ -491,6 +489,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- `PrivacySettingsView` shows a retry-able error instead of looking like an
+  empty consent history when it fails to load, and `AccountDataView` shows a
+  loading skeleton (previously a matching error state) while account data is
+  fetching, so export/delete don't render with a stale or unknown
+  `deletion_state` (#455).
 - Deploys retry image pull errors for 45 minutes instead of 20.
 - Outbox, wakes and consumer work finish inside requests, not after responses.
 - Release deploys retry while Cloud Run cannot pull a fresh image.
