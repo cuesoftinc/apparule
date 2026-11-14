@@ -387,9 +387,11 @@ rows from `common`.
 ### 6.6 The outbox
 
 A `common` write and its outbox row commit in one transaction. The
-publisher (every instance, `SKIP LOCKED` batches) writes each payload to
-`apparule/<env>/compute/`, sends the pointer on its lane, stamps
-`published_at`, and wakes the service it published for. Nothing is
+publisher (every instance) leases a batch (`lease_until`, `SKIP LOCKED`),
+holds no connection while it writes each payload to
+`apparule/<env>/compute/` and sends the pointer on its lane, then stamps
+`published_at` and wakes the service it published for; a lease that lapses
+retries the batch, so a send can repeat and consumers dedupe by `request_id`. Nothing is
 compacted (X-11): reference data travels inside the request.
 
 ### 6.7 Scheduled sweeps
