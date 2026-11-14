@@ -1,7 +1,9 @@
 // Command server is api/common: the HTTP API, the Kafka consumers and the
 // outbox publisher in one process (system-design.md §4). In cloud it scales
-// to zero: whatever publishes for it wakes it, and it wakes segmentation and
-// commerce in turn (shared-messaging.md). Cloud Scheduler calls
+// to zero on request-based CPU (S-14): it publishes the outbox before a
+// response, settles segmentation and commerce in turn (shared-messaging.md),
+// and drains its own consumers inside POST /internal/settle, which Cloud
+// Scheduler's captures job and uploads call. Cloud Scheduler calls
 // POST /internal/jobs/{name} on it.
 package main
 
@@ -12,6 +14,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"slices"
+	"strings"
 	"syscall"
 	"time"
 
@@ -71,8 +75,20 @@ func run() error {
 		}
 		return cfg.Wake.Commerce // every other request goes to commerce
 	}
-	publisher := &outbox.Publisher{DB: a.DB, Producer: producer, Interval: time.Second,
-		Wake: func(event string) { waker.Async(wakeFor(event), event) }}
+	// On request-based CPU nothing runs between requests: the publisher and
+	// the consumers work inside a request or a settle, and a flush settles
+	// the services it published for. Where CPU is always allocated they loop.
+	settleOnRequest := cfg.OnCloudRun
+	publisher := &outbox.Publisher{DB: a.DB, Producer: producer, Interval: time.Second}
+	if settleOnRequest {
+		publisher.Wake = func(ctx context.Context, events []string) {
+			bases := make([]string, 0, len(events))
+			for _, event := range events {
+				bases = append(bases, wakeFor(event))
+			}
+			waker.SettleAll(ctx, strings.Join(events, ","), bases...)
+		}
+	}
 
 	s := a.Services
 	consumers := map[string]map[string]kafka.Handler{
@@ -104,6 +120,9 @@ func run() error {
 		if err := a.DB.Ping(ctx); err != nil {
 			return err
 		}
+		if settleOnRequest {
+			return nil // consumers run inside a settle, not between requests
+		}
 		for _, c := range running {
 			if !c.Running() {
 				return errors.New("consumer stopped")
@@ -111,18 +130,49 @@ func run() error {
 		}
 		return nil
 	}
-	jobs := &handler.Jobs{Run: a.Jobs(false), Verifier: handler.NewGoogleVerifier(),
-		Audience: cfg.SchedulerAudience, Invoker: cfg.SchedulerInvokerEmail}
-	srv := &http.Server{
-		Addr:              ":" + cfg.Port,
-		Handler:           router.New(&handler.Handlers{S: s}, sso, middleware.Authenticate(cfg, s), cfg.CORSOrigins, ready, jobs),
-		ReadHeaderTimeout: 10 * time.Second,
+	settle := settler{
+		drain: func(ctx context.Context, budget time.Duration) bool {
+			caughtUp := make([]bool, len(running))
+			var dg errgroup.Group
+			for i, c := range running {
+				dg.Go(func() error {
+					ok, err := c.Drain(ctx, budget)
+					if err != nil {
+						slog.WarnContext(ctx, "consumer not caught up; the next pass continues", "step", "settle", "error", err)
+					}
+					caughtUp[i] = ok
+					return nil
+				})
+			}
+			_ = dg.Wait()
+			return !slices.Contains(caughtUp, false)
+		},
+		flush:  publisher.Flush,
+		budget: settleBudget,
 	}
+	jobs := &handler.Jobs{Run: a.Jobs(false, func(ctx context.Context) {
+		if !settle.run(ctx) {
+			slog.WarnContext(ctx, "settle did not catch up; the next pass continues", "step", "settle")
+		}
+	}), Verifier: handler.NewGoogleVerifier(), Audience: cfg.SchedulerAudience, Invoker: cfg.SchedulerInvokerEmail}
+	settles := &handler.Settle{Run: settle.run, Verifier: handler.NewGoogleVerifier(), Audience: cfg.SchedulerAudience,
+		Invokers: append([]string{cfg.SchedulerInvokerEmail}, cfg.SettleInvokerEmails...)}
+	var api http.Handler = router.New(&handler.Handlers{S: s}, sso, middleware.Authenticate(cfg, s), cfg.CORSOrigins, ready, jobs, settles)
+	if settleOnRequest {
+		api = flushBeforeResponse(api, func(ctx context.Context) {
+			if _, err := publisher.Flush(ctx); err != nil {
+				slog.WarnContext(ctx, "outbox flush failed; the next pass retries", "step", "outbox", "error", err)
+			}
+		})
+	}
+	srv := &http.Server{Addr: ":" + cfg.Port, Handler: api, ReadHeaderTimeout: 10 * time.Second}
 
 	g, gctx := errgroup.WithContext(ctx)
-	g.Go(func() error { publisher.Run(gctx); return nil })
-	for _, c := range running {
-		g.Go(func() error { return c.Run(gctx) })
+	if !settleOnRequest {
+		g.Go(func() error { publisher.Run(gctx); return nil })
+		for _, c := range running {
+			g.Go(func() error { return c.Run(gctx) })
+		}
 	}
 	g.Go(func() error {
 		slog.Info("listening", "addr", srv.Addr)

@@ -63,3 +63,6 @@ updates:
     directory: /mobile/flutter
     schedule:
       interval: weekly
+    groups:
+      pub-dependencies:
+        patterns: ["*"]

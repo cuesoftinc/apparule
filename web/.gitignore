@@ -49,3 +49,6 @@ next-env.d.ts
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Written by `next dev` on every run; not part of the repo.
+AGENTS.md

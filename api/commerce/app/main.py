@@ -5,8 +5,9 @@ Kafka. Money (S-6): Paystack events, payouts, refunds, bank-account
 verification and reconciliation, each answered with apparule.payments.outcome.
 Notify (S-7): push and email for every notification row common writes.
 Without a Paystack secret it runs notify-only (self-host, §10.2). In cloud it
-scales to zero: common wakes it after publishing, and it wakes common after
-each outcome.
+scales to zero on request-based CPU (S-14): common settles it after publishing
+for it and at the end of every captures pass, and it handles what is waiting
+inside POST /internal/settle.
 """
 
 import logging
@@ -17,17 +18,17 @@ from fastapi import FastAPI
 
 import payouts
 import reconcile
+import settle
 from app.config import get_settings
 from contract import Contract
 from health import router as health_router
 from kafka import topics
 from kafka.consumer import Consumer
 from kafka.producer import Producer
-from kafka.wake import Waker
 from notify import Notifier
 from notify.brevo import Brevo
 from notify.fcm import FCM
-from payments import settle
+from payments import settle as payments_settle
 from payments.failed import failed_outcome
 from payments.movements import Movements
 from paystack import Paystack
@@ -44,7 +45,6 @@ async def lifespan(app: FastAPI):
     contract = Contract(settings.contract_dir)
     store = from_settings(settings)
     producer = Producer(settings, contract, store)
-    waker = Waker(settings.wake_common_url)
     fcm = FCM(settings.google_cloud_project) if settings.google_cloud_project else None
     brevo = Brevo(settings.brevo_api_key, settings.brevo_from_email, settings.brevo_from_name) if settings.brevo_api_key else None
     notifier = Notifier(fcm, brevo, settings.social_window_seconds)
@@ -55,7 +55,6 @@ async def lifespan(app: FastAPI):
         if outcome is None:
             return
         await producer.send(topics.PAYMENTS_OUTCOME, key, outcome, request_id)
-        waker.soon(topics.PAYMENTS_OUTCOME)
         log.info(
             "outcome sent",
             extra={"step": step, "kind": outcome["kind"], "outcome_id": outcome["outcome_id"], "reason": outcome.get("reason"), "ms": round((time.monotonic() - started) * 1000)},
@@ -72,7 +71,7 @@ async def lifespan(app: FastAPI):
 
         async def on_provider_event(msg: dict, request_id: str | None) -> None:
             start = time.monotonic()
-            outcome = settle.decide(msg, settings.platform_fee_bps)
+            outcome = payments_settle.decide(msg, settings.platform_fee_bps)
             key = outcome.get("request_id", msg["provider_event_id"]) if outcome else ""
             await send(outcome, key, "payments.provider_event", start, request_id)
 
@@ -105,7 +104,14 @@ async def lifespan(app: FastAPI):
         key = outcome.get("request_id") or outcome.get("designer_id") or ""
         await send(outcome, key, event.removeprefix("apparule."), time.monotonic(), request_id)
 
-    consumer = Consumer("commerce", handlers, settings, contract, store, on_failure)
+    consumer = Consumer("commerce", handlers, settings, contract, store, on_failure, background=not settings.on_cloud_run)
+
+    async def run_settle(budget: float) -> dict:
+        """Drain what is waiting, then send the push summaries whose window closed."""
+        caught_up = await consumer.drain(budget * 0.8)
+        return {"caught_up": caught_up, "summaries": await notifier.flush_due()}
+
+    app.include_router(settle.router(run_settle, settings.internal_audience, settings.internal_invoker_list))
     await producer.start()
     await consumer.start()
     app.state.consumers = [consumer]
@@ -114,7 +120,6 @@ async def lifespan(app: FastAPI):
     finally:
         await consumer.stop()
         await producer.stop()
-        await waker.aclose()
         await notifier.aclose()
         for client in (paystack, fcm, brevo):
             if client is not None:

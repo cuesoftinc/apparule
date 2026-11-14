@@ -14,6 +14,8 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/google/uuid"
@@ -206,10 +208,21 @@ const (
 	retryBackoff    = time.Second
 )
 
+// source is the slice of a kafka-go reader a consumer uses.
+type source interface {
+	FetchMessage(ctx context.Context) (kgo.Message, error)
+	CommitMessages(ctx context.Context, msgs ...kgo.Message) error
+	Close() error
+}
+
 // Consumer reads one topic and routes each message to the handler for its
-// event type. It never stops on a bad message: the lanes are shared.
+// event type. It never stops on a bad message: the lanes are shared. Where
+// CPU is always allocated, Run consumes in a loop; on request-based CPU
+// (S-14) Drain consumes inside the request that asks.
 type Consumer struct {
-	reader   *kgo.Reader
+	reader   source
+	client   *kgo.Client
+	group    string
 	topic    string
 	handlers map[string]Handler
 	failures map[string]Failure
@@ -217,15 +230,23 @@ type Consumer struct {
 	blobs    Blobs
 	attempts int
 	backoff  time.Duration
-	running  bool
+	running  atomic.Bool
+	// draining keeps two settles from fetching on one reader at once.
+	draining sync.Mutex
+	// idle overrides drainIdle (tests).
+	idle time.Duration
+	// caughtUp answers whether the group has committed everything on the topic.
+	caughtUp func(ctx context.Context) (bool, error)
 }
 
 func NewConsumer(cfg config.Kafka, group, topic string, handlers map[string]Handler, failures map[string]Failure, contract *Contract, blobs Blobs) (*Consumer, error) {
-	d, _, err := dialer(cfg)
+	d, t, err := dialer(cfg)
 	if err != nil {
 		return nil, err
 	}
-	return &Consumer{
+	c := &Consumer{
+		client: &kgo.Client{Addr: kgo.TCP(cfg.Brokers...), Transport: t, Timeout: 10 * time.Second},
+		group:  group,
 		reader: kgo.NewReader(kgo.ReaderConfig{
 			Brokers:     cfg.Brokers,
 			GroupID:     group,
@@ -236,15 +257,17 @@ func NewConsumer(cfg config.Kafka, group, topic string, handlers map[string]Hand
 		}),
 		topic: topic, handlers: handlers, failures: failures, contract: contract, blobs: blobs,
 		attempts: handlerAttempts, backoff: retryBackoff,
-	}, nil
+	}
+	c.caughtUp = c.CaughtUp
+	return c, nil
 }
 
-func (c *Consumer) Running() bool { return c.running }
+func (c *Consumer) Running() bool { return c.running.Load() }
 
 // Run blocks until ctx ends; nothing else stops it.
 func (c *Consumer) Run(ctx context.Context) error {
-	c.running = true
-	defer func() { c.running = false; _ = c.reader.Close() }()
+	c.running.Store(true)
+	defer func() { c.running.Store(false); _ = c.reader.Close() }()
 	for {
 		msg, err := c.reader.FetchMessage(ctx)
 		if err != nil {
@@ -262,6 +285,129 @@ func (c *Consumer) Run(ctx context.Context) error {
 		}
 		if err := c.reader.CommitMessages(ctx, msg); err != nil && ctx.Err() == nil {
 			slog.Warn("commit failed; the message may be redelivered", "topic", c.topic, "offset", msg.Offset, "error", err)
+		}
+	}
+}
+
+// drainIdle is how long Drain waits for a message before it checks the lag.
+const drainIdle = 2 * time.Second
+
+// Drain handles messages inside the caller's request until the group has
+// committed everything on the topic, budget passes or ctx ends, and reports
+// whether it caught up. While Run consumes (CPU always allocated) it only
+// waits for Run to catch up.
+func (c *Consumer) Drain(ctx context.Context, budget time.Duration) (bool, error) {
+	if c.Running() {
+		if err := c.WaitCaughtUp(ctx, budget); err != nil {
+			return false, err
+		}
+		return true, nil
+	}
+	c.draining.Lock()
+	defer c.draining.Unlock()
+	bctx, cancel := context.WithTimeout(ctx, budget)
+	defer cancel()
+	idle := c.idle
+	if idle == 0 {
+		idle = drainIdle
+	}
+	var lastErr error
+	for {
+		ok, err := c.caughtUp(bctx)
+		if err == nil && ok {
+			return true, nil
+		}
+		if err != nil {
+			lastErr = err
+		}
+		fctx, stop := context.WithTimeout(bctx, idle)
+		msg, err := c.reader.FetchMessage(fctx)
+		stop()
+		switch {
+		case err == nil:
+			if !c.process(ctx, msg.Offset, msg.Value) {
+				return false, nil // ctx ended mid-work: leave the offset for redelivery
+			}
+			if err := c.reader.CommitMessages(ctx, msg); err != nil && ctx.Err() == nil {
+				slog.Warn("commit failed; the message may be redelivered", "topic", c.topic, "offset", msg.Offset, "error", err)
+			}
+		case bctx.Err() != nil:
+			return false, lastErr
+		case errors.Is(err, context.DeadlineExceeded):
+			// Nothing arrived in time: look at the lag again.
+		default:
+			lastErr = err
+			slog.Warn("fetch failed; retrying", "topic", c.topic, "error", err)
+			if !sleep(bctx, c.backoff) {
+				return false, lastErr
+			}
+		}
+	}
+}
+
+// CaughtUp reports whether the group has committed every message now on
+// the topic, across all partitions and whichever instance holds them.
+func (c *Consumer) CaughtUp(ctx context.Context) (bool, error) {
+	meta, err := c.client.Metadata(ctx, &kgo.MetadataRequest{Topics: []string{c.topic}})
+	if err != nil {
+		return false, err
+	}
+	if len(meta.Topics) != 1 || meta.Topics[0].Error != nil {
+		return false, fmt.Errorf("metadata for %s: %v", c.topic, meta.Topics)
+	}
+	ids := make([]int, 0, len(meta.Topics[0].Partitions))
+	reqs := make([]kgo.OffsetRequest, 0, 2*len(meta.Topics[0].Partitions))
+	for _, p := range meta.Topics[0].Partitions {
+		ids = append(ids, p.ID)
+		reqs = append(reqs, kgo.FirstOffsetOf(p.ID), kgo.LastOffsetOf(p.ID))
+	}
+	offsets, err := c.client.ListOffsets(ctx, &kgo.ListOffsetsRequest{Topics: map[string][]kgo.OffsetRequest{c.topic: reqs}})
+	if err != nil {
+		return false, err
+	}
+	committed, err := c.client.OffsetFetch(ctx, &kgo.OffsetFetchRequest{GroupID: c.group, Topics: map[string][]int{c.topic: ids}})
+	if err != nil {
+		return false, err
+	}
+	if committed.Error != nil {
+		return false, committed.Error
+	}
+	at := map[int]int64{}
+	for _, p := range committed.Topics[c.topic] {
+		if p.Error != nil {
+			return false, p.Error
+		}
+		at[p.Partition] = p.CommittedOffset
+	}
+	for _, p := range offsets.Topics[c.topic] {
+		if p.Error != nil {
+			return false, p.Error
+		}
+		next, ok := at[p.Partition]
+		if !ok || next < 0 {
+			next = p.FirstOffset // never committed: the group starts at the first offset
+		}
+		if next < p.LastOffset {
+			return false, nil
+		}
+	}
+	return true, nil
+}
+
+// WaitCaughtUp polls CaughtUp until it holds or max passes.
+func (c *Consumer) WaitCaughtUp(ctx context.Context, max time.Duration) error {
+	ctx, cancel := context.WithTimeout(ctx, max)
+	defer cancel()
+	for {
+		ok, err := c.caughtUp(ctx)
+		if ok {
+			return nil
+		}
+		if !sleep(ctx, 250*time.Millisecond) {
+			if err != nil {
+				return err
+			}
+			return fmt.Errorf("%s: group %s still behind after %s", c.topic, c.group, max)
 		}
 	}
 }
