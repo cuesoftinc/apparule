@@ -92,3 +92,250 @@ spec:
   tier: "1"
   components:
     - service:apparule-website
+    - service:apparule-api-common
+    - service:apparule-api-uploads
+    - service:apparule-api-segmentation
+    - service:apparule-api-commerce
+    - datastore:apparule-postgres
+    - datastore:apparule-redis
+    - datastore:apparule-storage
+    - datastore:cuelabs-kafka
+---
+apiVersion: v3
+kind: service
+metadata:
+  name: apparule-api-common
+  displayName: apparule-api-common
+  description: Go product API, upload tickets, Paystack webhooks and sweeps
+  owner: cuesoft
+  tags:
+    - app:apparule
+    - component:api
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/apparule
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  languages:
+    - go
+  dependsOn:
+    - datastore:apparule-postgres
+    - datastore:apparule-redis
+    - datastore:apparule-storage
+    - datastore:cuelabs-kafka
+    - service:apparule-api-segmentation
+    - service:apparule-api-commerce
+---
+apiVersion: v3
+kind: service
+metadata:
+  name: apparule-api-uploads
+  displayName: apparule-api-uploads
+  description: Node ticketed upload gateway that cleans images and hands off by pointer
+  owner: cuesoft
+  tags:
+    - app:apparule
+    - component:api
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/apparule
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  languages:
+    - typescript
+  dependsOn:
+    - datastore:apparule-storage
+    - datastore:cuelabs-kafka
+    - service:apparule-api-common
+---
+apiVersion: v3
+kind: service
+metadata:
+  name: apparule-api-segmentation
+  displayName: apparule-api-segmentation
+  description: Python pose QC and body measurement worker fed by Kafka
+  owner: cuesoft
+  tags:
+    - app:apparule
+    - component:worker
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/apparule
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  languages:
+    - python
+  dependsOn:
+    - datastore:apparule-storage
+    - datastore:cuelabs-kafka
+    - service:apparule-api-common
+---
+apiVersion: v3
+kind: service
+metadata:
+  name: apparule-api-commerce
+  displayName: apparule-api-commerce
+  description: Python money decisions, Paystack payouts, push and email delivery
+  owner: cuesoft
+  tags:
+    - app:apparule
+    - component:worker
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/apparule
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  languages:
+    - python
+  dependsOn:
+    - datastore:apparule-storage
+    - datastore:cuelabs-kafka
+    - service:apparule-api-common
+---
+apiVersion: v3
+kind: datastore
+metadata:
+  name: apparule-postgres
+  displayName: apparule-postgres
+  description: Managed Postgres, system of record owned by api/common
+  owner: cuesoft
+  tags:
+    - app:apparule
+    - component:datastore
+    - provider:aiven
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/apparule
+spec:
+  lifecycle: production
+  tier: "1"
+  type: postgres
+---
+apiVersion: v3
+kind: datastore
+metadata:
+  name: apparule-redis
+  displayName: apparule-redis
+  description: Managed Valkey, rate limits and upload quota, keys use the apparule prefix
+  owner: cuesoft
+  tags:
+    - app:apparule
+    - component:datastore
+    - provider:aiven
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/apparule
+spec:
+  lifecycle: production
+  tier: "1"
+  type: redis
+---
+apiVersion: v3
+kind: datastore
+metadata:
+  name: apparule-storage
+  displayName: apparule-storage
+  description: Cloud Storage under the apparule stg prefix, tmp and compute objects
+  owner: cuesoft
+  tags:
+    - app:apparule
+    - component:datastore
+    - provider:google
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/apparule
+spec:
+  lifecycle: production
+  tier: "1"
+  type: gcs
+---
+apiVersion: v3
+kind: datastore
+metadata:
+  name: cuelabs-kafka
+  displayName: cuelabs-kafka
+  description: Shared managed Kafka bus, topics cuelabs.uploads, requests and results
+  owner: cuesoft
+  tags:
+    - app:apparule
+    - component:datastore
+    - provider:aiven
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/apparule
+spec:
+  lifecycle: production
+  tier: "1"
+  type: kafka

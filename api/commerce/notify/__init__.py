@@ -6,9 +6,11 @@ device token through FCM, silent (data only) for capture results so a
 backgrounded app refreshes. Money events also go by email through Brevo.
 Social pushes (likes, follows, comments) coalesce per account over a window:
 the first goes at once, the rest become one "N new …" push when it closes.
+Nothing runs between requests (S-14), so a closed window is flushed inside a
+request: by the next social notification, by POST /internal/settle, or at
+shutdown.
 """
 
-import asyncio
 import logging
 import time
 from collections import OrderedDict, defaultdict
@@ -37,7 +39,6 @@ class Notifier:
         self._window = window_seconds
         # account -> kind -> (window start, pending count, tokens)
         self._social: dict[str, dict[str, list]] = defaultdict(dict)
-        self._tasks: set[asyncio.Task] = set()
         # notification id -> when it was delivered (monotonic), oldest first
         self._seen: OrderedDict[str, float] = OrderedDict()
 
@@ -62,8 +63,10 @@ class Notifier:
         data = {"notification_id": msg["notification_id"], "kind": kind}
         if msg.get("ref"):
             data |= {"ref_kind": msg["ref"]["kind"], "ref_id": msg["ref"]["id"]}
-        if kind in SOCIAL and self._coalesce(msg["account_id"], kind, tokens):
-            return
+        if kind in SOCIAL:
+            await self.flush_due()  # a closed window must send its summary before a new one replaces it
+            if self._coalesce(msg["account_id"], kind, tokens):
+                return
         if self._fcm and tokens:
             if kind in SILENT:
                 await self._fcm.send(tokens, data=data)
@@ -82,17 +85,28 @@ class Notifier:
             window[2] = tokens or window[2]
             return True
         self._social[account][kind] = [now, 0, tokens]
-        task = asyncio.create_task(self._flush_later(account, kind))
-        self._tasks.add(task)
-        task.add_done_callback(self._tasks.discard)
         return False
 
-    async def _flush_later(self, account: str, kind: str) -> None:
-        await asyncio.sleep(self._window)
-        window = self._social[account].pop(kind, None)
-        if window and window[1] > 0 and self._fcm and window[2]:
-            await self._fcm.send(window[2], title=TITLES[kind], body=f"{window[1]} new {NOUNS[kind]}", data={"kind": kind})
+    async def flush_due(self, force: bool = False) -> int:
+        """Sends the "N new …" push of every window that has closed (every
+        open window when `force`) and answers how many it sent."""
+        now = time.monotonic()
+        sent = 0
+        for account, kinds in list(self._social.items()):
+            for kind, window in list(kinds.items()):
+                if not force and now - window[0] < self._window:
+                    continue
+                del kinds[kind]
+                if window[1] > 0 and self._fcm and window[2]:
+                    try:
+                        await self._fcm.send(window[2], title=TITLES[kind], body=f"{window[1]} new {NOUNS[kind]}", data={"kind": kind})
+                    except Exception as exc:
+                        log.warning("summary push failed", extra={"kind": kind, "error": type(exc).__name__})
+                        continue
+                    sent += 1
+            if not kinds:
+                del self._social[account]
+        return sent
 
     async def aclose(self) -> None:
-        for task in list(self._tasks):
-            task.cancel()
+        await self.flush_due(force=True)

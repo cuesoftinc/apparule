@@ -122,11 +122,8 @@ services:
       STORAGE_USE_SSL: ${STORAGE_USE_SSL:-false}
       PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-}
       PAYSTACK_PUBLIC_KEY: ${PAYSTACK_PUBLIC_KEY:-}
-      # Scale-to-zero wakes (shared-messaging.md). Everything always runs
-      # here, so a wake is only a /health call, but it exercises the path.
-      WAKE_COMMON_URL: http://common:8080
-      WAKE_SEGMENTATION_URL: http://segmentation:8081
-      WAKE_COMMERCE_URL: http://commerce:8083
+      # No WAKE_* here: everything always runs, so the publisher and the
+      # consumers loop; settles exist only for request-based CPU (S-14).
     depends_on:
       postgres:
         condition: service_healthy
@@ -159,7 +156,6 @@ services:
       STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-minioadmin}
       STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:-minioadmin}
       STORAGE_USE_SSL: ${STORAGE_USE_SSL:-false}
-      WAKE_COMMON_URL: http://common:8080
     depends_on:
       common:
         condition: service_healthy
@@ -187,7 +183,6 @@ services:
       STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-minioadmin}
       STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:-minioadmin}
       STORAGE_USE_SSL: ${STORAGE_USE_SSL:-false}
-      WAKE_COMMON_URL: http://common:8080
     depends_on:
       common:
         condition: service_healthy
@@ -218,7 +213,6 @@ services:
       GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT:-}
       BREVO_API_KEY: ${BREVO_API_KEY:-}
       BREVO_FROM_EMAIL: ${BREVO_FROM_EMAIL:-}
-      WAKE_COMMON_URL: http://common:8080
     depends_on:
       common:
         condition: service_healthy

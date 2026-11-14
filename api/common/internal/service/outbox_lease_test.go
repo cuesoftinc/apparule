@@ -71,10 +71,10 @@ func TestOutboxPublishHoldsNoConnection(t *testing.T) {
 	ctx := context.Background()
 	snd := &sender{e: e, t: t}
 	woke := 0
-	pub := &outbox.Publisher{DB: e.db, Producer: snd, Interval: time.Hour, Wake: func(string) { woke++ }}
+	pub := &outbox.Publisher{DB: e.db, Producer: snd, Interval: time.Hour, Wake: func(context.Context, []string) { woke++ }}
 
 	e.enqueue(t, "a", "b", "c")
-	n, err := pub.PublishBatch(ctx)
+	n, err := pub.Flush(ctx)
 	if err != nil || n != 3 || len(snd.sent) != 3 || woke != 1 {
 		t.Fatalf("publish: n=%d err=%v sent=%v woke=%d", n, err, snd.sent, woke)
 	}

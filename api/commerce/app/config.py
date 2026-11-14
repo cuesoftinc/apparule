@@ -23,8 +23,14 @@ class Settings(BaseSettings):
     kafka_ssl_ca: str = ""
     kafka_group: str = "apparule-commerce"
 
-    # api/common's base URL, woken after each outcome (scale to zero).
-    wake_common_url: str = ""
+    # K_SERVICE is set on Cloud Run, where CPU is allocated only while a
+    # request runs (S-14): consumers then drain inside POST /internal/settle.
+    k_service: str = ""
+    # POST /internal/settle: a Google ID token for this audience (this
+    # service's URL) from one of these comma-separated service accounts
+    # (api/common's). Unset refuses every call.
+    internal_audience: str = ""
+    internal_invokers: str = ""
 
     storage_driver: Literal["gcs", "s3"] = "gcs"
     storage_bucket: str = Field(min_length=1)
@@ -55,6 +61,14 @@ class Settings(BaseSettings):
     @property
     def kafka_broker_list(self) -> list[str]:
         return [b.strip() for b in self.kafka_brokers.split(",") if b.strip()]
+
+    @property
+    def on_cloud_run(self) -> bool:
+        return bool(self.k_service)
+
+    @property
+    def internal_invoker_list(self) -> list[str]:
+        return [i.strip() for i in self.internal_invokers.split(",") if i.strip()]
 
     @property
     def payments_enabled(self) -> bool:

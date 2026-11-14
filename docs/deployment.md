@@ -23,8 +23,8 @@
 Each service has its `run.app` URL, `https://<service>-<project-number>.us-central1.run.app`.
 The web proxies `/api/v1/*` to `api/common` (uploads to `api/uploads`); there
 is no load balancer. Paystack posts to `api/common`'s `/webhooks/payments`.
-`segmentation` and `commerce` accept only authenticated calls (the wake-ups
-carry a Cloud Run ID token).
+`segmentation` and `commerce` accept only authenticated calls (the settle
+calls carry a Cloud Run ID token).
 
 ## 2. Provisioning (infrastructure-as-code)
 
@@ -94,11 +94,33 @@ Two hard-won rules, non-negotiable:
 | api/commerce | 1 vCPU / 512 MiB | 80 | 0–2 | request | all, authenticated only (invoker `apparule-common`) |
 
 **Scale to zero** (S-9 as amended, shared-messaging.md): every service runs
-at min 0, with no always-on instance, worker pool or Cloud Run job. Whoever
-publishes for a sleeping service wakes it with `GET /health`: `uploads` →
-`common`, `common`'s outbox → `segmentation` or `commerce`, the processing
-services → `common`. Base URLs come from `WAKE_<TARGET>_URL`. The sweeps wake
-whatever has work pending.
+at min 0 on request-based CPU, with no always-on instance, worker pool or
+Cloud Run job. An instance has CPU only while it serves a request, so nothing
+runs after a response: no background publisher, consumer loop or timer
+(S-14). Work happens inside a request instead:
+
+- `common` publishes the outbox rows a request created before it answers
+  (writes, webhooks, and reads that queued rows), then settles the service
+  that consumes them.
+- Settling is `POST /internal/settle` on the consumer, answered only after it
+  has drained its consumer group within its budget (`caught_up` says whether it
+  finished). `common` settles `segmentation` or `commerce`; `uploads` settles
+  `common` after each upload. Base URLs come from `WAKE_<TARGET>_URL`; a call
+  waits at most 25 s (uploads: 30 s) and a failed one is only logged.
+- `POST /internal/settle` on `common` drains its own consumers, publishes the
+  outbox and settles downstream, for up to four rounds in 40 s, so the
+  results a settle caused are handled in the same call.
+- The `captures` job runs a settle after its sweep, so work stuck anywhere
+  drains within a minute.
+- `commerce` sends the push summary of a closed social window inside a settle
+  (or when the next social notification arrives), not on a timer.
+
+`segmentation` and `commerce` check the caller themselves (`INTERNAL_AUDIENCE`,
+their own URL; `INTERNAL_INVOKERS`, `common`'s service account; 503 when either
+is unset). `common` accepts the scheduler's invoker and `SETTLE_INVOKERS`
+(the uploads account) with audience `SCHEDULER_AUDIENCE`. Compose and Helm run
+every service all the time (no `K_SERVICE`): their publisher and consumers loop
+and no settle is issued.
 
 Cloud Scheduler POSTs `/internal/jobs/<name>` on `apparule-api-common` with
 an OIDC token. The handler checks the audience (`SCHEDULER_AUDIENCE`, the

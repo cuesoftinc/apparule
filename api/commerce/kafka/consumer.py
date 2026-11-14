@@ -11,9 +11,10 @@ import asyncio
 import contextlib
 import json
 import logging
+import time
 from collections.abc import Awaitable, Callable
 
-from aiokafka import AIOKafkaConsumer
+from aiokafka import AIOKafkaConsumer, TopicPartition
 
 from app.config import Settings
 from contract import Contract, ContractError
@@ -31,6 +32,8 @@ FailureHandler = Callable[[str, dict, str | None], Awaitable[None]]
 
 ATTEMPTS = 3
 BACKOFF_SECONDS = 1.0
+# drain waits this long for a record before it looks at the lag again.
+IDLE_SECONDS = 1.0
 
 
 def _decode(value: bytes) -> object:
@@ -98,7 +101,11 @@ class Dispatcher:
 
 class Consumer:
     """`handlers` maps each event this pool handles to its handler;
-    `on_failure` answers a request whose handler kept failing."""
+    `on_failure` answers a request whose handler kept failing.
+
+    Where CPU is always allocated (compose, Helm) `background` runs a loop
+    that consumes between requests. On request-based CPU (S-14) nothing runs
+    between requests: drain() consumes inside the settle request instead."""
 
     def __init__(
         self,
@@ -108,6 +115,7 @@ class Consumer:
         contract: Contract,
         store: ObjectStore,
         on_failure: FailureHandler | None = None,
+        background: bool = True,
     ):
         self.group = group
         self._dispatcher = Dispatcher(handlers, contract, store, on_failure)
@@ -120,12 +128,15 @@ class Consumer:
             value_deserializer=_decode,
             **connection_kwargs(settings),
         )
+        self._background = background
+        self._lock = asyncio.Lock()
         self._task: asyncio.Task | None = None
         self.running = False
 
     async def start(self) -> None:
         await self._consumer.start()
-        self._task = asyncio.create_task(self._run(), name=f"consumer-{self.group}")
+        if self._background:
+            self._task = asyncio.create_task(self._run(), name=f"consumer-{self.group}")
         self.running = True
         log.info("consumer started", extra={"group": self.group, "topics": self._topics})
 
@@ -136,6 +147,67 @@ class Consumer:
             with contextlib.suppress(asyncio.CancelledError):
                 await self._task
         await self._consumer.stop()
+
+    async def caught_up(self) -> bool:
+        """Whether the group has committed every message now on its topics,
+        across all partitions and whichever instance holds them."""
+        partitions = []
+        for topic in self._topics:
+            ids = self._consumer.partitions_for_topic(topic)
+            if not ids:
+                return False  # metadata not fetched yet: still joining
+            partitions += [TopicPartition(topic, p) for p in ids]
+        ends = await self._consumer.end_offsets(partitions)
+        firsts = await self._consumer.beginning_offsets(partitions)
+        for tp in partitions:
+            committed = await self._consumer.committed(tp)
+            if committed is None:
+                committed = firsts[tp]  # never committed: the group starts at the first offset
+            if committed < ends[tp]:
+                return False
+        return True
+
+    async def _is_caught_up(self) -> bool:
+        try:
+            return await self.caught_up()
+        except Exception as exc:
+            log.warning("lag check failed", extra={"group": self.group, "error": type(exc).__name__})
+            return False
+
+    async def wait_caught_up(self, budget: float) -> bool:
+        """Polls caught_up until it holds or budget seconds pass."""
+        deadline = time.monotonic() + budget
+        while True:
+            if await self._is_caught_up():
+                return True
+            if time.monotonic() >= deadline:
+                return False
+            await asyncio.sleep(0.25)
+
+    async def drain(self, budget: float) -> bool:
+        """Handles what is waiting, inside the caller's request, until the
+        group has committed everything or budget seconds pass; answers
+        whether it caught up. While the background loop consumes, only
+        waits for it."""
+        deadline = time.monotonic() + budget
+        if self._task is not None:
+            return await self.wait_caught_up(budget)
+        async with self._lock:
+            while True:
+                if await self._is_caught_up():
+                    return True
+                left = deadline - time.monotonic()
+                if left <= 0:
+                    return False
+                # One record at a time: commit() then covers only what was handled.
+                batches = await self._consumer.getmany(timeout_ms=int(min(left, IDLE_SECONDS) * 1000), max_records=1)
+                for records in batches.values():
+                    for record in records:
+                        await self._dispatcher.handle(record.topic, record.value)
+                        try:
+                            await self._consumer.commit()
+                        except Exception:
+                            log.warning("commit failed; the message may be redelivered", extra={"topic": record.topic, "offset": record.offset})
 
     async def _run(self) -> None:
         # Runs until stop(): no message or broker error ends it.

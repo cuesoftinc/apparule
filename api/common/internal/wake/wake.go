@@ -1,15 +1,17 @@
-// Package wake starts a scaled-to-zero service so its Kafka consumers run
-// (shared-messaging.md, "Scale to zero"). Cloud Run starts an instance only for an HTTP
-// request, so after publishing for a service we send it one: GET /health.
-// The instance then consumes in the background until it has been idle long
-// enough for Cloud Run to stop it.
+// Package wake settles a scaled-to-zero service so its Kafka consumers run
+// (shared-messaging.md, "Scale to zero"). Cloud Run gives an instance CPU
+// only while it serves a request (S-14), so a bare GET /health starts it but
+// its consumers stall once that answer is sent. Settle is the wake that
+// waits: POST /internal/settle, which the target answers only after it has
+// handled what is waiting for it.
 //
-// Waking is best-effort: a missed wake leaves the message in Kafka, and the
-// sweep job wakes the services again while work is pending.
+// Settling is best-effort: a missed settle leaves the message in Kafka, and
+// the every-minute captures job settles the services again.
 package wake
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
@@ -17,110 +19,103 @@ import (
 	"net/url"
 	"os"
 	"strings"
-	"sync"
 	"time"
+
+	"golang.org/x/sync/errgroup"
 )
 
-// debounce skips a wake when the same service was woken this recently: an
-// instance that answered a request moments ago is still up.
-const debounce = 10 * time.Second
+// settleTimeout covers a cold start, a consumer-group join and the target's
+// own settle budget (20 s).
+const settleTimeout = 25 * time.Second
 
 const metadataIdentity = "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity"
 
 type Waker struct {
 	client *http.Client
-	// idTokens: on Cloud Run, sign each wake with the service account's ID
+	// idTokens: on Cloud Run, sign each call with the service account's ID
 	// token, because the processing services only accept authenticated calls.
 	idTokens bool
-
-	mu   sync.Mutex
-	last map[string]time.Time
+	identity string
 }
 
 // New returns a Waker. On Cloud Run (a service sets K_SERVICE, a job
-// CLOUD_RUN_JOB) wakes carry an ID token for the target; elsewhere they go
+// CLOUD_RUN_JOB) calls carry an ID token for the target; elsewhere they go
 // out unauthenticated.
 func New() *Waker {
 	return &Waker{
-		client:   &http.Client{Timeout: 30 * time.Second},
+		client:   &http.Client{},
 		idTokens: os.Getenv("K_SERVICE") != "" || os.Getenv("CLOUD_RUN_JOB") != "",
-		last:     map[string]time.Time{},
+		identity: metadataIdentity,
 	}
 }
 
-// Async wakes base in the background. An empty base (compose, Helm: the
-// services always run) does nothing.
-func (w *Waker) Async(base, reason string) {
-	if base == "" || !w.due(base) {
-		return
-	}
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		_ = w.Now(ctx, base, reason)
-	}()
-}
-
-// Now wakes base and waits for the answer.
-func (w *Waker) Now(ctx context.Context, base, reason string) error {
+// Settle asks base to handle everything waiting for it and waits for the
+// answer, up to settleTimeout. An empty base (compose, Helm: the services
+// always run) does nothing.
+func (w *Waker) Settle(ctx context.Context, base, reason string) error {
 	if base == "" {
 		return nil
 	}
-	err := w.call(ctx, strings.TrimRight(base, "/"))
+	base = strings.TrimRight(base, "/")
+	ctx, cancel := context.WithTimeout(ctx, settleTimeout)
+	defer cancel()
+	caughtUp, err := w.call(ctx, base)
 	if err != nil {
-		w.forget(base)
-		slog.Warn("wake failed", "step", "wake", "target", host(base), "reason", reason, "error", err)
+		slog.WarnContext(ctx, "settle failed", "step", "settle", "target", host(base), "reason", reason, "error", err)
 		return err
 	}
-	slog.Info("woke service", "step", "wake", "target", host(base), "reason", reason)
+	slog.InfoContext(ctx, "settled service", "step", "settle", "target", host(base), "reason", reason, "caught_up", caughtUp)
 	return nil
 }
 
-func (w *Waker) due(base string) bool {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	if time.Since(w.last[base]) < debounce {
-		return false
+// SettleAll settles every distinct non-empty base at once and returns when
+// all have answered.
+func (w *Waker) SettleAll(ctx context.Context, reason string, bases ...string) {
+	var g errgroup.Group
+	seen := map[string]bool{}
+	for _, base := range bases {
+		if base == "" || seen[base] {
+			continue
+		}
+		seen[base] = true
+		g.Go(func() error { return w.Settle(ctx, base, reason) })
 	}
-	w.last[base] = time.Now()
-	return true
+	_ = g.Wait()
 }
 
-func (w *Waker) forget(base string) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	delete(w.last, base)
-}
-
-func (w *Waker) call(ctx context.Context, base string) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, base+"/health", nil)
+func (w *Waker) call(ctx context.Context, base string) (bool, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, base+"/internal/settle", nil)
 	if err != nil {
-		return err
+		return false, err
 	}
 	if w.idTokens {
 		token, err := w.idToken(ctx, base)
 		if err != nil {
-			return fmt.Errorf("id token: %w", err)
+			return false, fmt.Errorf("id token: %w", err)
 		}
 		req.Header.Set("Authorization", "Bearer "+token)
 	}
 	res, err := w.client.Do(req)
 	if err != nil {
-		return err
+		return false, err
 	}
 	defer res.Body.Close()
-	_, _ = io.Copy(io.Discard, res.Body)
+	body, _ := io.ReadAll(io.LimitReader(res.Body, 64<<10))
 	if res.StatusCode >= 300 {
-		return fmt.Errorf("status %d", res.StatusCode)
+		return false, fmt.Errorf("status %d", res.StatusCode)
 	}
-	return nil
+	var answer struct {
+		CaughtUp bool `json:"caught_up"`
+	}
+	_ = json.Unmarshal(body, &answer)
+	return answer.CaughtUp, nil
 }
 
 // idToken asks the metadata server for an ID token whose audience is the
 // target service's URL, which is what Cloud Run checks.
 func (w *Waker) idToken(ctx context.Context, audience string) (string, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet,
-		metadataIdentity+"?audience="+url.QueryEscape(audience), nil)
+		w.identity+"?audience="+url.QueryEscape(audience), nil)
 	if err != nil {
 		return "", err
 	}

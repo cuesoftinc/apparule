@@ -9,62 +9,84 @@ import (
 	"time"
 )
 
-func TestNowCallsHealth(t *testing.T) {
-	var hits atomic.Int32
+func TestSettleWaitsForTheAnswer(t *testing.T) {
+	var method, path, auth string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/health" || r.Header.Get("Authorization") != "" {
-			t.Errorf("unexpected request %s auth=%q", r.URL.Path, r.Header.Get("Authorization"))
-		}
-		hits.Add(1)
+		method, path, auth = r.Method, r.URL.Path, r.Header.Get("Authorization")
+		time.Sleep(100 * time.Millisecond) // the target settles before it answers
+		_, _ = w.Write([]byte(`{"caught_up":true}`))
 	}))
 	defer srv.Close()
 
 	w := New()
 	w.idTokens = false
-	if err := w.Now(context.Background(), srv.URL+"/", "test"); err != nil {
+	start := time.Now()
+	if err := w.Settle(context.Background(), srv.URL+"/", "test"); err != nil {
 		t.Fatal(err)
 	}
-	if hits.Load() != 1 {
-		t.Fatalf("hits = %d", hits.Load())
+	if method != http.MethodPost || path != "/internal/settle" || auth != "" {
+		t.Fatalf("called %s %s auth=%q; want an unsigned POST /internal/settle", method, path, auth)
+	}
+	if time.Since(start) < 100*time.Millisecond {
+		t.Fatal("Settle returned before the target answered")
 	}
 }
 
-func TestAsyncDebouncesAndSkipsEmpty(t *testing.T) {
-	var hits atomic.Int32
-	srv := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { hits.Add(1) }))
+func TestSettleSignsWithAnIDTokenForTheTarget(t *testing.T) {
+	var gotAudience, gotFlavor string
+	meta := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotAudience, gotFlavor = r.URL.Query().Get("audience"), r.Header.Get("Metadata-Flavor")
+		_, _ = w.Write([]byte("signed-token\n"))
+	}))
+	defer meta.Close()
+	var auth string
+	srv := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) { auth = r.Header.Get("Authorization") }))
 	defer srv.Close()
 
 	w := New()
-	w.idTokens = false
-	w.Async("", "nothing configured")
-	for range 3 {
-		w.Async(srv.URL, "test")
+	w.idTokens, w.identity = true, meta.URL
+	if err := w.Settle(context.Background(), srv.URL, "test"); err != nil {
+		t.Fatal(err)
 	}
-	deadline := time.Now().Add(2 * time.Second)
-	for hits.Load() == 0 && time.Now().Before(deadline) {
-		time.Sleep(10 * time.Millisecond)
-	}
-	time.Sleep(50 * time.Millisecond)
-	if hits.Load() != 1 {
-		t.Fatalf("hits = %d, want 1 (debounced)", hits.Load())
+	if auth != "Bearer signed-token" || gotAudience != srv.URL || gotFlavor != "Google" {
+		t.Fatalf("auth=%q audience=%q flavor=%q", auth, gotAudience, gotFlavor)
 	}
 }
 
-func TestFailedWakeIsRetriedNextTime(t *testing.T) {
+func TestSettleReportsAFailedTarget(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusServiceUnavailable)
 	}))
 	defer srv.Close()
+	w := New()
+	w.idTokens = false
+	if err := w.Settle(context.Background(), srv.URL, "test"); err == nil {
+		t.Fatal("Settle on a 503 = nil; want an error")
+	}
+}
+
+func TestSettleWithoutATargetDoesNothing(t *testing.T) {
+	w := New()
+	w.idTokens = false
+	if err := w.Settle(context.Background(), "", "nothing configured"); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestSettleAllCallsEachDistinctTargetOnceAndWaitsForAll(t *testing.T) {
+	var hits atomic.Int32
+	slow := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
+		time.Sleep(100 * time.Millisecond)
+		hits.Add(1)
+	}))
+	defer slow.Close()
+	other := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { hits.Add(1) }))
+	defer other.Close()
 
 	w := New()
 	w.idTokens = false
-	if !w.due(srv.URL) {
-		t.Fatal("first wake should be due")
-	}
-	if err := w.Now(context.Background(), srv.URL, "test"); err == nil {
-		t.Fatal("expected an error for a 503")
-	}
-	if !w.due(srv.URL) {
-		t.Fatal("a failed wake must not hold back the next one")
+	w.SettleAll(context.Background(), "test", slow.URL, "", other.URL, slow.URL)
+	if hits.Load() != 2 {
+		t.Fatalf("hits = %d; want 2 once SettleAll returns", hits.Load())
 	}
 }
