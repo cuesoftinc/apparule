@@ -255,8 +255,47 @@ func (s *Sweeper) Retention(ctx context.Context) error {
 			}
 		}
 	}
+	counts["orphans"] = s.sweepOrphans(ctx, cutoff)
 	slog.Info("retention swept", "step", "sweep", "counts", counts)
 	return nil
+}
+
+// sweepOrphans deletes saved capture images and attachments older than cutoff
+// that no row points at: copies a save or a message left when its second
+// transaction failed or the session was deleted meanwhile. Post images are
+// not swept here: orders and notifications keep their own pointers to them.
+func (s *Sweeper) sweepOrphans(ctx context.Context, cutoff time.Time) (deleted int64) {
+	for _, prefix := range []string{storage.CapturesPrefix(s.Store), storage.AttachmentsPrefix(s.Store)} {
+		objects, err := s.Store.List(ctx, prefix)
+		if err != nil {
+			slog.Warn("listing for orphan sweep failed", "prefix", strings.TrimPrefix(prefix, s.Store.Prefix()), "error", err)
+			continue
+		}
+		var old []string
+		for _, o := range objects {
+			if o.Created.Before(cutoff) {
+				old = append(old, o.Key)
+			}
+		}
+		for len(old) > 0 {
+			chunk := old[:min(len(old), 500)]
+			old = old[len(chunk):]
+			var held map[string]bool
+			if err := s.DB.AsSystem(ctx, func(tx pgx.Tx) (err error) {
+				held, err = repository.ReferencedKeys(ctx, tx, chunk)
+				return err
+			}); err != nil {
+				slog.Warn("orphan check failed; next run retries", "error", err)
+				return deleted
+			}
+			for _, k := range chunk {
+				if !held[k] && s.Store.Delete(ctx, k) == nil {
+					deleted++
+				}
+			}
+		}
+	}
+	return deleted
 }
 
 // reconcileMargin widens the window on both sides: Paystack dates an item

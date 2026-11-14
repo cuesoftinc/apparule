@@ -13,7 +13,7 @@ shutdown.
 
 import logging
 import time
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 
 from notify.brevo import Brevo
 from notify.fcm import FCM
@@ -25,6 +25,12 @@ SILENT = {"capture_result"}
 TITLES = {"quote": "New quote", "status_change": "Order update", "payout": "Payout released", "like": "New like", "follow": "New follower", "comment": "New comment"}
 NOUNS = {"like": "likes", "follow": "followers", "comment": "comments"}
 
+# A redelivered message (a crash before the offset commit, or the outbox
+# sending a row twice) must not push or email twice: delivered ids are kept
+# for an hour, at most this many.
+SEEN_TTL = 3600
+SEEN_LIMIT = 20_000
+
 
 class Notifier:
     def __init__(self, fcm: FCM | None, brevo: Brevo | None, window_seconds: int = 300):
@@ -33,8 +39,25 @@ class Notifier:
         self._window = window_seconds
         # account -> kind -> (window start, pending count, tokens)
         self._social: dict[str, dict[str, list]] = defaultdict(dict)
+        # notification id -> when it was delivered (monotonic), oldest first
+        self._seen: OrderedDict[str, float] = OrderedDict()
+
+    def _delivered(self, notification_id: str) -> bool:
+        now = time.monotonic()
+        while self._seen and (len(self._seen) > SEEN_LIMIT or now - next(iter(self._seen.values())) > SEEN_TTL):
+            self._seen.popitem(last=False)
+        return notification_id in self._seen
 
     async def deliver(self, msg: dict) -> None:
+        notification_id = msg["notification_id"]
+        if self._delivered(notification_id):
+            log.info("duplicate notification skipped", extra={"notification_id": notification_id})
+            return
+        await self._deliver(msg)
+        # Recorded after delivery: a handler that raised is retried, not skipped.
+        self._seen[notification_id] = time.monotonic()
+
+    async def _deliver(self, msg: dict) -> None:
         kind = msg["kind"]
         tokens = msg["recipient"].get("push_tokens", [])
         data = {"notification_id": msg["notification_id"], "kind": kind}

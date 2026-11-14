@@ -387,11 +387,16 @@ rows from `common`.
 ### 6.6 The outbox
 
 A `common` write and its outbox row commit in one transaction. The
-publisher (every instance, `SKIP LOCKED` batches) writes each payload to
-`apparule/<env>/compute/`, sends the pointer on its lane, stamps
-`published_at`, and settles the service it published for. On request-based
-CPU the publisher runs inside the request (or settle) that queued the rows,
-before the response; where CPU is always allocated it loops. Nothing is
+publisher (every instance) leases a batch for one minute (`lease_until`,
+`lease_owner`, `SKIP LOCKED`), holds no connection while it writes each payload to
+`apparule/<env>/compute/` and sends the pointer on its lane within a 40 s budget, then stamps
+`published_at` (retried); release and stamp check the owner, a failed send
+releases at once, and a lease that lapses retries the batch, so a send can
+repeat and consumers dedupe by `request_id` (the commerce notifier by
+`notification_id`). After the batches it settles the services it published for.
+On request-based CPU the publisher runs inside the request (or settle) that
+queued the rows, before the response; where CPU is always allocated it loops.
+Nothing is
 compacted (X-11): reference data travels inside the request.
 
 ### 6.7 Scheduled sweeps

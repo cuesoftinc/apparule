@@ -47,27 +47,28 @@ func invalidTransition(from, to string) *Error {
 }
 
 func (s *Services) Orders(ctx context.Context, p *Principal, role string, pg Paging) (any, error) {
-	var list []model.Order
-	err := s.as(ctx, p, func(tx pgx.Tx) error {
-		rows, err := repository.ListOrders(ctx, tx, p.AccountID, role, pg.Offset, pg.Limit+1)
-		for _, o := range rows {
-			list = append(list, *s.orderOut(ctx, o))
-		}
+	var rows []*repository.OrderRow
+	err := s.as(ctx, p, func(tx pgx.Tx) (err error) {
+		rows, err = repository.ListOrders(ctx, tx, p.AccountID, role, pg.Offset, pg.Limit+1)
 		return err
 	})
+	var list []model.Order
+	for _, o := range rows { // signed after the transaction closes
+		list = append(list, *s.orderOut(ctx, o))
+	}
 	return page(list, pg), err
 }
 
 func (s *Services) Order(ctx context.Context, p *Principal, id string) (*model.Order, error) {
-	var out *model.Order
-	err := s.as(ctx, p, func(tx pgx.Tx) error {
-		o, err := repository.GetOrder(ctx, tx, id)
-		if err == nil {
-			out = s.orderOut(ctx, o)
-		}
+	var row *repository.OrderRow
+	err := s.as(ctx, p, func(tx pgx.Tx) (err error) {
+		row, err = repository.GetOrder(ctx, tx, id)
 		return err
 	})
-	return out, err
+	if err != nil {
+		return nil, err
+	}
+	return s.orderOut(ctx, row), nil
 }
 
 type RequestInput struct {
@@ -96,7 +97,7 @@ func (s *Services) CreateRequest(ctx context.Context, p *Principal, postID strin
 			return nil, invalid("target_date must be YYYY-MM-DD")
 		}
 	}
-	var out *model.Order
+	var row *repository.OrderRow
 	err := s.as(ctx, p, func(tx pgx.Tx) error {
 		author, err := s.visiblePost(ctx, tx, p, postID)
 		if err != nil {
@@ -158,10 +159,13 @@ func (s *Services) CreateRequest(ctx context.Context, p *Principal, postID strin
 			Text: fmt.Sprintf("%s requested %s (#%s)", p.Username, title, o.OrderNumber), Actor: s.actor(ctx, tx, p), ThumbKey: optional(thumb)}); err != nil {
 			return err
 		}
-		out = s.orderOut(ctx, o)
+		row = o
 		return nil
 	})
-	return out, err
+	if err != nil {
+		return nil, err
+	}
+	return s.orderOut(ctx, row), nil
 }
 
 // latestValues collapses corrections onto their measure: the snapshot
@@ -182,7 +186,7 @@ func latestValues(ms []model.Measurement) []model.SnapshotValue {
 
 // orderAction loads an order for an actor and runs fn under its row lock.
 func (s *Services) orderAction(ctx context.Context, p *Principal, id, role string, fn func(tx pgx.Tx, o *repository.OrderRow) error) (*model.Order, error) {
-	var out *model.Order
+	var row *repository.OrderRow
 	err := s.as(ctx, p, func(tx pgx.Tx) error {
 		o, err := repository.LockOrder(ctx, tx, id)
 		if err != nil {
@@ -201,13 +205,13 @@ func (s *Services) orderAction(ctx context.Context, p *Principal, id, role strin
 		if err := fn(tx, o); err != nil {
 			return err
 		}
-		o, err = repository.GetOrder(ctx, tx, id)
-		if err == nil {
-			out = s.orderOut(ctx, o)
-		}
+		row, err = repository.GetOrder(ctx, tx, id)
 		return err
 	})
-	return out, err
+	if err != nil {
+		return nil, err
+	}
+	return s.orderOut(ctx, row), nil
 }
 
 // move applies a transition, publishes it for commerce, and notifies.
@@ -424,7 +428,7 @@ func (s *Services) ResolveDispute(ctx context.Context, p *Principal, id, outcome
 	if outcome != "delivered" && outcome != "refunded" {
 		return nil, invalid("outcome must be delivered or refunded")
 	}
-	var out *model.Order
+	var row *repository.OrderRow
 	err := s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
 		o, err := repository.LockOrder(ctx, tx, id)
 		if err != nil {
@@ -441,41 +445,43 @@ func (s *Services) ResolveDispute(ctx context.Context, p *Principal, id, outcome
 				return err
 			}
 		}
-		o, err = repository.GetOrder(ctx, tx, id)
-		if err == nil {
-			out = s.orderOut(ctx, o)
-		}
+		row, err = repository.GetOrder(ctx, tx, id)
 		return err
 	})
-	return out, err
+	if err != nil {
+		return nil, err
+	}
+	return s.orderOut(ctx, row), nil
 }
 
 // ── Threads ─────────────────────────────────────────────────────────────
 
 func (s *Services) Messages(ctx context.Context, p *Principal, id string, pg Paging) (any, error) {
-	var list []model.ThreadMessage
+	var rows []repository.MessageRow
 	err := s.as(ctx, p, func(tx pgx.Tx) error {
 		if _, err := repository.GetOrder(ctx, tx, id); err != nil {
 			return err // party check (RLS)
 		}
-		rows, err := repository.ListMessages(ctx, tx, id, pg.Offset, pg.Limit+1)
-		if err != nil {
-			return err
-		}
-		for _, m := range rows {
-			msg := m.ThreadMessage
-			if m.MediaKey != nil {
-				url, err := s.Store.SignedURL(ctx, *m.MediaKey, time.Hour)
-				if err != nil {
-					return err
-				}
-				msg.ImageURL = &url
-			}
-			list = append(list, msg)
-		}
-		return nil
+		var err error
+		rows, err = repository.ListMessages(ctx, tx, id, pg.Offset, pg.Limit+1)
+		return err
 	})
-	return page(list, pg), err
+	if err != nil {
+		return page([]model.ThreadMessage(nil), pg), err
+	}
+	var list []model.ThreadMessage
+	for _, m := range rows { // signed after the transaction closes
+		msg := m.ThreadMessage
+		if m.MediaKey != nil {
+			url, err := s.Store.SignedURL(ctx, *m.MediaKey, time.Hour)
+			if err != nil {
+				return page([]model.ThreadMessage(nil), pg), err
+			}
+			msg.ImageURL = &url
+		}
+		list = append(list, msg)
+	}
+	return page(list, pg), nil
 }
 
 // AddMessage posts to an order thread (≤ 1000 chars; images only as
@@ -486,7 +492,11 @@ func (s *Services) AddMessage(ctx context.Context, p *Principal, id, body string
 		return nil, invalid("Message body must be 1-1000 characters")
 	}
 	var out *model.ThreadMessage
-	err := s.as(ctx, p, func(tx pgx.Tx) error {
+	var mediaKey *string
+	var staged *repository.MediaRow // the tmp upload to move into the order's folder
+	var dst string
+	copied := false
+	post := func(tx pgx.Tx) error {
 		o, err := repository.GetOrder(ctx, tx, id)
 		if err != nil {
 			return err
@@ -503,7 +513,7 @@ func (s *Services) AddMessage(ctx context.Context, p *Principal, id, body string
 			return err
 		}
 		var mediaID *string
-		var mediaKey *string
+		mediaKey, staged = nil, nil
 		if imageURL != nil && *imageURL != "" {
 			if blocked {
 				return newErr(http.StatusForbidden, "forbidden", "Attachments are off for this thread")
@@ -519,16 +529,19 @@ func (s *Services) AddMessage(ctx context.Context, p *Principal, id, body string
 			}
 			mediaID, mediaKey = &mid, &rows[0].Key
 			if rows[0].Stage == "tmp" {
-				dst := fmt.Sprintf("%s/attachments/%s/%s.jpg", s.Store.Prefix(), id, mid)
-				if err := s.Store.Copy(ctx, rows[0].Key, dst); err != nil {
-					return err
+				dst = fmt.Sprintf("%s/attachments/%s/%s.jpg", s.Store.Prefix(), id, mid)
+				if copied {
+					if err := repository.ConfirmMedia(ctx, tx, mid, dst); err != nil {
+						return err
+					}
+					mediaKey = &dst
+				} else {
+					staged = &rows[0]
 				}
-				if err := repository.ConfirmMedia(ctx, tx, mid, dst); err != nil {
-					return err
-				}
-				_ = s.Store.Delete(ctx, rows[0].Key)
-				mediaKey = &dst
 			}
+		}
+		if staged != nil {
+			return nil // validated only; the copy runs outside the transaction
 		}
 		msgID, at, err := repository.InsertMessage(ctx, tx, id, p.AccountID, byDesigner, body, mediaID)
 		if err != nil {
@@ -539,16 +552,33 @@ func (s *Services) AddMessage(ctx context.Context, p *Principal, id, body string
 			author = o.Designer.ID
 		}
 		out = &model.ThreadMessage{ID: msgID, RequestID: id, AuthorID: author, Body: body, CreatedAt: at}
-		if mediaKey != nil {
-			url, err := s.Store.SignedURL(ctx, *mediaKey, time.Hour)
-			if err != nil {
-				return err
-			}
-			out.ImageURL = &url
-		}
 		return nil
-	})
-	return out, err
+	}
+	if err := s.as(ctx, p, post); err != nil {
+		return nil, err
+	}
+	if staged != nil {
+		// The object copy holds no connection; the second pass re-checks the
+		// order and the media row before it confirms and posts.
+		tmpKey := staged.Key
+		if err := s.Store.Copy(ctx, tmpKey, dst); err != nil {
+			return nil, err
+		}
+		copied = true
+		if err := s.as(ctx, p, post); err != nil {
+			s.dropUnreferenced(ctx, dst)
+			return nil, err
+		}
+		_ = s.Store.Delete(ctx, tmpKey)
+	}
+	if mediaKey != nil {
+		url, err := s.Store.SignedURL(ctx, *mediaKey, time.Hour)
+		if err != nil {
+			return nil, err
+		}
+		out.ImageURL = &url
+	}
+	return out, nil
 }
 
 // StartAttachment reserves an attachment upload for a party of the order.

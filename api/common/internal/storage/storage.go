@@ -73,6 +73,12 @@ func Open(ctx context.Context, cfg config.Storage) (Store, error) {
 // TmpPrefix is where api/uploads writes images.
 func TmpPrefix(s Store) string { return s.Prefix() + "/tmp/" }
 
+// CapturesPrefix holds saved capture images.
+func CapturesPrefix(s Store) string { return s.Prefix() + "/captures/" }
+
+// AttachmentsPrefix holds order thread attachments.
+func AttachmentsPrefix(s Store) string { return s.Prefix() + "/attachments/" }
+
 // ComputePrefix holds claim-check payloads of bus messages.
 func ComputePrefix(s Store) string { return s.Prefix() + "/compute/" }
 

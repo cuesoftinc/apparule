@@ -23,7 +23,7 @@ internal/handler       thin HTTP handlers
 internal/service       the CRUD rules per domain: accounts, vault, social, orders, moderation
 internal/repository    every SQL statement; account-scoped or system transactions
 internal/kafka         events, lanes, envelope + claim-check, producer, consumers
-internal/outbox        the outbox publisher (SKIP LOCKED)
+internal/outbox        the outbox publisher (leased batches)
 internal/sweep         the scheduled jobs (§6.7)
 internal/storage       Cloud Storage (ADC) or MinIO; copy and signed URLs
 internal/ticket        Ed25519 upload tickets (S-15)
