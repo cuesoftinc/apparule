@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
 	"github.com/cuesoftinc/apparule/api/common/internal/model"
@@ -54,7 +55,7 @@ func (s *Services) rankedPage(ctx context.Context, p *Principal, fingerprint, cu
 		if offset > end {
 			offset = end
 		}
-		posts, err := repository.PostsByIDs(ctx, tx, p.AccountID, ids[offset:end], s.mediaURL(ctx))
+		posts, err := repository.PostsByIDs(ctx, tx, p.AccountID, ids[offset:end], nil)
 		if err != nil {
 			return err
 		}
@@ -65,6 +66,7 @@ func (s *Services) rankedPage(ctx context.Context, p *Principal, fingerprint, cu
 		}
 		return nil
 	})
+	s.signPosts(ctx, out.Items)
 	if out.Items == nil {
 		out.Items = []model.Post{}
 	}
@@ -105,9 +107,12 @@ func (s *Services) Post(ctx context.Context, p *Principal, id string) (*model.Po
 	var out *model.Post
 	err := s.as(ctx, p, func(tx pgx.Tx) error {
 		var err error
-		out, err = repository.GetPost(ctx, tx, p.AccountID, id, s.mediaURL(ctx))
+		out, err = repository.GetPost(ctx, tx, p.AccountID, id, nil)
 		return err
 	})
+	if out != nil {
+		s.signPosts(ctx, []model.Post{*out}) // copies the header; Media shares the backing array
+	}
 	return out, err
 }
 
@@ -165,19 +170,19 @@ func (s *Services) CreatePost(ctx context.Context, p *Principal, in PostInput) (
 			ids[i] = mediaIDFromURL(m.URL)
 		}
 	}
-	var postID string
-	var moves [][2]string
-	err = s.as(ctx, p, func(tx pgx.Tx) error {
+	// checked reads the caller's limits and media; it runs before the copies
+	// and again, to confirm nothing moved, in the transaction that posts.
+	checked := func(tx pgx.Tx) ([]repository.NewPostMedia, error) {
 		n, err := repository.CountPostsToday(ctx, tx, designerID)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if n >= s.Config.Limits.PostsPerDay {
-			return rateLimited(time.Hour, "You've posted the most for today")
+			return nil, rateLimited(time.Hour, "You've posted the most for today")
 		}
 		media, err := repository.GetMedia(ctx, tx, ids)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		byID := map[string]repository.MediaRow{}
 		for _, m := range media {
@@ -185,13 +190,13 @@ func (s *Services) CreatePost(ctx context.Context, p *Principal, in PostInput) (
 		}
 		display, err := repository.DesignerByID(ctx, tx, designerID)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		items := make([]repository.NewPostMedia, len(ids))
 		for i, id := range ids {
 			m, ok := byID[id]
 			if !ok || m.AccountID != p.AccountID || m.Kind != "post_media" || m.Stage != "tmp" {
-				return invalid("Every image must be one you uploaded for this post")
+				return nil, invalid("Every image must be one you uploaded for this post")
 			}
 			alt := strings.TrimSpace(in.Media[i].AltText)
 			if alt == "" {
@@ -199,29 +204,55 @@ func (s *Services) CreatePost(ctx context.Context, p *Principal, in PostInput) (
 			}
 			items[i] = repository.NewPostMedia{Key: m.Key, AltText: alt, Width: m.Width, Height: m.Height}
 		}
-		postID, err = repository.InsertPost(ctx, tx, repository.NewPost{
-			DesignerID: designerID, Caption: in.Caption, StyleTags: tags, BasePriceCents: in.BasePriceCents, TurnaroundDays: turnaround,
-		}, items)
+		return items, nil
+	}
+	var items []repository.NewPostMedia
+	if err := s.as(ctx, p, func(tx pgx.Tx) (err error) {
+		items, err = checked(tx)
+		return err
+	}); err != nil {
+		return nil, err
+	}
+	// Published images move to the media/ prefix (§5.1). The copies hold no
+	// connection; the post row is written once they exist, under an id chosen here.
+	postID := uuid.NewString()
+	moves := make([][2]string, len(items))
+	for i := range items {
+		moves[i] = [2]string{items[i].Key, fmt.Sprintf("%s/media/%s/%d.jpg", s.Store.Prefix(), postID, i)}
+	}
+	dropCopies := func() {
+		for _, m := range moves {
+			_ = s.Store.Delete(ctx, m[1])
+		}
+	}
+	for _, m := range moves {
+		if err := s.Store.Copy(ctx, m[0], m[1]); err != nil {
+			dropCopies()
+			return nil, err
+		}
+	}
+	err = s.as(ctx, p, func(tx pgx.Tx) error {
+		items, err := checked(tx)
 		if err != nil {
 			return err
 		}
-		// Published images move to the media/ prefix (§5.1).
+		for i := range items {
+			items[i].Key = moves[i][1]
+		}
+		if _, err := repository.InsertPost(ctx, tx, repository.NewPost{
+			ID: postID, DesignerID: designerID, Caption: in.Caption, StyleTags: tags, BasePriceCents: in.BasePriceCents, TurnaroundDays: turnaround,
+		}, items); err != nil {
+			return err
+		}
 		for i, id := range ids {
-			dst := fmt.Sprintf("%s/media/%s/%d.jpg", s.Store.Prefix(), postID, i)
-			moves = append(moves, [2]string{items[i].Key, dst})
-			if err := s.Store.Copy(ctx, items[i].Key, dst); err != nil {
-				return err
-			}
-			if err := repository.ConfirmMedia(ctx, tx, id, dst); err != nil {
-				return err
-			}
-			if _, err := tx.Exec(ctx, `UPDATE post_media SET object_key = $3 WHERE post_id = $1 AND position = $2`, postID, i, dst); err != nil {
+			if err := repository.ConfirmMedia(ctx, tx, id, moves[i][1]); err != nil {
 				return err
 			}
 		}
 		return nil
 	})
 	if err != nil {
+		dropCopies()
 		return nil, err
 	}
 	for _, m := range moves {
@@ -400,9 +431,10 @@ func (s *Services) ProfilePosts(ctx context.Context, p *Principal, username stri
 		if err != nil {
 			return err
 		}
-		list, err = repository.PostsByDesigner(ctx, tx, p.AccountID, d.ID, pg.Offset, pg.Limit+1, s.mediaURL(ctx))
+		list, err = repository.PostsByDesigner(ctx, tx, p.AccountID, d.ID, pg.Offset, pg.Limit+1, nil)
 		return err
 	})
+	s.signPosts(ctx, list)
 	return page(list, pg), err
 }
 
@@ -410,9 +442,10 @@ func (s *Services) SavedPosts(ctx context.Context, p *Principal, pg Paging) (any
 	var list []model.Post
 	err := s.as(ctx, p, func(tx pgx.Tx) error {
 		var err error
-		list, err = repository.SavedPosts(ctx, tx, p.AccountID, pg.Offset, pg.Limit+1, s.mediaURL(ctx))
+		list, err = repository.SavedPosts(ctx, tx, p.AccountID, pg.Offset, pg.Limit+1, nil)
 		return err
 	})
+	s.signPosts(ctx, list)
 	return page(list, pg), err
 }
 
@@ -556,26 +589,28 @@ func (s *Services) startBatch(ctx context.Context, p *Principal, kind string, re
 
 // MediaBatch is polled by the client after its upload.
 func (s *Services) MediaBatch(ctx context.Context, p *Principal, id string) (*model.MediaBatch, error) {
-	var out *model.MediaBatch
-	err := s.as(ctx, p, func(tx pgx.Tx) error {
-		b, err := repository.GetMediaBatch(ctx, tx, id)
-		if err != nil {
+	var b *repository.BatchRow
+	err := s.as(ctx, p, func(tx pgx.Tx) (err error) {
+		if b, err = repository.GetMediaBatch(ctx, tx, id); err != nil {
 			return err
 		}
 		if b.AccountID != p.AccountID {
 			return repository.ErrNotFound
 		}
-		out = &model.MediaBatch{ID: b.ID, Kind: b.Kind, Status: b.Status, Items: []model.MediaItem{}}
-		for _, m := range b.Items {
-			url, err := s.Store.SignedURL(ctx, m.Key, time.Hour)
-			if err != nil {
-				return err
-			}
-			out.Items = append(out.Items, model.MediaItem{ID: m.ID, URL: url, Width: m.Width, Height: m.Height})
-		}
 		return nil
 	})
-	return out, err
+	if err != nil {
+		return nil, err
+	}
+	out := &model.MediaBatch{ID: b.ID, Kind: b.Kind, Status: b.Status, Items: []model.MediaItem{}}
+	for _, m := range b.Items { // signed after the transaction closes
+		url, err := s.Store.SignedURL(ctx, m.Key, time.Hour)
+		if err != nil {
+			return nil, err
+		}
+		out.Items = append(out.Items, model.MediaItem{ID: m.ID, URL: url, Width: m.Width, Height: m.Height})
+	}
+	return out, nil
 }
 
 // OnMediaUploaded stores a batch's images (media.uploaded).

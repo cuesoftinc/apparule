@@ -153,11 +153,14 @@ func (s *Services) CreateCapture(ctx context.Context, p *Principal, heightCM flo
 		return nil, err
 	}
 	var out model.CaptureStarted
+	var template *string
+	replayed := false
 	err := s.as(ctx, p, func(tx pgx.Tx) error {
 		if err := s.requireConsent(ctx, tx, p); err != nil {
 			return err
 		}
-		template, err := repository.CustomerTemplate(ctx, tx, p.SelfCustomerID)
+		var err error
+		template, err = repository.CustomerTemplate(ctx, tx, p.SelfCustomerID)
 		if err != nil {
 			return err
 		}
@@ -168,14 +171,23 @@ func (s *Services) CreateCapture(ctx context.Context, p *Principal, heightCM flo
 		if key != "" {
 			if id, err := repository.SessionByIdempotencyKey(ctx, tx, p.SelfCustomerID, key); err == nil {
 				// A retried create returns the same session and a fresh ticket.
+				replayed = true
 				return s.captureTicket(ctx, tx, p, id, poses, &out)
 			}
 		}
-		if err := s.take(ctx, p,
-			ratelimit.Rule{Name: "capture-min", Max: int64(s.Config.Limits.CapturesPerMin), Window: time.Minute},
-			ratelimit.Rule{Name: "capture-day", Max: int64(s.Config.Limits.CapturesPerDay), Window: 24 * time.Hour}); err != nil {
-			return err
-		}
+		return nil
+	})
+	if err != nil || replayed {
+		return &out, err
+	}
+	// The rate limit is a Valkey call: it runs between the two transactions so
+	// no connection waits on it.
+	if err := s.take(ctx, p,
+		ratelimit.Rule{Name: "capture-min", Max: int64(s.Config.Limits.CapturesPerMin), Window: time.Minute},
+		ratelimit.Rule{Name: "capture-day", Max: int64(s.Config.Limits.CapturesPerDay), Window: 24 * time.Hour}); err != nil {
+		return &out, err
+	}
+	err = s.as(ctx, p, func(tx pgx.Tx) error {
 		if err := s.checkQuota(ctx, tx, p); err != nil {
 			return err
 		}
@@ -273,43 +285,81 @@ func (s *Services) issueTicket(ctx context.Context, tx pgx.Tx, r ticket.Request)
 // SaveSession keeps a capture: images move from tmp/ to captures/ with a
 // 30-day retention clock, and the session becomes complete (§6.2).
 func (s *Services) SaveSession(ctx context.Context, p *Principal, id string) (*model.Session, error) {
-	var out model.Session
-	err := s.as(ctx, p, func(tx pgx.Tx) error {
+	// pending reads the session under its row lock and lists the assets that
+	// still sit in tmp/ with the key each one moves to.
+	var workspaceID string
+	pending := func(tx pgx.Tx) (map[string]repository.Asset, error) {
 		row, err := repository.LockSession(ctx, tx, id)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if row.Status != "pending_save" {
-			return conflict("invalid_transition", "Only unsaved capture results can be saved")
+			return nil, conflict("invalid_transition", "Only unsaved capture results can be saved")
 		}
+		workspaceID = row.WorkspaceID
 		assets, err := repository.ListAssets(ctx, tx, id)
+		if err != nil {
+			return nil, err
+		}
+		for pose, a := range assets {
+			if a.Stage == "confirmed" {
+				delete(assets, pose)
+			}
+		}
+		return assets, nil
+	}
+	var todo map[string]repository.Asset
+	if err := s.as(ctx, p, func(tx pgx.Tx) (err error) {
+		todo, err = pending(tx)
+		return err
+	}); err != nil {
+		return nil, err
+	}
+	// The copies hold no connection and no row lock; the second transaction
+	// re-checks the session before it confirms them.
+	dsts := map[string]string{}
+	for pose, a := range todo {
+		dst := fmt.Sprintf("%s/captures/%s/%s/%s.jpg", s.Store.Prefix(), workspaceID, id, pose)
+		if err := s.Store.Copy(ctx, a.Key, dst); err != nil && !errors.Is(err, storage.ErrMissing) {
+			return nil, err
+		}
+		dsts[pose] = dst
+	}
+	var out model.Session
+	var tmpKeys []string
+	err := s.as(ctx, p, func(tx pgx.Tx) error {
+		assets, err := pending(tx)
 		if err != nil {
 			return err
 		}
 		until := s.Now().Add(CaptureRetention)
-		for _, a := range assets {
-			if a.Stage == "confirmed" {
-				continue
-			}
-			dst := fmt.Sprintf("%s/captures/%s/%s/%s.jpg", s.Store.Prefix(), row.WorkspaceID, id, a.Pose)
-			if err := s.Store.Copy(ctx, a.Key, dst); err != nil && !errors.Is(err, storage.ErrMissing) {
-				return err
+		tmpKeys = tmpKeys[:0]
+		for pose, a := range assets {
+			dst, ok := dsts[pose]
+			if !ok {
+				return conflict("save_conflict", "The capture changed while saving; try again")
 			}
 			if err := repository.ConfirmAsset(ctx, tx, a.ID, dst, until); err != nil {
 				return err
 			}
-			_ = s.Store.Delete(ctx, a.Key)
+			tmpKeys = append(tmpKeys, a.Key)
 		}
 		if err := repository.UpdateSession(ctx, tx, id, repository.SessionUpdate{Status: "complete", Saved: true}); err != nil {
 			return err
 		}
-		row, err = repository.GetSession(ctx, tx, id)
+		row, err := repository.GetSession(ctx, tx, id)
 		if err == nil {
 			out = view(row)
 		}
 		return err
 	})
-	return &out, err
+	if err != nil {
+		return &out, err
+	}
+	for _, k := range tmpKeys {
+		_ = s.Store.Delete(ctx, k)
+	}
+	return &out, nil
 }
 
 // AppendCorrections adds manual_correction rows; pipeline values are never

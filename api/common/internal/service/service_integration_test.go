@@ -39,26 +39,39 @@ import (
 // uses TEST_DATABASE_URL (a superuser URL) when set, else an embedded
 // Postgres.
 
-type memStore struct{ objects map[string][]byte }
+type memStore struct {
+	objects map[string][]byte
+	// probe runs at the start of every object call; setup points it at the
+	// pool so any call made while a transaction holds a connection fails.
+	probe func(op string)
+}
 
 func (m *memStore) Bucket() string { return "test" }
 func (m *memStore) Prefix() string { return "apparule/test" }
 func (m *memStore) Put(_ context.Context, k string, d []byte, _ string) error {
+	m.probe("put")
 	m.objects[k] = d
 	return nil
 }
 func (m *memStore) Get(_ context.Context, k string) ([]byte, error) {
+	m.probe("get")
 	d, ok := m.objects[k]
 	if !ok {
 		return nil, storage.ErrMissing
 	}
 	return d, nil
 }
-func (m *memStore) Delete(_ context.Context, k string) error { delete(m.objects, k); return nil }
+func (m *memStore) Delete(_ context.Context, k string) error {
+	m.probe("delete")
+	delete(m.objects, k)
+	return nil
+}
 func (m *memStore) List(context.Context, string) ([]storage.Object, error) {
+	m.probe("list")
 	return nil, nil
 }
 func (m *memStore) Copy(_ context.Context, src, dst string) error {
+	m.probe("copy")
 	d, ok := m.objects[src]
 	if !ok {
 		return storage.ErrMissing
@@ -67,6 +80,7 @@ func (m *memStore) Copy(_ context.Context, src, dst string) error {
 	return nil
 }
 func (m *memStore) SignedURL(_ context.Context, k string, _ time.Duration) (string, error) {
+	m.probe("signed url")
 	return "https://signed.test/" + k, nil
 }
 
@@ -144,6 +158,11 @@ func setup(t *testing.T) *env {
 			SocialPerMin: 60, CommentsPerMin: 10, RequestsPerDay: 20, OpenRequests: 10, PostsPerDay: 20,
 			ProcessingResend: time.Minute, ProcessingFail: 3 * time.Minute}}
 	store := &memStore{objects: map[string][]byte{}}
+	store.probe = func(op string) {
+		if n := pool.Stat().AcquiredConns(); n != 0 {
+			t.Errorf("storage %s while %d pooled connection(s) are held (the staging pool has one)", op, n)
+		}
+	}
 	return &env{db: db, store: store, contract: contract, s: &service.Services{
 		DB: db, Store: store, Tickets: ticket.NewSigner("test", key, 5*time.Minute), Config: cfg, Now: time.Now}}
 }
@@ -615,6 +634,34 @@ func TestCommissionMoneyFlow(t *testing.T) {
 	stranger := e.signIn(t, "uid-x", "x@example.com")
 	if _, err := e.s.Order(ctx, stranger, order.ID); code(err) != "not_found" {
 		t.Fatalf("stranger read: %v", err)
+	}
+
+	// An attachment moves out of tmp/ with no connection held, and the thread
+	// lists it signed.
+	att, err := e.s.StartAttachment(ctx, customer, order.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	attKey := "apparule/test/tmp/attachment/b/1/0.jpg"
+	e.store.objects[attKey] = []byte("img")
+	e.deliver(t, kafka.EventMediaUploaded, map[string]any{"ticket_id": claimsOf(t, att.Upload.Ticket).JTI, "account_id": customer.AccountID,
+		"target": map[string]string{"kind": "attachment", "id": att.ID}, "images": []any{image(attKey)}}, e.s.OnMediaUploaded)
+	attBatch, err := e.s.MediaBatch(ctx, customer, att.ID)
+	if err != nil || len(attBatch.Items) != 1 {
+		t.Fatalf("attachment batch: %v %+v", err, attBatch)
+	}
+	attURL := "/api/v1/media/" + attBatch.Items[0].ID
+	msg, err := e.s.AddMessage(ctx, customer, order.ID, "See the sleeve", &attURL)
+	if err != nil || msg.ImageURL == nil || !strings.HasPrefix(*msg.ImageURL, "https://signed.test/apparule/test/attachments/"+order.ID+"/") {
+		t.Fatalf("attachment message: %v %+v", err, msg)
+	}
+	if _, ok := e.store.objects[attKey]; ok {
+		t.Fatal("the tmp attachment should be gone after the message is posted")
+	}
+	thread, err := e.s.Messages(ctx, designer, order.ID, service.Paging{Limit: 50})
+	threadJSON, _ := json.Marshal(thread)
+	if err != nil || !strings.Contains(string(threadJSON), "https://signed.test/apparule/test/attachments/") {
+		t.Fatalf("thread: %v %s", err, threadJSON)
 	}
 
 	if _, err := e.s.Quote(ctx, designer, order.ID, 4_500_000, "2026-11-30"); err != nil {

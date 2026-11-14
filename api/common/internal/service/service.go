@@ -82,6 +82,17 @@ func (s *Services) mediaURL(ctx context.Context) func(string) string {
 	}
 }
 
+// signPosts signs the image keys a post read left in PostMedia.URL; it runs
+// after the transaction closes.
+func (s *Services) signPosts(ctx context.Context, posts []model.Post) {
+	sign := s.mediaURL(ctx)
+	for i := range posts {
+		for j := range posts[i].Media {
+			posts[i].Media[j].URL = sign(posts[i].Media[j].URL)
+		}
+	}
+}
+
 // thumb signs an optional image key.
 func (s *Services) thumb(ctx context.Context, key *string) *string {
 	if key == nil || *key == "" {
