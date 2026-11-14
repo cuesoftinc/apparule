@@ -240,6 +240,7 @@ func (s *Services) RecordConsent(ctx context.Context, p *Principal, document, ve
 // ExportData is "Download my data" (pages.md B7; data-model.md §4).
 func (s *Services) ExportData(ctx context.Context, p *Principal) (map[string]any, error) {
 	out := map[string]any{}
+	var rows []*repository.OrderRow
 	err := s.as(ctx, p, func(tx pgx.Tx) error {
 		account, err := repository.GetAccount(ctx, tx, p.AccountID)
 		if err != nil {
@@ -253,7 +254,7 @@ func (s *Services) ExportData(ctx context.Context, p *Principal) (map[string]any
 		if err != nil {
 			return err
 		}
-		saved, err := repository.SavedPosts(ctx, tx, p.AccountID, 0, 10_000, s.mediaURL(ctx))
+		saved, err := repository.SavedPosts(ctx, tx, p.AccountID, 0, 10_000, nil) // ids only; no image is signed
 		if err != nil {
 			return err
 		}
@@ -265,19 +266,23 @@ func (s *Services) ExportData(ctx context.Context, p *Principal) (map[string]any
 		for i, ss := range sessions {
 			sessionOut[i] = ss.Session
 		}
-		orderOut := make([]model.Order, len(orders))
-		for i, o := range orders {
-			orderOut[i] = *s.orderOut(ctx, o)
-		}
 		out["account"] = account
 		out["sessions"] = sessionOut
-		out["orders"] = orderOut
+		rows = orders
 		out["consent"] = account.Consent
 		out["saved_post_ids"] = savedIDs
 		out["exported_at"] = s.Now().UTC()
 		return nil
 	})
-	return out, err
+	if err != nil {
+		return out, err
+	}
+	orderOut := make([]model.Order, len(rows)) // signed after the transaction closes
+	for i, o := range rows {
+		orderOut[i] = *s.orderOut(ctx, o)
+	}
+	out["orders"] = orderOut
+	return out, nil
 }
 
 // RequestDeletion flags the account (flows/auth.md §4); the retention sweep

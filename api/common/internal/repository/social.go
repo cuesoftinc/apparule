@@ -11,7 +11,9 @@ import (
 	"github.com/cuesoftinc/apparule/api/common/internal/model"
 )
 
-// MediaURL turns a stored object key into a URL clients can load.
+// MediaURL turns a stored object key into a URL clients can load. A nil
+// MediaURL leaves the key in PostMedia.URL for the caller to sign once the
+// transaction has closed.
 type MediaURL func(key string) string
 
 // ── Designers ───────────────────────────────────────────────────────────
@@ -139,7 +141,10 @@ func scanPosts(ctx context.Context, tx pgx.Tx, rows pgx.Rows, url MediaURL) ([]m
 		if err := r.Scan(&m.ID, &m.PostID, &m.Position, &key, &m.AltText, &m.Width, &m.Height); err != nil {
 			return nil, err
 		}
-		m.URL = url(key)
+		m.URL = key
+		if url != nil {
+			m.URL = url(key)
+		}
 		return &m, nil
 	})
 	if err != nil {
@@ -266,6 +271,7 @@ func SavedPosts(ctx context.Context, tx pgx.Tx, viewerID string, offset, limit i
 }
 
 type NewPost struct {
+	ID             string // empty: the database picks one
 	DesignerID     string
 	Caption        string
 	StyleTags      []string
@@ -285,8 +291,9 @@ func InsertPost(ctx context.Context, tx pgx.Tx, p NewPost, media []NewPostMedia)
 	if p.StyleTags == nil {
 		p.StyleTags = []string{}
 	}
-	err := tx.QueryRow(ctx, `INSERT INTO post (designer_id, caption, style_tags, base_price_cents, turnaround_days)
-		VALUES ($1, $2, $3, $4, $5) RETURNING id`, p.DesignerID, p.Caption, p.StyleTags, p.BasePriceCents, p.TurnaroundDays).Scan(&id)
+	err := tx.QueryRow(ctx, `INSERT INTO post (id, designer_id, caption, style_tags, base_price_cents, turnaround_days)
+		VALUES (coalesce(nullif($6, '')::uuid, gen_random_uuid()), $1, $2, $3, $4, $5) RETURNING id`,
+		p.DesignerID, p.Caption, p.StyleTags, p.BasePriceCents, p.TurnaroundDays, p.ID).Scan(&id)
 	if err != nil {
 		return "", err
 	}

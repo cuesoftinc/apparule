@@ -56,8 +56,8 @@ async def test_capture_results_go_silent_and_without_email():
 async def test_social_pushes_coalesce_over_the_window():
     fcm = FakeFCM()
     notifier = Notifier(fcm, None, window_seconds=0.05)
-    for _ in range(4):
-        msg = _msg(kind="like", ref={"kind": "post", "id": "p1"})
+    for i in range(4):
+        msg = _msg(kind="like", ref={"kind": "post", "id": "p1"}, notification_id=f"n{i}")
         msg.pop("money")
         await notifier.deliver(msg)
     assert len(fcm.sent) == 1  # the first goes at once
@@ -85,3 +85,38 @@ async def test_push_auth_failure_is_logged_not_raised():
     async with httpx.AsyncClient() as client:
         fcm = FCM("apparule", client=client, credentials=RefusingCredentials())
         assert await fcm.send(["device-1"], title="New quote", body="", data={}) == 0
+
+
+async def test_a_redelivered_notification_is_not_pushed_or_emailed_twice():
+    fcm, brevo = FakeFCM(), FakeBrevo()
+    notifier = Notifier(fcm, brevo)
+    msg = _msg()
+    msg["recipient"]["email"] = "tolu@example.com"
+    await notifier.deliver(msg)
+    await notifier.deliver(copy.deepcopy(msg))
+    assert len(fcm.sent) == 1 and len(brevo.sent) == 1
+    other = _msg(notification_id="another")
+    other["recipient"]["email"] = "tolu@example.com"
+    await notifier.deliver(other)
+    assert len(fcm.sent) == 2 and len(brevo.sent) == 2
+
+
+async def test_a_failed_delivery_is_retried_not_remembered():
+    class Flaky(FakeFCM):
+        calls = 0
+
+        async def send(self, tokens, title=None, body=None, data=None):
+            Flaky.calls += 1
+            if Flaky.calls == 1:
+                raise RuntimeError("fcm down")
+            return await super().send(tokens, title, body, data)
+
+    fcm = Flaky()
+    notifier = Notifier(fcm, None)
+    msg = _msg()
+    try:
+        await notifier.deliver(msg)
+    except RuntimeError:
+        pass
+    await notifier.deliver(msg)
+    assert len(fcm.sent) == 1
