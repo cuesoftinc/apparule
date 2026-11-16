@@ -100,3 +100,16 @@ func DeleteMediaBatches(ctx context.Context, tx pgx.Tx, batchIDs []string) error
 	_, err := tx.Exec(ctx, `DELETE FROM media_batch WHERE id::text = ANY($1)`, batchIDs)
 	return err
 }
+
+// ReferencedKeys returns those of keys that a capture image, media row or
+// post image still points at.
+func ReferencedKeys(ctx context.Context, tx pgx.Tx, keys []string) (map[string]bool, error) {
+	held, err := ids(ctx, tx, `SELECT object_key FROM capture_asset WHERE object_key = ANY($1)
+		UNION SELECT object_key FROM media WHERE object_key = ANY($1)
+		UNION SELECT object_key FROM post_media WHERE object_key = ANY($1)`, keys)
+	out := make(map[string]bool, len(held))
+	for _, k := range held {
+		out[k] = true
+	}
+	return out, err
+}
