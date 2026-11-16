@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:apparule/src/core/ui/capture_option_card.dart';
 import 'package:apparule/src/core/ui/empty_state.dart';
 import 'package:apparule/src/core/ui/measurement_card.dart';
@@ -11,6 +13,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+// Test harness overrides the platform interface directly without adding it
+// as an explicit top-level pubspec dependency.
+// ignore: depend_on_referenced_packages
+import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
 
 import '../../../../helpers/boot_app.dart';
 import '../../../../helpers/notched.dart';
@@ -159,39 +165,92 @@ void main() {
     expect(find.text('Something went wrong — try again.'), findsOneWidget);
   });
 
-  testWidgets('per-session export lands the CSV on the clipboard with a '
-      'toast (D50, F2-9)', (tester) async {
-    String? copied;
-    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-      SystemChannels.platform,
-      (call) async {
-        if (call.method == 'Clipboard.setData') {
-          copied = (call.arguments as Map<Object?, Object?>)['text'] as String?;
-        }
-        return null;
-      },
-    );
-    addTearDown(
-      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-        SystemChannels.platform,
-        null,
-      ),
-    );
+  testWidgets('per-session export sheet offers PDF and CSV; the share sheet '
+      'receives the file (PLAT-004, F2-9, #387)', (tester) async {
+    final fakeShare = _FakeSharePlatform();
+    final originalPlatform = SharePlatform.instance;
+    SharePlatform.instance = fakeShare;
+    addTearDown(() => SharePlatform.instance = originalPlatform);
 
     await bootToVault(tester);
     await tester.tap(find.text('Shoulder'));
     await tester.pumpAndSettle();
 
     expect(find.bySemanticsLabel('Export session'), findsNWidgets(3));
+
+    // Tap export on the first session -> opens export sheet
     await tester.tap(find.bySemanticsLabel('Export session').first);
     await tester.pumpAndSettle();
 
+    // Export sheet offers PDF and CSV
+    expect(find.text('Export session'), findsWidgets);
+    expect(find.text('PDF'), findsOneWidget);
+    expect(find.text('CSV'), findsOneWidget);
+
+    // Pick PDF
+    await tester.tap(find.text('PDF'));
+    await tester.pumpAndSettle();
+
+    // Share sheet receives the PDF file
+    expect(fakeShare.lastParams, isNotNull);
+    expect(fakeShare.lastParams!.files, hasLength(1));
+    expect(fakeShare.lastParams!.fileNameOverrides?.first, endsWith('.pdf'));
+    final pdfFile = fakeShare.lastParams!.files!.first;
+    expect(pdfFile.mimeType, 'application/pdf');
+    final pdfBytes = await pdfFile.readAsBytes();
+    final pdfContent = latin1.decode(pdfBytes);
+    expect(pdfContent, startsWith('%PDF-1.4'));
+    expect(pdfContent, contains('Shoulder: 16.7 in (42.5 cm)'));
+
+    // The history sheet is still open — tap export again to test CSV
+    await tester.tap(find.bySemanticsLabel('Export session').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('CSV'), findsOneWidget);
+    await tester.tap(find.text('CSV'));
+    await tester.pumpAndSettle();
+
+    // Share sheet receives the CSV file
+    expect(fakeShare.lastParams!.files, hasLength(1));
+    expect(fakeShare.lastParams!.fileNameOverrides?.first, endsWith('.csv'));
+    final csvFile = fakeShare.lastParams!.files!.first;
+    expect(csvFile.mimeType, 'text/csv');
+    final csvContent = await csvFile.readAsString();
     expect(
-      find.text('Session exported — CSV copied to clipboard'),
-      findsOneWidget,
+      csvContent,
+      startsWith('Measurement,Inches,Centimetres'),
     );
-    expect(copied, startsWith('name,value_cm,confidence,method,measured_at'));
-    expect(copied, contains('shoulder,42.5,0.93,mediapipe_2d_v2,'));
+    expect(csvContent, contains('Shoulder,16.7 in,42.5 cm'));
+  });
+
+  testWidgets('top Share button opens the share options sheet offering '
+      'Text, PDF, and CSV', (tester) async {
+    final fakeShare = _FakeSharePlatform();
+    final originalPlatform = SharePlatform.instance;
+    SharePlatform.instance = fakeShare;
+    addTearDown(() => SharePlatform.instance = originalPlatform);
+
+    await bootToVault(tester);
+
+    await tester.tap(find.text('Share'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Share measurements'), findsOneWidget);
+    expect(find.text('Text message (WhatsApp, SMS)'), findsOneWidget);
+    expect(find.text('PDF'), findsOneWidget);
+    expect(find.text('CSV'), findsOneWidget);
+
+    // Pick PDF from top share
+    await tester.tap(find.text('PDF'));
+    await tester.pumpAndSettle();
+
+    expect(fakeShare.lastParams, isNotNull);
+    expect(fakeShare.lastParams!.files, hasLength(1));
+    expect(fakeShare.lastParams!.fileNameOverrides?.first, endsWith('.pdf'));
+    final pdfBytes = await fakeShare.lastParams!.files!.first.readAsBytes();
+    final pdfContent = latin1.decode(pdfBytes);
+    expect(pdfContent, startsWith('%PDF-1.4'));
+    expect(pdfContent, contains('Shoulder: 16.7 in (42.5 cm)'));
   });
 
   testWidgets('an empty vault renders the vault EmptyState; its CTA opens '
@@ -269,5 +328,15 @@ class _FailingVaultRepository extends MeasurementRepositoryFake {
   Future<List<MeasurementSession>> vaultSessions() {
     if (!healed) throw Exception('server 500');
     return super.vaultSessions();
+  }
+}
+
+class _FakeSharePlatform extends SharePlatform {
+  ShareParams? lastParams;
+
+  @override
+  Future<ShareResult> share(ShareParams params) async {
+    lastParams = params;
+    return const ShareResult('success', ShareResultStatus.success);
   }
 }

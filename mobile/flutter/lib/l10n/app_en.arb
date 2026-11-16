@@ -203,6 +203,9 @@
   "vaultDeleteSession": "Delete session",
   "vaultSessionDeleted": "Session deleted",
   "vaultExportSession": "Export session",
+  "vaultExportSheetTitle": "Export session",
+  "vaultExportPdf": "PDF",
+  "vaultExportCsv": "CSV",
   "vaultExportedToast": "Session exported — CSV copied to clipboard",
   "@vaultExportedToast": {
     "description": "C7 per-session export (F2-9): the fake export lands on the clipboard until a share seam is ratified."
@@ -358,6 +361,8 @@
     }
   },
   "vaultShare": "Share",
+  "vaultShareSheetTitle": "Share measurements",
+  "vaultShareText": "Text message (WhatsApp, SMS)",
   "vaultShareCopied": "Measurements copied",
   "shareSheetTitle": "Share this outfit",
   "shareLinkOnly": "Share link",
