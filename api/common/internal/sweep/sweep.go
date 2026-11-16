@@ -32,7 +32,7 @@ type Sweeper struct {
 	Limits config.Limits
 }
 
-const pendingPaymentBatchSize = 5
+const defaultPaymentVerificationBatchSize = 25
 
 // Jobs maps the job names to their functions.
 func (s *Sweeper) Jobs() map[string]func(context.Context) error {
@@ -45,7 +45,7 @@ func (s *Sweeper) Jobs() map[string]func(context.Context) error {
 	}
 }
 
-// Payments verifies a bounded batch of current pending Apparule references.
+// Payments verifies a bounded mix of recent and retained pending Apparule attempts.
 // A session advisory lock prevents overlapping scheduler instances; database
 // settlement remains idempotent independently of this operational lock.
 func (s *Sweeper) Payments(ctx context.Context) error {
@@ -78,23 +78,31 @@ func (s *Sweeper) Payments(ctx context.Context) error {
 	var refs []string
 	err = s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
 		var err error
-		refs, err = repository.PendingPaymentReferences(ctx, tx, pendingPaymentBatchSize)
+		limit := s.Limits.PaymentVerificationBatchSize
+		if limit < 1 {
+			limit = defaultPaymentVerificationBatchSize
+		}
+		refs, err = repository.PendingPaymentReferences(ctx, tx, limit)
 		return err
 	})
 	if err != nil {
 		return err
 	}
-	verified, failed := 0, 0
+	checked, skipped, failed := 0, 0, 0
 	for _, ref := range refs {
-		verifyErr := s.Services.VerifyPendingPayment(ctx, ref)
+		requested, verifyErr := s.Services.VerifyPendingPayment(ctx, ref)
 		if verifyErr != nil {
 			failed++
 			slog.WarnContext(ctx, "payment reference verification failed", "step", "sweep", "reference", ref, "error", verifyErr)
 			continue
 		}
-		verified++
+		if requested {
+			checked++
+		} else {
+			skipped++
+		}
 	}
-	slog.InfoContext(ctx, "payments swept", "step", "sweep", "eligible", len(refs), "verified", verified, "failed", failed)
+	slog.InfoContext(ctx, "payments swept", "step", "sweep", "eligible", len(refs), "checked", checked, "skipped", skipped, "failed", failed)
 	if _, err := conn.Exec(ctx, `SELECT pg_advisory_unlock(4672026)`); err != nil {
 		return err
 	}

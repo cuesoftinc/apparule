@@ -2,16 +2,41 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/cuesoftinc/apparule/api/common/internal/config"
 )
 
 type paystackRoundTripper func(*http.Request) (*http.Response, error)
 
 func (f paystackRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
 	return f(r)
+}
+
+func TestVerifiedProviderEventKeyIsStablePerTransactionID(t *testing.T) {
+	first, err := verifiedProviderEventKey(json.Number("42"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	retry, err := verifiedProviderEventKey(json.Number("42"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first != "verified:42" || retry != first {
+		t.Fatalf("provider keys = %q, %q; want deterministic verified:42", first, retry)
+	}
+}
+
+func TestPendingVerificationReportsSkippedWhenPaystackIsNotConfigured(t *testing.T) {
+	s := &Services{Config: &config.Config{}}
+	checked, err := s.VerifyPendingPayment(context.Background(), "apr_order_1")
+	if err != nil || checked {
+		t.Fatalf("unconfigured verification = checked %v, err %v; want skipped", checked, err)
+	}
 }
 
 func TestPaystackVerificationRequiresSuccessfulAPIResponseAndValidTransaction(t *testing.T) {

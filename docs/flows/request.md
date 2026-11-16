@@ -62,6 +62,23 @@ sequenceDiagram
     end
 ```
 
+`POST /api/v1/requests/{id}/verify-payment` requires the customer's session
+JWT and a JSON body `{ "reference": "apr_…" }`. The API checks ownership,
+the pending order and its current checkout reference before contacting
+Paystack. A `200` response is `{ "status": "pending" }` while Paystack has
+not confirmed success, or `{ "status": "verification_started" }` when the
+verified transaction has been handed to the shared settlement path. Errors
+use the standard envelope: `401 unauthenticated`, `422 validation_failed`,
+`404 not_found` (including another customer's order), `409 payment_not_pending` or
+`409 payment_reference_mismatch`, `429 rate_limited`, and `502
+provider_unavailable`.
+
+| Code | Cause | UX |
+| --- | --- | --- |
+| `409 payment_not_pending` | Order is settled, no longer quoted, or has no matching pending checkout | Refresh the order |
+| `409 payment_reference_mismatch` | Paystack's verified reference differs from the requested reference | Keep the order pending and alert support |
+| `502 provider_unavailable` | Paystack could not be reached or returned an invalid response | Keep the order pending; allow retry |
+
 Edge cases:
 
 | Case | Behaviour |
@@ -69,6 +86,7 @@ Edge cases:
 | Payment window races quote expiry | expiry job skips orders with a pending payment intent (grace 1h) |
 | Webhook lost | checkout return verification or the bounded `payments` sweep verifies pending intents against Paystack; settlement does not depend on a webhook |
 | Late or duplicate webhook | verified and webhook events use the Paystack transaction id for the same outcome; database outcome uniqueness and the pending payment transition prevent duplicate settlement |
+| Superseded checkout succeeds | verification retains the original attempt amount, but the active checkout reference is compared before settlement; stale charges remain visible to reconciliation for manual resolution |
 | Charge succeeds, webhook signature invalid | log + alert ops; order stays `quoted`; reconciliation sweep resolves; NEVER trust unverified webhooks |
 | Partial/failed payment | Paystack handles retry UX; order remains `quoted` |
 | Customer pays after designer deactivated mid-window | charge refunded automatically, order → `cancelled`, apology copy |

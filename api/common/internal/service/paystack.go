@@ -2,8 +2,6 @@ package service
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -129,7 +127,7 @@ func (s *Services) VerifyPayment(ctx context.Context, p *Principal, requestID, r
 	data, err := s.verifyReference(ctx, reference)
 	if err != nil {
 		slog.WarnContext(ctx, "Paystack transaction verification failed", "reference", reference, "error", err)
-		return "", newErr(http.StatusBadGateway, "payment_verification_unavailable", "Payment status could not be confirmed")
+		return "", newErr(http.StatusBadGateway, "provider_unavailable", "Payment status could not be confirmed")
 	}
 	if data.Reference != reference {
 		slog.ErrorContext(ctx, "Paystack verification reference mismatch", "reference", reference)
@@ -146,33 +144,33 @@ func (s *Services) VerifyPayment(ctx context.Context, p *Principal, requestID, r
 
 // VerifyPendingPayment is used by the bounded scheduler sweep. Invalid and
 // transient responses leave the order untouched for a later retry.
-func (s *Services) VerifyPendingPayment(ctx context.Context, reference string) error {
+func (s *Services) VerifyPendingPayment(ctx context.Context, reference string) (bool, error) {
 	if s.Config.Paystack.SecretKey == "" {
-		return nil
+		return false, nil
 	}
 	claimed := false
 	if err := s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
 		var err error
-		claimed, err = repository.ClaimPaymentVerification(ctx, tx, reference)
+		claimed, err = repository.ClaimPendingPaymentAttempt(ctx, tx, reference)
 		return err
 	}); err != nil {
-		return err
+		return false, err
 	}
 	if !claimed {
-		return nil
+		return false, nil
 	}
 	data, err := s.verifyReference(ctx, reference)
 	if err != nil {
-		return err
+		return false, err
 	}
 	if data.Reference != reference || data.Status != "success" {
-		return nil
+		return true, nil
 	}
-	return s.enqueueVerified(ctx, data)
+	return true, s.enqueueVerified(ctx, data)
 }
 
 func (s *Services) enqueueVerified(ctx context.Context, data verifiedTransaction) error {
-	if data.Domain != "" && data.Domain != "test" && data.Domain != "live" {
+	if data.Domain != "test" && data.Domain != "live" {
 		return errors.New("unexpected Paystack transaction domain")
 	}
 	if strings.HasPrefix(s.Config.Paystack.SecretKey, "sk_test_") && data.Domain == "live" || strings.HasPrefix(s.Config.Paystack.SecretKey, "sk_live_") && data.Domain == "test" {
@@ -182,8 +180,10 @@ func (s *Services) enqueueVerified(ctx context.Context, data verifiedTransaction
 	if err != nil {
 		return err
 	}
-	sum := sha256.Sum256(append([]byte("verified:"), raw...))
-	key := hex.EncodeToString(sum[:])
+	key, err := verifiedProviderEventKey(data.ID)
+	if err != nil {
+		return err
+	}
 	return s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
 		id, received, stored, err := repository.InsertProviderEvent(ctx, tx, "paystack", key, "charge.success", raw)
 		if err != nil || !stored {
@@ -200,11 +200,19 @@ func (s *Services) enqueueVerified(ctx context.Context, data verifiedTransaction
 		return repository.EnqueueRequest(ctx, tx, kafka.EventPaymentsProviderEvent, id, id, map[string]any{
 			"provider_event_id": id, "provider": "paystack", "event": "charge.success",
 			"received_at": received.UTC().Format(time.RFC3339Nano), "payload": json.RawMessage(raw),
-			"order": map[string]any{"request_id": order.ID, "status": order.Status, "reference": data.Reference,
+			"order": map[string]any{"request_id": order.ID, "status": order.Status, "reference": deref(order.Reference), "provider_ref": deref(order.ProviderRef),
 				"quote":   map[string]any{"amount": derefInt64(order.QuoteCents), "currency": order.Currency},
 				"payment": map[string]any{"amount": amount, "currency": currency}},
 		})
 	})
+}
+
+func verifiedProviderEventKey(id json.Number) (string, error) {
+	transactionID, err := id.Int64()
+	if err != nil || transactionID <= 0 {
+		return "", errors.New("invalid Paystack transaction ID")
+	}
+	return fmt.Sprintf("verified:%d", transactionID), nil
 }
 
 func derefInt64(v *int64) int64 {

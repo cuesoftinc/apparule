@@ -34,12 +34,52 @@ def test_charge_that_matches_the_quote_settles(contract):
     assert settle.decide(_event(), FEE)["outcome_id"] == out["outcome_id"]
 
 
-def test_verification_and_late_webhook_share_the_transaction_outcome_id():
+def test_late_webhook_after_verification_is_explicitly_acknowledged(contract):
     verified = _event()
-    webhook = _event()
     verified["provider_event_id"] = "verification-event"
+    settled = settle.decide(verified, FEE)
+    assert settled["kind"] == "charge_settled"
+
+    webhook = _event()
     webhook["provider_event_id"] = "late-webhook-event"
-    assert settle.decide(verified, FEE)["outcome_id"] == settle.decide(webhook, FEE)["outcome_id"]
+    webhook["order"]["status"] = "paid"
+    webhook["order"]["provider_ref"] = str(webhook["payload"]["id"])
+    acknowledged = settle.decide(webhook, FEE)
+    contract.validate_data(topics.PAYMENTS_OUTCOME, acknowledged)
+    assert acknowledged["kind"] == "charge_duplicate"
+    assert acknowledged["provider_ref"] == settled["provider_ref"]
+    assert acknowledged["reference"] == settled["reference"]
+    assert acknowledged["provider_event_id"] == "late-webhook-event"
+
+
+def test_late_webhook_with_a_different_transaction_is_not_silently_accepted():
+    webhook = _event()
+    webhook["order"]["status"] = "paid"
+    webhook["order"]["provider_ref"] = str(webhook["payload"]["id"])
+    webhook["payload"]["id"] = 123456789
+    rejected = settle.decide(webhook, FEE)
+    assert rejected["kind"] == "charge_rejected"
+    assert rejected["reason"] == "order_not_payable"
+
+
+@pytest.mark.parametrize(
+    "change,reason",
+    [
+        ({"reference": "apr_other_checkout"}, "unknown_reference"),
+        ({"amount": 4_400_000}, "amount_mismatch"),
+        ({"currency": "USD"}, "currency_mismatch"),
+    ],
+    ids=["checkout-reference", "amount", "currency"],
+)
+def test_late_charge_mismatch_is_rejected_instead_of_acknowledged(change, reason):
+    msg = _event(**change)
+    msg["order"]["status"] = "paid"
+    msg["order"]["provider_ref"] = str(msg["payload"]["id"])
+
+    result = settle.decide(msg, FEE)
+
+    assert result["kind"] == "charge_rejected"
+    assert result["reason"] == reason
 
 
 @pytest.mark.parametrize(
@@ -274,6 +314,31 @@ async def test_reconcile_matches_items_that_cross_the_window_edge(contract):
     for o in out:
         contract.validate_data(topics.PAYMENTS_OUTCOME, o)
     assert [(o["reference"], o["reason"]) for o in out] == [("333", "missing_in_provider")]
+
+
+async def test_reconcile_ignores_shared_paystack_charges_outside_apparule_namespace():
+    msg = {
+        "window": {"from": "2026-10-19T09:00:00Z", "to": "2026-10-19T10:00:00Z"},
+        "movements": [],
+    }
+    fake = FakePaystack({
+        ("GET", "/transaction"): ok([
+            {"id": 71, "reference": "other_product_123", "amount": 1000, "currency": "NGN", "createdAt": "2026-10-19T09:30:00Z"},
+            {"id": 72, "reference": "apr_missing_from_ledger", "amount": 1000, "currency": "NGN", "createdAt": "2026-10-19T09:30:00Z"},
+        ]),
+        ("GET", "/transfer"): ok([
+            {"transfer_code": "TRF_other_product", "reference": "po_some_order", "amount": 900, "currency": "NGN", "createdAt": "2026-10-19T09:30:00Z"},
+        ]),
+        ("GET", "/refund"): ok([
+            {"id": 73, "reference": "apr_refund", "amount": 100, "currency": "NGN", "createdAt": "2026-10-19T09:30:00Z"},
+        ]),
+    })
+    outcomes = await reconcile.compare(fake.client(), msg)
+    assert {(outcome["provider_ref"], outcome["reason"]) for outcome in outcomes} == {
+        ("72", "missing_in_ledger"),
+        ("TRF_other_product", "missing_in_ledger"),
+        ("73", "missing_in_ledger"),
+    }
 
 
 @pytest.mark.parametrize(

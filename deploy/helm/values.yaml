@@ -36,6 +36,7 @@ services:
       GOOGLE_CLOUD_PROJECT: ""
       REDIS_HOST: redis
       REDIS_PORT: "6379"
+      PAYMENT_VERIFICATION_BATCH_SIZE: "25"
     envFrom:
       - secretRef: apparule-common
 

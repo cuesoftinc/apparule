@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Server-side Paystack reference verification on checkout return and scheduled
+  recovery, with idempotent settlement and shared-account reconciliation.
 - Google sign-in through the API with a PKCE handoff on web and mobile.
 - `APP_RETURN_URLS` allowlist for the mobile app's sign-in return link.
 - `POST /internal/jobs/<name>` on api/common, guarded by scheduler OIDC token.

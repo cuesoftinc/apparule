@@ -122,6 +122,7 @@ services:
       STORAGE_USE_SSL: ${STORAGE_USE_SSL:-false}
       PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-}
       PAYSTACK_PUBLIC_KEY: ${PAYSTACK_PUBLIC_KEY:-}
+      PAYMENT_VERIFICATION_BATCH_SIZE: ${PAYMENT_VERIFICATION_BATCH_SIZE:-25}
       # No WAKE_* here: everything always runs, so the publisher and the
       # consumers loop; settles exist only for request-based CPU (S-14).
     depends_on:

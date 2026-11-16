@@ -45,14 +45,77 @@ func PaymentAttemptAmount(ctx context.Context, tx pgx.Tx, reference string) (int
 	return amount, currency, translate(err)
 }
 
-// PendingPaymentReferences returns a bounded batch of current, eligible Apparule
-// checkout references. Old attempts and non-Apparule provider transactions are excluded.
+// PendingPaymentReferences returns a bounded mix of never-checked and due-for-retry
+// Apparule checkout attempts. Current and superseded references are included only
+// while their order remains quoted and its payment remains pending.
 func PendingPaymentReferences(ctx context.Context, tx pgx.Tx, limit int) ([]string, error) {
-	rows, err := tx.Query(ctx, `SELECT p.reference FROM payment p
-		JOIN payment_attempt a ON a.reference = p.reference JOIN request r ON r.id = p.request_id
-		WHERE p.state = 'pending' AND r.status = 'quoted' AND left(p.reference, 4) = 'apr_'
-		AND coalesce(p.last_verification_at, a.created_at) < now() - interval '1 minute'
-		ORDER BY coalesce(p.last_verification_at, a.created_at), p.reference LIMIT $1`, limit)
+	if limit < 1 {
+		return []string{}, nil
+	}
+	rows, err := tx.Query(ctx, `WITH eligible AS (
+			SELECT a.reference, a.created_at, a.last_verification_at
+			FROM payment_attempt a JOIN payment p ON p.request_id = a.request_id
+			JOIN request r ON r.id = a.request_id
+			WHERE p.provider = 'paystack' AND p.state = 'pending' AND r.status = 'quoted' AND left(a.reference, 4) = 'apr_'
+		), recent AS (
+			SELECT reference, created_at, last_verification_at FROM eligible
+			WHERE last_verification_at IS NULL AND created_at >= now() - interval '1 day'
+			AND created_at < now() - interval '1 minute'
+			ORDER BY created_at DESC, reference
+			LIMIT $1
+		), stale AS (
+			SELECT reference, created_at, last_verification_at FROM eligible
+			WHERE last_verification_at IS NULL AND created_at < now() - interval '1 day'
+			ORDER BY created_at, reference
+			LIMIT $1
+		), retries AS (
+			SELECT reference, created_at, last_verification_at FROM eligible
+			WHERE last_verification_at < now() - interval '30 minutes'
+			ORDER BY last_verification_at, created_at DESC, reference
+			LIMIT $1
+		)
+		SELECT reference FROM (
+			SELECT reference, 0 AS priority, created_at, last_verification_at FROM (
+				SELECT reference, created_at, last_verification_at FROM recent
+					ORDER BY created_at DESC, reference
+				LIMIT CASE WHEN $1 > 1 THEN greatest($1 - 2 * greatest(1, $1 / 10), 0) ELSE $1 END
+			) current_attempts
+			UNION ALL
+			SELECT reference, 1 AS priority, created_at, last_verification_at FROM (
+				SELECT reference, created_at, last_verification_at FROM stale
+				ORDER BY created_at, reference
+				LIMIT CASE WHEN $1 > 1 THEN greatest(1, $1 / 10) ELSE 0 END
+			) reserved_stale
+			UNION ALL
+			SELECT reference, 2 AS priority, created_at, last_verification_at FROM (
+				SELECT reference, created_at, last_verification_at FROM retries
+				ORDER BY last_verification_at, created_at DESC, reference
+				LIMIT CASE WHEN $1 > 1 THEN greatest(1, $1 / 10) ELSE 0 END
+			) reserved_retries
+			UNION ALL
+			SELECT reference, 3 AS priority, created_at, last_verification_at FROM (
+				SELECT reference, created_at, last_verification_at FROM recent
+					ORDER BY created_at DESC, reference
+				OFFSET CASE WHEN $1 > 1 THEN greatest($1 - 2 * greatest(1, $1 / 10), 0) ELSE $1 END
+				LIMIT $1
+			) additional_current_attempts
+			UNION ALL
+			SELECT reference, 4 AS priority, created_at, last_verification_at FROM (
+				SELECT reference, created_at, last_verification_at FROM stale
+				ORDER BY created_at, reference
+				OFFSET CASE WHEN $1 > 1 THEN greatest(1, $1 / 10) ELSE 0 END
+				LIMIT $1
+			) additional_stale_attempts
+			UNION ALL
+			SELECT reference, 5 AS priority, created_at, last_verification_at FROM (
+				SELECT reference, created_at, last_verification_at FROM retries
+				ORDER BY last_verification_at, created_at DESC, reference
+				OFFSET CASE WHEN $1 > 1 THEN greatest(1, $1 / 10) ELSE 0 END
+				LIMIT $1
+			) additional_retry_attempts
+		) candidates
+			ORDER BY priority, last_verification_at NULLS FIRST, created_at DESC, reference
+		LIMIT $1`, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -71,9 +134,27 @@ func PendingPaymentReferences(ctx context.Context, tx pgx.Tx, limit int) ([]stri
 // ClaimPaymentVerification atomically throttles a reference across return
 // requests, sweep workers and application instances.
 func ClaimPaymentVerification(ctx context.Context, tx pgx.Tx, reference string) (bool, error) {
-	tag, err := tx.Exec(ctx, `UPDATE payment SET last_verification_at = now()
-		WHERE reference = $1 AND state = 'pending'
-		AND (last_verification_at IS NULL OR last_verification_at < now() - interval '1 minute')`, reference)
+	tag, err := tx.Exec(ctx, `WITH claimed AS (
+			UPDATE payment_attempt a SET last_verification_at = now()
+			FROM payment p JOIN request r ON r.id = p.request_id
+			WHERE a.reference = $1 AND p.reference = a.reference AND p.request_id = a.request_id
+			AND p.provider = 'paystack' AND p.state = 'pending' AND r.status = 'quoted'
+			AND (a.last_verification_at IS NULL OR a.last_verification_at < now() - interval '1 minute')
+			RETURNING p.request_id
+		)
+		UPDATE payment p SET last_verification_at = now()
+		FROM claimed c WHERE p.request_id = c.request_id`, reference)
+	return tag.RowsAffected() == 1, err
+}
+
+// ClaimPendingPaymentAttempt coordinates sweep work per retained reference,
+// including superseded attempts, using a DB conditional update.
+func ClaimPendingPaymentAttempt(ctx context.Context, tx pgx.Tx, reference string) (bool, error) {
+	tag, err := tx.Exec(ctx, `UPDATE payment_attempt a SET last_verification_at = now()
+		FROM payment p JOIN request r ON r.id = p.request_id
+		WHERE a.reference = $1 AND left(a.reference, 4) = 'apr_' AND p.request_id = a.request_id
+		AND p.provider = 'paystack' AND p.state = 'pending' AND r.status = 'quoted'
+		AND (a.last_verification_at IS NULL OR a.last_verification_at < now() - interval '30 minutes')`, reference)
 	return tag.RowsAffected() == 1, err
 }
 
@@ -121,6 +202,24 @@ func InsertProviderEvent(ctx context.Context, tx pgx.Tx, provider, key, event st
 func MarkProviderEvent(ctx context.Context, tx pgx.Tx, id, outcome string) error {
 	_, err := tx.Exec(ctx, `UPDATE provider_event SET processed_at = now(), outcome = $2 WHERE id = $1`, id, outcome)
 	return err
+}
+
+// AcknowledgeDuplicateProviderEvent marks a validated late duplicate charge
+// as processed without recording another payment outcome. The event payload,
+// original checkout attempt, and held payment must all describe the same
+// successful Paystack transaction.
+func AcknowledgeDuplicateProviderEvent(ctx context.Context, tx pgx.Tx, eventID, requestID, reference, providerRef string, amount int64, currency string) (bool, error) {
+	tag, err := tx.Exec(ctx, `UPDATE provider_event e SET processed_at = now(), outcome = 'charge_duplicate'
+		FROM payment p JOIN request r ON r.id = p.request_id
+		JOIN payment_attempt a ON a.request_id = p.request_id AND a.reference = $3
+		WHERE e.id = $1 AND e.provider = 'paystack' AND e.event = 'charge.success' AND e.processed_at IS NULL
+		AND e.payload->>'status' = 'success' AND e.payload->>'reference' = $3
+		AND e.payload->>'id' = $4 AND e.payload->'amount' = to_jsonb($5::bigint)
+		AND e.payload->>'currency' = $6
+		AND p.request_id = $2 AND p.provider = 'paystack' AND p.state = 'held' AND r.status = 'paid'
+		AND p.reference = $3 AND p.provider_ref = $4 AND p.amount_cents = $5 AND p.currency = $6
+		AND a.amount_cents = $5 AND a.currency = $6`, eventID, requestID, reference, providerRef, amount, currency)
+	return tag.RowsAffected() == 1, err
 }
 
 // ── Outcomes and the ledger (§5.2, §6.3) ────────────────────────────────

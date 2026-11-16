@@ -662,7 +662,7 @@ func TestCommissionMoneyFlow(t *testing.T) {
 	}
 
 	// Paystack's webhook: verified, stored, handed to commerce once. The
-	// first checkout's reference still finds the order.
+	// current checkout reference still finds the order.
 	body := []byte(fmt.Sprintf(`{"event":"charge.success","data":{"id":4099260516,"reference":%q,"amount":4500000,"currency":"NGN","status":"success"}}`,
 		paid.Checkout.Reference))
 	mac := hmac.New(sha512.New, []byte(paystackSecret))

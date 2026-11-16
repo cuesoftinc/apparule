@@ -37,7 +37,7 @@ def decide(msg: dict, fee_bps: int) -> dict | None:
     return None
 
 
-def _charge(msg: dict, data: dict, base: dict, fee_bps: int) -> dict:
+def _charge(msg: dict, data: dict, base: dict, fee_bps: int) -> dict | None:
     source = msg["provider_event_id"]
     order = msg.get("order")
     reference = str(data.get("reference", ""))
@@ -74,8 +74,6 @@ def _charge(msg: dict, data: dict, base: dict, fee_bps: int) -> dict:
         return reject("unknown_reference")
     if order.get("reference") != reference:
         return reject("unknown_reference")
-    if order["status"] != "quoted":
-        return reject("order_not_payable")
     # The amount the checkout was started for; the quote may differ since.
     expected = order.get("payment")
     if not expected:
@@ -87,6 +85,23 @@ def _charge(msg: dict, data: dict, base: dict, fee_bps: int) -> dict:
         return reject("amount_mismatch")
     if amount != expected["amount"]:
         return reject("amount_mismatch")
+    if order["status"] == "paid":
+        # A delayed duplicate from Paystack after this exact transaction was
+        # already settled is explicitly acknowledged by common. A different
+        # transaction ID stays visible as a rejected charge for human review.
+        if order.get("provider_ref") == str(transaction_id):
+            return {
+                **base,
+                "outcome_id": outcome_id("charge_duplicate", str(transaction_id)),
+                "kind": "charge_duplicate",
+                "request_id": order["request_id"],
+                "reference": reference,
+                "provider_ref": str(transaction_id),
+                "amount": money(amount, expected["currency"]),
+            }
+        return reject("order_not_payable")
+    if order["status"] != "quoted":
+        return reject("order_not_payable")
     currency = expected["currency"]
     fee = platform_fee(amount, fee_bps)
     return {

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://apparule.cuesoft.io/contract/payments.outcome.schema.json",
   "title": "apparule.payments.outcome",
-  "description": "commerce -> common, on cuelabs.results. A money decision for common to store as made (S-6): a charge that settles an order, a payout or refund executed or failed, a payout recipient verified, or a reconciliation mismatch for a human (§6.4). `ledger` lines are the movement to append. Key: request id (designer id for recipient kinds, \"reconcile\" for mismatches).",
+  "description": "commerce -> common, on cuelabs.results. A money decision for common to store as made (S-6): a charge that settles an order, a payout or refund executed or failed, a payout recipient verified, or a reconciliation mismatch for a human (§6.4). `charge_duplicate` is a validated acknowledgement that a successful transaction already settled; common marks its provider event processed without storing another outcome. `ledger` lines are the movement to append. Key: request id (designer id for recipient kinds, \"reconcile\" for mismatches).",
   "type": "object",
   "required": ["outcome_id", "kind"],
   "additionalProperties": false,
@@ -10,7 +10,7 @@
     "outcome_id": { "$ref": "defs.schema.json#/$defs/id", "description": "Deterministic per decision (uuid5 of its source), so a redelivered decision is stored once." },
     "kind": {
       "enum": [
-        "charge_settled", "charge_rejected",
+        "charge_settled", "charge_rejected", "charge_duplicate",
         "payout_released", "payout_failed",
         "refund_issued", "refund_failed",
         "recipient_verified", "recipient_failed",
@@ -38,9 +38,10 @@
         "last4": { "type": "string", "pattern": "^[0-9]{4}$" }
       }
     },
-    "reason": { "type": "string", "description": "A machine code: amount_mismatch, currency_mismatch, unknown_reference, order_not_payable, invalid_transaction_id, reference_mismatch, provider_reference_mismatch, name_mismatch, account_invalid, provider_error, processing_failed, missing_in_provider, missing_in_ledger." }
+    "reason": { "type": "string", "description": "A machine code: amount_mismatch, currency_mismatch, unknown_reference, order_not_payable, stale_checkout_reference, invalid_transaction_id, reference_mismatch, provider_reference_mismatch, name_mismatch, account_invalid, provider_error, processing_failed, missing_in_provider, missing_in_ledger." }
   },
   "allOf": [
+    { "if": { "properties": { "kind": { "const": "charge_duplicate" } } }, "then": { "required": ["request_id", "provider_event_id", "reference", "provider_ref", "amount"] } },
     { "if": { "properties": { "kind": { "enum": ["recipient_verified", "recipient_failed"] } } }, "then": { "required": ["designer_id", "attempt_id"] } },
     { "if": { "properties": { "kind": { "enum": ["charge_settled", "payout_released", "refund_issued"] } } }, "then": { "required": ["request_id", "amount", "ledger"] } },
     { "if": { "properties": { "kind": { "const": "recipient_verified" } } }, "then": { "required": ["recipient"] } }

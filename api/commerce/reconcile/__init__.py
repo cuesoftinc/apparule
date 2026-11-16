@@ -24,10 +24,15 @@ async def compare(paystack: Paystack, msg: dict) -> list[dict]:
     aliases: dict[str, str] = {}
     provider_references: dict[str, str] = {}
     for t in await paystack.transactions(lookup["from"], lookup["to"]):
+        # Paystack credentials are shared across products. Only Apparule's
+        # checkout namespace belongs in Apparule's missing-ledger report.
+        reference = str(t.get("reference", ""))
+        if not reference.startswith("apr_"):
+            continue
         key = str(t.get("id"))
         provider[key] = ("charge", int(t.get("amount", 0)), str(t.get("currency", "NGN")), _created(t))
-        aliases[str(t.get("reference"))] = key
-        provider_references[key] = str(t.get("reference", ""))
+        aliases[reference] = key
+        provider_references[key] = reference
     for t in await paystack.transfers(lookup["from"], lookup["to"]):
         key = str(t.get("transfer_code"))
         provider[key] = ("payout", int(t.get("amount", 0)), str(t.get("currency", "NGN")), _created(t))

@@ -19,6 +19,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
+	"github.com/cuesoftinc/apparule/api/common/internal/config"
 	"github.com/cuesoftinc/apparule/api/common/internal/kafka"
 	"github.com/cuesoftinc/apparule/api/common/internal/model"
 	"github.com/cuesoftinc/apparule/api/common/internal/repository"
@@ -40,8 +41,13 @@ func insertPaymentOrder(t *testing.T, e *env, customer, designer *service.Princi
 	}
 	var requestID string
 	err := e.db.AsSystem(ctx, func(tx pgx.Tx) error {
+		var postID string
+		if err := tx.QueryRow(ctx, `INSERT INTO post (designer_id, caption, turnaround_days) VALUES ($1, $2, 14) RETURNING id`,
+			*designer.DesignerID, "Payment verification test").Scan(&postID); err != nil {
+			return err
+		}
 		id, err := repository.InsertOrder(ctx, tx, repository.NewOrder{
-			PostCaption: "Payment verification test", CustomerAccountID: customer.AccountID,
+			PostID: postID, PostCaption: "Payment verification test", CustomerAccountID: customer.AccountID,
 			DesignerID: *designer.DesignerID, DesignerAccountID: designer.AccountID,
 			Delivery: model.Delivery{}, Snapshot: model.SnapshotValues{},
 		})
@@ -60,7 +66,7 @@ func insertPaymentOrder(t *testing.T, e *env, customer, designer *service.Princi
 				return err
 			}
 		}
-		_, err = tx.Exec(ctx, `UPDATE payment SET last_verification_at = now() - interval '2 minutes' WHERE request_id = $1`, id)
+		_, err = tx.Exec(ctx, `UPDATE payment_attempt SET created_at = now() - interval '2 minutes' WHERE request_id = $1`, id)
 		return err
 	})
 	if err != nil {
@@ -105,7 +111,7 @@ func TestPaymentVerificationSweepAndConcurrentSettlement(t *testing.T) {
 		if transactionStatus == "" {
 			transactionStatus = "success"
 		}
-		if reference == "apr_sweep_00" && !failedOnce[reference] {
+		if reference == "apr_sweep_06" && !failedOnce[reference] {
 			failedOnce[reference] = true
 			mu.Unlock()
 			return response(http.StatusServiceUnavailable, "temporary provider failure")
@@ -280,7 +286,7 @@ func TestPaymentVerificationSweepAndConcurrentSettlement(t *testing.T) {
 			claimed := false
 			_, err := tx.Exec(ctx, `SELECT set_config('app.bypass_rls', 'on', true)`)
 			if err == nil {
-				claimed, err = repository.ClaimPaymentVerification(ctx, tx, claimReference)
+				claimed, err = repository.ClaimPendingPaymentAttempt(ctx, tx, claimReference)
 			}
 			if err == nil {
 				err = tx.Commit(ctx)
@@ -304,11 +310,11 @@ func TestPaymentVerificationSweepAndConcurrentSettlement(t *testing.T) {
 		t.Fatalf("concurrent database claims = %d, want exactly one", claimCount)
 	}
 	e.system(t, func(ctx context.Context, tx pgx.Tx) error {
-		_, err := tx.Exec(ctx, `UPDATE payment SET last_verification_at = now() - interval '2 minutes' WHERE reference = ANY($1)`, eligible)
+		_, err := tx.Exec(ctx, `UPDATE payment_attempt SET last_verification_at = NULL WHERE reference = ANY($1)`, eligible)
 		return err
 	})
 	e.system(t, func(ctx context.Context, tx pgx.Tx) error {
-		_, err := tx.Exec(ctx, `UPDATE payment SET last_verification_at = now() WHERE reference = $1`, "apr_recently_checked")
+		_, err := tx.Exec(ctx, `UPDATE payment_attempt SET last_verification_at = now() WHERE reference = $1`, "apr_recently_checked")
 		return err
 	})
 	var found []string
@@ -327,6 +333,9 @@ func TestPaymentVerificationSweepAndConcurrentSettlement(t *testing.T) {
 			t.Fatalf("eligible references = %v, want only %v", found, eligible)
 		}
 	}
+	// Earlier status and race checks also use the mock transport. Only count
+	// provider calls initiated by this sweep onward.
+	takeProviderRequests(&mu, &requests)
 	var limited []string
 	e.system(t, func(ctx context.Context, tx pgx.Tx) error {
 		var err error
@@ -336,9 +345,14 @@ func TestPaymentVerificationSweepAndConcurrentSettlement(t *testing.T) {
 	if len(limited) != 5 {
 		t.Fatalf("limited sweep batch contains %d refs, want 5", len(limited))
 	}
+	for i, reference := range []string{"apr_sweep_06", "apr_sweep_05", "apr_sweep_04", "apr_sweep_03", "apr_sweep_02"} {
+		if limited[i] != reference {
+			t.Fatalf("fresh attempt ordering = %v, want oldest unchecked references first", limited)
+		}
+	}
 
 	lockReleasedAtSettle := false
-	job := &sweep.Sweeper{DB: e.db, Services: e.s, Settle: func(context.Context) {
+	job := &sweep.Sweeper{DB: e.db, Services: e.s, Limits: config.Limits{PaymentVerificationBatchSize: 5}, Settle: func(context.Context) {
 		conn, err := e.db.Pool.Acquire(ctx)
 		if err != nil {
 			t.Errorf("acquire connection in settle callback: %v", err)
@@ -369,7 +383,7 @@ func TestPaymentVerificationSweepAndConcurrentSettlement(t *testing.T) {
 	}
 
 	// The next batch proceeds past the failed first reference and later refs;
-	// the failed reference remains pending and can be retried after the claim window.
+	// the failed reference remains pending through the 30-minute backoff.
 	job.Settle = nil
 	if err := job.Payments(ctx); err != nil {
 		t.Fatal(err)
@@ -381,7 +395,7 @@ func TestPaymentVerificationSweepAndConcurrentSettlement(t *testing.T) {
 		t.Fatalf("second sweep should enqueue the remaining two successes, got %d", got)
 	}
 	e.system(t, func(ctx context.Context, tx pgx.Tx) error {
-		_, err := tx.Exec(ctx, `UPDATE payment SET last_verification_at = now() - interval '2 minutes' WHERE reference = $1`, eligible[0])
+		_, err := tx.Exec(ctx, `UPDATE payment_attempt SET last_verification_at = now() - interval '31 minutes' WHERE reference = $1`, eligible[6])
 		return err
 	})
 	if err := job.Payments(ctx); err != nil {
@@ -398,7 +412,7 @@ func TestPaymentVerificationSweepAndConcurrentSettlement(t *testing.T) {
 	// or settlement input because both the verification claim and provider key
 	// are database-backed.
 	e.system(t, func(ctx context.Context, tx pgx.Tx) error {
-		_, err := tx.Exec(ctx, `UPDATE payment SET last_verification_at = now() - interval '2 minutes' WHERE reference = ANY($1)`, eligible)
+		_, err := tx.Exec(ctx, `UPDATE payment_attempt SET last_verification_at = now() - interval '31 minutes' WHERE reference = ANY($1)`, eligible)
 		return err
 	})
 	if err := job.Payments(ctx); err != nil {
@@ -406,6 +420,147 @@ func TestPaymentVerificationSweepAndConcurrentSettlement(t *testing.T) {
 	}
 	if got := len(e.outbox(t, kafka.EventPaymentsProviderEvent)); got != 0 {
 		t.Fatalf("repeated sweep enqueued %d duplicate provider events", got)
+	}
+
+	// A superseded attempt remains visible to verification, but each event
+	// carries the current active checkout reference so commerce cannot settle
+	// an old payment against the newer attempt.
+	oldReference, currentReference := "apr_sweep_20_old", "apr_sweep_21_current"
+	supersededOrder := insertPaymentOrder(t, e, customer, designer, oldReference, "pending", "quoted")
+	e.system(t, func(ctx context.Context, tx pgx.Tx) error {
+		if _, err := repository.StartPayment(ctx, tx, supersededOrder, currentReference, "NGN", 1000); err != nil {
+			return err
+		}
+		_, err := tx.Exec(ctx, `UPDATE payment_attempt SET created_at = now() - interval '2 minutes' WHERE request_id = $1`, supersededOrder)
+		return err
+	})
+	if err := job.Payments(ctx); err != nil {
+		t.Fatal(err)
+	}
+	var supersededEvents []map[string]any
+	for _, event := range e.outbox(t, kafka.EventPaymentsProviderEvent) {
+		payload := event["payload"].(map[string]any)
+		order := event["order"].(map[string]any)
+		if payload["reference"] == oldReference {
+			supersededEvents = append(supersededEvents, event)
+			if order["reference"] != currentReference {
+				t.Fatalf("superseded event active reference = %v, want %s", order["reference"], currentReference)
+			}
+		}
+	}
+	if len(supersededEvents) != 1 {
+		t.Fatalf("sweep should verify retained superseded reference once, got %d matching events", len(supersededEvents))
+	}
+
+	staleOutcomeID := uuid.NewString()
+	e.deliver(t, kafka.EventPaymentsOutcome, map[string]any{
+		"outcome_id": staleOutcomeID, "kind": "charge_settled", "request_id": supersededOrder,
+		"reference": oldReference, "provider_ref": fmt.Sprint(transactionIDFor(oldReference)),
+		"amount": map[string]any{"amount": 1000, "currency": "NGN"},
+		"ledger": []map[string]any{{"account": "escrow", "amount": 1000}, {"account": "customer_funds", "amount": -1000}},
+	}, e.s.OnPaymentOutcome)
+	var state, activeReference, attention, reason string
+	var staleLedgerRows int
+	e.system(t, func(ctx context.Context, tx pgx.Tx) error {
+		if err := tx.QueryRow(ctx, `SELECT p.state, p.reference, o.attention, o.reason
+			FROM payment p JOIN payment_outcome o ON o.request_id = p.request_id WHERE o.outcome_id = $1`, staleOutcomeID).
+			Scan(&state, &activeReference, &attention, &reason); err != nil {
+			return err
+		}
+		return tx.QueryRow(ctx, `SELECT count(*) FROM ledger_entry WHERE outcome_id = $1`, staleOutcomeID).Scan(&staleLedgerRows)
+	})
+	if state != "pending" || activeReference != currentReference || attention != "refund_needed" || reason != "stale_checkout_reference" || staleLedgerRows != 0 {
+		t.Fatalf("stale settlement was not safely flagged: payment=%s/%s attention=%s reason=%s ledger_rows=%d",
+			state, activeReference, attention, reason, staleLedgerRows)
+	}
+}
+
+func TestLateDuplicateWebhookIsAcknowledgedWithoutAnotherOutcome(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	designer := e.signIn(t, "uid-late-duplicate-designer", "late-duplicate-designer@example.com")
+	if _, err := e.s.EnableDesigner(ctx, designer, "Late Duplicate Designer", ""); err != nil {
+		t.Fatal(err)
+	}
+	designer = e.refresh(t, designer)
+	customer := e.signIn(t, "uid-late-duplicate-customer", "late-duplicate-customer@example.com")
+	reference := "apr_late_duplicate_1"
+	requestID := insertPaymentOrder(t, e, customer, designer, reference, "pending", "quoted")
+	transactionID := transactionIDFor(reference)
+	e.s.PaystackHTTPClient = &http.Client{Transport: verificationRoundTripper(func(r *http.Request) (*http.Response, error) {
+		body := fmt.Sprintf(`{"status":true,"data":{"id":%d,"status":"success","reference":%q,"amount":1000,"currency":"NGN","domain":"test"}}`, transactionID, reference)
+		return &http.Response{StatusCode: http.StatusOK, Header: make(http.Header), Body: io.NopCloser(strings.NewReader(body)), Request: r}, nil
+	})}
+	e.s.PaystackBaseURL = "https://api.paystack.test"
+	if status, err := e.s.VerifyPayment(ctx, customer, requestID, reference); err != nil || status != "verification_started" {
+		t.Fatalf("verification status=%q err=%v", status, err)
+	}
+	verifiedEvents := e.outbox(t, kafka.EventPaymentsProviderEvent)
+	if len(verifiedEvents) != 1 {
+		t.Fatalf("verification queued %d provider events, want 1", len(verifiedEvents))
+	}
+	verifiedEventID := verifiedEvents[0]["provider_event_id"].(string)
+	settled := map[string]any{
+		"outcome_id": uuid.NewString(), "kind": "charge_settled", "request_id": requestID,
+		"provider_event_id": verifiedEventID, "reference": reference, "provider_ref": fmt.Sprint(transactionID),
+		"amount": map[string]any{"amount": 1000, "currency": "NGN"},
+		"fee":    map[string]any{"amount": 100, "currency": "NGN"},
+		"ledger": []map[string]any{{"account": "escrow", "amount": 1000}, {"account": "customer_funds", "amount": -1000}},
+	}
+	e.deliverAs(t, kafka.EventPaymentsOutcome, verifiedEventID, settled, e.s.OnPaymentOutcome)
+
+	webhook := []byte(fmt.Sprintf(`{"event":"charge.success","data":{"id":%d,"reference":%q,"amount":1000,"currency":"NGN","status":"success"}}`, transactionID, reference))
+	mac := hmac.New(sha512.New, []byte(paystackSecret))
+	_, _ = mac.Write(webhook)
+	if err := e.s.ReceiveWebhook(ctx, webhook, hex.EncodeToString(mac.Sum(nil))); err != nil {
+		t.Fatal(err)
+	}
+	// The earlier verification event was already drained from the outbox above,
+	// so only the newly queued late-webhook event should remain pending now.
+	providerEvents := e.outbox(t, kafka.EventPaymentsProviderEvent)
+	if len(providerEvents) != 1 {
+		t.Fatalf("late webhook produced %d remaining provider events, want 1", len(providerEvents))
+	}
+	webhookEventID := ""
+	for _, event := range providerEvents {
+		if event["provider_event_id"] != verifiedEventID {
+			webhookEventID = event["provider_event_id"].(string)
+		}
+	}
+	if webhookEventID == "" {
+		t.Fatal("late webhook provider event was not queued")
+	}
+	ack := map[string]any{
+		"outcome_id": uuid.NewString(), "kind": "charge_duplicate", "request_id": requestID,
+		"provider_event_id": webhookEventID, "reference": reference, "provider_ref": fmt.Sprint(transactionID),
+		"amount": map[string]any{"amount": 1000, "currency": "NGN"},
+	}
+	badAck := make(map[string]any, len(ack))
+	for key, value := range ack {
+		badAck[key] = value
+	}
+	badAck["provider_ref"] = "123"
+	rawBadAck, err := json.Marshal(badAck)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := e.contract.Validate(kafka.EventPaymentsOutcome, rawBadAck); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.s.OnPaymentOutcome(kafka.WithRequestID(ctx, webhookEventID), rawBadAck); err == nil {
+		t.Fatal("mismatched transaction acknowledgement was accepted")
+	}
+	e.deliverAs(t, kafka.EventPaymentsOutcome, webhookEventID, ack, e.s.OnPaymentOutcome)
+	assertSingleSettlement(t, e, requestID, reference)
+	var duplicateOutcomes, processed int
+	e.system(t, func(ctx context.Context, tx pgx.Tx) error {
+		if err := tx.QueryRow(ctx, `SELECT count(*) FROM payment_outcome WHERE request_id = $1`, requestID).Scan(&duplicateOutcomes); err != nil {
+			return err
+		}
+		return tx.QueryRow(ctx, `SELECT count(*) FROM provider_event WHERE id = ANY($1) AND processed_at IS NOT NULL`, []string{verifiedEventID, webhookEventID}).Scan(&processed)
+	})
+	if duplicateOutcomes != 1 || processed != 2 {
+		t.Fatalf("outcomes=%d processed_provider_events=%d, want one payment outcome and both events processed", duplicateOutcomes, processed)
 	}
 }
 

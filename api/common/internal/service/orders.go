@@ -678,7 +678,7 @@ func (s *Services) ReceiveWebhook(ctx context.Context, body []byte, signature st
 				if err != nil {
 					return err
 				}
-				order = map[string]any{"request_id": o.ID, "status": o.Status, "reference": data.Reference,
+				order = map[string]any{"request_id": o.ID, "status": o.Status, "reference": deref(o.Reference), "provider_ref": deref(o.ProviderRef),
 					"quote": money{Amount: *o.QuoteCents, Currency: o.Currency}, "payment": money{Amount: amount, Currency: currency}}
 			} else if err != nil && !errors.Is(err, repository.ErrNotFound) {
 				return err
@@ -730,6 +730,20 @@ func (s *Services) OnPaymentOutcome(ctx context.Context, raw json.RawMessage) er
 			if first, err := s.firstResult(ctx, tx, kafka.EventPaymentsOutcome); err != nil || !first {
 				return err
 			}
+		}
+		if m.Kind == "charge_duplicate" {
+			if m.ProviderEventID == nil || m.RequestID == nil || m.Reference == nil || m.ProviderRef == nil || m.Amount == nil {
+				return errors.New("incomplete duplicate charge acknowledgement")
+			}
+			acknowledged, err := repository.AcknowledgeDuplicateProviderEvent(ctx, tx, *m.ProviderEventID, *m.RequestID,
+				*m.Reference, *m.ProviderRef, m.Amount.Amount, m.Amount.Currency)
+			if err != nil {
+				return err
+			}
+			if !acknowledged {
+				return errors.New("duplicate charge acknowledgement did not match the stored payment")
+			}
+			return nil
 		}
 		fresh, err := repository.RecordOutcome(ctx, tx, m.OutcomeID, m.Kind, m.RequestID, m.DesignerID, m.Reason, raw)
 		if err != nil {
@@ -800,6 +814,9 @@ func (s *Services) settleCharge(ctx context.Context, tx pgx.Tx, o *repository.Or
 	if o.Status != "quoted" {
 		return refundNeeded(ctx, tx, o, m, "order_not_payable")
 	}
+	if m.Reference == nil || o.Reference == nil || *m.Reference != *o.Reference {
+		return refundNeeded(ctx, tx, o, m, "stale_checkout_reference")
+	}
 	var fee *int64
 	if m.Fee != nil {
 		fee = &m.Fee.Amount
@@ -856,6 +873,11 @@ func (s *Services) OnPaymentOutcomeFailed(ctx context.Context, raw json.RawMessa
 	}
 	slog.Error("money needs attention", "step", "payments.outcome", "kind", m.Kind, "outcome_id", m.OutcomeID,
 		"request_id", deref(m.RequestID), "reason", "not_applied", "error", cause)
+	if m.Kind == "charge_duplicate" {
+		// Acknowledgements are not payment outcomes. Keep the provider event
+		// unprocessed for operational recovery, without inventing an outcome row.
+		return nil
+	}
 	return s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
 		return repository.RecordUnappliedOutcome(ctx, tx, m.OutcomeID, m.Kind, m.RequestID, m.DesignerID, m.Reason, raw)
 	})

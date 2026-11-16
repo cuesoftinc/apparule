@@ -254,11 +254,19 @@ deadline) runs the sweep and then a settle of up to 40 s.
 Payment settlement does not depend on Paystack delivering `charge.success` to
 Apparule. After checkout succeeds, the authenticated customer return flow asks
 common to verify the exact reference with Paystack; a bounded `payments` job
-also checks current pending `apr_` references every five minutes. Both publish
-verified successful charges through commerce's existing payment decision and
-common's transactional settlement path. Keep the payments scheduler enabled
-alongside the signed webhook; the webhook remains a useful fast path and the
-verification job provides recovery when it is missed.
+also checks pending `apr_` checkout attempts every five minutes (25 per run by
+default; set `PAYMENT_VERIFICATION_BATCH_SIZE` to a value from 3 to 500 to
+adjust). Never-checked
+recent attempts are prioritized; each batch also reserves capacity for older
+unchecked references and retries previously checked references after a
+30-minute backoff. Retained superseded checkout references are verified
+while the order remains quoted, but commerce compares each event with the
+order's active checkout reference and will not settle an older attempt against
+a newer checkout. Both publish verified successful charges through commerce's
+existing payment decision and common's transactional settlement path. Keep
+the payments scheduler enabled alongside the signed webhook. The webhook
+remains a useful fast path and the verification job provides recovery when it
+is missed.
 
 In gcloud terms: `--min-instances 0` everywhere, with CPU allocated only
 during requests. The processing services'
