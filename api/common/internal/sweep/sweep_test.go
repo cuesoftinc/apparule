@@ -1,9 +1,32 @@
 package sweep
 
 import (
+	"bytes"
+	"context"
+	"log/slog"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/cuesoftinc/apparule/api/common/internal/config"
+	"github.com/cuesoftinc/apparule/api/common/internal/service"
 )
+
+func TestPaymentsSweepSkipsWhenPaystackIsNotConfigured(t *testing.T) {
+	var logs bytes.Buffer
+	previous := slog.Default()
+	slog.SetDefault(slog.New(slog.NewTextHandler(&logs, nil)))
+	t.Cleanup(func() { slog.SetDefault(previous) })
+
+	job := &Sweeper{Services: &service.Services{Config: &config.Config{}}}
+	if err := job.Payments(context.Background()); err != nil {
+		t.Fatalf("unconfigured sweep should skip cleanly: %v", err)
+	}
+	if !strings.Contains(logs.String(), "payment verification sweep skipped") ||
+		!strings.Contains(logs.String(), "Paystack is not configured") {
+		t.Fatalf("missing clear skip diagnostic: %s", logs.String())
+	}
+}
 
 func TestReconcileLooksPastBothEdgesButNotIntoTheFuture(t *testing.T) {
 	now := time.Date(2026, 10, 19, 11, 2, 0, 0, time.UTC)

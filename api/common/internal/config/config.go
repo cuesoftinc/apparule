@@ -127,19 +127,20 @@ type Paystack struct {
 	PublicKey string
 }
 
-// Limits are enforced before a ticket exists (engineering.md §3, §8).
+// Limits cover request safeguards and bounded scheduled work.
 type Limits struct {
-	ImageMaxBytes    int64
-	UploadBytesDay   int64
-	CapturesPerMin   int
-	CapturesPerDay   int
-	SocialPerMin     int
-	CommentsPerMin   int
-	RequestsPerDay   int
-	OpenRequests     int
-	PostsPerDay      int
-	ProcessingResend time.Duration
-	ProcessingFail   time.Duration
+	ImageMaxBytes                int64
+	UploadBytesDay               int64
+	CapturesPerMin               int
+	CapturesPerDay               int
+	SocialPerMin                 int
+	CommentsPerMin               int
+	RequestsPerDay               int
+	OpenRequests                 int
+	PostsPerDay                  int
+	ProcessingResend             time.Duration
+	ProcessingFail               time.Duration
+	PaymentVerificationBatchSize int
 }
 
 // Load reads the environment; it returns every missing setting at once.
@@ -151,6 +152,10 @@ func Load() (*Config, error) {
 			missing = append(missing, name)
 		}
 		return v
+	}
+	verificationBatchSize, verificationBatchErr := parsePaymentVerificationBatchSize(os.Getenv("PAYMENT_VERIFICATION_BATCH_SIZE"))
+	if verificationBatchErr != nil {
+		missing = append(missing, "PAYMENT_VERIFICATION_BATCH_SIZE (integer from 3 to 500)")
 	}
 
 	cfg := &Config{
@@ -197,17 +202,18 @@ func Load() (*Config, error) {
 			PublicKey: strings.TrimSpace(os.Getenv("PAYSTACK_PUBLIC_KEY")),
 		},
 		Limits: Limits{
-			ImageMaxBytes:    10 << 20, // flows/vault.md §1, pages.md B5
-			UploadBytesDay:   int64(atoi(os.Getenv("UPLOAD_BYTES_PER_DAY"), 100<<20)),
-			CapturesPerMin:   10,
-			CapturesPerDay:   100,
-			SocialPerMin:     60,
-			CommentsPerMin:   10,
-			RequestsPerDay:   20,
-			OpenRequests:     10,
-			PostsPerDay:      20,
-			ProcessingResend: 60 * time.Second,
-			ProcessingFail:   180 * time.Second,
+			ImageMaxBytes:                10 << 20, // flows/vault.md §1, pages.md B5
+			UploadBytesDay:               int64(atoi(os.Getenv("UPLOAD_BYTES_PER_DAY"), 100<<20)),
+			CapturesPerMin:               10,
+			CapturesPerDay:               100,
+			SocialPerMin:                 60,
+			CommentsPerMin:               10,
+			RequestsPerDay:               20,
+			OpenRequests:                 10,
+			PostsPerDay:                  20,
+			ProcessingResend:             60 * time.Second,
+			ProcessingFail:               180 * time.Second,
+			PaymentVerificationBatchSize: verificationBatchSize,
 		},
 	}
 
@@ -251,6 +257,26 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("missing or invalid configuration: %s", strings.Join(missing, ", "))
 	}
 	return cfg, nil
+}
+
+const (
+	minPaymentVerificationBatchSize = 3
+	maxPaymentVerificationBatchSize = 500
+)
+
+func parsePaymentVerificationBatchSize(raw string) (int, error) {
+	const fallback = 25
+	if strings.TrimSpace(raw) == "" {
+		return fallback, nil
+	}
+	n, err := strconv.Atoi(strings.TrimSpace(raw))
+	if err != nil {
+		return fallback, fmt.Errorf("must be an integer from %d to %d", minPaymentVerificationBatchSize, maxPaymentVerificationBatchSize)
+	}
+	if n < minPaymentVerificationBatchSize || n > maxPaymentVerificationBatchSize {
+		return fallback, fmt.Errorf("must be an integer from %d to %d", minPaymentVerificationBatchSize, maxPaymentVerificationBatchSize)
+	}
+	return n, nil
 }
 
 // RequireAuth fails fast on the settings Google sign-in cannot run without.

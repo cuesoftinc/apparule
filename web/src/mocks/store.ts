@@ -242,6 +242,8 @@ export class MockStore {
   blocks = new Set<string>();
   /** Idempotency replay cache: key → serialized response (api.md §4). */
   idempotency = new Map<string, { payloadHash: string; response: unknown }>();
+  /** Current pending checkout reference by order; mock checkout usually settles immediately. */
+  pendingCheckoutReferences = new Map<string, string>();
   /**
    * Ranked-cursor snapshots (api.md §5 [Decided]): rank is computed at
    * first page and frozen for the cursor's 24h lifetime. Each snapshot is
@@ -1133,6 +1135,37 @@ export class MockStore {
     // party-only; others get 404 (openapi.yaml)
     if (!order) throw new MockApiError("not_found", "Order not found", 404);
     return deepClone(order);
+  }
+
+  setPendingCheckoutReference(
+    orderId: string,
+    customerUsername: string,
+    reference: string,
+  ): void {
+    const order = this.orderAsCustomer(orderId, customerUsername);
+    if (order.status !== "quoted") {
+      throw new MockApiError("payment_not_pending", "This payment is not pending", 409);
+    }
+    this.pendingCheckoutReferences.set(orderId, reference);
+  }
+
+  verifyPendingPayment(
+    orderId: string,
+    customerUsername: string,
+    reference: string,
+  ): { status: "pending" } {
+    const order = this.orderAsCustomer(orderId, customerUsername);
+    if (order.status !== "quoted") {
+      throw new MockApiError("payment_not_pending", "This payment is not pending", 409);
+    }
+    const currentReference = this.pendingCheckoutReferences.get(orderId);
+    if (!currentReference) {
+      throw new MockApiError("payment_not_pending", "This payment is not pending", 409);
+    }
+    if (reference !== currentReference) {
+      throw new MockApiError("payment_reference_mismatch", "Payment reference did not match", 409);
+    }
+    return { status: "pending" };
   }
 
   createRequest(

@@ -77,7 +77,8 @@ account-scoped with row-level security behind it; cross-account access is
 | `GET /requests?role=customer\|designer` · `GET /requests/{id}` | party only |
 | `POST /requests/{id}/quote` · `/decline` · `/status` | designer: quote (requote while quoted), decline with a reason, `in_progress` \| `shipped` |
 | `POST /requests/{id}/cancel` · `/confirm-delivery` · `/dispute` | customer: withdraw or reject the quote, confirm (releases the payout), dispute (either party) |
-| `POST /requests/{id}/pay` | starts the Paystack checkout: the order (still `quoted`) with `checkout {provider, reference, amount_cents, currency, email, public_key}`; it turns `paid` when the webhook's charge settles |
+| `POST /requests/{id}/pay` | starts the Paystack checkout: the order (still `quoted`) with `checkout {provider, reference, amount_cents, currency, email, public_key}` |
+| `POST /requests/{id}/verify-payment` | customer session; body `{reference}`. Verifies the pending current `apr_` reference from the backend. `200 {status: pending\|verification_started}`; `404 not_found` for another customer's order, `409 payment_not_pending\|payment_reference_mismatch`, `422 validation_failed`, `429 rate_limited`, or `502 provider_unavailable`. A `verification_started` result is settled asynchronously through the same payment decision path as a webhook. |
 | `GET/POST /requests/{id}/messages` · `POST /requests/{id}/attachments/tickets` | thread (≤ 1000 chars); image attachments upload through a ticket and are referenced by `image_url` |
 | `POST /moderation/requests/{id}/resolve` | staff: resolve a dispute `{outcome: delivered \| refunded}` |
 | `POST /designer-profile` | enable a designer profile |

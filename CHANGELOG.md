@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Server-side Paystack reference verification on checkout return and scheduled
+  recovery, with idempotent settlement and shared-account reconciliation.
 - `gitbook-docs.yaml` for GitBook's site-wide Git Sync, and `web/.gitignore` ignores the `AGENTS.md` that `next dev` writes (#478).
 - Dependabot groups the Flutter (pub) updates into one weekly PR, like the other ecosystems (#478).
 - Google sign-in through the API with a PKCE handoff on web and mobile.
