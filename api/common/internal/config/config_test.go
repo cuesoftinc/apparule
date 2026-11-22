@@ -52,8 +52,8 @@ func TestAllowedOrigins(t *testing.T) {
 
 func TestPaymentVerificationBatchSizeBounds(t *testing.T) {
 	for _, tt := range []struct {
-		input string
-		want  int
+		input   string
+		want    int
 		wantErr bool
 	}{
 		{"", 25, false}, {"3", 3, false}, {"40", 40, false}, {"1", 25, true}, {"2", 25, true}, {"0", 25, true}, {"501", 25, true}, {"invalid", 25, true},
