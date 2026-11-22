@@ -342,6 +342,9 @@ func (s *Services) RequestInstance(ctx context.Context, p *Principal, notes stri
 	}
 	var out *model.InstanceRequest
 	err := s.as(ctx, p, func(tx pgx.Tx) error {
+		if err := s.requireConsent(ctx, tx, p); err != nil {
+			return err
+		}
 		var err error
 		out, err = repository.InsertInstanceRequest(ctx, tx, p.WorkspaceID, p.AccountID, notes)
 		return err
