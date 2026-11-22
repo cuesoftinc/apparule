@@ -405,7 +405,7 @@ void main() {
         final content = latin1.decode(pdfBytes);
         expect(content, contains('%%EOF'));
         expect(content, contains('Apparule'));
-        expect(content, contains('Shoulder: 16.7 in (42.5 cm)'));
+        expect(content, contains(r'Shoulder: 16.7 in \(42.5 cm\)'));
         expect(content, isNot(contains('confidence')));
         expect(content, isNot(contains('mediapipe')));
       },
@@ -418,7 +418,7 @@ void main() {
         final pdfBytes = await repo.exportSessionPdf('sess-manual-tape');
 
         final content = latin1.decode(pdfBytes);
-        expect(content, contains('Shoulder: 16.6 in (42.2 cm)'));
+        expect(content, contains(r'Shoulder: 16.6 in \(42.2 cm\)'));
         expect(content, isNot(contains('confidence')));
       },
     );

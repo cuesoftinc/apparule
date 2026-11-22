@@ -26,6 +26,22 @@ import '../../../../helpers/notched.dart';
 /// METRIC (latest value + sparkline history, tap → history sheet with
 /// per-session delete), and the consent note with the B4 rights links.
 void main() {
+  final fakeShare = _FakeSharePlatform();
+  late SharePlatform originalPlatform;
+
+  setUpAll(() {
+    originalPlatform = SharePlatform.instance;
+    SharePlatform.instance = fakeShare;
+  });
+
+  tearDownAll(() {
+    SharePlatform.instance = originalPlatform;
+  });
+
+  setUp(() {
+    fakeShare.lastParams = null;
+  });
+
   Future<void> bootToVault(
     WidgetTester tester, {
     MeasurementRepositoryFake? measurementRepository,
@@ -167,11 +183,6 @@ void main() {
 
   testWidgets('per-session export sheet offers PDF and CSV; the share sheet '
       'receives the file (PLAT-004, F2-9, #387)', (tester) async {
-    final fakeShare = _FakeSharePlatform();
-    final originalPlatform = SharePlatform.instance;
-    SharePlatform.instance = fakeShare;
-    addTearDown(() => SharePlatform.instance = originalPlatform);
-
     await bootToVault(tester);
     await tester.tap(find.text('Shoulder'));
     await tester.pumpAndSettle();
@@ -200,7 +211,7 @@ void main() {
     final pdfBytes = await pdfFile.readAsBytes();
     final pdfContent = latin1.decode(pdfBytes);
     expect(pdfContent, startsWith('%PDF-1.4'));
-    expect(pdfContent, contains('Shoulder: 16.7 in (42.5 cm)'));
+    expect(pdfContent, contains(r'Shoulder: 16.7 in \(42.5 cm\)'));
 
     // The history sheet is still open — tap export again to test CSV
     await tester.tap(find.bySemanticsLabel('Export session').first);
@@ -225,11 +236,6 @@ void main() {
 
   testWidgets('top Share button opens the share options sheet offering '
       'Text, PDF, and CSV', (tester) async {
-    final fakeShare = _FakeSharePlatform();
-    final originalPlatform = SharePlatform.instance;
-    SharePlatform.instance = fakeShare;
-    addTearDown(() => SharePlatform.instance = originalPlatform);
-
     await bootToVault(tester);
 
     await tester.tap(find.text('Share'));
@@ -250,7 +256,7 @@ void main() {
     final pdfBytes = await fakeShare.lastParams!.files!.first.readAsBytes();
     final pdfContent = latin1.decode(pdfBytes);
     expect(pdfContent, startsWith('%PDF-1.4'));
-    expect(pdfContent, contains('Shoulder: 16.7 in (42.5 cm)'));
+    expect(pdfContent, contains(r'Shoulder: 16.7 in \(42.5 cm\)'));
   });
 
   testWidgets('an empty vault renders the vault EmptyState; its CTA opens '
