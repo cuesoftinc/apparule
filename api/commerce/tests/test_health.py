@@ -27,6 +27,13 @@ async def test_health_reports_healthy(app: FastAPI):
     assert response.json() == {"status": "healthy"}
 
 
+async def test_ready_reports_not_ready_when_consumers_unset(app: FastAPI):
+    response = await request(app, "/ready")
+
+    assert response.status_code == 503
+    assert response.json() == {"status": "not_ready"}
+
+
 @pytest.mark.parametrize("consumers", [[], [SimpleNamespace(running=False)]])
 async def test_ready_reports_not_ready_without_running_consumers(app: FastAPI, consumers):
     app.state.consumers = consumers
