@@ -1144,7 +1144,11 @@ export class MockStore {
   ): void {
     const order = this.orderAsCustomer(orderId, customerUsername);
     if (order.status !== "quoted") {
-      throw new MockApiError("payment_not_pending", "This payment is not pending", 409);
+      throw new MockApiError(
+        "payment_not_pending",
+        "This payment is not pending",
+        409,
+      );
     }
     this.pendingCheckoutReferences.set(orderId, reference);
   }
@@ -1156,14 +1160,26 @@ export class MockStore {
   ): { status: "pending" } {
     const order = this.orderAsCustomer(orderId, customerUsername);
     if (order.status !== "quoted") {
-      throw new MockApiError("payment_not_pending", "This payment is not pending", 409);
+      throw new MockApiError(
+        "payment_not_pending",
+        "This payment is not pending",
+        409,
+      );
     }
     const currentReference = this.pendingCheckoutReferences.get(orderId);
     if (!currentReference) {
-      throw new MockApiError("payment_not_pending", "This payment is not pending", 409);
+      throw new MockApiError(
+        "payment_not_pending",
+        "This payment is not pending",
+        409,
+      );
     }
     if (reference !== currentReference) {
-      throw new MockApiError("payment_reference_mismatch", "Payment reference did not match", 409);
+      throw new MockApiError(
+        "payment_reference_mismatch",
+        "Payment reference did not match",
+        409,
+      );
     }
     return { status: "pending" };
   }

@@ -743,7 +743,7 @@ func TestCommissionMoneyFlow(t *testing.T) {
 	// Paystack's webhook: verified, stored, handed to commerce once. The
 	// current checkout reference still finds the order.
 	body := []byte(fmt.Sprintf(`{"event":"charge.success","data":{"id":4099260516,"reference":%q,"amount":4500000,"currency":"NGN","status":"success"}}`,
-		paid.Checkout.Reference))
+		retried.Checkout.Reference))
 	mac := hmac.New(sha512.New, []byte(paystackSecret))
 	mac.Write(body)
 	sig := hex.EncodeToString(mac.Sum(nil))
@@ -762,7 +762,7 @@ func TestCommissionMoneyFlow(t *testing.T) {
 	}
 
 	settle := map[string]any{"outcome_id": uuid.NewString(), "kind": "charge_settled", "request_id": order.ID,
-		"provider_event_id": events[0]["provider_event_id"], "reference": paid.Checkout.Reference, "provider_ref": "4099260516",
+		"provider_event_id": events[0]["provider_event_id"], "reference": retried.Checkout.Reference, "provider_ref": "4099260516",
 		"amount": map[string]any{"amount": 4_500_000, "currency": "NGN"}, "fee": map[string]any{"amount": 450_000, "currency": "NGN"},
 		"ledger": []map[string]any{{"account": "escrow", "amount": 4_500_000}, {"account": "customer_funds", "amount": -4_500_000}}}
 	e.deliver(t, kafka.EventPaymentsOutcome, settle, e.s.OnPaymentOutcome)
@@ -787,7 +787,7 @@ func TestCommissionMoneyFlow(t *testing.T) {
 	for k, v := range settle {
 		second[k] = v
 	}
-	second["outcome_id"], second["reference"], second["provider_ref"] = uuid.NewString(), retried.Checkout.Reference, "4099260999"
+	second["outcome_id"], second["reference"], second["provider_ref"] = uuid.NewString(), paid.Checkout.Reference, "4099260999"
 	e.deliver(t, kafka.EventPaymentsOutcome, second, e.s.OnPaymentOutcome)
 	if n := escrow(); n != 4_500_000 {
 		t.Fatalf("a second charge must not book escrow: escrow is %d", n)
@@ -815,7 +815,7 @@ func TestCommissionMoneyFlow(t *testing.T) {
 		}
 	}
 	if delivered == nil || delivered["payout_recipient"].(map[string]any)["recipient_code"] != "RCP_test" ||
-		delivered["payment"].(map[string]any)["reference"] != paid.Checkout.Reference {
+		delivered["payment"].(map[string]any)["reference"] != retried.Checkout.Reference {
 		t.Fatalf("delivered transition: %+v", delivered)
 	}
 	// The designer, not the customer who confirmed, hears about delivery.

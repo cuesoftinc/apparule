@@ -45,11 +45,7 @@ def _charge(msg: dict, data: dict, base: dict, fee_bps: int) -> dict | None:
     # response and eventual webhook. Using it makes both ingress paths converge
     # on one durable payment outcome.
     transaction_id = data.get("id")
-    valid_transaction_id = (
-        isinstance(transaction_id, int)
-        and not isinstance(transaction_id, bool)
-        and 0 < transaction_id <= 9_223_372_036_854_775_807
-    )
+    valid_transaction_id = isinstance(transaction_id, int) and not isinstance(transaction_id, bool) and 0 < transaction_id <= 9_223_372_036_854_775_807
     outcome_source = str(transaction_id) if valid_transaction_id else source
 
     def reject(reason: str) -> dict:

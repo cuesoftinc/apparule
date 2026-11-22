@@ -36,12 +36,12 @@ def test_charge_that_matches_the_quote_settles(contract):
 
 def test_late_webhook_after_verification_is_explicitly_acknowledged(contract):
     verified = _event()
-    verified["provider_event_id"] = "verification-event"
+    verified["provider_event_id"] = "11111111-1111-4111-8111-111111111111"
     settled = settle.decide(verified, FEE)
     assert settled["kind"] == "charge_settled"
 
     webhook = _event()
-    webhook["provider_event_id"] = "late-webhook-event"
+    webhook["provider_event_id"] = "22222222-2222-4222-8222-222222222222"
     webhook["order"]["status"] = "paid"
     webhook["order"]["provider_ref"] = str(webhook["payload"]["id"])
     acknowledged = settle.decide(webhook, FEE)
@@ -49,7 +49,7 @@ def test_late_webhook_after_verification_is_explicitly_acknowledged(contract):
     assert acknowledged["kind"] == "charge_duplicate"
     assert acknowledged["provider_ref"] == settled["provider_ref"]
     assert acknowledged["reference"] == settled["reference"]
-    assert acknowledged["provider_event_id"] == "late-webhook-event"
+    assert acknowledged["provider_event_id"] == "22222222-2222-4222-8222-222222222222"
 
 
 def test_late_webhook_with_a_different_transaction_is_not_silently_accepted():
@@ -321,18 +321,26 @@ async def test_reconcile_ignores_shared_paystack_charges_outside_apparule_namesp
         "window": {"from": "2026-10-19T09:00:00Z", "to": "2026-10-19T10:00:00Z"},
         "movements": [],
     }
-    fake = FakePaystack({
-        ("GET", "/transaction"): ok([
-            {"id": 71, "reference": "other_product_123", "amount": 1000, "currency": "NGN", "createdAt": "2026-10-19T09:30:00Z"},
-            {"id": 72, "reference": "apr_missing_from_ledger", "amount": 1000, "currency": "NGN", "createdAt": "2026-10-19T09:30:00Z"},
-        ]),
-        ("GET", "/transfer"): ok([
-            {"transfer_code": "TRF_other_product", "reference": "po_some_order", "amount": 900, "currency": "NGN", "createdAt": "2026-10-19T09:30:00Z"},
-        ]),
-        ("GET", "/refund"): ok([
-            {"id": 73, "reference": "apr_refund", "amount": 100, "currency": "NGN", "createdAt": "2026-10-19T09:30:00Z"},
-        ]),
-    })
+    fake = FakePaystack(
+        {
+            ("GET", "/transaction"): ok(
+                [
+                    {"id": 71, "reference": "other_product_123", "amount": 1000, "currency": "NGN", "createdAt": "2026-10-19T09:30:00Z"},
+                    {"id": 72, "reference": "apr_missing_from_ledger", "amount": 1000, "currency": "NGN", "createdAt": "2026-10-19T09:30:00Z"},
+                ]
+            ),
+            ("GET", "/transfer"): ok(
+                [
+                    {"transfer_code": "TRF_other_product", "reference": "po_some_order", "amount": 900, "currency": "NGN", "createdAt": "2026-10-19T09:30:00Z"},
+                ]
+            ),
+            ("GET", "/refund"): ok(
+                [
+                    {"id": 73, "reference": "apr_refund", "amount": 100, "currency": "NGN", "createdAt": "2026-10-19T09:30:00Z"},
+                ]
+            ),
+        }
+    )
     outcomes = await reconcile.compare(fake.client(), msg)
     assert {(outcome["provider_ref"], outcome["reason"]) for outcome in outcomes} == {
         ("72", "missing_in_ledger"),
@@ -352,9 +360,7 @@ async def test_reconcile_ignores_shared_paystack_charges_outside_apparule_namesp
     ],
     ids=["matching", "checkout-reference-mismatch", "transaction-id-mismatch", "amount-mismatch", "currency-mismatch"],
 )
-async def test_reconciliation_checks_actual_payment_movement_references(
-    movement_changes, provider_transaction, expected_reason
-):
+async def test_reconciliation_checks_actual_payment_movement_references(movement_changes, provider_transaction, expected_reason):
     movement = copy.deepcopy(example("ledger.reconcile_requested")["data"]["movements"][0])
     movement.update(
         reference="apr_verified_1",
@@ -368,18 +374,21 @@ async def test_reconciliation_checks_actual_payment_movement_references(
         "lookup": {"from": "2026-10-19T08:45:00Z", "to": "2026-10-19T10:15:00Z"},
         "movements": [movement],
     }
-    fake = FakePaystack({
-        ("GET", "/transaction"): ok(
-            [
-                {
-                    **provider_transaction,
-                    "status": "success",
-                    "createdAt": "2026-10-19T09:30:00Z",
-                }
-            ]
-        ),
-        ("GET", "/transfer"): ok([]), ("GET", "/refund"): ok([]),
-    })
+    fake = FakePaystack(
+        {
+            ("GET", "/transaction"): ok(
+                [
+                    {
+                        **provider_transaction,
+                        "status": "success",
+                        "createdAt": "2026-10-19T09:30:00Z",
+                    }
+                ]
+            ),
+            ("GET", "/transfer"): ok([]),
+            ("GET", "/refund"): ok([]),
+        }
+    )
     outcomes = await reconcile.compare(fake.client(), msg)
     assert [outcome["reason"] for outcome in outcomes] == ([] if expected_reason is None else [expected_reason])
 
