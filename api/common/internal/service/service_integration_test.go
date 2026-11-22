@@ -1,6 +1,7 @@
 package service_test
 
 import (
+	"bytes"
 	"context"
 	"crypto/ed25519"
 	"crypto/hmac"
@@ -12,6 +13,8 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,7 +29,9 @@ import (
 
 	"github.com/cuesoftinc/apparule/api/common/internal/auth"
 	"github.com/cuesoftinc/apparule/api/common/internal/config"
+	"github.com/cuesoftinc/apparule/api/common/internal/handler"
 	"github.com/cuesoftinc/apparule/api/common/internal/kafka"
+	"github.com/cuesoftinc/apparule/api/common/internal/middleware"
 	"github.com/cuesoftinc/apparule/api/common/internal/repository"
 	"github.com/cuesoftinc/apparule/api/common/internal/service"
 	"github.com/cuesoftinc/apparule/api/common/internal/storage"
@@ -874,6 +879,60 @@ func TestCommissionMoneyFlow(t *testing.T) {
 	list, err := e.s.Notifications(ctx, customer, service.Paging{Limit: 50})
 	if err != nil || !strings.Contains(fmt.Sprint(list), "Payment received") {
 		t.Fatalf("customer notifications: %v %v", err, list)
+	}
+}
+
+func TestInstanceRequestRequiresConsent(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	p := e.signIn(t, "uid-instance-consent", "instance-consent@example.com")
+	h := &handler.Handlers{S: e.s}
+
+	post := func() *httptest.ResponseRecorder {
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/instance-requests", bytes.NewBufferString(`{"notes":"need a dedicated instance"}`))
+		req.Header.Set("Content-Type", "application/json")
+		req = req.WithContext(middleware.WithPrincipal(req.Context(), p))
+		rec := httptest.NewRecorder()
+		h.RequestInstance(rec, req)
+		return rec
+	}
+
+	forbidden := post()
+	if forbidden.Code != http.StatusForbidden {
+		t.Fatalf("without consent: status=%d body=%s", forbidden.Code, forbidden.Body.String())
+	}
+	var forbiddenBody map[string]any
+	if err := json.Unmarshal(forbidden.Body.Bytes(), &forbiddenBody); err != nil {
+		t.Fatal(err)
+	}
+	if forbiddenBody["error"].(map[string]any)["code"] != "consent_required" {
+		t.Fatalf("without consent: body=%s", forbidden.Body.String())
+	}
+
+	var count int
+	e.system(t, func(ctx context.Context, tx pgx.Tx) error {
+		return tx.QueryRow(ctx, `SELECT count(*) FROM instance_request WHERE account_id = $1`, p.AccountID).Scan(&count)
+	})
+	if count != 0 {
+		t.Fatalf("without consent created %d instance requests", count)
+	}
+
+	for _, document := range []string{"tos", "privacy"} {
+		if _, err := e.s.RecordConsent(ctx, p, document, "2026-07"); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	created := post()
+	if created.Code != http.StatusCreated {
+		t.Fatalf("after consent: status=%d body=%s", created.Code, created.Body.String())
+	}
+
+	e.system(t, func(ctx context.Context, tx pgx.Tx) error {
+		return tx.QueryRow(ctx, `SELECT count(*) FROM instance_request WHERE account_id = $1`, p.AccountID).Scan(&count)
+	})
+	if count != 1 {
+		t.Fatalf("after consent created %d instance requests, want 1", count)
 	}
 }
 
