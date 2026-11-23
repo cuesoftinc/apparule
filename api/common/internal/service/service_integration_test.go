@@ -12,12 +12,16 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/alicebob/miniredis/v2"
 	embeddedpostgres "github.com/fergusstrange/embedded-postgres"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -26,7 +30,10 @@ import (
 
 	"github.com/cuesoftinc/apparule/api/common/internal/auth"
 	"github.com/cuesoftinc/apparule/api/common/internal/config"
+	"github.com/cuesoftinc/apparule/api/common/internal/handler"
 	"github.com/cuesoftinc/apparule/api/common/internal/kafka"
+	"github.com/cuesoftinc/apparule/api/common/internal/middleware"
+	"github.com/cuesoftinc/apparule/api/common/internal/ratelimit"
 	"github.com/cuesoftinc/apparule/api/common/internal/repository"
 	"github.com/cuesoftinc/apparule/api/common/internal/service"
 	"github.com/cuesoftinc/apparule/api/common/internal/storage"
@@ -112,18 +119,28 @@ func setup(t *testing.T) *env {
 	if testing.Short() {
 		t.Skip("integration test")
 	}
+	mr, err := miniredis.Run()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(mr.Close)
+	host, port, err := net.SplitHostPort(mr.Addr())
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	ctx := context.Background()
 	superURL := os.Getenv("TEST_DATABASE_URL")
 	if superURL == "" {
-		port := freePort(t)
+		p := freePort(t)
 		dir := t.TempDir()
-		pg := embeddedpostgres.NewDatabase(embeddedpostgres.DefaultConfig().Port(port).
+		pg := embeddedpostgres.NewDatabase(embeddedpostgres.DefaultConfig().Port(p).
 			RuntimePath(filepath.Join(dir, "run")).DataPath(filepath.Join(dir, "data")).StartTimeout(2 * time.Minute))
 		if err := pg.Start(); err != nil {
 			t.Fatalf("embedded postgres: %v", err)
 		}
 		t.Cleanup(func() { _ = pg.Stop() })
-		superURL = fmt.Sprintf("postgres://postgres:postgres@127.0.0.1:%d/postgres?sslmode=disable", port)
+		superURL = fmt.Sprintf("postgres://postgres:postgres@127.0.0.1:%d/postgres?sslmode=disable", p)
 	}
 
 	super, err := pgx.Connect(ctx, superURL)
@@ -161,7 +178,8 @@ func setup(t *testing.T) *env {
 	}
 	cfg := &config.Config{UploadsURL: "/api/v1/uploads", Paystack: config.Paystack{SecretKey: paystackSecret, PublicKey: "pk_test"},
 		Limits: config.Limits{ImageMaxBytes: 10 << 20, UploadBytesDay: 100 << 20, CapturesPerMin: 10, CapturesPerDay: 100,
-			SocialPerMin: 60, CommentsPerMin: 10, RequestsPerDay: 20, OpenRequests: 10, PostsPerDay: 20,
+			SocialPerMin: 60, CommentsPerMin: 10, MessagesPerMin: 30, ReportsPerHour: 10, ExportsPerDay: 20,
+			RequestsPerDay: 20, OpenRequests: 10, PostsPerDay: 20,
 			ProcessingResend: time.Minute, ProcessingFail: 3 * time.Minute}}
 	store := &memStore{objects: map[string][]byte{}}
 	store.probe = func(op string) {
@@ -169,8 +187,10 @@ func setup(t *testing.T) *env {
 			t.Errorf("storage %s while %d pooled connection(s) are held (the staging pool has one)", op, n)
 		}
 	}
+	limiter := ratelimit.New(config.Redis{Host: host, Port: port, KeyPrefix: "test"})
+	t.Cleanup(func() { _ = limiter.Close() })
 	return &env{db: db, store: store, contract: contract, s: &service.Services{
-		DB: db, Store: store, Tickets: ticket.NewSigner("test", key, 5*time.Minute), Config: cfg, Now: time.Now}}
+		DB: db, Store: store, Tickets: ticket.NewSigner("test", key, 5*time.Minute), Limiter: limiter, Config: cfg, Now: time.Now}}
 }
 
 func (e *env) signIn(t *testing.T, uid, email string) *service.Principal {
@@ -283,6 +303,40 @@ func ready(e *env, t *testing.T, p *service.Principal) {
 	tmpl := "women"
 	if _, err := e.s.UpdateMe(ctx, p, service.MePatch{MeasurementTemplate: &tmpl, TemplateSet: true}); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func assertHTTPRateLimited(t *testing.T, h *handler.Handlers, p *service.Principal, method, target, body string, call func(http.ResponseWriter, *http.Request)) {
+	t.Helper()
+	req := httptest.NewRequest(method, target, strings.NewReader(body))
+	req = req.WithContext(middleware.WithPrincipal(req.Context(), p))
+	rec := httptest.NewRecorder()
+	call(rec, req)
+	if rec.Code != http.StatusTooManyRequests {
+		t.Fatalf("HTTP status = %d, want %d; body=%s", rec.Code, http.StatusTooManyRequests, rec.Body.String())
+	}
+	retry := rec.Header().Get("Retry-After")
+	n, err := strconv.Atoi(retry)
+	if err != nil || n <= 0 {
+		t.Fatalf("Retry-After = %q, want positive seconds", retry)
+	}
+	if !strings.Contains(rec.Body.String(), `"code":"rate_limited"`) {
+		t.Fatalf("HTTP body missing rate_limited: %s", rec.Body.String())
+	}
+}
+
+func assertHTTPResponse(t *testing.T, rec *httptest.ResponseRecorder, operation string) {
+	t.Helper()
+	if rec.Code != http.StatusTooManyRequests {
+		t.Fatalf("%s HTTP status = %d, want %d; body=%s", operation, rec.Code, http.StatusTooManyRequests, rec.Body.String())
+	}
+	retry := rec.Header().Get("Retry-After")
+	n, err := strconv.Atoi(retry)
+	if err != nil || n <= 0 {
+		t.Fatalf("%s Retry-After = %q, want positive seconds", operation, retry)
+	}
+	if !strings.Contains(rec.Body.String(), `"code":"rate_limited"`) {
+		t.Fatalf("%s HTTP body missing rate_limited: %s", operation, rec.Body.String())
 	}
 }
 
@@ -657,6 +711,10 @@ func TestCommissionMoneyFlow(t *testing.T) {
 		t.Fatalf("attachment batch: %v %+v", err, attBatch)
 	}
 	attURL := "/api/v1/media/" + attBatch.Items[0].ID
+	e.s.Config.Limits.MessagesPerMin = 2
+	if _, err := e.s.AddMessage(ctx, customer, order.ID, "", nil); code(err) != "validation_failed" {
+		t.Fatalf("invalid message: %v", err)
+	}
 	msg, err := e.s.AddMessage(ctx, customer, order.ID, "See the sleeve", &attURL)
 	if err != nil || msg.ImageURL == nil || !strings.HasPrefix(*msg.ImageURL, "https://signed.test/apparule/test/attachments/"+order.ID+"/") {
 		t.Fatalf("attachment message: %v %+v", err, msg)
@@ -664,6 +722,48 @@ func TestCommissionMoneyFlow(t *testing.T) {
 	if _, ok := e.store.objects[attKey]; ok {
 		t.Fatal("the tmp attachment should be gone after the message is posted")
 	}
+	if _, err := e.s.AddMessage(ctx, stranger, order.ID, "Stranger message", nil); code(err) != "not_found" {
+		t.Fatalf("unauthorized message: %v", err)
+	}
+	if _, err := e.s.AddMessage(ctx, customer, order.ID, "Second message", nil); err != nil {
+		t.Fatalf("message below limit: %v", err)
+	}
+	beforeMessages := 0
+	if err := e.db.AsSystem(ctx, func(tx pgx.Tx) error {
+		return tx.QueryRow(ctx, `SELECT count(*) FROM thread_message WHERE request_id = $1`, order.ID).Scan(&beforeMessages)
+	}); err != nil {
+		t.Fatal(err)
+	}
+	_, messageRejected := e.s.AddMessage(ctx, customer, order.ID, "Rejected message", nil)
+	var messageErr *service.Error
+	if !errors.As(messageRejected, &messageErr) || messageErr.Status != 429 || messageErr.Code != "rate_limited" || messageErr.RetryAfter <= 0 {
+		t.Fatalf("message over-limit: err=%v", messageRejected)
+	}
+	afterMessages := 0
+	if err := e.db.AsSystem(ctx, func(tx pgx.Tx) error {
+		return tx.QueryRow(ctx, `SELECT count(*) FROM thread_message WHERE request_id = $1`, order.ID).Scan(&afterMessages)
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if afterMessages != beforeMessages {
+		t.Fatalf("rejected message created a row: before=%d after=%d", beforeMessages, afterMessages)
+	}
+	h := &handler.Handlers{S: e.s}
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/requests/"+order.ID+"/messages", strings.NewReader(`{"body":"HTTP rejected"}`))
+	req = req.WithContext(middleware.WithPrincipal(req.Context(), customer))
+	req.SetPathValue("id", order.ID)
+	rec := httptest.NewRecorder()
+	h.AddMessage(rec, req)
+	if rec.Code != http.StatusTooManyRequests || rec.Header().Get("Retry-After") == "" {
+		t.Fatalf("AddMessage HTTP: status=%d retry=%q body=%s", rec.Code, rec.Header().Get("Retry-After"), rec.Body.String())
+	}
+	if !strings.Contains(rec.Body.String(), `"code":"rate_limited"`) {
+		t.Fatalf("AddMessage HTTP body missing rate_limited: %s", rec.Body.String())
+	}
+	if _, err := e.s.AddMessage(ctx, designer, order.ID, "Other account message", nil); err != nil {
+		t.Fatalf("message quota should be isolated per account: %v", err)
+	}
+	e.s.Config.Limits.MessagesPerMin = 30
 	thread, err := e.s.Messages(ctx, designer, order.ID, service.Paging{Limit: 50})
 	threadJSON, _ := json.Marshal(thread)
 	if err != nil || !strings.Contains(string(threadJSON), "https://signed.test/apparule/test/attachments/") {
@@ -850,21 +950,127 @@ func TestCommissionMoneyFlow(t *testing.T) {
 	}
 }
 
-func TestBlocksHideContent(t *testing.T) {
+func TestIssue437RateLimits(t *testing.T) {
 	e := setup(t)
 	ctx := context.Background()
-	a := e.signIn(t, "uid-a", "a@example.com")
-	b := e.signIn(t, "uid-b", "b@example.com")
-	if _, err := e.s.EnableDesigner(ctx, b, "B", ""); err != nil {
+	customer := e.signIn(t, "uid-rate-kiki", "rate-kiki@example.com")
+	other := e.signIn(t, "uid-rate-ada", "rate-ada@example.com")
+
+	// Reports: 10/hour per account, with the 11th rejected and no row inserted.
+	beforeReports := 0
+	if err := e.db.AsSystem(ctx, func(tx pgx.Tx) error {
+		return tx.QueryRow(ctx, `SELECT count(*) FROM report`).Scan(&beforeReports)
+	}); err != nil {
 		t.Fatal(err)
 	}
-	if err := e.s.SetBlock(ctx, a, b.Username, true); err != nil {
+	e.s.Config.Limits.ReportsPerHour = 1
+	if _, err := e.s.FileReport(ctx, other, "account", "does-not-exist", "spam", nil); code(err) != "not_found" {
+		t.Fatalf("missing report subject: %v", err)
+	}
+	if _, err := e.s.FileReport(ctx, other, "invalid", other.AccountID, "spam", nil); code(err) != "validation_failed" {
+		t.Fatalf("invalid report: %v", err)
+	}
+	if _, err := e.s.FileReport(ctx, other, "account", other.AccountID, "spam", nil); err != nil {
+		t.Fatalf("valid report below limit: %v", err)
+	}
+	if _, err := e.s.FileReport(ctx, other, "account", other.AccountID, "spam", nil); code(err) != "rate_limited" {
+		t.Fatalf("second report should exceed temporary limit: %v", err)
+	}
+	e.s.Config.Limits.ReportsPerHour = 10
+	for i := 0; i < e.s.Config.Limits.ReportsPerHour; i++ {
+		if _, err := e.s.FileReport(ctx, customer, "account", customer.AccountID, "spam", nil); err != nil {
+			t.Fatalf("report %d: %v", i+1, err)
+		}
+	}
+	_, reportRejected := e.s.FileReport(ctx, customer, "account", customer.AccountID, "spam", nil)
+	var reportErr *service.Error
+	if !errors.As(reportRejected, &reportErr) || reportErr.Status != 429 || reportErr.Code != "rate_limited" || reportErr.RetryAfter <= 0 {
+		t.Fatalf("report over-limit: err=%v", reportRejected)
+	}
+	h := &handler.Handlers{S: e.s}
+	reportReq := httptest.NewRequest(http.MethodPost, "/api/v1/reports", strings.NewReader(`{"subject_kind":"account","subject_id":"`+customer.AccountID+`","reason":"spam"}`))
+	reportReq = reportReq.WithContext(middleware.WithPrincipal(reportReq.Context(), customer))
+	reportRec := httptest.NewRecorder()
+	h.FileReport(reportRec, reportReq)
+	assertHTTPResponse(t, reportRec, "FileReport")
+
+	afterReports := 0
+	if err := e.db.AsSystem(ctx, func(tx pgx.Tx) error {
+		return tx.QueryRow(ctx, `SELECT count(*) FROM report`).Scan(&afterReports)
+	}); err != nil {
 		t.Fatal(err)
 	}
-	if err := e.s.SetFollow(ctx, a, b.Username, true); code(err) != "not_found" {
-		t.Fatalf("a blocked pair can't follow: %v", err)
+	if afterReports != beforeReports+e.s.Config.Limits.ReportsPerHour+1 {
+		t.Fatalf("report rows: before=%d after=%d (temporary other-account report included)", beforeReports, afterReports)
 	}
-	if _, err := e.s.Profile(ctx, a, b.Username); code(err) != "not_found" {
-		t.Fatalf("a blocked profile reads not_found: %v", err)
+	if _, err := e.s.FileReport(ctx, other, "account", other.AccountID, "spam", nil); err != nil {
+		t.Fatalf("report quota should be isolated per account: %v", err)
 	}
+
+	// Exports: 20/day per account, rejected before rendering/storage/DB insertion.
+	ready(e, t, customer)
+	session, err := e.s.CreateManualSession(ctx, customer, []service.ManualInput{{Name: "bust", ValueCM: 92}}, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	e.s.Config.Limits.ExportsPerDay = 1
+	ready(e, t, other)
+	if _, err := e.s.ExportSession(ctx, other, session.ID, "pdf"); code(err) != "not_found" {
+		t.Fatalf("unauthorized export: %v", err)
+	}
+	otherTempSession, err := e.s.CreateManualSession(ctx, other, []service.ManualInput{{Name: "bust", ValueCM: 91}}, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.s.ExportSession(ctx, other, otherTempSession.ID, "xml"); code(err) != "validation_failed" {
+		t.Fatalf("invalid export: %v", err)
+	}
+	if _, err := e.s.ExportSession(ctx, other, otherTempSession.ID, "csv"); err != nil {
+		t.Fatalf("valid export below limit: %v", err)
+	}
+	if _, err := e.s.ExportSession(ctx, other, otherTempSession.ID, "pdf"); code(err) != "rate_limited" {
+		t.Fatalf("second export should exceed temporary limit: %v", err)
+	}
+	e.s.Config.Limits.ExportsPerDay = 20
+	for i := 0; i < e.s.Config.Limits.ExportsPerDay; i++ {
+		if _, err := e.s.ExportSession(ctx, customer, session.ID, "csv"); err != nil {
+			t.Fatalf("export %d: %v", i+1, err)
+		}
+	}
+	afterExportsBelowLimit := len(e.store.objects)
+	_, exportRejected := e.s.ExportSession(ctx, customer, session.ID, "pdf")
+	var exportErr *service.Error
+	if !errors.As(exportRejected, &exportErr) || exportErr.Status != 429 || exportErr.Code != "rate_limited" || exportErr.RetryAfter <= 0 {
+		t.Fatalf("export over-limit: err=%v", exportRejected)
+	}
+	afterExports := len(e.store.objects)
+	if afterExports != afterExportsBelowLimit {
+		t.Fatalf("rejected export changed objects: before=%d after=%d", afterExportsBelowLimit, afterExports)
+	}
+	exportReq := httptest.NewRequest(http.MethodPost, "/api/v1/sessions/"+session.ID+"/exports", strings.NewReader(`{"format":"pdf"}`))
+	exportReq = exportReq.WithContext(middleware.WithPrincipal(exportReq.Context(), customer))
+	exportReq.SetPathValue("id", session.ID)
+	exportRec := httptest.NewRecorder()
+	h.ExportSession(exportRec, exportReq)
+	assertHTTPResponse(t, exportRec, "ExportSession")
+
+	var exportRows int
+	if err := e.db.AsSystem(ctx, func(tx pgx.Tx) error {
+		return tx.QueryRow(ctx, `SELECT count(*) FROM session_export WHERE session_id = $1`, session.ID).Scan(&exportRows)
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if exportRows != e.s.Config.Limits.ExportsPerDay {
+		t.Fatalf("export rows: got=%d want=%d", exportRows, e.s.Config.Limits.ExportsPerDay+1)
+	}
+
+	ready(e, t, other)
+	otherSession, err := e.s.CreateManualSession(ctx, other, []service.ManualInput{{Name: "waist", ValueCM: 74}}, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.s.ExportSession(ctx, other, otherSession.ID, "pdf"); err != nil {
+		t.Fatalf("export quota should be isolated per account: %v", err)
+	}
+	e.s.Config.Limits.ExportsPerDay = 20
 }

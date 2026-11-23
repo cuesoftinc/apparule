@@ -4,10 +4,12 @@ import (
 	"context"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 
 	"github.com/cuesoftinc/apparule/api/common/internal/model"
+	"github.com/cuesoftinc/apparule/api/common/internal/ratelimit"
 	"github.com/cuesoftinc/apparule/api/common/internal/repository"
 )
 
@@ -29,6 +31,9 @@ func (s *Services) FileReport(ctx context.Context, p *Principal, kind, subjectID
 			return err
 		}
 		preview.ThumbKey = thumbKey
+		if err := s.take(ctx, p, ratelimit.Rule{Name: "report-hour", Max: int64(s.Config.Limits.ReportsPerHour), Window: time.Hour}); err != nil {
+			return err
+		}
 		out, err = repository.InsertReport(ctx, tx, p.AccountID, kind, subjectID, reason, detail, preview)
 		return err
 	})

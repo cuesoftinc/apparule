@@ -135,6 +135,9 @@ type Limits struct {
 	CapturesPerDay   int
 	SocialPerMin     int
 	CommentsPerMin   int
+	MessagesPerMin   int
+	ReportsPerHour   int
+	ExportsPerDay    int
 	RequestsPerDay   int
 	OpenRequests     int
 	PostsPerDay      int
@@ -203,6 +206,9 @@ func Load() (*Config, error) {
 			CapturesPerDay:   100,
 			SocialPerMin:     60,
 			CommentsPerMin:   10,
+			MessagesPerMin:   30,
+			ReportsPerHour:   10,
+			ExportsPerDay:    20,
 			RequestsPerDay:   20,
 			OpenRequests:     10,
 			PostsPerDay:      20,

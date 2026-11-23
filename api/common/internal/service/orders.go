@@ -19,6 +19,7 @@ import (
 
 	"github.com/cuesoftinc/apparule/api/common/internal/kafka"
 	"github.com/cuesoftinc/apparule/api/common/internal/model"
+	"github.com/cuesoftinc/apparule/api/common/internal/ratelimit"
 	"github.com/cuesoftinc/apparule/api/common/internal/repository"
 )
 
@@ -496,6 +497,7 @@ func (s *Services) AddMessage(ctx context.Context, p *Principal, id, body string
 	var staged *repository.MediaRow // the tmp upload to move into the order's folder
 	var dst string
 	copied := false
+	quotaTaken := false
 	post := func(tx pgx.Tx) error {
 		o, err := repository.GetOrder(ctx, tx, id)
 		if err != nil {
@@ -541,7 +543,19 @@ func (s *Services) AddMessage(ctx context.Context, p *Principal, id, body string
 			}
 		}
 		if staged != nil {
+			if !quotaTaken {
+				if err := s.take(ctx, p, ratelimit.Rule{Name: "message-min", Max: int64(s.Config.Limits.MessagesPerMin), Window: time.Minute}); err != nil {
+					return err
+				}
+				quotaTaken = true
+			}
 			return nil // validated only; the copy runs outside the transaction
+		}
+		if !quotaTaken {
+			if err := s.take(ctx, p, ratelimit.Rule{Name: "message-min", Max: int64(s.Config.Limits.MessagesPerMin), Window: time.Minute}); err != nil {
+				return err
+			}
+			quotaTaken = true
 		}
 		msgID, at, err := repository.InsertMessage(ctx, tx, id, p.AccountID, byDesigner, body, mediaID)
 		if err != nil {
