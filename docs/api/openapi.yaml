@@ -180,7 +180,39 @@ paths:
   /api/v1/requests/{id}/status:
     post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }], summary: "Designer progress: in_progress | shipped only (delivered is customer/system-only)", requestBody: { content: { application/json: { schema: { type: object, required: [status], properties: { status: { enum: [in_progress, shipped] }, tracking: { type: string } } } } } }, responses: { "200": { description: Request } } }
   /api/v1/requests/{id}/pay:
-    post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }, { $ref: "#/components/parameters/IdempotencyKey" }], summary: "Start the Paystack checkout; the order turns paid when the charge.success webhook settles (system-design.md §6.3)", responses: { "200": { description: "The order (still quoted) with checkout {provider, reference, amount_cents, currency, email, public_key}" } } }
+    post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }, { $ref: "#/components/parameters/IdempotencyKey" }], summary: "Start the Paystack checkout; a verified successful charge settles through webhook or reference verification", responses: { "200": { description: "The order (still quoted) with checkout {provider, reference, amount_cents, currency, email, public_key}" } } }
+  /api/v1/requests/{id}/verify-payment:
+    post:
+      tags: [requests]
+      summary: Verify a pending Paystack checkout reference server-side
+      description: Customer session required. The browser supplies only the checkout reference; common resolves the owned order and validates Paystack's transaction before shared settlement.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reference]
+              additionalProperties: false
+              properties:
+                reference: { type: string, minLength: 5, maxLength: 100, pattern: "^apr_" }
+      responses:
+        "200":
+          description: Verification completed or handed to settlement
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: { enum: [pending, verification_started] }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { description: payment_not_pending | payment_reference_mismatch, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "422": { description: validation_failed, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited with Retry-After }
+        "502": { description: provider_unavailable, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
   /api/v1/requests/{id}/confirm-delivery:
     post: { tags: [requests], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Customer confirms delivery; releases payout (quote − 10% fee, A-1), responses: { "200": { description: Request } } }
   /api/v1/requests/{id}/dispute:

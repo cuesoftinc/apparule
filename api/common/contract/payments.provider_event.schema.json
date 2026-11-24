@@ -14,7 +14,7 @@
     "payload": { "type": "object", "description": "Paystack's `data` object, as received." },
     "order": {
       "type": ["object", "null"],
-      "description": "The order whose payment reference matches payload.reference, or null when none does.",
+      "description": "The order whose retained payment attempt matches payload.reference, or null when none does. reference identifies its current checkout attempt for stale-attempt safety.",
       "required": ["request_id", "status", "quote"],
       "additionalProperties": false,
       "properties": {
@@ -22,7 +22,8 @@
         "status": { "$ref": "defs.schema.json#/$defs/order_status" },
         "quote": { "$ref": "defs.schema.json#/$defs/money" },
         "payment": { "$ref": "defs.schema.json#/$defs/money", "description": "The amount the checkout for this reference was started with; a charge settles only against it." },
-        "reference": { "type": "string" }
+        "reference": { "type": "string", "description": "The order's current checkout reference; lets commerce reject an event from a superseded checkout." },
+        "provider_ref": { "type": "string", "description": "Paystack transaction ID already stored on a paid order, used to ignore its late duplicate webhook." }
       }
     }
   }

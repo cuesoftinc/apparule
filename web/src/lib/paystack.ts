@@ -1,7 +1,7 @@
 // Paystack checkout (Inline JS v2) for an order's pay step. The popup only
 // collects the payment: the order turns paid when api/commerce settles the
-// charge from Paystack's webhook (system-design.md §6.3), so callers poll
-// the order afterwards rather than trusting this callback.
+// charge from backend transaction verification or the signed webhook
+// (system-design.md §6.3), so callers must verify server-side after success.
 
 const SCRIPT = "https://js.paystack.co/v2/inline.js";
 

@@ -11,7 +11,7 @@ the Python services send.
 
 ```
 cmd/server/            API + Kafka consumers + outbox publisher
-cmd/jobs/              one sweep by hand: captures | orders | retention | reconcile | migrate
+cmd/jobs/              one sweep by hand: captures | orders | payments | retention | reconcile | migrate
 cmd/ticketkey/         generates an upload-ticket key pair
 contract/              JSON Schemas for every Kafka message (all services validate against them)
 migrations/            forward-only SQL; Postgres with FORCE row-level security
@@ -45,11 +45,13 @@ internal/wake          settle calls to scaled-to-zero services
   polls `GET /api/v1/media/batches/{id}`, then names the media in
   `POST /posts` or a thread message.
 - **Money** (§6.3): `POST /requests/{id}/pay` returns a Paystack `checkout`;
-  `POST /webhooks/payments` verifies, stores and hands the event to
-  `commerce`; `payments.outcome` moves the order and appends balanced ledger
-  lines (a deferred trigger rejects anything that doesn't sum to zero).
+  the authenticated `POST /requests/{id}/verify-payment` and the `payments`
+  sweep verify references server-side, while `POST /webhooks/payments`
+  validates and stores signed events. Both feed `commerce`'s shared decision;
+  `payments.outcome` moves the order and appends balanced ledger lines (a
+  deferred trigger rejects anything that doesn't sum to zero).
 - **Sweeps**: `POST /internal/jobs/<name>` runs one sweep (`captures`,
-  `orders`, `reconcile`, `retention`; never `migrate`) and answers
+  `orders`, `payments`, `reconcile`, `retention`; never `migrate`) and answers
   `{"job","ms"}`. The caller is Cloud Scheduler: its OIDC token must carry
   the audience `SCHEDULER_AUDIENCE` and the verified email
   `SCHEDULER_INVOKER_EMAIL`. Missing token is 401, wrong email 403, either

@@ -37,6 +37,7 @@
           "request_id": { "$ref": "defs.schema.json#/$defs/id" },
           "kind": { "enum": ["charge", "payout", "refund"] },
           "reference": { "type": "string", "minLength": 1 },
+          "provider_ref": { "type": "string", "description": "Provider transaction ID, transfer code, or refund ID when available." },
           "amount": { "$ref": "defs.schema.json#/$defs/money" },
           "at": { "type": "string", "format": "date-time", "description": "When the ledger recorded it." }
         }

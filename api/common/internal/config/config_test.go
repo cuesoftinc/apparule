@@ -49,3 +49,18 @@ func TestAllowedOrigins(t *testing.T) {
 		t.Fatal("https web app must use secure cookies")
 	}
 }
+
+func TestPaymentVerificationBatchSizeBounds(t *testing.T) {
+	for _, tt := range []struct {
+		input   string
+		want    int
+		wantErr bool
+	}{
+		{"", 25, false}, {"3", 3, false}, {"40", 40, false}, {"1", 25, true}, {"2", 25, true}, {"0", 25, true}, {"501", 25, true}, {"invalid", 25, true},
+	} {
+		got, err := parsePaymentVerificationBatchSize(tt.input)
+		if got != tt.want || (err != nil) != tt.wantErr {
+			t.Errorf("parsePaymentVerificationBatchSize(%q) = (%d, %v), want (%d, error=%v)", tt.input, got, err, tt.want, tt.wantErr)
+		}
+	}
+}

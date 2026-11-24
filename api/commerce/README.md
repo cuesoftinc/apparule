@@ -16,8 +16,9 @@ balanced ledger lines to append.
 | `ledger.reconcile_requested` | Compare the window's ledger movements with Paystack's transactions, transfers and refunds; each disagreement is a `mismatch` for a human (§6.4). |
 | `notifications.created` | FCM push (silent for capture results), Brevo email for money events, social pushes coalesced over 5 minutes. Best-effort. |
 
-Outcome ids are uuid5 of the decision's source, so `common` stores each
-decision once. Paystack outages retry three times, then become a `*_failed`
+Charge outcome ids are uuid5 of the Paystack transaction id, so verification
+and a late webhook converge on one stored settlement. Other outcome ids are
+uuid5 of their decision source. Paystack outages retry three times, then become a `*_failed`
 outcome rather than a stuck consumer. Without `PAYSTACK_SECRET_KEY` the
 service runs notify-only (self-host without payments, §10.2).
 

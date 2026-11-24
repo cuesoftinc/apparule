@@ -1,6 +1,7 @@
 package service_test
 
 import (
+	"bytes"
 	"context"
 	"crypto/ed25519"
 	"crypto/hmac"
@@ -813,10 +814,37 @@ func TestCommissionMoneyFlow(t *testing.T) {
 		t.Fatalf("a second checkout needs a new reference: %v %+v", err, retried.Checkout)
 	}
 
+	// A signed success webhook without a transaction ID is retained and
+	// rejected. Redelivery of its exact body is deduplicated; a later valid
+	// event for the charge remains eligible for settlement.
+	malformedBody := []byte(fmt.Sprintf(`{"event":"charge.success","data":{"reference":%q,"amount":4500000,"currency":"NGN","status":"success"}}`, paid.Checkout.Reference))
+	malformedMAC := hmac.New(sha512.New, []byte(paystackSecret))
+	_, _ = malformedMAC.Write(malformedBody)
+	malformedSignature := hex.EncodeToString(malformedMAC.Sum(nil))
+	for range 2 {
+		if err := e.s.ReceiveWebhook(ctx, malformedBody, malformedSignature); err != nil {
+			t.Fatal(err)
+		}
+	}
+	malformedEvents := e.outbox(t, kafka.EventPaymentsProviderEvent)
+	if len(malformedEvents) != 1 {
+		t.Fatalf("malformed webhook should be preserved once for investigation, got %d events", len(malformedEvents))
+	}
+	malformedEventID := malformedEvents[0]["provider_event_id"].(string)
+	malformedOutcomeID := uuid.NewSHA1(uuid.MustParse("6f1c3a2e-9b4d-4e8f-a1c7-3d5b2e9f0a41"), []byte("charge_rejected:"+malformedEventID)).String()
+	e.deliver(t, kafka.EventPaymentsOutcome, map[string]any{
+		"outcome_id": malformedOutcomeID, "kind": "charge_rejected", "request_id": order.ID,
+		"provider_event_id": malformedEventID, "reference": paid.Checkout.Reference, "reason": "invalid_transaction_id",
+	}, e.s.OnPaymentOutcome)
+	stillPending, err := e.s.Order(ctx, customer, order.ID)
+	if err != nil || stillPending.Status != "quoted" || stillPending.Payment == nil || stillPending.Payment.State != "pending" {
+		t.Fatalf("malformed successful webhook changed the pending payment: err=%v order=%+v", err, stillPending)
+	}
+
 	// Paystack's webhook: verified, stored, handed to commerce once. The
-	// first checkout's reference still finds the order.
+	// current checkout reference still finds the order.
 	body := []byte(fmt.Sprintf(`{"event":"charge.success","data":{"id":4099260516,"reference":%q,"amount":4500000,"currency":"NGN","status":"success"}}`,
-		paid.Checkout.Reference))
+		retried.Checkout.Reference))
 	mac := hmac.New(sha512.New, []byte(paystackSecret))
 	mac.Write(body)
 	sig := hex.EncodeToString(mac.Sum(nil))
@@ -835,7 +863,7 @@ func TestCommissionMoneyFlow(t *testing.T) {
 	}
 
 	settle := map[string]any{"outcome_id": uuid.NewString(), "kind": "charge_settled", "request_id": order.ID,
-		"provider_event_id": events[0]["provider_event_id"], "reference": paid.Checkout.Reference, "provider_ref": "4099260516",
+		"provider_event_id": events[0]["provider_event_id"], "reference": retried.Checkout.Reference, "provider_ref": "4099260516",
 		"amount": map[string]any{"amount": 4_500_000, "currency": "NGN"}, "fee": map[string]any{"amount": 450_000, "currency": "NGN"},
 		"ledger": []map[string]any{{"account": "escrow", "amount": 4_500_000}, {"account": "customer_funds", "amount": -4_500_000}}}
 	e.deliver(t, kafka.EventPaymentsOutcome, settle, e.s.OnPaymentOutcome)
@@ -860,7 +888,7 @@ func TestCommissionMoneyFlow(t *testing.T) {
 	for k, v := range settle {
 		second[k] = v
 	}
-	second["outcome_id"], second["reference"], second["provider_ref"] = uuid.NewString(), retried.Checkout.Reference, "4099260999"
+	second["outcome_id"], second["reference"], second["provider_ref"] = uuid.NewString(), paid.Checkout.Reference, "4099260999"
 	e.deliver(t, kafka.EventPaymentsOutcome, second, e.s.OnPaymentOutcome)
 	if n := escrow(); n != 4_500_000 {
 		t.Fatalf("a second charge must not book escrow: escrow is %d", n)
@@ -888,7 +916,7 @@ func TestCommissionMoneyFlow(t *testing.T) {
 		}
 	}
 	if delivered == nil || delivered["payout_recipient"].(map[string]any)["recipient_code"] != "RCP_test" ||
-		delivered["payment"].(map[string]any)["reference"] != paid.Checkout.Reference {
+		delivered["payment"].(map[string]any)["reference"] != retried.Checkout.Reference {
 		t.Fatalf("delivered transition: %+v", delivered)
 	}
 	// The designer, not the customer who confirmed, hears about delivery.
@@ -950,6 +978,79 @@ func TestCommissionMoneyFlow(t *testing.T) {
 	}
 }
 
+func TestInstanceRequestRequiresConsent(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	p := e.signIn(t, "uid-instance-consent", "instance-consent@example.com")
+	h := &handler.Handlers{S: e.s}
+
+	post := func() *httptest.ResponseRecorder {
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/instance-requests", bytes.NewBufferString(`{"notes":"need a dedicated instance"}`))
+		req.Header.Set("Content-Type", "application/json")
+		req = req.WithContext(middleware.WithPrincipal(req.Context(), p))
+		rec := httptest.NewRecorder()
+		h.RequestInstance(rec, req)
+		return rec
+	}
+
+	forbidden := post()
+	if forbidden.Code != http.StatusForbidden {
+		t.Fatalf("without consent: status=%d body=%s", forbidden.Code, forbidden.Body.String())
+	}
+	var forbiddenBody map[string]any
+	if err := json.Unmarshal(forbidden.Body.Bytes(), &forbiddenBody); err != nil {
+		t.Fatal(err)
+	}
+	if forbiddenBody["error"].(map[string]any)["code"] != "consent_required" {
+		t.Fatalf("without consent: body=%s", forbidden.Body.String())
+	}
+
+	var count int
+	e.system(t, func(ctx context.Context, tx pgx.Tx) error {
+		return tx.QueryRow(ctx, `SELECT count(*) FROM instance_request WHERE account_id = $1`, p.AccountID).Scan(&count)
+	})
+	if count != 0 {
+		t.Fatalf("without consent created %d instance requests", count)
+	}
+
+	for _, document := range []string{"tos", "privacy"} {
+		if _, err := e.s.RecordConsent(ctx, p, document, "2026-07"); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	created := post()
+	if created.Code != http.StatusCreated {
+		t.Fatalf("after consent: status=%d body=%s", created.Code, created.Body.String())
+	}
+
+	e.system(t, func(ctx context.Context, tx pgx.Tx) error {
+		return tx.QueryRow(ctx, `SELECT count(*) FROM instance_request WHERE account_id = $1`, p.AccountID).Scan(&count)
+	})
+	if count != 1 {
+		t.Fatalf("after consent created %d instance requests, want 1", count)
+	}
+}
+
+func TestBlocksHideContent(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	a := e.signIn(t, "uid-a", "a@example.com")
+	b := e.signIn(t, "uid-b", "b@example.com")
+	if _, err := e.s.EnableDesigner(ctx, b, "B", ""); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.s.SetBlock(ctx, a, b.Username, true); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.s.SetFollow(ctx, a, b.Username, true); code(err) != "not_found" {
+		t.Fatalf("a blocked pair can't follow: %v", err)
+	}
+	if _, err := e.s.Profile(ctx, a, b.Username); code(err) != "not_found" {
+		t.Fatalf("a blocked profile reads not_found: %v", err)
+	}
+}
+
 func TestIssue437RateLimits(t *testing.T) {
 	e := setup(t)
 	ctx := context.Background()
@@ -990,9 +1091,9 @@ func TestIssue437RateLimits(t *testing.T) {
 	h := &handler.Handlers{S: e.s}
 	reportReq := httptest.NewRequest(http.MethodPost, "/api/v1/reports", strings.NewReader(`{"subject_kind":"account","subject_id":"`+customer.AccountID+`","reason":"spam"}`))
 	reportReq = reportReq.WithContext(middleware.WithPrincipal(reportReq.Context(), customer))
-	reportRec := httptest.NewRecorder()
-	h.FileReport(reportRec, reportReq)
-	assertHTTPResponse(t, reportRec, "FileReport")
+	rec := httptest.NewRecorder()
+	h.FileReport(rec, reportReq)
+	assertHTTPResponse(t, rec, "FileReport")
 
 	afterReports := 0
 	if err := e.db.AsSystem(ctx, func(tx pgx.Tx) error {

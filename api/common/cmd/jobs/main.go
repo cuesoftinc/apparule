@@ -1,6 +1,6 @@
 // Command jobs runs one scheduled job and exits (system-design.md §6.7):
 //
-//	jobs captures | orders | retention | reconcile | migrate
+//	jobs captures | orders | payments | retention | reconcile | migrate
 //
 // Cloud Scheduler reaches the same jobs over POST /internal/jobs/<name> on the
 // common service; this command runs them by hand and applies migrations.

@@ -122,6 +122,7 @@ services:
       STORAGE_USE_SSL: ${STORAGE_USE_SSL:-false}
       PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-}
       PAYSTACK_PUBLIC_KEY: ${PAYSTACK_PUBLIC_KEY:-}
+      PAYMENT_VERIFICATION_BATCH_SIZE: ${PAYMENT_VERIFICATION_BATCH_SIZE:-25}
       # No WAKE_* here: everything always runs, so the publisher and the
       # consumers loop; settles exist only for request-based CPU (S-14).
     depends_on:
@@ -231,6 +232,7 @@ services:
         i=0
         while true; do
           ./jobs captures
+          [ $$((i % 5)) -eq 0 ] && ./jobs payments
           [ $$((i % 60)) -eq 0 ] && ./jobs orders && ./jobs reconcile
           [ $$((i % 1440)) -eq 0 ] && ./jobs retention
           i=$$((i + 1)); sleep 60
