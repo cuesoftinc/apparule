@@ -98,15 +98,15 @@ func New(h *handler.Handlers, sso *handler.AuthHandler, auth func(http.Handler) 
 		"POST /api/v1/moderation/requests/{id}/resolve": h.ResolveDispute,
 	}
 	for pattern, fn := range routes {
-		api.Handle(pattern, fn)
+		api.Handle(pattern, middleware.MatchedRoute(fn))
 	}
 
 	root := http.NewServeMux()
-	root.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
+	root.Handle("GET /health", middleware.MatchedRoute(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{"status":"healthy"}`))
-	})
-	root.HandleFunc("GET /ready", func(w http.ResponseWriter, r *http.Request) {
+	})))
+	root.Handle("GET /ready", middleware.MatchedRoute(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 		defer cancel()
 		w.Header().Set("Content-Type", "application/json")
@@ -116,24 +116,24 @@ func New(h *handler.Handlers, sso *handler.AuthHandler, auth func(http.Handler) 
 			return
 		}
 		_, _ = w.Write([]byte(`{"status":"ready"}`))
-	})
+	})))
 	// Sign-in is public: the session does not exist yet.
 	if sso != nil {
-		root.HandleFunc("GET /api/v1/auth/sso/google", sso.GoogleLogin)
-		root.HandleFunc("GET /api/v1/auth/sso/google/callback", sso.GoogleCallback)
-		root.HandleFunc("POST /api/v1/auth/sso/exchange", sso.ExchangeSSOHandoff)
-		root.HandleFunc("POST /api/v1/auth/logout", sso.Logout)
+		root.Handle("GET /api/v1/auth/sso/google", middleware.MatchedRoute(http.HandlerFunc(sso.GoogleLogin)))
+		root.Handle("GET /api/v1/auth/sso/google/callback", middleware.MatchedRoute(http.HandlerFunc(sso.GoogleCallback)))
+		root.Handle("POST /api/v1/auth/sso/exchange", middleware.MatchedRoute(http.HandlerFunc(sso.ExchangeSSOHandoff)))
+		root.Handle("POST /api/v1/auth/logout", middleware.MatchedRoute(http.HandlerFunc(sso.Logout)))
 	}
 	// Paystack signs its webhooks; no user token (S-12).
-	root.HandleFunc("POST /webhooks/payments", h.PaymentsWebhook)
+	root.Handle("POST /webhooks/payments", middleware.MatchedRoute(http.HandlerFunc(h.PaymentsWebhook)))
 	// Cloud Scheduler signs an OIDC token; no user token.
-	root.Handle("POST /internal/jobs/{name}", jobs.Guard(http.HandlerFunc(jobs.Handle)))
+	root.Handle("POST /internal/jobs/{name}", middleware.MatchedRoute(jobs.Guard(http.HandlerFunc(jobs.Handle))))
 	// Cloud Scheduler's invoker and the other services' accounts; it answers
 	// once common has handled what is waiting (S-14).
 	if settle != nil {
-		root.Handle("POST /internal/settle", settle.Guard(http.HandlerFunc(settle.Handle)))
+		root.Handle("POST /internal/settle", middleware.MatchedRoute(settle.Guard(http.HandlerFunc(settle.Handle))))
 	}
-	root.Handle("/api/v1/", auth(api))
+	root.Handle("/api/v1/", middleware.MatchServeMuxPattern(api, auth(api)))
 
 	return middleware.Chain(root, middleware.Recover, middleware.RequestID, middleware.Logger, middleware.CORS(corsOrigins))
 }

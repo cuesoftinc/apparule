@@ -19,7 +19,13 @@ func PrincipalFrom(ctx context.Context) *repository.Principal {
 }
 
 func WithPrincipal(ctx context.Context, p *repository.Principal) context.Context {
-	return context.WithValue(ctx, principalKey, p)
+	ctx = context.WithValue(ctx, principalKey, p)
+	if p != nil {
+		if state, ok := ctx.Value(requestLogStateKey).(*requestLogState); ok {
+			state.accountID = p.AccountID
+		}
+	}
+	return ctx
 }
 
 // Sessions is the slice of the account service auth needs.
@@ -64,11 +70,12 @@ func Authenticate(cfg *config.Config, sessions Sessions) func(http.Handler) http
 				deny(w, http.StatusServiceUnavailable, "session_unavailable", "Sessions are temporarily unavailable")
 				return
 			}
+			ctx := WithPrincipal(r.Context(), p)
 			if p.Suspended {
 				deny(w, http.StatusForbidden, "account_disabled", "This account has been disabled")
 				return
 			}
-			next.ServeHTTP(w, r.WithContext(WithPrincipal(r.Context(), p)))
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
