@@ -5,8 +5,8 @@ import 'package:apparule/src/features/measurements/data/capture_guide_flag.dart'
 import 'package:apparule/src/features/measurements/presentation/manual_entry_view_model.dart';
 import 'package:apparule/src/features/profile/data/profile_repository.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The one capture entry gesture (mobile-implementation.md §10): guide on
 /// first run, straight to the viewfinder once the persisted flag is set.

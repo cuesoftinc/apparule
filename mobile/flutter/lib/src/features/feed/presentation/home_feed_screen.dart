@@ -25,11 +25,11 @@ import 'package:apparule/src/features/feed/presentation/post_options_sheet.dart'
 import 'package:apparule/src/features/measurements/data/measurement_repository.dart';
 import 'package:apparule/src/features/measurements/domain/measurement_share.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:share_plus/share_plus.dart';
 
 /// MI-6 page size — web `FEED_PAGE_SIZE` parity.

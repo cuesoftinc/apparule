@@ -1,8 +1,8 @@
 import 'package:apparule/src/core/ui/app_switch.dart';
 import 'package:apparule/src/features/profile/data/profile_repository_fake.dart';
 import 'package:apparule/src/features/profile/presentation/privacy_settings_screen.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../helpers/notched.dart';
 import '../../../../helpers/pump_app.dart';

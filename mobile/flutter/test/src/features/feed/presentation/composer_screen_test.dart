@@ -11,8 +11,8 @@ import 'package:apparule/src/features/feed/presentation/composer_screen.dart';
 import 'package:apparule/src/features/feed/presentation/home_feed_screen.dart';
 import 'package:apparule/src/features/measurements/data/measurement_repository_fake.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../helpers/boot_app.dart';
 import '../../../../helpers/button_state.dart';

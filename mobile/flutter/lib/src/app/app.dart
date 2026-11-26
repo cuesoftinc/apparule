@@ -4,8 +4,8 @@ import 'package:apparule/src/core/theme/app_theme.dart';
 import 'package:apparule/src/core/theme/theme_mode_controller.dart';
 import 'package:apparule/src/features/auth/data/auth_repository.dart';
 import 'package:apparule/src/routing/router.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// MaterialApp.router over the typed router, token themes (light + dark
 /// from the same set, §7) switched by the persisted tri-state preference
@@ -31,7 +31,7 @@ class ApparuleApp extends ConsumerWidget {
         theme: AppTheme.light(),
         darkTheme: AppTheme.dark(),
         themeMode: themeMode,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: const BootScreen(),
       );
@@ -42,7 +42,7 @@ class ApparuleApp extends ConsumerWidget {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: themeMode,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
     );

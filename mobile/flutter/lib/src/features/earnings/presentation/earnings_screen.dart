@@ -14,10 +14,10 @@ import 'package:apparule/src/features/earnings/domain/earnings.dart';
 import 'package:apparule/src/features/earnings/domain/payout.dart';
 import 'package:apparule/src/features/earnings/presentation/earnings_view_model.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// C14 — Earnings & payouts (canvas 267:8613; pages.md B9): the balance
 /// explainer, EarningsSummary cards (available / in escrow), the payout-

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/button.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// CaptureResults — the Figma `CaptureResults` set (65:612, single
 /// component); web sibling `CaptureResults.tsx`. The C6-results chrome:

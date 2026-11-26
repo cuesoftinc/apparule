@@ -1,6 +1,6 @@
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// ChoiceCard — the create chooser's choice-card language (Figma
 /// `choice-card/*`, 548:2750/2759; C1b card idiom): 28px glyph · Body/16

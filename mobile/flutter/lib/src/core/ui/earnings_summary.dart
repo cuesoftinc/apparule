@@ -1,6 +1,6 @@
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/utils/formats.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// EarningsSummary — the Figma `EarningsSummary` set (97:1249, single
 /// component); web sibling `EarningsSummary.tsx`. Two cards: Available

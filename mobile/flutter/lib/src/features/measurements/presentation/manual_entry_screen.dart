@@ -8,9 +8,9 @@ import 'package:apparule/src/features/measurements/domain/measurement_session.da
 import 'package:apparule/src/features/measurements/presentation/manual_entry_view_model.dart';
 import 'package:apparule/src/features/measurements/presentation/vault_view_model.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// MI-13 manual entry — the C6 fallback (pages.md C6; flows/vault.md §2):
 /// tape-measured values over the ManualMeasureRow kit, advisory

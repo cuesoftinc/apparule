@@ -23,11 +23,11 @@ import 'package:apparule/src/features/measurements/presentation/vault_actions.da
 import 'package:apparule/src/features/measurements/presentation/vault_view_model.dart';
 import 'package:apparule/src/features/profile/presentation/profile_view_model.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:share_plus/share_plus.dart';
 
 /// C7 — the measurement vault (pages.md C7 = B4 adapted; canvas

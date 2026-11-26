@@ -10,7 +10,7 @@ import 'package:apparule/src/core/theme/tokens/color_tokens.dart';
 import 'package:apparule/src/core/theme/tokens/motion_tokens.dart';
 import 'package:apparule/src/core/theme/tokens/radius_tokens.dart';
 import 'package:apparule/src/core/theme/tokens/spacing_tokens.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Color tokens (design.md §2) — one field per Figma variable.
 @immutable

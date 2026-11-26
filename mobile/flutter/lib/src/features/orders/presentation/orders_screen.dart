@@ -13,8 +13,8 @@ import 'package:apparule/src/features/earnings/presentation/earnings_view_model.
 import 'package:apparule/src/features/orders/domain/order.dart';
 import 'package:apparule/src/features/orders/presentation/orders_view_model.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The [Decided 2026-07-16] status → pill mapping, shared by the C8 list
 /// and detail chips.

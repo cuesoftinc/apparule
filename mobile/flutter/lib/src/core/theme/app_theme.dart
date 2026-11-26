@@ -1,5 +1,5 @@
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Light + dark [ThemeData] built from the same token set
 /// (mobile-implementation.md §7; design.md §2's true-black dark palette).

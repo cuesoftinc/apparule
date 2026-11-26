@@ -66,8 +66,3 @@ updates:
     groups:
       pub-dependencies:
         patterns: ["*"]
-    ignore:
-      # alchemist 0.15 takes ThemeData from material_ui, not package:flutter/material.dart
-      # (its changelog says to stay on 0.14.x until the app migrates).
-      - dependency-name: alchemist
-        versions: [">=0.15.0"]

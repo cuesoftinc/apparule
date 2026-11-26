@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:apparule/src/core/ui/edge_resist_physics.dart';
 import 'package:apparule/src/core/ui/gradient_refresh_spinner.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../helpers/pump_app.dart';
 

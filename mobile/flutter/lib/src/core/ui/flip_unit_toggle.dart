@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// FlipUnitToggle — the MI-13 unit flip (design.md §4: "unit toggle cm/in
 /// flips with 3D x-rotation 200ms") as a shared primitive: consumers key

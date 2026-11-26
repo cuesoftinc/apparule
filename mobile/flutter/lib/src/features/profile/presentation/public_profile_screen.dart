@@ -15,10 +15,10 @@ import 'package:apparule/src/features/profile/presentation/follow_list_view_mode
 import 'package:apparule/src/features/profile/presentation/public_profile_view_model.dart';
 import 'package:apparule/src/features/profile/presentation/unfollow_confirm_sheet.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// C9 — designer public profile (canvas 267:8539; pages.md B6): story-
 /// ring avatar, graph-derived counts (followers/following open C12),

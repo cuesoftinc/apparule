@@ -6,9 +6,9 @@ import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/edge_resist_physics.dart';
 import 'package:apparule/src/core/ui/skeleton.dart';
 import 'package:flutter/gestures.dart' show TapGestureRecognizer;
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show RenderProxyBox;
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// PostCard — the Figma `PostCard` set (52:462); web sibling
 /// `PostCard.tsx`. Axes: `media` single/carousel (dots) · `cta`

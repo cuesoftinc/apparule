@@ -1,5 +1,5 @@
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// MorphSwap — the MI-7 150ms control morph (design.md §4: "Follow
 /// gradient-filled → on tap morphs 150ms to quiet Following") as a shared

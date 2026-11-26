@@ -4,8 +4,8 @@ import 'package:apparule/src/core/ui/avatar.dart';
 import 'package:apparule/src/core/utils/clock.dart';
 import 'package:apparule/src/features/feed/data/post_repository_fake.dart';
 import 'package:apparule/src/features/profile/presentation/public_profile_screen.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 
 import '../../../../helpers/notched.dart';

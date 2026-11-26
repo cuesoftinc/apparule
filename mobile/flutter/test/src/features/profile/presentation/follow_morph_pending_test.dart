@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:apparule/src/features/feed/data/post_repository_fake.dart';
 import 'package:apparule/src/features/profile/presentation/follow_list_view_model.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../helpers/pending_morph.dart';
 import '../../../../helpers/pump_app.dart';

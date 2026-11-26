@@ -16,10 +16,10 @@ import 'package:apparule/src/features/orders/presentation/order_action_sheets.da
 import 'package:apparule/src/features/orders/presentation/order_detail_view_model.dart';
 import 'package:apparule/src/features/orders/presentation/orders_screen.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// C8 detail (pages.md B3): outfit summary · timeline (MI-14, the
 /// TimelineConnector ladder with the terminal-error rung) · measurement

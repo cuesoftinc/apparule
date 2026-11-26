@@ -5,10 +5,10 @@ import 'package:apparule/src/core/ui/app_bar.dart';
 import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/features/earnings/presentation/designer_onboarding_view_model.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// C13 — Become a designer (canvas 204:1140; pages.md B8 intro): the
 /// what-you-get bullets (feed reach · requests with measurements

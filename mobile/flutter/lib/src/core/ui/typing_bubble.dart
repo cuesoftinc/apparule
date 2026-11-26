@@ -1,7 +1,7 @@
 import 'dart:async' show unawaited;
 
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// TypingBubble — the MI-17 responding pulse (design.md §4: "request
 /// thread shows designer 'responding…' three-dot pulse"): an incoming

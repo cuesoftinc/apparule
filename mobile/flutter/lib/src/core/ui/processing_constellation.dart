@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The Figma `ProcessingConstellation` set's `state` axis (64:748).
 enum ProcessingState { processing, success, failed }

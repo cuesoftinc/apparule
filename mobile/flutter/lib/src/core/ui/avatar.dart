@@ -1,6 +1,6 @@
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The Figma `Avatar` set's `size` axis (42:189): 32/44/56/96. `s64` is
 /// the StoryRailItem frame geometry ([Decided 2026-07-19]: 64px ring

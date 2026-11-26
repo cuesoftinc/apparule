@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The Figma `StatusPill` set's `status` axis (47:135) — the 10 order
 /// states plus the vault freshness ladder ([Decided 2026-07-16] mapping).
