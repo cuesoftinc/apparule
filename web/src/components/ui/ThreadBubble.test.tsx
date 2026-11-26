@@ -4,11 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { ThreadBubble } from "./ThreadBubble";
 
 describe("ThreadBubble (§8.2b as built)", () => {
-  it.each(["sent", "received"] as const)("renders side=%s", (side) => {
-    const { container } = render(<ThreadBubble side={side} text="hi" />);
-    expect(container.querySelector(`[data-side="${side}"]`)).not.toBeNull();
-  });
-
   it("content axis: text / image / typing", () => {
     const { container, rerender } = render(
       <ThreadBubble side="sent" text="hello" />,

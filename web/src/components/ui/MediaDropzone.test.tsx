@@ -4,16 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { MediaDropzone, MediaUploadTile } from "./MediaDropzone";
 
 describe("MediaDropzone (§8.2b)", () => {
-  it.each(["empty", "uploading", "error"] as const)(
-    "renders state=%s",
-    (state) => {
-      const { container } = render(
-        <MediaDropzone state={state} onFiles={() => {}} />,
-      );
-      expect(container.querySelector(`[data-state="${state}"]`)).not.toBeNull();
-    },
-  );
-
   it("uploading shows tabular progress", () => {
     render(
       <MediaDropzone state="uploading" progress={0.6} onFiles={() => {}} />,

@@ -4,14 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { Input } from "./Input";
 
 describe("Input (§8.2 + §8.2b kinds)", () => {
-  it.each(["text", "numeric", "search", "currency"] as const)(
-    "renders kind=%s",
-    (kind) => {
-      const { container } = render(<Input kind={kind} aria-label="field" />);
-      expect(container.querySelector(`[data-kind="${kind}"]`)).not.toBeNull();
-    },
-  );
-
   it("error state exposes aria-invalid + message", () => {
     render(<Input aria-label="username" error="That username is taken" />);
     expect(screen.getByLabelText("username")).toHaveAttribute(

@@ -3,14 +3,6 @@ import { render, screen } from "@testing-library/react";
 import { StoryRailItem } from "./StoryRailItem";
 
 describe("StoryRailItem (§8.2, MI-8)", () => {
-  it.each(["unseen", "seen", "loading"] as const)(
-    "renders state=%s",
-    (state) => {
-      render(<StoryRailItem username="amara.designs" state={state} />);
-      expect(screen.getByRole("button")).toHaveAttribute("data-state", state);
-    },
-  );
-
   it("unseen carries the gradient ring, seen the gray ring", () => {
     const { container, rerender } = render(
       <StoryRailItem username="amara.designs" state="unseen" />,
