@@ -5,8 +5,8 @@ import 'package:apparule/src/features/orders/presentation/order_detail_screen.da
 import 'package:apparule/src/features/orders/presentation/request_stepper_screen.dart';
 import 'package:apparule/src/features/profile/presentation/notifications_screen.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../helpers/boot_app.dart';
 import '../../helpers/reduced_motion.dart';

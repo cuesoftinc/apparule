@@ -1,6 +1,6 @@
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// CaughtUpDivider — the Figma `CaughtUpDivider` set (96:1214, single
 /// component); web sibling `CaughtUpDivider.tsx`. MI-6: "You're all

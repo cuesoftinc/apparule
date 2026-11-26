@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:alchemist/alchemist.dart';
-import 'package:apparule/l10n/generated/app_localizations.dart';
+import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/app_theme.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Registers one [goldenTest] per theme — every module suite renders its
 /// full variant×state matrix in light AND dark (mobile-implementation.md
@@ -41,7 +41,7 @@ void themedGoldenTest(
           // pixel-neutral for the committed CI goldens.
           builder: () => Localizations(
             locale: const Locale('en'),
-            delegates: AppLocalizations.localizationsDelegates,
+            delegates: appLocalizationsDelegates,
             child: builder(),
           ),
         ),

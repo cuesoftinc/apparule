@@ -2,9 +2,9 @@ import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/utils/clock.dart';
 import 'package:apparule/src/features/earnings/data/earnings_repository_fake.dart';
 import 'package:apparule/src/features/earnings/presentation/earnings_screen.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 
 import '../../../../helpers/notched.dart';

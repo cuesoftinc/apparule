@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/app_haptics.dart';
 import 'package:apparule/src/core/utils/formats.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 // Lucide heart/bookmark path data (24×24 grid) — inlined as SVG because
 // the liked/saved states FILL the glyph (web `fill-like`/`fill-text`),

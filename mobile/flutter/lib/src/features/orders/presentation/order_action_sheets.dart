@@ -13,8 +13,8 @@ import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/sheet.dart';
 import 'package:apparule/src/core/utils/parse_amount.dart';
 import 'package:apparule/src/features/orders/domain/order.dart';
-import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Dispute reason display copy (order-lifecycle.md §1 reasons).
 String disputeReasonLabel(BuildContext context, DisputeReason reason) {

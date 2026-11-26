@@ -1,7 +1,7 @@
 import 'package:alchemist/alchemist.dart';
 import 'package:apparule/src/core/ui/manual_measure_row.dart';
 import 'package:apparule/src/core/utils/formats.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../helpers/golden_themes.dart';
 

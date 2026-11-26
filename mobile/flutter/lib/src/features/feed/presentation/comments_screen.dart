@@ -12,9 +12,9 @@ import 'package:apparule/src/features/feed/domain/comment.dart';
 import 'package:apparule/src/features/feed/presentation/comments_view_model.dart';
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/gestures.dart' show TapGestureRecognizer;
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// C11 — the comments sheet at full height (pages.md [Specified
 /// 2026-07-18]): CommentRow list with like hearts and reply-indent,

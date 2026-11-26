@@ -3,7 +3,7 @@ import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/avatar.dart';
 import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/morph_swap.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The Figma `UserRow` set's `trailing` axis — Follow (gradient) /
 /// Following (quiet) / none (MI-7 morph; non-designers carry no button).

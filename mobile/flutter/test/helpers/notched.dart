@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The display-cutout contract every screen suite asserts against
 /// (mobile-implementation.md §7): CI's default test view has NO cutout

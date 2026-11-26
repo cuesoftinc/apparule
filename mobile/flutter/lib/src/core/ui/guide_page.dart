@@ -1,5 +1,5 @@
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The Figma `GuidePage` set's `step` axis (526:33) — the C6 guide's five
 /// canvas-first pages (M-8/M-10: pose split 2026-07-22).

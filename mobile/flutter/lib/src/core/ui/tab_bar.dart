@@ -1,7 +1,7 @@
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/spring_badge.dart';
-import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The Figma `TabBar` set's `active` axis (49:384) — the five-tab shell
 /// Home · Explore · ➕ · Orders · Profile (pages.md Part C; design.md §3).

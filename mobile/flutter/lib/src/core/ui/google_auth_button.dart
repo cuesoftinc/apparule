@@ -1,6 +1,6 @@
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// GoogleAuthButton — the single auth CTA (X-1), the Figma set 83:887;
 /// web sibling `GoogleAuthButton.tsx` (design.md §8.2b contract): Google

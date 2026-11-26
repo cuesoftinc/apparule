@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The Figma `CountdownRing` set's `count` axis (60:590) — the 3/2/1
 /// capture ticks (Dart identifiers cannot start with a digit; each value

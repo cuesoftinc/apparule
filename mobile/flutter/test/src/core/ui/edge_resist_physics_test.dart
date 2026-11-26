@@ -1,6 +1,6 @@
 import 'package:apparule/src/core/ui/edge_resist_physics.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// EdgeResistPhysics (MI-4): named bouncing physics — overscroll is
 /// permitted (resist-and-spring, no clamp/glow) and the type survives

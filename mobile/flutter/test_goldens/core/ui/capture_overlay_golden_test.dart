@@ -3,7 +3,7 @@ import 'package:apparule/src/core/ui/capture_overlay.dart';
 import 'package:apparule/src/core/ui/countdown_ring.dart';
 import 'package:apparule/src/core/ui/qc_hint_chip.dart';
 import 'package:apparule/src/core/utils/capture_pose.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../helpers/golden_themes.dart';
 

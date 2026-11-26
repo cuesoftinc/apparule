@@ -18,10 +18,10 @@ import 'package:apparule/src/features/orders/domain/order.dart';
 import 'package:apparule/src/features/orders/domain/order_exception.dart';
 import 'package:apparule/src/features/orders/presentation/request_view_model.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Soft warning (web `use-request-stepper.ts` isTurnaroundTight parity):
 /// the need-by date lands inside the designer's typical turnaround.

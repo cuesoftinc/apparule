@@ -2,7 +2,7 @@ import 'package:alchemist/alchemist.dart';
 import 'package:apparule/src/core/utils/clock.dart';
 import 'package:apparule/src/features/orders/data/order_repository_fake.dart';
 import 'package:apparule/src/features/orders/presentation/order_detail_screen.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 
 import '../../helpers/golden_themes.dart';

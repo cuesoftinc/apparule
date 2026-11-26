@@ -1,5 +1,5 @@
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The Figma `Button` set's `kind` axis (39:66) — `quiet-danger` is the
 /// 2026-07-22 danger-ladder addition (row-level destructive; filled

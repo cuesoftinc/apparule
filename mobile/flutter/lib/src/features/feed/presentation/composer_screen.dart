@@ -10,10 +10,10 @@ import 'package:apparule/src/features/feed/domain/post.dart';
 import 'package:apparule/src/features/feed/presentation/composer_view_model.dart';
 import 'package:apparule/src/features/feed/presentation/engagement_actions.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// C15 — the designer post composer (M-11; canvas 551:2866 empty /
 /// 551:4152 ready / 552:2 uploading): centered "New post" bar, the
