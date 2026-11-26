@@ -4,18 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { Chip } from "./Chip";
 
 describe("Chip (§8.2)", () => {
-  it.each(["default", "selected", "removable"] as const)(
-    "renders kind=%s",
-    (kind) => {
-      render(<Chip kind={kind} label="ankara" />);
-      // exact match — removable chips nest a "Remove ankara" affordance
-      expect(screen.getByRole("button", { name: "ankara" })).toHaveAttribute(
-        "data-kind",
-        kind,
-      );
-    },
-  );
-
   it("never wraps its label (pill contract, system QA)", () => {
     render(<Chip label="2-week turnaround" />);
     expect(

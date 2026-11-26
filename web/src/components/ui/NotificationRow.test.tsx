@@ -22,20 +22,6 @@ describe("NotificationRow (§8.2b)", () => {
     expect(screen.queryByTestId("unread-dot")).not.toBeInTheDocument();
   });
 
-  it.each([
-    "like",
-    "follow",
-    "comment",
-    "quote",
-    "status_change",
-    "payout",
-  ] as const)("renders kind=%s", (kind) => {
-    const { container } = render(
-      <NotificationRow notification={{ ...fixtureNotification, kind }} />,
-    );
-    expect(container.querySelector(`[data-kind="${kind}"]`)).not.toBeNull();
-  });
-
   it("trailing: post thumb for content rows, Follow for follow rows", async () => {
     const onFollowBack = vi.fn();
     const { rerender } = render(

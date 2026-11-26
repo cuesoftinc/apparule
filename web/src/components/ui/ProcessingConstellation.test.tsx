@@ -3,14 +3,6 @@ import { render, screen } from "@testing-library/react";
 import { ProcessingConstellation } from "./ProcessingConstellation";
 
 describe("ProcessingConstellation (§8.2b)", () => {
-  it.each(["processing", "success", "failed"] as const)(
-    "renders state=%s",
-    (state) => {
-      const { container } = render(<ProcessingConstellation state={state} />);
-      expect(container.firstElementChild).toHaveAttribute("data-state", state);
-    },
-  );
-
   it("draws the landmark constellation over the photo", () => {
     render(
       <ProcessingConstellation

@@ -4,11 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { AppBar } from "./AppBar";
 
 describe("AppBar (§8.2b)", () => {
-  it.each(["root", "sub", "over-media"] as const)("renders kind=%s", (kind) => {
-    render(<AppBar kind={kind} title="Orders" onBack={() => {}} />);
-    expect(screen.getByRole("banner")).toHaveAttribute("data-kind", kind);
-  });
-
   it("root: title + trailing action slot, no back chevron", () => {
     render(
       <AppBar

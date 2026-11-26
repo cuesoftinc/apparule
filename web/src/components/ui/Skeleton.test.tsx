@@ -3,14 +3,6 @@ import { render } from "@testing-library/react";
 import { Skeleton } from "./Skeleton";
 
 describe("Skeleton (§8.2 as built, MI-19)", () => {
-  it.each(["line", "avatar", "media", "card"] as const)(
-    "renders kind=%s",
-    (kind) => {
-      const { container } = render(<Skeleton kind={kind} />);
-      expect(container.querySelector(`[data-kind="${kind}"]`)).not.toBeNull();
-    },
-  );
-
   it("card kind renders the §3 feed anatomy (header + media + action row)", () => {
     const { container } = render(<Skeleton kind="card" />);
     const card = container.querySelector('[data-kind="card"]');

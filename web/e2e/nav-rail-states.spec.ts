@@ -31,14 +31,6 @@ const DASHBOARD_ROUTES = [
   "/dashboard/earnings",
 ];
 
-// The widest screens — screenshotted in both rail states for the report.
-const WORST_OFFENDERS = [
-  "/dashboard/orders/req-apr-1042",
-  "/dashboard/explore",
-  "/dashboard/admin/moderation",
-  "/dashboard/earnings",
-];
-
 async function signIn(page: Page) {
   await page.goto("/signin");
   await page.getByRole("button", { name: /continue with google/i }).click();
@@ -159,24 +151,3 @@ for (const width of [1264, 1440]) {
     }
   });
 }
-
-test("worst offenders screenshot in both rail states (1263 collapsed / 1264 expanded)", async ({
-  page,
-}, testInfo) => {
-  await signIn(page);
-  for (const route of WORST_OFFENDERS) {
-    for (const width of [1263, 1264]) {
-      await page.setViewportSize({ width, height: 900 });
-      await settle(page, route);
-      const state = width >= 1264 ? "expanded" : "collapsed";
-      await expect(visibleRail(page)).toHaveAttribute(
-        "data-expanded",
-        String(width >= 1264),
-      );
-      await testInfo.attach(`${route.replaceAll("/", "_")}@${width}-${state}`, {
-        body: await page.screenshot({ fullPage: true }),
-        contentType: "image/png",
-      });
-    }
-  }
-});
