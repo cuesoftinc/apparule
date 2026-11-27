@@ -49,3 +49,14 @@ func TestReconcileLooksPastBothEdgesButNotIntoTheFuture(t *testing.T) {
 		t.Fatalf("windows must tile: next from %s, this to %s", nextFrom, to)
 	}
 }
+
+func TestAPassThatChangedNothingIsDebug(t *testing.T) {
+	if got := idleLevel(0, 0, 0); got != slog.LevelDebug {
+		t.Fatalf("idle pass level %v, want debug", got)
+	}
+	for _, counts := range [][]int64{{1, 0, 0}, {0, 2, 0}, {0, 0, 3}} {
+		if got := idleLevel(counts...); got != slog.LevelInfo {
+			t.Fatalf("pass %v level %v, want info", counts, got)
+		}
+	}
+}

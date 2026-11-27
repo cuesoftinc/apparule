@@ -26,6 +26,7 @@ import (
 	"github.com/cuesoftinc/apparule/api/common/internal/config"
 	"github.com/cuesoftinc/apparule/api/common/internal/handler"
 	"github.com/cuesoftinc/apparule/api/common/internal/kafka"
+	"github.com/cuesoftinc/apparule/api/common/internal/logging"
 	"github.com/cuesoftinc/apparule/api/common/internal/middleware"
 	"github.com/cuesoftinc/apparule/api/common/internal/outbox"
 	"github.com/cuesoftinc/apparule/api/common/internal/ratelimit"
@@ -35,7 +36,7 @@ import (
 )
 
 func main() {
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+	slog.SetDefault(logging.New(os.Stdout, os.Getenv("LOG_LEVEL")))
 	if err := run(); err != nil {
 		slog.Error("exiting", "error", err)
 		os.Exit(1)
