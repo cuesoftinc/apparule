@@ -152,9 +152,19 @@ func (s *Sweeper) Captures(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	slog.Info("captures swept", "step", "sweep", "expired", expired, "resent", resent, "failed", failed)
+	slog.Log(ctx, idleLevel(expired, resent, failed), "captures swept", "step", "sweep", "expired", expired, "resent", resent, "failed", failed)
 	s.settle(ctx)
 	return nil
+}
+
+// idleLevel is debug for a per-minute pass that changed nothing and info once it changed a row.
+func idleLevel(counts ...int64) slog.Level {
+	for _, n := range counts {
+		if n != 0 {
+			return slog.LevelInfo
+		}
+	}
+	return slog.LevelDebug
 }
 
 // Orders runs hourly: the clocks of order-lifecycle.md §1.

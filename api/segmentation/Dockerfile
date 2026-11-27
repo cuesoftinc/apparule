@@ -24,4 +24,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
   CMD python -c "import os,urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:'+os.environ.get('PORT','8081')+'/health').status==200 else 1)"
 # No access log: the only routes are the health checks, polled every 30s;
 # work happens over Kafka and is logged per message.
-CMD ["sh","-c","uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8081} --no-access-log"]
+CMD ["python", "serve.py"]
