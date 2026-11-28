@@ -16,7 +16,27 @@ import (
 
 type ctxKey int
 
-const requestIDKey ctxKey = iota
+const (
+	requestIDKey       ctxKey = iota
+	requestLogStateKey ctxKey = 101
+)
+
+type requestLogState struct {
+	accountID string
+	route     string
+}
+
+// MatchServeMuxPattern resolves a nested ServeMux route before authentication
+// can terminate the request before its leaf handler runs.
+func MatchServeMuxPattern(mux *http.ServeMux, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, pattern := mux.Handler(r)
+		if state, ok := r.Context().Value(requestLogStateKey).(*requestLogState); ok {
+			state.route = pattern
+		}
+		next.ServeHTTP(w, r)
+	})
+}
 
 func Chain(h http.Handler, mws ...func(http.Handler) http.Handler) http.Handler {
 	for i := len(mws) - 1; i >= 0; i-- {
@@ -52,12 +72,23 @@ func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		sw := &statusWriter{ResponseWriter: w, status: http.StatusOK}
-		next.ServeHTTP(sw, r)
+		logState := &requestLogState{}
+		ctx := context.WithValue(r.Context(), requestLogStateKey, logState)
+		next.ServeHTTP(sw, r.WithContext(ctx))
 		if r.URL.Path == "/health" || r.URL.Path == "/ready" {
 			return
 		}
-		slog.Log(r.Context(), requestLevel(r.Method, sw.status), "request", "method", r.Method, "path", r.URL.Path, "status", sw.status,
-			"ms", time.Since(start).Milliseconds(), "request_id", r.Context().Value(requestIDKey))
+		route := logState.route
+		if route == "" {
+			route = "unmatched"
+		}
+		attrs := []any{"method", r.Method, "path", r.URL.Path, "route", route,
+			"status", sw.status, "ms", time.Since(start).Milliseconds(),
+			"request_id", r.Context().Value(requestIDKey)}
+		if logState.accountID != "" {
+			attrs = append(attrs, "account_id", logState.accountID)
+		}
+		slog.Log(r.Context(), requestLevel(r.Method, sw.status), "request", attrs...)
 	})
 }
 

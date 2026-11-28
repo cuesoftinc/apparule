@@ -22,6 +22,14 @@ func WithPrincipal(ctx context.Context, p *repository.Principal) context.Context
 	return context.WithValue(ctx, principalKey, p)
 }
 
+// setLogAccount records the account ID in the request log state.
+func setLogAccount(ctx context.Context, accountID string) context.Context {
+	if state, ok := ctx.Value(requestLogStateKey).(*requestLogState); ok {
+		state.accountID = accountID
+	}
+	return ctx
+}
+
 // Sessions is the slice of the account service auth needs.
 type Sessions interface {
 	ResolveSession(ctx context.Context, claims *auth.Claims) (*repository.Principal, error)
@@ -64,11 +72,12 @@ func Authenticate(cfg *config.Config, sessions Sessions) func(http.Handler) http
 				deny(w, http.StatusServiceUnavailable, "session_unavailable", "Sessions are temporarily unavailable")
 				return
 			}
+			ctx := setLogAccount(WithPrincipal(r.Context(), p), p.AccountID)
 			if p.Suspended {
 				deny(w, http.StatusForbidden, "account_disabled", "This account has been disabled")
 				return
 			}
-			next.ServeHTTP(w, r.WithContext(WithPrincipal(r.Context(), p)))
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
