@@ -19,9 +19,9 @@ import 'package:apparule/src/features/feed/presentation/explore_view_model.dart'
 import 'package:apparule/src/features/profile/presentation/follow_list_view_model.dart';
 import 'package:apparule/src/features/profile/presentation/unfollow_confirm_sheet.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The C3 tag chips — real style tags from the seeded narrative (the
 /// canvas chips are placeholders; honest data wins, same rule as the

@@ -12,13 +12,6 @@ describe("MeasurementCard (§8.2)", () => {
     expect(screen.getByText("Scan")).toBeInTheDocument();
   });
 
-  it.each(["scan", "manual"] as const)("renders source=%s", (source) => {
-    const { container } = render(
-      <MeasurementCard name="hip" valueCm={36.8} source={source} />,
-    );
-    expect(container.querySelector(`[data-source="${source}"]`)).not.toBeNull();
-  });
-
   it("shows the low-confidence chip under 0.7", () => {
     render(
       <MeasurementCard

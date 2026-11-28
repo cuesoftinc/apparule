@@ -7,9 +7,9 @@ import 'package:apparule/src/features/earnings/presentation/earnings_view_model.
 import 'package:apparule/src/features/profile/domain/profile.dart';
 import 'package:apparule/src/features/profile/presentation/edit_profile_view_model.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// C9 — edit profile (canvas 532:2): display name, bio (designer
 /// accounts ONLY, following web: web has no

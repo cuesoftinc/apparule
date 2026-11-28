@@ -348,7 +348,10 @@ committed in-repo is the reviewed artifact; the generated Dart
 hex in components" discipline (web-implementation.md §1) applied to
 Flutter's theming model instead of CSS variables. Light and dark themes
 build from the same token set (design.md §2's true-black dark palette);
-fonts (Inter) are bundled, not fetched at runtime.
+fonts (Inter) are bundled, not fetched at runtime. Material widgets and
+their localizations come from the standalone `material_ui` package; the
+SDK's frozen `package:flutter/material.dart` and `cupertino.dart` are
+never imported (`test/design_library_imports_test.dart` fails on either).
 
 **One `core/ui` module per Figma C-series component set** — constructor
 parameters mirror the Figma variant axes exactly, the same rule web's

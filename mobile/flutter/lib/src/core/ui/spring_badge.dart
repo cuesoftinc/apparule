@@ -2,7 +2,7 @@ import 'dart:async' show unawaited;
 
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/utils/formats.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// SpringBadge — the MI-16 count badge (design.md §4: "Orders tab badge
 /// increments with springy scale"): the like-red count pill that pops

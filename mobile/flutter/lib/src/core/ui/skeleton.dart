@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The Figma `Skeleton` set's `kind` axis (54:464).
 enum SkeletonKind { line, avatar, media, card }

@@ -5,9 +5,9 @@ import 'package:apparule/src/core/ui/app_switch.dart';
 import 'package:apparule/src/features/profile/domain/profile.dart';
 import 'package:apparule/src/features/profile/presentation/settings_view_model.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// B7 sub-screen — Notifications (canvas 207:2): the seven per-event
 /// toggles, optimistic per MI-18 (the ViewModel flips the snapshot and

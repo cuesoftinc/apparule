@@ -1,6 +1,6 @@
 import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Temporary skeleton-wave scaffolding: the shared body every placeholder
 /// screen renders until its C-series surface lands (§1 phase 3). Not a

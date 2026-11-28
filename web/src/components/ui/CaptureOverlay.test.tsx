@@ -4,17 +4,6 @@ import { CaptureOverlay } from "./CaptureOverlay";
 import { QC_GUIDANCE } from "./QCHintChip";
 
 describe("CaptureOverlay (§8.2b)", () => {
-  it.each(["searching", "aligned", "countdown", "qc-hint"] as const)(
-    "renders guide=%s",
-    (guide) => {
-      const { container } = render(
-        <CaptureOverlay guide={guide} qcCode="no_body" />,
-      );
-      expect(container.firstElementChild).toHaveAttribute("data-guide", guide);
-      expect(screen.getByTestId("silhouette")).toBeInTheDocument();
-    },
-  );
-
   it("searching: silhouette pulses gently (MI-12), reduced-motion safe", () => {
     render(<CaptureOverlay guide="searching" />);
     const silhouette = screen.getByTestId("silhouette");

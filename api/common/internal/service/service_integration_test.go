@@ -19,6 +19,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -107,13 +108,93 @@ type env struct {
 	s        *service.Services
 }
 
-func freePort(t *testing.T) uint32 {
+// The package shares one Postgres (embedded unless TEST_DATABASE_URL is set)
+// and migrates once into a template; each test copies the template.
+var (
+	templateOnce sync.Once
+	templateErr  error
+	superURL     string
+	templateName string
+	embedded     *embeddedpostgres.EmbeddedPostgres
+	embeddedDir  string
+)
+
+func TestMain(m *testing.M) {
+	exit := m.Run()
+	if embedded != nil {
+		_ = embedded.Stop()
+	}
+	if embeddedDir != "" {
+		_ = os.RemoveAll(embeddedDir)
+	}
+	os.Exit(exit)
+}
+
+func freePort() (uint32, error) {
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
-		t.Fatal(err)
+		return 0, err
 	}
 	defer l.Close()
-	return uint32(l.Addr().(*net.TCPAddr).Port)
+	return uint32(l.Addr().(*net.TCPAddr).Port), nil
+}
+
+// appURL is the non-superuser URL for a database on the shared server.
+func appURL(dbName string) string {
+	u := strings.Replace(superURL, "postgres:postgres@", "apparule_app:app@", 1)
+	return u[:strings.LastIndex(u, "/")+1] + dbName + "?sslmode=disable"
+}
+
+func superExec(ctx context.Context, stmts ...string) error {
+	super, err := pgx.Connect(ctx, superURL)
+	if err != nil {
+		return err
+	}
+	defer super.Close(ctx)
+	for _, stmt := range stmts {
+		if _, err := super.Exec(ctx, stmt); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func buildTemplate() error {
+	ctx := context.Background()
+	superURL = os.Getenv("TEST_DATABASE_URL")
+	if superURL == "" {
+		port, err := freePort()
+		if err != nil {
+			return err
+		}
+		if embeddedDir, err = os.MkdirTemp("", "apparule-service-pg-"); err != nil {
+			return err
+		}
+		pg := embeddedpostgres.NewDatabase(embeddedpostgres.DefaultConfig().Port(port).
+			RuntimePath(filepath.Join(embeddedDir, "run")).DataPath(filepath.Join(embeddedDir, "data")).StartTimeout(2 * time.Minute))
+		if err := pg.Start(); err != nil {
+			return fmt.Errorf("embedded postgres: %w", err)
+		}
+		embedded = pg
+		superURL = fmt.Sprintf("postgres://postgres:postgres@127.0.0.1:%d/postgres?sslmode=disable", port)
+	}
+
+	templateName = fmt.Sprintf("apparule_template_%d", time.Now().UnixNano())
+	if err := superExec(ctx,
+		`DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'apparule_app') THEN
+			CREATE ROLE apparule_app LOGIN PASSWORD 'app' NOSUPERUSER NOBYPASSRLS; END IF; END $$`,
+		`CREATE DATABASE `+templateName+` OWNER apparule_app`,
+	); err != nil {
+		return err
+	}
+
+	pool, err := pgxpool.New(ctx, appURL(templateName))
+	if err != nil {
+		return err
+	}
+	// A template cannot be copied while a connection to it is open.
+	defer pool.Close()
+	return migrations.Apply(ctx, pool)
 }
 
 func setup(t *testing.T) *env {
@@ -131,45 +212,21 @@ func setup(t *testing.T) *env {
 	}
 
 	ctx := context.Background()
-	superURL := os.Getenv("TEST_DATABASE_URL")
-	if superURL == "" {
-		p := freePort(t)
-		dir := t.TempDir()
-		pg := embeddedpostgres.NewDatabase(embeddedpostgres.DefaultConfig().Port(p).
-			RuntimePath(filepath.Join(dir, "run")).DataPath(filepath.Join(dir, "data")).StartTimeout(2 * time.Minute))
-		if err := pg.Start(); err != nil {
-			t.Fatalf("embedded postgres: %v", err)
-		}
-		t.Cleanup(func() { _ = pg.Stop() })
-		superURL = fmt.Sprintf("postgres://postgres:postgres@127.0.0.1:%d/postgres?sslmode=disable", p)
+	templateOnce.Do(func() { templateErr = buildTemplate() })
+	if templateErr != nil {
+		t.Fatal(templateErr)
 	}
 
-	super, err := pgx.Connect(ctx, superURL)
-	if err != nil {
+	dbName := fmt.Sprintf("apparule_test_%d", time.Now().UnixNano())
+	if err := superExec(ctx, `CREATE DATABASE `+dbName+` TEMPLATE `+templateName+` OWNER apparule_app`); err != nil {
 		t.Fatal(err)
 	}
-	dbName := fmt.Sprintf("apparule_test_%d", time.Now().UnixNano())
-	for _, stmt := range []string{
-		`DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'apparule_app') THEN
-			CREATE ROLE apparule_app LOGIN PASSWORD 'app' NOSUPERUSER NOBYPASSRLS; END IF; END $$`,
-		`CREATE DATABASE ` + dbName + ` OWNER apparule_app`,
-	} {
-		if _, err := super.Exec(ctx, stmt); err != nil {
-			t.Fatal(err)
-		}
-	}
-	super.Close(ctx)
 
-	appURL := strings.Replace(superURL, "postgres:postgres@", "apparule_app:app@", 1)
-	appURL = appURL[:strings.LastIndex(appURL, "/")+1] + dbName + "?sslmode=disable"
-	pool, err := pgxpool.New(ctx, appURL)
+	pool, err := pgxpool.New(ctx, appURL(dbName))
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(pool.Close)
-	if err := migrations.Apply(ctx, pool); err != nil {
-		t.Fatal(err)
-	}
 	db := &repository.DB{Pool: pool}
 
 	_, key, _ := ed25519.GenerateKey(rand.Reader)
@@ -304,25 +361,6 @@ func ready(e *env, t *testing.T, p *service.Principal) {
 	tmpl := "women"
 	if _, err := e.s.UpdateMe(ctx, p, service.MePatch{MeasurementTemplate: &tmpl, TemplateSet: true}); err != nil {
 		t.Fatal(err)
-	}
-}
-
-func assertHTTPRateLimited(t *testing.T, h *handler.Handlers, p *service.Principal, method, target, body string, call func(http.ResponseWriter, *http.Request)) {
-	t.Helper()
-	req := httptest.NewRequest(method, target, strings.NewReader(body))
-	req = req.WithContext(middleware.WithPrincipal(req.Context(), p))
-	rec := httptest.NewRecorder()
-	call(rec, req)
-	if rec.Code != http.StatusTooManyRequests {
-		t.Fatalf("HTTP status = %d, want %d; body=%s", rec.Code, http.StatusTooManyRequests, rec.Body.String())
-	}
-	retry := rec.Header().Get("Retry-After")
-	n, err := strconv.Atoi(retry)
-	if err != nil || n <= 0 {
-		t.Fatalf("Retry-After = %q, want positive seconds", retry)
-	}
-	if !strings.Contains(rec.Body.String(), `"code":"rate_limited"`) {
-		t.Fatalf("HTTP body missing rate_limited: %s", rec.Body.String())
 	}
 }
 
@@ -755,12 +793,7 @@ func TestCommissionMoneyFlow(t *testing.T) {
 	req.SetPathValue("id", order.ID)
 	rec := httptest.NewRecorder()
 	h.AddMessage(rec, req)
-	if rec.Code != http.StatusTooManyRequests || rec.Header().Get("Retry-After") == "" {
-		t.Fatalf("AddMessage HTTP: status=%d retry=%q body=%s", rec.Code, rec.Header().Get("Retry-After"), rec.Body.String())
-	}
-	if !strings.Contains(rec.Body.String(), `"code":"rate_limited"`) {
-		t.Fatalf("AddMessage HTTP body missing rate_limited: %s", rec.Body.String())
-	}
+	assertHTTPResponse(t, rec, "AddMessage")
 	if _, err := e.s.AddMessage(ctx, designer, order.ID, "Other account message", nil); err != nil {
 		t.Fatalf("message quota should be isolated per account: %v", err)
 	}
@@ -1162,7 +1195,7 @@ func TestIssue437RateLimits(t *testing.T) {
 		t.Fatal(err)
 	}
 	if exportRows != e.s.Config.Limits.ExportsPerDay {
-		t.Fatalf("export rows: got=%d want=%d", exportRows, e.s.Config.Limits.ExportsPerDay+1)
+		t.Fatalf("export rows: got=%d want=%d", exportRows, e.s.Config.Limits.ExportsPerDay)
 	}
 
 	ready(e, t, other)

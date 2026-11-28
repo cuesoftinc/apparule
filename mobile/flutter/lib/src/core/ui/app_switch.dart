@@ -1,5 +1,5 @@
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Switch — the Figma `Switch` atom (§8.2b form primitives): `state: on /
 /// off × enabled / disabled`. On paints the accent gradient track (the

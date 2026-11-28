@@ -497,7 +497,7 @@ func (s *Services) AddMessage(ctx context.Context, p *Principal, id, body string
 	var staged *repository.MediaRow // the tmp upload to move into the order's folder
 	var dst string
 	copied := false
-	quotaTaken := false
+	writePass := false // the insert runs only in the second, post-quota pass
 	post := func(tx pgx.Tx) error {
 		o, err := repository.GetOrder(ctx, tx, id)
 		if err != nil {
@@ -542,20 +542,12 @@ func (s *Services) AddMessage(ctx context.Context, p *Principal, id, body string
 				}
 			}
 		}
-		if staged != nil {
-			if !quotaTaken {
-				if err := s.take(ctx, p, ratelimit.Rule{Name: "message-min", Max: int64(s.Config.Limits.MessagesPerMin), Window: time.Minute}); err != nil {
-					return err
-				}
-				quotaTaken = true
+		if !writePass {
+			// Validation-only pass: never insert and never spend quota.
+			if staged != nil {
+				return nil // validated only; the copy and insert run in the write pass
 			}
-			return nil // validated only; the copy runs outside the transaction
-		}
-		if !quotaTaken {
-			if err := s.take(ctx, p, ratelimit.Rule{Name: "message-min", Max: int64(s.Config.Limits.MessagesPerMin), Window: time.Minute}); err != nil {
-				return err
-			}
-			quotaTaken = true
+			return nil
 		}
 		msgID, at, err := repository.InsertMessage(ctx, tx, id, p.AccountID, byDesigner, body, mediaID)
 		if err != nil {
@@ -568,9 +560,17 @@ func (s *Services) AddMessage(ctx context.Context, p *Principal, id, body string
 		out = &model.ThreadMessage{ID: msgID, RequestID: id, AuthorID: author, Body: body, CreatedAt: at}
 		return nil
 	}
+	// First (validation-only) pass for every message. It only reads, so it
+	// never spends quota.
 	if err := s.as(ctx, p, post); err != nil {
 		return nil, err
 	}
+	// Close the transaction, then spend quota once outside Postgres so a
+	// Valkey stall never pins a pooled connection.
+	if err := s.take(ctx, p, ratelimit.Rule{Name: "message-min", Max: int64(s.Config.Limits.MessagesPerMin), Window: time.Minute}); err != nil {
+		return nil, err
+	}
+	writePass = true
 	if staged != nil {
 		// The object copy holds no connection; the second pass re-checks the
 		// order and the media row before it confirms and posts.
@@ -584,6 +584,10 @@ func (s *Services) AddMessage(ctx context.Context, p *Principal, id, body string
 			return nil, err
 		}
 		_ = s.Store.Delete(ctx, tmpKey)
+	} else {
+		if err := s.as(ctx, p, post); err != nil {
+			return nil, err
+		}
 	}
 	if mediaKey != nil {
 		url, err := s.Store.SignedURL(ctx, *mediaKey, time.Hour)

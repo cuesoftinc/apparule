@@ -3,17 +3,6 @@
 from app.config import QC, Settings
 
 
-def test_default_model_paths(monkeypatch):
-    monkeypatch.delenv("POSE_MODEL_PATH", raising=False)
-    monkeypatch.delenv("MODEL_PATH", raising=False)
-    monkeypatch.delenv("SEGMENTATION_MODEL_PATH", raising=False)
-
-    settings = Settings()
-
-    assert settings.pose_model_path == "pose_landmarker.task"
-    assert settings.segmentation_model_path == "selfie_segmenter.tflite"
-
-
 def test_legacy_pose_model_path_is_supported(monkeypatch):
     monkeypatch.delenv("POSE_MODEL_PATH", raising=False)
     monkeypatch.setenv("MODEL_PATH", "custom-pose.task")

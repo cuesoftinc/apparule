@@ -19,9 +19,9 @@ import 'package:apparule/src/features/profile/presentation/notification_route.da
 import 'package:apparule/src/features/profile/presentation/notifications_view_model.dart';
 import 'package:apparule/src/features/profile/presentation/unfollow_confirm_sheet.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// C10 — the notifications sheet (pages.md: activity list grouped by
 /// day, swipe-to-clear). Unread rows tint + dot for THIS visit; opening

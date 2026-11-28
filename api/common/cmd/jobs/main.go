@@ -19,10 +19,11 @@ import (
 
 	"github.com/cuesoftinc/apparule/api/common/internal/app"
 	"github.com/cuesoftinc/apparule/api/common/internal/config"
+	"github.com/cuesoftinc/apparule/api/common/internal/logging"
 )
 
 func main() {
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+	slog.SetDefault(logging.New(os.Stdout, os.Getenv("LOG_LEVEL")))
 	if err := run(os.Args[1:]); err != nil {
 		slog.Error("job failed", "error", err)
 		os.Exit(1)

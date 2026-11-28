@@ -4,8 +4,8 @@ import 'package:apparule/src/core/ui/google_auth_button.dart';
 import 'package:apparule/src/features/auth/domain/auth_exception.dart';
 import 'package:apparule/src/features/auth/presentation/sign_in_view_model.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// C1 — the single Google-CTA auth screen (flows/auth.md §5, pages.md

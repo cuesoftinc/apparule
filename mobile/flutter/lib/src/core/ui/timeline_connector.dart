@@ -1,7 +1,7 @@
 import 'dart:async' show unawaited;
 
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The MI-14 timeline dot ladder — done (success fill), current (gradient
 /// + pulse), upcoming (hairline ring) and the terminal-error rung the C8

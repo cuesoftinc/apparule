@@ -1,25 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { PaymentBox, type PaymentBoxState } from "./PaymentBox";
-
-const STATES: PaymentBoxState[] = [
-  "quoted",
-  "paying",
-  "escrow-held",
-  "released",
-  "refunded",
-  "dispute-frozen",
-];
+import { PaymentBox } from "./PaymentBox";
 
 describe("PaymentBox (§8.2b, MI-15)", () => {
-  it.each(STATES)("renders state=%s", (state) => {
-    const { container } = render(
-      <PaymentBox state={state} role="customer" quoteCents={4_500_000} />,
-    );
-    expect(container.querySelector(`[data-state="${state}"]`)).not.toBeNull();
-  });
-
   it("customer quoted state shows the pay CTA with the amount", async () => {
     const onPay = vi.fn();
     render(

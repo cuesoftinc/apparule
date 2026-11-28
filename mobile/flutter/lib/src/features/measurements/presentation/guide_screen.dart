@@ -7,9 +7,9 @@ import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/guide_page.dart';
 import 'package:apparule/src/features/measurements/data/capture_guide_flag.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// One guide step's copy — title + bullets from the ARB (re-keyed to the
 /// canvas strings, the canon) over the GuidePage set's `step` axis.

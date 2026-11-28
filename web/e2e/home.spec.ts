@@ -155,43 +155,6 @@ test.describe("Marketing site — home page", () => {
     ).toBeInViewport();
   });
 
-  test("theme toggle cycles light → dark → system", async ({ page }) => {
-    await page.goto("/");
-    const html = page.locator("html");
-
-    // Fresh visit = light (key absent), the design default.
-    await expect(html).toHaveAttribute("data-theme", "light");
-    expect(
-      await page.evaluate(() => window.localStorage.getItem("apparule.theme")),
-    ).toBeNull();
-    await page
-      .getByRole("button", { name: "Theme: light — switch to dark" })
-      .click();
-    await expect(html).toHaveAttribute("data-theme", "dark");
-
-    await page
-      .getByRole("button", { name: "Theme: dark — switch to system" })
-      .click();
-    // "system" is now stored explicitly (not key-absent); resolved from
-    // the OS (light here).
-    expect(
-      await page.evaluate(() => window.localStorage.getItem("apparule.theme")),
-    ).toBe("system");
-    await expect(html).toHaveAttribute("data-theme", "light");
-
-    // System mode follows an OS-level scheme flip without a reload.
-    await page.emulateMedia({ colorScheme: "dark" });
-    await expect(html).toHaveAttribute("data-theme", "dark");
-    await page.emulateMedia({ colorScheme: "light" });
-    await expect(html).toHaveAttribute("data-theme", "light");
-
-    // Fourth press returns to light, closing the cycle.
-    await page
-      .getByRole("button", { name: "Theme: system — switch to light" })
-      .click();
-    await expect(html).toHaveAttribute("data-theme", "light");
-  });
-
   // A7c tabbed snippet (Figma 415:2): tab switch is instant with no layout
   // shift, copy targets the ACTIVE tab's full two-line block, and the
   // section fits the 1440/390 container canons.

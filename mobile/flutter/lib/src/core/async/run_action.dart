@@ -1,5 +1,5 @@
 import 'package:apparule/src/core/l10n/l10n.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The one mutation-failure seam for screens (the audit's CLASS 4 lock —
 /// the mobile mirror of web's `run()`): await the [action]; on failure

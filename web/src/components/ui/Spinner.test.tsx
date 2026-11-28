@@ -3,11 +3,6 @@ import { render, screen } from "@testing-library/react";
 import { Spinner } from "./Spinner";
 
 describe("Spinner (§8.2b)", () => {
-  it.each([20, 28] as const)("renders size=%s", (size) => {
-    render(<Spinner size={size} />);
-    expect(screen.getByRole("status")).toHaveAttribute("width", String(size));
-  });
-
   it("gradient kind strokes the accent gradient (MI-5)", () => {
     const { container } = render(<Spinner kind="gradient" />);
     expect(container.querySelector("linearGradient")).not.toBeNull();

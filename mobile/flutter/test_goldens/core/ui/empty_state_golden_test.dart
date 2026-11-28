@@ -1,6 +1,6 @@
 import 'package:alchemist/alchemist.dart';
 import 'package:apparule/src/core/ui/empty_state.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../helpers/golden_themes.dart';
 

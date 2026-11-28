@@ -3,7 +3,7 @@ import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/avatar.dart';
 import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/sheet.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// MI-7: unfollow always goes through a confirm sheet (prevents
 /// accidental) — web sibling `UnfollowConfirmSheet`. Resolves true when

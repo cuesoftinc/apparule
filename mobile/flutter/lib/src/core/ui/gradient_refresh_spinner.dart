@@ -3,7 +3,7 @@ import 'dart:math' as math;
 
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/app_haptics.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// GradientRefreshSpinner — the MI-5 pull-to-refresh (design.md §4:
 /// "gradient spinner grows with pull distance (threshold 72px), haptic on

@@ -4,7 +4,7 @@ import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/countdown_ring.dart';
 import 'package:apparule/src/core/ui/qc_hint_chip.dart';
 import 'package:apparule/src/core/utils/capture_pose.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The Figma `CaptureOverlay` set's `guide` axis (63:701).
 enum CaptureGuide { searching, aligned, countdown, qcHint }

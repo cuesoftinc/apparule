@@ -1,6 +1,6 @@
 import 'dart:async' show unawaited;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// ConfettiBurst — the MI-10 success burst (design.md §4: "confetti burst
 /// ≤ 800ms (once per order)"): 28 pieces animate once from the

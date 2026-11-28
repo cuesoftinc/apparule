@@ -1,6 +1,6 @@
-import 'package:apparule/l10n/generated/app_localizations.dart';
 import 'package:apparule/src/app/di.dart';
 import 'package:apparule/src/core/data/persistence_service.dart';
+import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/app_theme.dart';
 import 'package:apparule/src/features/auth/data/auth_repository.dart';
 import 'package:apparule/src/features/earnings/data/earnings_repository.dart';
@@ -11,9 +11,9 @@ import 'package:apparule/src/features/measurements/data/measurement_repository.d
 import 'package:apparule/src/features/orders/data/order_repository.dart';
 import 'package:apparule/src/features/profile/data/notification_repository.dart';
 import 'package:apparule/src/features/profile/data/profile_repository.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 
 import 'in_memory_persistence.dart';
@@ -68,7 +68,7 @@ extension PumpApp on WidgetTester {
           theme: AppTheme.light(),
           darkTheme: AppTheme.dark(),
           themeMode: themeMode,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           // Bare core/ui modules use ink responses; the transparent
           // Material supplies the required ancestor without changing

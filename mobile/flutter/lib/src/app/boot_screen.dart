@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:apparule/src/core/l10n/l10n.dart';
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// How long the silent restore may run before the boot frame admits a
 /// progress affordance (no spinners

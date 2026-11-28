@@ -7,9 +7,9 @@ import 'package:apparule/src/core/ui/sheet.dart';
 import 'package:apparule/src/features/profile/domain/profile.dart';
 import 'package:apparule/src/features/profile/presentation/settings_view_model.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// B7 sub-screen — Account & data (canvas 207:7182): the Google
 /// identity block, export-first ("Download my data"), and the danger

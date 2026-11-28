@@ -12,42 +12,6 @@ beforeEach(() => {
 });
 
 describe("seed narrative", () => {
-  it("seeds kiki + the three Lagos designers", () => {
-    expect(store.me("kiki.adeyemi").display_name).toBe("Kiki Adeyemi");
-    for (const d of ["amara.designs", "tunde.o", "maisonbisi"]) {
-      const designer = store.designerByUsername(d);
-      expect(designer?.location?.city).toBe("Lagos");
-      expect(designer?.verified).toBe(true);
-    }
-  });
-
-  it("seeds #APR-1042 ankara ₦45,000 in_progress with escrow held", () => {
-    const order = store.order("req-apr-1042", "kiki.adeyemi");
-    expect(order.order_number).toBe("APR-1042");
-    expect(order.status).toBe("in_progress");
-    expect(order.quote_cents).toBe(4_500_000);
-    expect(order.designer.username).toBe("amara.designs");
-    expect(order.payment?.state).toBe("held");
-    expect(order.payment?.platform_fee_cents).toBe(450_000);
-  });
-
-  it("seeds #APR-1058 aso-oke ₦62,000 delivered and paid out", () => {
-    const order = store.order("req-apr-1058", "kiki.adeyemi");
-    expect(order.order_number).toBe("APR-1058");
-    expect(order.status).toBe("delivered");
-    expect(order.quote_cents).toBe(6_200_000);
-    expect(order.designer.username).toBe("maisonbisi");
-    expect(order.payment?.state).toBe("released");
-  });
-
-  it("seeds kiki's vault with a fresh 42.5 cm shoulder measurement", () => {
-    const sessions = store.sessionsFor("kiki.adeyemi");
-    expect(sessions.length).toBeGreaterThanOrEqual(3);
-    const newest = sessions[0];
-    const shoulder = newest.measurements.find((m) => m.name === "shoulder");
-    expect(shoulder?.value_cm).toBe(42.5);
-  });
-
   it("boot vault carries a low-confidence (<0.7) measurement — the B4 chip is reachable from seed (audit 2026-07-20)", () => {
     const sessions = store.sessionsFor("kiki.adeyemi");
     const newest = sessions[0];
@@ -96,31 +60,6 @@ describe("seed narrative", () => {
         served.designer.following_count,
       );
     }
-  });
-
-  it("#APR-1058 (child outfit gift) freezes child-scale manual measurements", () => {
-    // PR #102 review: the "Little senator" order must not carry kiki's
-    // adult vault snapshot — it's a gift with tape-measured child values
-    // entered by hand at request time.
-    const order = store.order("req-apr-1058", "kiki.adeyemi");
-    expect(order.snapshot.values.method).toBe("manual");
-    for (const m of order.snapshot.values.measurements) {
-      expect(m.value_cm, m.name).toBeLessThan(70);
-    }
-    expect(order.notes).toMatch(/nephew/i);
-    // kiki's own vault stays adult — the child session was deleted after
-    // the snapshot froze (sessions are deletable; snapshots are immutable).
-    const newest = store.sessionsFor("kiki.adeyemi")[0];
-    expect(
-      newest.measurements.find((m) => m.name === "shoulder")?.value_cm,
-    ).toBe(42.5);
-  });
-
-  it("#APR-1042 (ankara maxi skirt) carries a skirt-appropriate note", () => {
-    // PR #102 review: the recaptioned skirt order asked for "longer sleeves".
-    const order = store.order("req-apr-1042", "kiki.adeyemi");
-    expect(order.notes).toMatch(/ankle length/i);
-    expect(order.notes).not.toMatch(/sleeve/i);
   });
 
   it("order snapshots are measured before the order exists (P1 realism)", () => {

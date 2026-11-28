@@ -13,9 +13,9 @@ import 'package:apparule/src/features/feed/domain/user_summary.dart';
 import 'package:apparule/src/features/profile/presentation/follow_list_view_model.dart';
 import 'package:apparule/src/features/profile/presentation/unfollow_confirm_sheet.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// C12 — followers/following (canvas 205:7203; = B6 lists): count-titled
 /// text tabs over UserRow lists with the MI-7 Follow morph (designers

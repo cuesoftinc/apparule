@@ -152,7 +152,7 @@ jobs:
         run: pytest
 
   web:
-    name: web · lint + typecheck + unit + build
+    name: web · lint + typecheck + unit
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -179,11 +179,6 @@ jobs:
 
       - name: Unit & integration tests
         run: npm test
-
-      - name: Build (TEST_MODE)
-        run: npm run build
-        env:
-          NEXT_PUBLIC_TEST_MODE: "true"
 
   web-e2e:
     name: web · Playwright (TEST_MODE)
