@@ -315,40 +315,77 @@ func (s *Sweeper) Retention(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	for _, k := range keys {
-		if err := s.Store.Delete(ctx, k); err != nil {
-			slog.Warn("object delete failed; next run retries", "error", err)
-		}
-	}
 	// Claim-check payloads and leftover tmp/ objects older than a day (the
 	// bucket lifecycle does this in cloud; compose has no lifecycle rule).
 	cutoff := s.Now().Add(-24 * time.Hour)
+	failures := s.sweepObjects(ctx, keys, cutoff, counts)
+	orphans, orphanFailures := s.sweepOrphans(ctx, cutoff)
+	counts["orphans"] = orphans
+	failures += orphanFailures
+	if failures > 0 {
+		slog.Warn("retention swept partially", "step", "sweep", "counts", counts, "failures", failures)
+		return fmt.Errorf("retention sweep partial: %d object steps failed", failures)
+	}
+	slog.Info("retention swept", "step", "sweep", "counts", counts)
+	return nil
+}
+
+// objectTally counts one pass of object deletions: a deletion counts as
+// deleted only once the store accepted it.
+type objectTally struct{ deleted, absent, failed int64 }
+
+func (t *objectTally) delete(ctx context.Context, store storage.Store, key string) {
+	switch err := store.Delete(ctx, key); {
+	case err == nil:
+		t.deleted++
+	case errors.Is(err, storage.ErrMissing):
+		t.absent++
+	default:
+		t.failed++
+	}
+}
+
+// sweepObjects deletes the objects whose rows the retention pass removed, then
+// claim-check and tmp/ objects older than cutoff. It records deleted, absent
+// and failed counts in counts and returns how many deletions and listings
+// failed; a failed deletion is retried by the next run or the orphan pass.
+func (s *Sweeper) sweepObjects(ctx context.Context, keys []string, cutoff time.Time, counts map[string]int64) (failures int64) {
+	var rowObjects, expired objectTally
+	for _, k := range keys {
+		rowObjects.delete(ctx, s.Store, k)
+	}
+	var listFailed int64
 	for _, prefix := range []string{storage.ComputePrefix(s.Store), storage.TmpPrefix(s.Store)} {
 		objects, err := s.Store.List(ctx, prefix)
 		if err != nil {
+			listFailed++
 			slog.Warn("listing for cleanup failed", "prefix", strings.TrimPrefix(prefix, s.Store.Prefix()), "error", err)
 			continue
 		}
 		for _, o := range objects {
 			if o.Created.Before(cutoff) {
-				_ = s.Store.Delete(ctx, o.Key)
-				counts["objects"]++
+				expired.delete(ctx, s.Store, o.Key)
 			}
 		}
 	}
-	counts["orphans"] = s.sweepOrphans(ctx, cutoff)
-	slog.Info("retention swept", "step", "sweep", "counts", counts)
-	return nil
+	counts["row_objects"] = rowObjects.deleted
+	counts["objects"] = expired.deleted
+	counts["objects_absent"] = rowObjects.absent + expired.absent
+	counts["objects_failed"] = rowObjects.failed + expired.failed
+	counts["listings_failed"] = listFailed
+	return rowObjects.failed + expired.failed + listFailed
 }
 
 // sweepOrphans deletes saved capture images and attachments older than cutoff
 // that no row points at: copies a save or a message left when its second
 // transaction failed or the session was deleted meanwhile. Post images are
 // not swept here: orders and notifications keep their own pointers to them.
-func (s *Sweeper) sweepOrphans(ctx context.Context, cutoff time.Time) (deleted int64) {
+// failures counts failed deletions, listings and reference checks.
+func (s *Sweeper) sweepOrphans(ctx context.Context, cutoff time.Time) (deleted, failures int64) {
 	for _, prefix := range []string{storage.CapturesPrefix(s.Store), storage.AttachmentsPrefix(s.Store)} {
 		objects, err := s.Store.List(ctx, prefix)
 		if err != nil {
+			failures++
 			slog.Warn("listing for orphan sweep failed", "prefix", strings.TrimPrefix(prefix, s.Store.Prefix()), "error", err)
 			continue
 		}
@@ -367,16 +404,19 @@ func (s *Sweeper) sweepOrphans(ctx context.Context, cutoff time.Time) (deleted i
 				return err
 			}); err != nil {
 				slog.Warn("orphan check failed; next run retries", "error", err)
-				return deleted
+				return deleted, failures + 1
 			}
+			var tally objectTally
 			for _, k := range chunk {
-				if !held[k] && s.Store.Delete(ctx, k) == nil {
-					deleted++
+				if !held[k] {
+					tally.delete(ctx, s.Store, k)
 				}
 			}
+			deleted += tally.deleted
+			failures += tally.failed
 		}
 	}
-	return deleted
+	return deleted, failures
 }
 
 // reconcileMargin widens the window on both sides: Paystack dates an item
