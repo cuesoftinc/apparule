@@ -58,36 +58,47 @@ func (l *Limiter) Take(ctx context.Context, key string, cost int64, rules ...Rul
 		return true, 0
 	}
 	now := time.Now()
-	keys := make([]string, len(rules))
-	for i, r := range rules {
-		keys[i] = l.windowKey(r, key, now)
+	keys := make([]string, 0, len(rules))
+	args := make([]interface{}, 0, 1+len(rules)*3)
+	args = append(args, cost)
+	for _, r := range rules {
+		keys = append(keys, l.windowKey(r, key, now))
+		wait := r.Window - time.Duration(now.Unix()%int64(r.Window.Seconds()))*time.Second
+		args = append(args, r.Max, int64(r.Window/time.Second), wait.Milliseconds())
 	}
-	// Check every window first, then add to all: one refusal costs nothing.
-	values, err := l.client.MGet(ctx, keys...).Result()
+	waitMillis, err := takeScript.Run(ctx, l.client, keys, args...).Int64()
 	if err != nil {
 		slog.Warn("rate limiter unavailable; failing open", "error", err)
 		return true, 0
 	}
-	for i, r := range rules {
-		var used int64
-		if s, ok := values[i].(string); ok {
-			fmt.Sscan(s, &used) //nolint:errcheck // a corrupt counter reads as 0
-		}
-		if used+cost > r.Max {
-			wait := r.Window - time.Duration(now.Unix()%int64(r.Window.Seconds()))*time.Second
-			return false, max(retryAfter, wait)
-		}
-	}
-	pipe := l.client.TxPipeline()
-	for i, r := range rules {
-		pipe.IncrBy(ctx, keys[i], cost)
-		pipe.Expire(ctx, keys[i], r.Window)
-	}
-	if _, err := pipe.Exec(ctx); err != nil {
-		slog.Warn("rate limiter unavailable; failing open", "error", err)
+	if waitMillis > 0 {
+		return false, time.Duration(waitMillis) * time.Millisecond
 	}
 	return true, 0
 }
+
+var takeScript = redis.NewScript(`
+local cost = tonumber(ARGV[1])
+local longest_wait = 0
+for i = 1, #KEYS do
+	local base = (i - 1) * 3
+	local used = tonumber(redis.call("GET", KEYS[i]) or "0")
+	local max = tonumber(ARGV[base + 2])
+	local wait = tonumber(ARGV[base + 4])
+	if used + cost > max and wait > longest_wait then
+		longest_wait = wait
+	end
+end
+if longest_wait > 0 then
+	return longest_wait
+end
+for i = 1, #KEYS do
+	local base = (i - 1) * 3
+	redis.call("INCRBY", KEYS[i], cost)
+	redis.call("EXPIRE", KEYS[i], tonumber(ARGV[base + 3]))
+end
+return 0
+`)
 
 // windowKey is <prefix>:rl:<rule>:<key>:<window index>.
 func (l *Limiter) windowKey(r Rule, key string, now time.Time) string {

@@ -440,6 +440,9 @@ func (s *Services) ExportSession(ctx context.Context, p *Principal, id, format s
 	if row.Status != "complete" && row.Status != "pending_save" {
 		return nil, conflict("invalid_transition", "Only measured sessions can be exported")
 	}
+	if err := s.take(ctx, p, ratelimit.Rule{Name: "export-day", Max: int64(s.Config.Limits.ExportsPerDay), Window: 24 * time.Hour}); err != nil {
+		return nil, err
+	}
 	data, contentType := renderExport(row, format)
 	key := fmt.Sprintf("%s/exports/%s/%s/%s.%s", s.Store.Prefix(), row.WorkspaceID, id, s.Now().UTC().Format("20060102T150405"), format)
 	if err := s.Store.Put(ctx, key, data, contentType); err != nil {

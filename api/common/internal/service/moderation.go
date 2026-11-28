@@ -4,10 +4,12 @@ import (
 	"context"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 
 	"github.com/cuesoftinc/apparule/api/common/internal/model"
+	"github.com/cuesoftinc/apparule/api/common/internal/ratelimit"
 	"github.com/cuesoftinc/apparule/api/common/internal/repository"
 )
 
@@ -22,14 +24,29 @@ func (s *Services) FileReport(ctx context.Context, p *Principal, kind, subjectID
 	if detail != nil && len(*detail) > 1000 {
 		return nil, invalid("detail is at most 1000 characters")
 	}
-	var out *model.Report
+	// First transaction: validate that the report subject exists. No quota is
+	// spent here, so invalid requests are rejected before any Valkey call.
 	err := s.as(ctx, p, func(tx pgx.Tx) error {
-		preview, thumbKey, _, err := repository.ReportSubject(ctx, tx, kind, subjectID)
+		_, _, _, err := repository.ReportSubject(ctx, tx, kind, subjectID)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+	// Close the first transaction, then spend quota outside Postgres so a
+	// Valkey stall never pins a pooled connection.
+	if err := s.take(ctx, p, ratelimit.Rule{Name: "report-hour", Max: int64(s.Config.Limits.ReportsPerHour), Window: time.Hour}); err != nil {
+		return nil, err
+	}
+	// Second transaction: re-read the subject and insert the report.
+	var out *model.Report
+	err = s.as(ctx, p, func(tx pgx.Tx) error {
+		p2, thumbKey, _, err := repository.ReportSubject(ctx, tx, kind, subjectID)
 		if err != nil {
 			return err
 		}
-		preview.ThumbKey = thumbKey
-		out, err = repository.InsertReport(ctx, tx, p.AccountID, kind, subjectID, reason, detail, preview)
+		p2.ThumbKey = thumbKey
+		out, err = repository.InsertReport(ctx, tx, p.AccountID, kind, subjectID, reason, detail, p2)
 		return err
 	})
 	return s.reportOut(ctx, out), err

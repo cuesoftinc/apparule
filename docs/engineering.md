@@ -61,6 +61,9 @@ verified token once per request; handlers declare required capability, no inline
 | `POST sessions` (capture) | 10/min, 100/day |
 | Likes/saves/follows | 60/min combined (anti-spam), silent absorb over-limit for idempotent toggles |
 | Comments | 10/min |
+| Order messages | 30/min |
+| Reports | 10/hour |
+| Session exports | 20/day |
 | Requests | 10 open total (flows/request.md), 20 created/day |
 | Posts (designer) | 20/day |
 | Auth attempts | sign-in starts limited per source and overall (Redis, in-memory fallback) |
