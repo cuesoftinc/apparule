@@ -3,8 +3,8 @@ import 'package:apparule/src/features/earnings/data/earnings_repository_fake.dar
 import 'package:apparule/src/features/profile/data/profile_repository_fake.dart';
 import 'package:apparule/src/features/profile/presentation/edit_profile_screen.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../helpers/boot_app.dart';
 import '../../../../helpers/notched.dart';

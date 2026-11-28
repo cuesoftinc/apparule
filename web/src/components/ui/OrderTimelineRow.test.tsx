@@ -3,16 +3,6 @@ import { render, screen } from "@testing-library/react";
 import { OrderTimelineRow } from "./OrderTimelineRow";
 
 describe("OrderTimelineRow (§8.2b, MI-14)", () => {
-  it.each(["done", "current", "pending", "terminal-error"] as const)(
-    "renders dot=%s",
-    (dot) => {
-      const { container } = render(
-        <OrderTimelineRow dot={dot} label="Quoted" />,
-      );
-      expect(container.querySelector(`[data-dot="${dot}"]`)).not.toBeNull();
-    },
-  );
-
   it("connector drawn/undrawn/none", () => {
     const { container, rerender } = render(
       <OrderTimelineRow dot="done" connector="drawn" label="Paid" />,

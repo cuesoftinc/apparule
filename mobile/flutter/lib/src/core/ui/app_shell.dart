@@ -1,6 +1,6 @@
 import 'package:apparule/src/core/ui/tab_bar.dart';
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The persistent five-tab shell — Home · Explore · ➕ · Orders · Profile
 /// (pages.md Part C; design.md §3) — hosting the StatefulShellRoute's

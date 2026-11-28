@@ -1,7 +1,7 @@
 import 'package:apparule/src/core/theme/theme_mode_controller.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// The tri-state theme preference (B7 Appearance): hydrates from the

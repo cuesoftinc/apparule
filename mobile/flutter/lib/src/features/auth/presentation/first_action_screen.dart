@@ -6,9 +6,9 @@ import 'package:apparule/src/features/auth/data/auth_repository.dart';
 import 'package:apparule/src/features/auth/data/first_action_flag.dart';
 import 'package:apparule/src/features/measurements/presentation/capture_launcher.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// C1b — the post-signup interstitial (canvas 266:2 "Welcome, choose
 /// your start"; pages.md C1b): "Take your first measurement" (→ C6) or

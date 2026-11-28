@@ -1,8 +1,11 @@
 package router
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -97,4 +100,55 @@ type asEmail string
 
 func (e asEmail) Verify(context.Context, string, string) (handler.Claims, error) {
 	return handler.Claims{Email: string(e), EmailVerified: true}, nil
+}
+
+func captureRouterLog(t *testing.T, h http.Handler, req *http.Request) map[string]any {
+	t.Helper()
+	var logs bytes.Buffer
+	previous := slog.Default()
+	slog.SetDefault(slog.New(slog.NewJSONHandler(&logs, nil)))
+	t.Cleanup(func() { slog.SetDefault(previous) })
+
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+
+	var record map[string]any
+	if err := json.Unmarshal(bytes.TrimSpace(logs.Bytes()), &record); err != nil {
+		t.Fatalf("request log is not JSON: %q (%v)", logs.String(), err)
+	}
+	return record
+}
+
+func TestRouterRouteLogging(t *testing.T) {
+	jobs := &handler.Jobs{
+		Run: map[string]func(context.Context) error{
+			"captures": func(context.Context) error { return nil },
+		},
+		Verifier:  allowAll{},
+		Audience:  "https://svc",
+		Invoker:   "scheduler@example.com",
+	}
+
+	h := New(&handler.Handlers{}, nil, func(next http.Handler) http.Handler { return next }, nil,
+		func(context.Context) error { return nil }, jobs, nil)
+
+	tests := []struct {
+		name      string
+		method    string
+		path      string
+		wantRoute string
+	}{
+		{"root job route", http.MethodPost, "/internal/jobs/captures", "POST /internal/jobs/{name}"},
+		{"unknown path", http.MethodGet, "/api/v1/unknown", "unmatched"},
+		{"wrong method", http.MethodPost, "/api/v1/me", "unmatched"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			record := captureRouterLog(t, h, httptest.NewRequest(tt.method, tt.path, nil))
+			if got := record["route"]; got != tt.wantRoute {
+				t.Fatalf("route = %v, want %q", got, tt.wantRoute)
+			}
+		})
+	}
 }

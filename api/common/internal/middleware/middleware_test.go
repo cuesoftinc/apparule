@@ -36,11 +36,12 @@ func captureRequestLog(t *testing.T, h http.Handler, req *http.Request) map[stri
 
 func TestLoggerAuthenticatedMatchedRoute(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.Handle("GET /api/v1/sessions/{id}", MatchedRoute(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("GET /api/v1/sessions/{id}", MatchServeMuxPattern(mux, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := WithPrincipal(r.Context(), &repository.Principal{
 			AccountID: "account-123",
 			Email:     "private@example.com",
 		})
+		ctx = setLogAccount(ctx, "account-123")
 		r = r.WithContext(ctx)
 		w.WriteHeader(http.StatusOK)
 	})))
@@ -85,15 +86,93 @@ func TestLoggerAnonymousRequest(t *testing.T) {
 	}
 
 	mux2 := http.NewServeMux()
-	mux2.Handle("GET /api/v1/public/{id}", MatchedRoute(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	mux2.Handle("GET /api/v1/public/{id}", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
-	})))
-	record := captureRequestLog(t, Logger(mux2), httptest.NewRequest(http.MethodGet, "/api/v1/public/resource-789", nil))
+	}))
+	record := captureRequestLog(t, Logger(MatchServeMuxPattern(mux2, mux2)), httptest.NewRequest(http.MethodGet, "/api/v1/public/resource-789", nil))
 	if _, ok := record["account_id"]; ok {
 		t.Fatalf("anonymous request log fabricated account_id: %v", record["account_id"])
 	}
 	if got := record["route"]; got != "GET /api/v1/public/{id}" {
 		t.Fatalf("route = %v, want GET /api/v1/public/{id}", got)
+	}
+}
+
+func TestLoggerUnmatchedRoute(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.Handle("GET /api/v1/sessions/{id}", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	record := captureRequestLog(t, Logger(mux), httptest.NewRequest(http.MethodGet, "/api/v1/unknown", nil))
+	if got := record["route"]; got != "unmatched" {
+		t.Fatalf("route = %v, want unmatched", got)
+	}
+	if got := record["path"]; got != "/api/v1/unknown" {
+		t.Fatalf("path = %v, want /api/v1/unknown", got)
+	}
+}
+
+func TestLoggerWrongMethodLogsUnmatched(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.Handle("GET /api/v1/sessions/{id}", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	record := captureRequestLog(t, Logger(mux), httptest.NewRequest(http.MethodPost, "/api/v1/sessions/1", nil))
+	if got := record["route"]; got != "unmatched" {
+		t.Fatalf("route = %v, want unmatched", got)
+	}
+}
+
+func TestRequestLineLevelFollowsTheStatus(t *testing.T) {
+	prev := slog.Default()
+	t.Cleanup(func() { slog.SetDefault(prev) })
+	cases := []struct {
+		method string
+		status int
+		want   string
+	}{
+		{http.MethodGet, http.StatusOK, "INFO"},
+		{http.MethodPost, http.StatusNoContent, "INFO"},
+		{http.MethodGet, http.StatusFound, "INFO"},
+		{http.MethodOptions, http.StatusNoContent, "DEBUG"},
+		{http.MethodOptions, http.StatusForbidden, "WARN"},
+		{http.MethodGet, http.StatusUnauthorized, "WARN"},
+		{http.MethodGet, http.StatusNotFound, "WARN"},
+		{http.MethodPost, http.StatusInternalServerError, "ERROR"},
+		{http.MethodGet, http.StatusBadGateway, "ERROR"},
+	}
+	for _, c := range cases {
+		var out bytes.Buffer
+		slog.SetDefault(slog.New(slog.NewJSONHandler(&out, &slog.HandlerOptions{Level: slog.LevelDebug})))
+		h := Logger(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(c.status) }))
+		h.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(c.method, "/api/v1/things", nil))
+		var line struct {
+			Level  string `json:"level"`
+			Msg    string `json:"msg"`
+			Status int    `json:"status"`
+		}
+		if err := json.Unmarshal(out.Bytes(), &line); err != nil {
+			t.Fatalf("%s %d: request line is not one JSON record: %v", c.method, c.status, err)
+		}
+		if line.Msg != "request" || line.Status != c.status || line.Level != c.want {
+			t.Fatalf("%s %d: got level %s msg %q status %d, want level %s", c.method, c.status, line.Level, line.Msg, line.Status, c.want)
+		}
+	}
+}
+
+func TestHealthChecksWriteNoRequestLine(t *testing.T) {
+	prev := slog.Default()
+	t.Cleanup(func() { slog.SetDefault(prev) })
+	var out bytes.Buffer
+	slog.SetDefault(slog.New(slog.NewJSONHandler(&out, &slog.HandlerOptions{Level: slog.LevelDebug})))
+	h := Logger(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusServiceUnavailable) }))
+	for _, path := range []string{"/health", "/ready"} {
+		h.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, path, nil))
+	}
+	if out.Len() != 0 {
+		t.Fatalf("health checks wrote request lines: %q", out.String())
 	}
 }
 
@@ -132,9 +211,9 @@ func TestAuthenticateSuspendedAccountLogsAccountID(t *testing.T) {
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("GET /api/v1/me", MatchedRoute(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
+	mux.Handle("GET /api/v1/me", http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
 		t.Fatal("suspended account must not reach the leaf handler")
-	})))
+	}))
 	authHandler := Authenticate(cfg, testSessions{principal: &repository.Principal{
 		AccountID: accountID,
 		Email:     "private@example.com",
@@ -174,7 +253,7 @@ func TestAuthenticateAndAuthorizationRejectLogsAccountID(t *testing.T) {
 		w.WriteHeader(http.StatusForbidden)
 	})
 	mux := http.NewServeMux()
-	mux.Handle("GET /api/v1/sessions/{id}", MatchedRoute(leaf))
+	mux.Handle("GET /api/v1/sessions/{id}", leaf)
 	authHandler := Authenticate(cfg, testSessions{principal: &repository.Principal{
 		AccountID: accountID,
 		Email:     "private@example.com",

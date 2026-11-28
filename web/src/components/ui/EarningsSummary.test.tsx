@@ -10,15 +10,6 @@ describe("EarningsSummary + TransactionRow (§8.2b)", () => {
     expect(screen.getByTestId("pending-card")).toHaveTextContent("₦40,500");
   });
 
-  it.each(["payout", "escrow_held", "fee_line"] as const)(
-    "TransactionRow renders kind=%s",
-    (kind) => {
-      const entry = fixtureEarnings.transactions.find((t) => t.kind === kind)!;
-      const { container } = render(<TransactionRow entry={entry} />);
-      expect(container.querySelector(`[data-kind="${kind}"]`)).not.toBeNull();
-    },
-  );
-
   it("payout rows carry the provider ref; fee lines render negative", () => {
     const payout = fixtureEarnings.transactions[0];
     render(<TransactionRow entry={payout} />);

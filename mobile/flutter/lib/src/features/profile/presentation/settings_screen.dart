@@ -8,10 +8,10 @@ import 'package:apparule/src/features/earnings/presentation/earnings_view_model.
 import 'package:apparule/src/features/profile/domain/profile.dart';
 import 'package:apparule/src/features/profile/presentation/settings_view_model.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// B7 — settings root (C9's gear; pages.md B7 mobile-adapted): the

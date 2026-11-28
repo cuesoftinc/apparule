@@ -2,9 +2,9 @@ import 'package:apparule/src/core/theme/theme_mode_controller.dart';
 import 'package:apparule/src/features/earnings/data/earnings_repository_fake.dart';
 import 'package:apparule/src/features/profile/data/profile_repository_fake.dart';
 import 'package:apparule/src/features/profile/presentation/settings_screen.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../helpers/notched.dart';

@@ -17,8 +17,8 @@ import 'package:apparule/src/core/ui/user_row.dart';
 import 'package:apparule/src/core/utils/formats.dart';
 import 'package:apparule/src/features/auth/data/auth_repository_fake.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'boot_app.dart';
 import 'pump_app.dart';

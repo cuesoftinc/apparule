@@ -15,9 +15,9 @@ import 'package:apparule/src/features/feed/presentation/home_feed_screen.dart';
 import 'package:apparule/src/features/feed/presentation/post_detail_view_model.dart';
 import 'package:apparule/src/features/feed/presentation/post_options_sheet.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// C4 — post detail (pages.md: full-bleed carousel · action row ·
 /// caption · comments entry · Request CTA pinned bottom, safe-area).

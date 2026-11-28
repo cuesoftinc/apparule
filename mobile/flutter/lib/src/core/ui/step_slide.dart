@@ -1,5 +1,5 @@
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// StepSlide — the MI-10 step transition (design.md §4: "step transitions
 /// slide 24px") as a shared primitive: consumers key the [child] by step

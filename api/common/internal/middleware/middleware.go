@@ -26,16 +26,6 @@ type requestLogState struct {
 	route     string
 }
 
-// MatchedRoute copies the pattern selected by net/http.ServeMux.
-func MatchedRoute(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if state, ok := r.Context().Value(requestLogStateKey).(*requestLogState); ok {
-			state.route = r.Pattern
-		}
-		next.ServeHTTP(w, r)
-	})
-}
-
 // MatchServeMuxPattern resolves a nested ServeMux route before authentication
 // can terminate the request before its leaf handler runs.
 func MatchServeMuxPattern(mux *http.ServeMux, next http.Handler) http.Handler {
@@ -90,10 +80,7 @@ func Logger(next http.Handler) http.Handler {
 		}
 		route := logState.route
 		if route == "" {
-			route = r.Pattern
-		}
-		if route == "" {
-			route = r.URL.Path
+			route = "unmatched"
 		}
 		attrs := []any{"method", r.Method, "path", r.URL.Path, "route", route,
 			"status", sw.status, "ms", time.Since(start).Milliseconds(),
@@ -101,8 +88,22 @@ func Logger(next http.Handler) http.Handler {
 		if logState.accountID != "" {
 			attrs = append(attrs, "account_id", logState.accountID)
 		}
-		slog.Info("request", attrs...)
+		slog.Log(r.Context(), requestLevel(r.Method, sw.status), "request", attrs...)
 	})
+}
+
+// requestLevel: a 5xx is an error, a 4xx a warning, a CORS preflight debug and any other request info.
+func requestLevel(method string, status int) slog.Level {
+	switch {
+	case status >= http.StatusInternalServerError:
+		return slog.LevelError
+	case status >= http.StatusBadRequest:
+		return slog.LevelWarn
+	case method == http.MethodOptions:
+		return slog.LevelDebug
+	default:
+		return slog.LevelInfo
+	}
 }
 
 func Recover(next http.Handler) http.Handler {

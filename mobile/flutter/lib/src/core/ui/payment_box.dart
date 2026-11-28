@@ -1,8 +1,8 @@
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/utils/formats.dart';
-import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The Figma `PaymentBox` set's `state` axis (90:1103).
 enum PaymentBoxState {

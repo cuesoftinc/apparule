@@ -1,5 +1,5 @@
 import 'package:apparule/src/core/theme/theme_extensions.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The Figma `Tabs` set's `active` axis — which of the two items is
 /// selected (the as-built 2026-07-17 property shape: `active: first /

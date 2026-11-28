@@ -1,7 +1,7 @@
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/utils/formats.dart';
-import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The Figma `TransactionRow` kind axis (§8.2b earnings rows): payout /
 /// escrow-held / fee-line (10%). Canonical glyph + label ride the enum

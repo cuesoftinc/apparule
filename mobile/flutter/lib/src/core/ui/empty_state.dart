@@ -2,8 +2,8 @@ import 'dart:math' as math;
 
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/button.dart';
-import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The Figma `EmptyState` set's `kind` axis (54:459) — every list defines
 /// one. Canonical copy and CTA kinds ride the enum (web sibling parity);

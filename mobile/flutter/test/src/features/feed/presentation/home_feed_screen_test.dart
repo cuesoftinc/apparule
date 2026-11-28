@@ -9,9 +9,9 @@ import 'package:apparule/src/features/feed/domain/report_reason.dart';
 import 'package:apparule/src/features/profile/presentation/notifications_screen.dart';
 import 'package:apparule/src/features/profile/presentation/public_profile_screen.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../helpers/boot_app.dart';
 import '../../../../helpers/notched.dart';

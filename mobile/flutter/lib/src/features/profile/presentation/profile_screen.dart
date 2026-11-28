@@ -11,9 +11,9 @@ import 'package:apparule/src/core/utils/seed_media.dart';
 import 'package:apparule/src/features/feed/domain/post.dart';
 import 'package:apparule/src/features/profile/presentation/profile_view_model.dart';
 import 'package:apparule/src/routing/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// C9 — own profile (Profile tab; canvas 174:964): the MI-11
 /// vault-freshness ring header (THE C7 entry, pages.md C7), social

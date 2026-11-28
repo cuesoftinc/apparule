@@ -1,7 +1,7 @@
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/utils/capture_pose.dart';
-import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The Figma `QCHintChip` set's `code` axis (62:634) — 1:1 with the
 /// capture-qc.md §1–2 fail codes, `not_side_profile` included (M-10

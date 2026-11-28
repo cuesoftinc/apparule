@@ -5,10 +5,10 @@ import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/sheet.dart';
 import 'package:apparule/src/features/feed/data/post_repository.dart';
 import 'package:apparule/src/features/feed/domain/report_reason.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The PostCard ⋯ overflow sheet (design.md §3 Popover/MenuItem context
 /// "PostCard ⋯ overflow (report/share)"; web sibling `PostOptionsSheet`):

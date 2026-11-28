@@ -19,11 +19,13 @@ func PrincipalFrom(ctx context.Context) *repository.Principal {
 }
 
 func WithPrincipal(ctx context.Context, p *repository.Principal) context.Context {
-	ctx = context.WithValue(ctx, principalKey, p)
-	if p != nil {
-		if state, ok := ctx.Value(requestLogStateKey).(*requestLogState); ok {
-			state.accountID = p.AccountID
-		}
+	return context.WithValue(ctx, principalKey, p)
+}
+
+// setLogAccount records the account ID in the request log state.
+func setLogAccount(ctx context.Context, accountID string) context.Context {
+	if state, ok := ctx.Value(requestLogStateKey).(*requestLogState); ok {
+		state.accountID = accountID
 	}
 	return ctx
 }
@@ -70,7 +72,7 @@ func Authenticate(cfg *config.Config, sessions Sessions) func(http.Handler) http
 				deny(w, http.StatusServiceUnavailable, "session_unavailable", "Sessions are temporarily unavailable")
 				return
 			}
-			ctx := WithPrincipal(r.Context(), p)
+			ctx := setLogAccount(WithPrincipal(r.Context(), p), p.AccountID)
 			if p.Suspended {
 				deny(w, http.StatusForbidden, "account_disabled", "This account has been disabled")
 				return

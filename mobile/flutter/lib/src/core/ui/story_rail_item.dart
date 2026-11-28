@@ -3,7 +3,7 @@ import 'dart:math' as math;
 
 import 'package:apparule/src/core/theme/theme_extensions.dart';
 import 'package:apparule/src/core/ui/avatar.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The Figma `StoryRailItem` set's `state` axis (46:95).
 enum StoryRailItemState { unseen, seen, loading }

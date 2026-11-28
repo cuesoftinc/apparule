@@ -1,7 +1,7 @@
 import 'package:apparule/src/core/ui/button.dart';
 import 'package:apparule/src/core/ui/payment_box.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../helpers/pump_app.dart';
 

@@ -10,9 +10,9 @@ import 'package:apparule/src/features/profile/data/notification_repository_fake.
 import 'package:apparule/src/features/profile/presentation/public_profile_screen.dart';
 import 'package:apparule/src/routing/routes.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 
 import '../../../../helpers/boot_app.dart';
